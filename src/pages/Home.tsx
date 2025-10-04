@@ -15,7 +15,7 @@ const featuredProducts = [
     name: "Luna Chair",
     designer: "Tejal Agawane",
     designerId: "tejal",
-    price: 18750,
+    price: 24999,
     weight: 3.2,
     image: chairHero,
   },
@@ -24,7 +24,7 @@ const featuredProducts = [
     name: "Flow Table",
     designer: "Marcus Chen",
     designerId: "marcus",
-    price: 32500,
+    price: 45999,
     weight: 5.8,
     image: tableCurvy,
   },
@@ -33,7 +33,7 @@ const featuredProducts = [
     name: "Wave Vase",
     designer: "Sarah Williams",
     designerId: "sarah",
-    price: 6225,
+    price: 8999,
     weight: 1.1,
     image: vaseCurvy,
   },
@@ -42,7 +42,7 @@ const featuredProducts = [
     name: "Curve Bench",
     designer: "Priya Sharma",
     designerId: "priya",
-    price: 27475,
+    price: 38999,
     weight: 4.9,
     image: benchCurvy,
   },
@@ -68,9 +68,9 @@ const Home = () => {
                 </div>
                 
                 <h1 className="text-4xl md:text-6xl font-bold leading-tight text-foreground">
-                  Imagination meets{" "}
+                  From concept to{" "}
                   <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    innovation
+                    creation
                   </span>
                 </h1>
                 

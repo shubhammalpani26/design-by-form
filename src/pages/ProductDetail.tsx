@@ -14,7 +14,7 @@ const productData: Record<string, any> = {
     name: "Luna Chair",
     designer: "Tejal Agawane",
     designerId: "tejal",
-    price: 18750,
+    price: 24999,
     weight: 3.2,
     image: chairHero,
     description: "The Luna Chair combines organic curves with minimalist design philosophy. 3D printed on-demand using Post Consumer Recycled PP (PCR), making it both sustainable and beautiful. Perfect for modern living spaces that value both comfort and eco-conscious design.",
