@@ -8,7 +8,18 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import chairHero from "@/assets/chair-hero.jpg";
-import installationGuide from "@/assets/installation-guide.jpg";
+import chairSpiral from "@/assets/chair-spiral.jpg";
+import tableFlow from "@/assets/table-flow.jpg";
+import tableDining from "@/assets/table-dining.jpg";
+import vaseCurvy from "@/assets/vase-curvy.jpg";
+import vaseSculptural from "@/assets/vase-sculptural.jpg";
+import benchCurvy from "@/assets/bench-curvy.jpg";
+import benchFluid from "@/assets/bench-fluid.jpg";
+import installation1 from "@/assets/installation-1.jpg";
+import installation2 from "@/assets/installation-2.jpg";
+import decorShelf from "@/assets/decor-shelf.jpg";
+import decorBowl from "@/assets/decor-bowl.jpg";
+import decorPlanter from "@/assets/decor-planter.jpg";
 
 const productData: Record<string, any> = {
   "1": {
@@ -22,6 +33,150 @@ const productData: Record<string, any> = {
     dimensions: "32\"W × 30\"D × 34\"H",
     materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
     designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
+  },
+  "2": {
+    name: "Flow Coffee Table",
+    designer: "Marcus Chen",
+    designerId: "marcus",
+    price: 45999,
+    weight: 5.8,
+    image: tableFlow,
+    description: "A sculptural coffee table featuring flowing organic lines and curves. 3D printed using sustainable PCR material, this piece serves as both functional furniture and modern art. Its unique design creates a stunning focal point in any living space.",
+    dimensions: "48\"W × 28\"D × 18\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
+  },
+  "3": {
+    name: "Wave Vase",
+    designer: "Sarah Williams",
+    designerId: "sarah",
+    price: 8999,
+    weight: 1.1,
+    image: vaseCurvy,
+    description: "An elegant vase with undulating curves inspired by ocean waves. 3D printed with precision using recycled materials, perfect for displaying fresh flowers or as a standalone decorative piece.",
+    dimensions: "8\"W × 8\"D × 12\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
+  },
+  "4": {
+    name: "Curve Bench",
+    designer: "Priya Sharma",
+    designerId: "priya",
+    price: 38999,
+    weight: 4.9,
+    image: benchCurvy,
+    description: "A beautifully curved bench that combines comfort with artistic form. 3D printed on-demand with sustainable materials, ideal for entryways, bedrooms, or as statement seating.",
+    dimensions: "52\"W × 18\"D × 18\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Priya creates innovative furniture designs that push the boundaries of 3D printing technology.",
+  },
+  "5": {
+    name: "Organic Dining Table",
+    designer: "James Park",
+    designerId: "james",
+    price: 65999,
+    weight: 8.2,
+    image: tableDining,
+    description: "A large dining table featuring organic edges and a sculptural base. 3D printed with sustainable PCR material, this piece makes every meal feel special. Seats 6-8 people comfortably.",
+    dimensions: "72\"W × 36\"D × 30\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "James specializes in creating statement furniture pieces that merge architectural principles with sustainable manufacturing.",
+  },
+  "6": {
+    name: "Spiral Chair",
+    designer: "Marcus Chen",
+    designerId: "marcus",
+    price: 27999,
+    weight: 3.5,
+    image: chairSpiral,
+    description: "A striking chair with a twisted spiral form that defies convention. 3D printed with precision, this sculptural seating combines comfort with contemporary aesthetics.",
+    dimensions: "28\"W × 30\"D × 36\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
+  },
+  "7": {
+    name: "Fluid Bench",
+    designer: "Tejal Agawane",
+    designerId: "tejal",
+    price: 42999,
+    weight: 5.2,
+    image: benchFluid,
+    description: "A flowing bench design with wave-like curves throughout. 3D printed using sustainable materials, perfect for creating a unique statement in any interior space.",
+    dimensions: "56\"W × 20\"D × 18\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
+  },
+  "8": {
+    name: "Sculptural Vase",
+    designer: "Sarah Williams",
+    designerId: "sarah",
+    price: 11999,
+    weight: 1.4,
+    image: vaseSculptural,
+    description: "A contemporary vase with an organic twisted form. 3D printed with sustainable PCR material, this piece adds elegance and artistic flair to any surface.",
+    dimensions: "10\"W × 10\"D × 14\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
+  },
+  "9": {
+    name: "Abstract Flow Installation",
+    designer: "James Park",
+    designerId: "james",
+    price: 125999,
+    weight: 18.5,
+    image: installation1,
+    description: "A large-scale sculptural installation featuring abstract flowing forms. 3D printed in multiple sections using sustainable materials, perfect for creating a dramatic focal point in residential or commercial spaces.",
+    dimensions: "96\"W × 48\"D × 72\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "James specializes in creating statement furniture pieces that merge architectural principles with sustainable manufacturing.",
+  },
+  "10": {
+    name: "Wave Sculpture",
+    designer: "Priya Sharma",
+    designerId: "priya",
+    price: 89999,
+    weight: 12.3,
+    image: installation2,
+    description: "A dramatic wave-like sculptural installation that brings movement and energy to interior spaces. 3D printed using sustainable PCR material, ideal for lobbies, living rooms, or galleries.",
+    dimensions: "80\"W × 40\"D × 60\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Priya creates innovative furniture designs that push the boundaries of 3D printing technology.",
+  },
+  "11": {
+    name: "Organic Wall Shelf",
+    designer: "Marcus Chen",
+    designerId: "marcus",
+    price: 15999,
+    weight: 2.1,
+    image: decorShelf,
+    description: "A floating wall shelf with organic curves and sculptural form. 3D printed using sustainable materials, perfect for displaying books, plants, or decorative objects.",
+    dimensions: "36\"W × 10\"D × 8\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
+  },
+  "12": {
+    name: "Sculptural Bowl",
+    designer: "Tejal Agawane",
+    designerId: "tejal",
+    price: 6999,
+    weight: 0.8,
+    image: decorBowl,
+    description: "An elegant decorative bowl with flowing organic design. 3D printed using sustainable PCR material, perfect as a centerpiece or for holding small items.",
+    dimensions: "12\"W × 12\"D × 6\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
+  },
+  "13": {
+    name: "Geometric Planter",
+    designer: "Sarah Williams",
+    designerId: "sarah",
+    price: 8499,
+    weight: 1.2,
+    image: decorPlanter,
+    description: "A modern geometric planter with abstract design. 3D printed using sustainable materials, perfect for showcasing your favorite plants with contemporary style.",
+    dimensions: "10\"W × 10\"D × 12\"H",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
   },
 };
 
@@ -136,78 +291,6 @@ const ProductDetail = () => {
             </Card>
           </div>
         </div>
-
-        {/* Installation Guide Section */}
-        <section className="container py-12 border-t border-border mt-12">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-foreground">Installation Guide</h2>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-foreground">Easy Assembly</h3>
-                <p className="text-muted-foreground">
-                  Your furniture arrives ready to assemble with all necessary components and clear instructions.
-                </p>
-                
-                <div className="space-y-3">
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
-                      1
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">Unpack Components</h4>
-                      <p className="text-sm text-muted-foreground">Carefully remove all pieces and verify contents</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
-                      2
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">Follow Instructions</h4>
-                      <p className="text-sm text-muted-foreground">Connect pieces as shown in the manual</p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
-                      3
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-foreground">Secure & Enjoy</h4>
-                      <p className="text-sm text-muted-foreground">Tighten all connections and place in desired location</p>
-                    </div>
-                  </div>
-                </div>
-
-                <Card className="bg-secondary/10 border-secondary/20 mt-6">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <div className="text-sm">
-                        <p className="font-semibold text-foreground mb-1">No Special Tools Required</p>
-                        <p className="text-muted-foreground">All 3D printed furniture comes with snap-fit or simple bolt connections. Basic household tools may be needed for some pieces.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-              
-              <div>
-                <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
-                  <img
-                    src={installationGuide}
-                    alt="Installation guide"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
       </main>
       
       <Footer />
