@@ -190,7 +190,7 @@ const DesignerProfile = () => {
               </Card>
               <Card className="border-border">
                 <CardContent className="p-6 text-center">
-                  <p className="text-3xl font-bold text-secondary mb-1">${(designer.totalRevenue / 1000).toFixed(1)}K</p>
+                  <p className="text-3xl font-bold text-secondary mb-1">₹{(designer.totalRevenue / 1000).toFixed(1)}K</p>
                   <p className="text-sm text-muted-foreground">Revenue Generated</p>
                 </CardContent>
               </Card>

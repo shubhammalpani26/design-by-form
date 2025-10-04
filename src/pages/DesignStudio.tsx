@@ -371,9 +371,9 @@ const DesignStudio = () => {
                         <div className="bg-accent p-3 rounded-lg">
                           <p className="text-muted-foreground">Estimated Cost</p>
                           <p className="font-semibold text-foreground">
-                            ${estimatedCost?.toLocaleString() || '18,750'}
+                            ₹{estimatedCost?.toLocaleString() || '18,750'}
                           </p>
-                          <p className="text-xs text-muted-foreground mt-1">Based on ~2.5 cubic ft @ $7.5K/ft³</p>
+                          <p className="text-xs text-muted-foreground mt-1">Based on ~2.5 cubic ft @ ₹7.5K/ft³</p>
                         </div>
                         <div className="bg-accent p-3 rounded-lg">
                           <p className="text-muted-foreground">Production Time</p>
