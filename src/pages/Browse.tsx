@@ -12,6 +12,11 @@ import vaseCurvy from "@/assets/vase-curvy.jpg";
 import vaseSculptural from "@/assets/vase-sculptural.jpg";
 import benchCurvy from "@/assets/bench-curvy.jpg";
 import benchFluid from "@/assets/bench-fluid.jpg";
+import installation1 from "@/assets/installation-1.jpg";
+import installation2 from "@/assets/installation-2.jpg";
+import decorShelf from "@/assets/decor-shelf.jpg";
+import decorBowl from "@/assets/decor-bowl.jpg";
+import decorPlanter from "@/assets/decor-planter.jpg";
 
 const products = [
   {
@@ -93,6 +98,56 @@ const products = [
     weight: 1.4,
     image: vaseSculptural,
     category: "vases",
+  },
+  {
+    id: "9",
+    name: "Abstract Flow Installation",
+    designer: "James Park",
+    designerId: "james",
+    price: 125999,
+    weight: 18.5,
+    image: installation1,
+    category: "installations",
+  },
+  {
+    id: "10",
+    name: "Wave Sculpture",
+    designer: "Priya Sharma",
+    designerId: "priya",
+    price: 89999,
+    weight: 12.3,
+    image: installation2,
+    category: "installations",
+  },
+  {
+    id: "11",
+    name: "Organic Wall Shelf",
+    designer: "Marcus Chen",
+    designerId: "marcus",
+    price: 15999,
+    weight: 2.1,
+    image: decorShelf,
+    category: "home-decor",
+  },
+  {
+    id: "12",
+    name: "Sculptural Bowl",
+    designer: "Tejal Agawane",
+    designerId: "tejal",
+    price: 6999,
+    weight: 0.8,
+    image: decorBowl,
+    category: "home-decor",
+  },
+  {
+    id: "13",
+    name: "Geometric Planter",
+    designer: "Sarah Williams",
+    designerId: "sarah",
+    price: 8499,
+    weight: 1.2,
+    image: decorPlanter,
+    category: "home-decor",
   },
 ];
 
