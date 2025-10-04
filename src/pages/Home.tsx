@@ -4,9 +4,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import chairHero from "@/assets/chair-hero.jpg";
-import table1 from "@/assets/table-1.jpg";
-import shelf1 from "@/assets/shelf-1.jpg";
-import armchair1 from "@/assets/armchair-1.jpg";
+import chairCurvy from "@/assets/chair-curvy.jpg";
+import tableCurvy from "@/assets/table-curvy.jpg";
+import vaseCurvy from "@/assets/vase-curvy.jpg";
+import benchCurvy from "@/assets/bench-curvy.jpg";
 
 const featuredProducts = [
   {
@@ -19,27 +20,27 @@ const featuredProducts = [
   },
   {
     id: "2",
-    name: "Horizon Table",
+    name: "Flow Table",
     designer: "Marcus Chen",
     designerId: "marcus",
     price: 1299,
-    image: table1,
+    image: tableCurvy,
   },
   {
     id: "3",
-    name: "Cascade Shelf",
+    name: "Wave Vase",
     designer: "Sarah Williams",
     designerId: "sarah",
-    price: 749,
-    image: shelf1,
+    price: 249,
+    image: vaseCurvy,
   },
   {
     id: "4",
-    name: "Solace Armchair",
+    name: "Curve Bench",
     designer: "Priya Sharma",
     designerId: "priya",
     price: 1099,
-    image: armchair1,
+    image: benchCurvy,
   },
 ];
 

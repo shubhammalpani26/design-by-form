@@ -8,6 +8,12 @@ import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
 import DesignerProfile from "./pages/DesignerProfile";
 import DesignStudio from "./pages/DesignStudio";
+import DesignerSignup from "./pages/DesignerSignup";
+import HowItWorks from "./pages/HowItWorks";
+import Commissions from "./pages/Commissions";
+import About from "./pages/About";
+import Sustainability from "./pages/Sustainability";
+import Contact from "./pages/Contact";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +30,12 @@ const App = () => (
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/designer/:id" element={<DesignerProfile />} />
           <Route path="/design-studio" element={<DesignStudio />} />
+          <Route path="/designer-signup" element={<DesignerSignup />} />
+          <Route path="/how-it-works" element={<HowItWorks />} />
+          <Route path="/commissions" element={<Commissions />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/sustainability" element={<Sustainability />} />
+          <Route path="/contact" element={<Contact />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
