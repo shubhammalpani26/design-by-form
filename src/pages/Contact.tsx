@@ -83,16 +83,15 @@ const Contact = () => {
                     </div>
                     <div>
                       <div className="font-medium text-foreground mb-1">Phone</div>
-                      <a href="tel:+1-555-123-4567" className="text-primary hover:underline">
-                        +1 (555) 123-4567
+                      <a href="tel:+919082582002" className="text-primary hover:underline">
+                        +91 90825 82002
                       </a>
                     </div>
                     <div>
                       <div className="font-medium text-foreground mb-1">Address</div>
                       <p className="text-muted-foreground">
-                        123 Design Street<br />
-                        San Francisco, CA 94103<br />
-                        United States
+                        Mumbai, Maharashtra<br />
+                        India
                       </p>
                     </div>
                   </div>
@@ -119,7 +118,7 @@ const Contact = () => {
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                       </svg>
-                      Designer FAQs
+                      Creator FAQs
                     </a>
                   </div>
                 </CardContent>
@@ -185,9 +184,9 @@ const Contact = () => {
 
                 <Card>
                   <CardContent className="p-6">
-                    <h4 className="font-semibold mb-2 text-foreground">How do I become a designer?</h4>
+                    <h4 className="font-semibold mb-2 text-foreground">How do I become a creator?</h4>
                     <p className="text-sm text-muted-foreground">
-                      Apply through our Designer Signup page. We review applications within 3-5 business days.
+                      Apply through our Creator Signup page. Get instant access and start designing in minutes!
                     </p>
                   </CardContent>
                 </Card>

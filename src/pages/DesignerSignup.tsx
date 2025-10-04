@@ -63,11 +63,11 @@ const DesignerSignup = () => {
       if (error) throw error;
 
       toast({
-        title: "Application Submitted!",
-        description: "We'll review your application and get back to you soon.",
+        title: "Welcome to Forma!",
+        description: "Your creator account is ready. Start designing now!",
       });
 
-      navigate("/");
+      navigate("/design-studio");
     } catch (error: any) {
       toast({
         title: "Error",
