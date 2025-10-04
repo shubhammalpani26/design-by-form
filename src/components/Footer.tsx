@@ -27,9 +27,9 @@ export const Footer = () => {
           </div>
           
           <div>
-            <h4 className="font-semibold mb-4">For Designers</h4>
+            <h4 className="font-semibold mb-4">For Creators</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/designer-signup" className="text-muted-foreground hover:text-primary transition-colors">Join as Designer</Link></li>
+              <li><Link to="/designer-signup" className="text-muted-foreground hover:text-primary transition-colors">Join as Creator</Link></li>
               <li><Link to="/how-it-works" className="text-muted-foreground hover:text-primary transition-colors">How It Works</Link></li>
               <li><Link to="/commissions" className="text-muted-foreground hover:text-primary transition-colors">Commissions</Link></li>
             </ul>
@@ -46,6 +46,10 @@ export const Footer = () => {
         </div>
         
         <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
+          <div className="flex justify-center gap-6 mb-4">
+            <Link to="/terms" className="hover:text-primary transition-colors">Terms & Conditions</Link>
+            <Link to="/contact" className="hover:text-primary transition-colors">Privacy Policy</Link>
+          </div>
           <p>&copy; 2025 Forma. All rights reserved.</p>
         </div>
       </div>

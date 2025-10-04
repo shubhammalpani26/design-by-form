@@ -66,10 +66,10 @@ const Terms = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold text-foreground mb-4">6. Designer Attribution & Commissions</h2>
+              <h2 className="text-2xl font-semibold text-foreground mb-4">6. Creator Attribution & Commissions</h2>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Forma may attribute designs to specific designers for storytelling and commercial purposes.</li>
-                <li>Designers earn commissions based on sales of products derived from their designs.</li>
+                <li>Forma may attribute designs to specific creators for storytelling and commercial purposes.</li>
+                <li>Creators earn commissions based on sales of products derived from their designs.</li>
                 <li>Attribution does not imply ownership transfer of underlying intellectual property unless explicitly agreed in writing.</li>
               </ul>
             </section>
@@ -77,11 +77,11 @@ const Terms = () => {
             <section>
               <h2 className="text-2xl font-semibold text-foreground mb-4">7. Pricing & Commission Structure</h2>
               <p className="mb-4">
-                For each product approved on our platform, Forma sets a base price. Designers may choose to set their own price above this base price.
+                For each product approved on our platform, Forma sets a base price. Creators may choose to set their own price above this base price.
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Designers receive 100% of the amount above the base price (designer markup).</li>
-                <li>Designers earn commission on the base price according to the following tiers:</li>
+                <li>Creators receive 100% of the amount above the base price (creator markup).</li>
+                <li>Creators earn commission on the base price according to the following tiers:</li>
               </ul>
               <div className="mt-4 ml-6 space-y-2">
                 <p>• Starter Tier (0-10 sales): 5% commission</p>
@@ -91,34 +91,34 @@ const Terms = () => {
                 <p>• Platinum Tier (100+ sales): 20% commission</p>
               </div>
               <p className="mt-4">
-                Commission rates are calculated based on the total number of sales made by the designer across all their products.
+                Commission rates are calculated based on the total number of sales made by the creator across all their products. All amounts are in Indian Rupees (INR).
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-foreground mb-4">8. Payment Terms</h2>
               <p className="mb-4">
-                Payments to designers are processed monthly for all sales completed in the previous calendar month. Designers must maintain valid payment information in their account settings.
+                Payments to creators are processed monthly for all sales completed in the previous calendar month. Creators must maintain valid payment information in their account settings.
               </p>
               <p>
-                A minimum balance of $50 is required for payout. Balances below this threshold will roll over to the following month.
+                A minimum balance of ₹4,000 is required for payout. Balances below this threshold will roll over to the following month.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-foreground mb-4">9. Account Termination</h2>
               <p className="mb-4">
-                Forma reserves the right to suspend or terminate designer accounts that violate these Terms & Conditions, engage in fraudulent activity, or fail to maintain quality standards.
+                Forma reserves the right to suspend or terminate creator accounts that violate these Terms & Conditions, engage in fraudulent activity, or fail to maintain quality standards.
               </p>
               <p>
-                Designers may terminate their account at any time. Upon termination, pending payments will be processed according to the standard payment schedule.
+                Creators may terminate their account at any time. Upon termination, pending payments will be processed according to the standard payment schedule.
               </p>
             </section>
 
             <section>
               <h2 className="text-2xl font-semibold text-foreground mb-4">10. Modifications to Terms</h2>
               <p className="mb-4">
-                Forma reserves the right to modify these Terms & Conditions at any time. Designers will be notified of significant changes via email.
+                Forma reserves the right to modify these Terms & Conditions at any time. Creators will be notified of significant changes via email.
               </p>
               <p>
                 Continued use of the platform after modifications constitutes acceptance of the updated terms.

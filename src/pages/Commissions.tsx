@@ -14,7 +14,7 @@ const Commissions = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Designer Commission Structure
+              Creator Commission Structure
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Transparent, fair, and designed to reward creativity
@@ -32,7 +32,7 @@ const Commissions = () => {
                 <CardContent className="p-6 text-center">
                   <div className="text-4xl font-bold text-primary mb-2">10%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Standard</h3>
-                  <p className="text-sm text-muted-foreground mb-4">For all designers</p>
+                  <p className="text-sm text-muted-foreground mb-4">For all creators</p>
                   <ul className="space-y-2 text-sm text-left">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">✓</span>
@@ -57,7 +57,7 @@ const Commissions = () => {
                   </div>
                   <div className="text-4xl font-bold text-primary mb-2">12%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Premium</h3>
-                  <p className="text-sm text-muted-foreground mb-4">$5,000+ in sales</p>
+                  <p className="text-sm text-muted-foreground mb-4">₹4,15,000+ in sales</p>
                   <ul className="space-y-2 text-sm text-left">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">✓</span>
@@ -79,7 +79,7 @@ const Commissions = () => {
                 <CardContent className="p-6 text-center">
                   <div className="text-4xl font-bold text-secondary mb-2">15%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Elite</h3>
-                  <p className="text-sm text-muted-foreground mb-4">$15,000+ in sales</p>
+                  <p className="text-sm text-muted-foreground mb-4">₹12,45,000+ in sales</p>
                   <ul className="space-y-2 text-sm text-left">
                     <li className="flex items-start gap-2">
                       <span className="text-secondary mt-1">✓</span>
@@ -110,7 +110,7 @@ const Commissions = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Your Design Price:</span>
-                        <span className="font-medium">$899</span>
+                        <span className="font-medium">₹74,999</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Sales per Month:</span>
@@ -127,15 +127,15 @@ const Commissions = () => {
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Per Sale:</span>
-                        <span className="font-medium">$89.90</span>
+                        <span className="font-medium">₹7,500</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Per Month:</span>
-                        <span className="font-medium text-primary">$1,798</span>
+                        <span className="font-medium text-primary">₹1,50,000</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Per Year:</span>
-                        <span className="font-medium text-primary text-lg">$21,576</span>
+                        <span className="font-medium text-primary text-lg">₹18,00,000</span>
                       </div>
                     </div>
                   </div>
@@ -157,15 +157,15 @@ const Commissions = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">•</span>
-                      <span><strong>Minimum payout:</strong> $50 (rolls over if under)</span>
+                      <span><strong>Minimum payout:</strong> ₹4,000 (rolls over if under)</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">•</span>
-                      <span><strong>Payment methods:</strong> Bank transfer, PayPal</span>
+                      <span><strong>Payment methods:</strong> Bank transfer, UPI</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">•</span>
-                      <span><strong>Currency:</strong> USD (other currencies available)</span>
+                      <span><strong>Currency:</strong> INR</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -189,7 +189,7 @@ const Commissions = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">•</span>
-                      <span><strong>Tax documents:</strong> Annual 1099 forms</span>
+                      <span><strong>Tax documents:</strong> Annual GST reports</span>
                     </li>
                   </ul>
                 </CardContent>
@@ -235,7 +235,7 @@ const Commissions = () => {
               </p>
               <Link to="/designer-signup">
                 <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">
-                  Apply as Designer
+                  Apply as Creator
                 </Button>
               </Link>
             </CardContent>

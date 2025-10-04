@@ -88,7 +88,7 @@ const DesignerSignup = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Join as a Designer
+              Join as a Creator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Turn your creative vision into income. No upfront costs, no inventory, no hassle.
@@ -140,7 +140,7 @@ const DesignerSignup = () => {
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-8">
-                <h2 className="text-2xl font-bold mb-6 text-foreground">Designer Application</h2>
+                <h2 className="text-2xl font-bold mb-6 text-foreground">Creator Application</h2>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div>
                     <label className="text-sm font-medium mb-2 block text-foreground">Full Name</label>
