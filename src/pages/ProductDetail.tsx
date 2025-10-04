@@ -109,7 +109,7 @@ const ProductDetail = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold min-w-[120px]">Production:</span>
-                <span className="text-muted-foreground">3D printed on-demand, 3-4 weeks</span>
+                <span className="text-muted-foreground">3D printed on-demand, 2-3 weeks</span>
               </div>
             </div>
 

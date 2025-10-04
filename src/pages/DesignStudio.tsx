@@ -267,7 +267,7 @@ const DesignStudio = () => {
                     )}
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Lead Time:</span>
-                      <span className="font-medium">3-4 weeks</span>
+                      <span className="font-medium">4-6 weeks</span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Your Commission:</span>
