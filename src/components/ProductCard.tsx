@@ -7,10 +7,11 @@ interface ProductCardProps {
   designer: string;
   designerId: string;
   price: number;
+  weight: number;
   image: string;
 }
 
-export const ProductCard = ({ id, name, designer, designerId, price, image }: ProductCardProps) => {
+export const ProductCard = ({ id, name, designer, designerId, price, weight, image }: ProductCardProps) => {
   return (
     <Link to={`/product/${id}`} className="group">
       <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300">
@@ -30,7 +31,10 @@ export const ProductCard = ({ id, name, designer, designerId, price, image }: Pr
           >
             by {designer}
           </Link>
-          <p className="text-primary font-semibold mt-2">${price.toLocaleString()}</p>
+          <div className="flex items-center justify-between mt-2">
+            <p className="text-primary font-semibold">₹{price.toLocaleString()}</p>
+            <p className="text-xs text-muted-foreground">{weight} kg</p>
+          </div>
         </CardContent>
       </Card>
     </Link>

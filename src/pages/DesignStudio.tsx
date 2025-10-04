@@ -69,7 +69,7 @@ const DesignStudio = () => {
       
       // Calculate estimated cost based on assumed cubic feet (placeholder calculation)
       const assumedCubicFeet = 2.5; // Average furniture piece
-      const costPerCubicFoot = 7500; // $7,500 per cubic foot
+      const costPerCubicFoot = 7500; // ₹7,500 per cubic foot (INR)
       setEstimatedCost(assumedCubicFeet * costPerCubicFoot);
       
       setShowWorkflow(true);
@@ -262,7 +262,7 @@ const DesignStudio = () => {
                     {estimatedCost && (
                       <div className="flex justify-between py-2 border-b border-border">
                         <span className="text-muted-foreground">Estimated Cost:</span>
-                        <span className="font-medium">${estimatedCost.toLocaleString()}</span>
+                        <span className="font-medium">₹{estimatedCost.toLocaleString()}</span>
                       </div>
                     )}
                     <div className="flex justify-between py-2 border-b border-border">

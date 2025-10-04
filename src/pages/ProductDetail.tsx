@@ -12,14 +12,15 @@ import chairHero from "@/assets/chair-hero.jpg";
 const productData: Record<string, any> = {
   "1": {
     name: "Luna Chair",
-    designer: "Tejal Agarwal",
+    designer: "Tejal Agawane",
     designerId: "tejal",
-    price: 899,
+    price: 18750,
+    weight: 3.2,
     image: chairHero,
-    description: "The Luna Chair combines organic curves with minimalist design philosophy. Crafted from sustainably sourced oak, each piece is finished by hand to bring out the natural beauty of the wood grain. Perfect for modern living spaces that value both comfort and aesthetics.",
+    description: "The Luna Chair combines organic curves with minimalist design philosophy. 3D printed on-demand using Post Consumer Recycled PP (PCR), making it both sustainable and beautiful. Perfect for modern living spaces that value both comfort and eco-conscious design.",
     dimensions: "32\"W × 30\"D × 34\"H",
-    materials: "Solid oak, natural finish",
-    designerBio: "Tejal is a furniture designer based in Mumbai, India. Her work focuses on bringing traditional craftsmanship into contemporary living spaces.",
+    materials: "PCR (Post Consumer Recycled PP) - 75% recycled content",
+    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
   },
 };
 
@@ -73,11 +74,31 @@ const ProductDetail = () => {
               </Link>
             </div>
 
-            <p className="text-3xl font-bold text-primary">${product.price.toLocaleString()}</p>
+            <p className="text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
 
             <p className="text-muted-foreground leading-relaxed">{product.description}</p>
 
+            <Card className="bg-secondary/10 border-secondary/20 mb-6">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+                    <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-foreground mb-1">Circular Economy</h4>
+                    <p className="text-sm text-muted-foreground">Made with 75% Post Consumer Recycled PP (PCR), giving plastic waste new life while reducing environmental impact.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <div className="space-y-3">
+              <div className="flex items-start gap-2">
+                <span className="font-semibold min-w-[120px]">Weight:</span>
+                <span className="text-muted-foreground">{product.weight} kg</span>
+              </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold min-w-[120px]">Dimensions:</span>
                 <span className="text-muted-foreground">{product.dimensions}</span>
@@ -88,7 +109,7 @@ const ProductDetail = () => {
               </div>
               <div className="flex items-start gap-2">
                 <span className="font-semibold min-w-[120px]">Production:</span>
-                <span className="text-muted-foreground">Made to order, 4-6 weeks</span>
+                <span className="text-muted-foreground">3D printed on-demand, 3-4 weeks</span>
               </div>
             </div>
 

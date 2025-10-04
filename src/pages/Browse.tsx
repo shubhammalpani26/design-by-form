@@ -11,9 +11,10 @@ const products = [
   {
     id: "1",
     name: "Luna Chair",
-    designer: "Tejal Agarwal",
+    designer: "Tejal Agawane",
     designerId: "tejal",
-    price: 899,
+    price: 18750,
+    weight: 3.2,
     image: chairHero,
   },
   {
@@ -21,7 +22,8 @@ const products = [
     name: "Flow Coffee Table",
     designer: "Marcus Chen",
     designerId: "marcus",
-    price: 1299,
+    price: 32500,
+    weight: 5.8,
     image: tableCurvy,
   },
   {
@@ -29,7 +31,8 @@ const products = [
     name: "Wave Vase",
     designer: "Sarah Williams",
     designerId: "sarah",
-    price: 249,
+    price: 6225,
+    weight: 1.1,
     image: vaseCurvy,
   },
   {
@@ -37,7 +40,8 @@ const products = [
     name: "Curve Bench",
     designer: "Priya Sharma",
     designerId: "priya",
-    price: 1099,
+    price: 27475,
+    weight: 4.9,
     image: benchCurvy,
   },
   {
@@ -45,7 +49,8 @@ const products = [
     name: "Organic Dining Table",
     designer: "James Park",
     designerId: "james",
-    price: 1899,
+    price: 47475,
+    weight: 8.2,
     image: tableCurvy,
   },
   {
@@ -53,15 +58,17 @@ const products = [
     name: "Spiral Chair",
     designer: "Marcus Chen",
     designerId: "marcus",
-    price: 799,
+    price: 19975,
+    weight: 3.5,
     image: chairCurvy,
   },
   {
     id: "7",
     name: "Fluid Bench",
-    designer: "Tejal Agarwal",
+    designer: "Tejal Agawane",
     designerId: "tejal",
-    price: 1199,
+    price: 29975,
+    weight: 5.2,
     image: benchCurvy,
   },
   {
@@ -69,7 +76,8 @@ const products = [
     name: "Sculptural Vase",
     designer: "Sarah Williams",
     designerId: "sarah",
-    price: 329,
+    price: 8225,
+    weight: 1.4,
     image: vaseCurvy,
   },
 ];
@@ -81,7 +89,7 @@ const Browse = () => {
       
       <main className="flex-1 container py-12">
         <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Browse Collection</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Browse Products</h1>
           <p className="text-lg text-muted-foreground">
             Explore unique furniture pieces designed by creators worldwide
           </p>
