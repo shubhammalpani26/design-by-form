@@ -1,8 +1,12 @@
 import { useParams, Link } from "react-router-dom";
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ModelViewer3D } from "@/components/ModelViewer3D";
+import { ARViewer } from "@/components/ARViewer";
 import chairHero from "@/assets/chair-hero.jpg";
 
 const productData: Record<string, any> = {
@@ -22,6 +26,7 @@ const productData: Record<string, any> = {
 const ProductDetail = () => {
   const { id } = useParams();
   const product = productData[id || "1"] || productData["1"];
+  const [viewMode, setViewMode] = useState<"image" | "3d" | "ar">("image");
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -30,13 +35,31 @@ const ProductDetail = () => {
       <main className="flex-1 container py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="space-y-4">
-            <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
-              <img
-                src={product.image}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="image">Image</TabsTrigger>
+                <TabsTrigger value="3d">3D View</TabsTrigger>
+                <TabsTrigger value="ar">AR Preview</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="image" className="mt-0">
+                <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="3d" className="mt-0">
+                <ModelViewer3D productName={product.name} />
+              </TabsContent>
+              
+              <TabsContent value="ar" className="mt-0">
+                <ARViewer productName={product.name} />
+              </TabsContent>
+            </Tabs>
           </div>
 
           <div className="space-y-6">

@@ -4,9 +4,40 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ModelViewer3D } from "@/components/ModelViewer3D";
+import { ARViewer } from "@/components/ARViewer";
+import { useToast } from "@/hooks/use-toast";
 
 const DesignStudio = () => {
   const [prompt, setPrompt] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
+  const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
+  const { toast } = useToast();
+
+  const handleGenerate = async () => {
+    if (!prompt.trim()) {
+      toast({
+        title: "Missing Description",
+        description: "Please describe your furniture design first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    
+    // Placeholder for actual AI generation
+    setTimeout(() => {
+      setIsGenerating(false);
+      setGeneratedDesign("placeholder-design-url");
+      toast({
+        title: "Design Generated!",
+        description: "Your furniture design is ready. View it in 3D or AR!",
+      });
+    }, 2000);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -56,11 +87,27 @@ const DesignStudio = () => {
                   />
 
                   <div className="flex gap-3">
-                    <Button variant="hero" className="flex-1 group">
-                      Generate Design
-                      <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                      </svg>
+                    <Button 
+                      variant="hero" 
+                      className="flex-1 group" 
+                      onClick={handleGenerate}
+                      disabled={isGenerating || !prompt.trim()}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          Generate Design
+                          <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                        </>
+                      )}
                     </Button>
                     <Button variant="outline">
                       Upload Sketch
@@ -99,23 +146,58 @@ const DesignStudio = () => {
             <div className="space-y-6">
               <Card className="border-border shadow-soft">
                 <CardContent className="p-6">
-                  <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4">
-                    <div className="text-center space-y-3 p-8">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                        <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
+                  {generatedDesign ? (
+                    <Tabs value={previewMode} onValueChange={(value) => setPreviewMode(value as any)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 mb-4">
+                        <TabsTrigger value="2d">2D Image</TabsTrigger>
+                        <TabsTrigger value="3d">3D Model</TabsTrigger>
+                        <TabsTrigger value="ar">AR View</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="2d" className="mt-0">
+                        <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4">
+                          <div className="text-center space-y-3 p-8">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-muted-foreground">
+                              Generated design preview
+                            </p>
+                          </div>
+                        </div>
+                      </TabsContent>
+                      
+                      <TabsContent value="3d" className="mt-0 -m-6">
+                        <ModelViewer3D productName="Your Design" modelUrl={generatedDesign} />
+                      </TabsContent>
+                      
+                      <TabsContent value="ar" className="mt-0 -m-6">
+                        <ARViewer productName="Your Design" modelUrl={generatedDesign} />
+                      </TabsContent>
+                    </Tabs>
+                  ) : (
+                    <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4">
+                      <div className="text-center space-y-3 p-8">
+                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                          <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
+                        <p className="text-muted-foreground">
+                          Your AI-generated design will appear here
+                        </p>
                       </div>
-                      <p className="text-muted-foreground">
-                        Your AI-generated design will appear here
-                      </p>
                     </div>
-                  </div>
+                  )}
 
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Status:</span>
-                      <span className="font-medium">Ready to generate</span>
+                      <span className="font-medium">
+                        {isGenerating ? "Generating..." : generatedDesign ? "Design Ready" : "Ready to generate"}
+                      </span>
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Your Commission:</span>
@@ -126,6 +208,17 @@ const DesignStudio = () => {
                       <span className="font-medium">~30 seconds</span>
                     </div>
                   </div>
+
+                  {generatedDesign && (
+                    <div className="mt-4 pt-4 border-t border-border flex gap-2">
+                      <Button variant="outline" size="sm" className="flex-1">
+                        Refine Design
+                      </Button>
+                      <Button variant="default" size="sm" className="flex-1">
+                        Publish to Store
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
