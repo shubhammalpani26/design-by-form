@@ -118,7 +118,7 @@ const HowItWorks = () => {
               <div className="flex-1">
                 <h3 className="text-2xl font-bold mb-3 text-foreground">List on Marketplace</h3>
                 <p className="text-muted-foreground mb-4">
-                  Your design renders go live on the Forma marketplace. We handle photography, product pages, and customer service. You're responsible for promoting your products to drive sales.
+                  Your design renders go live on the Forma marketplace. We handle product photography, product pages, and customer service. You focus on what you do best - creating and sharing your designs.
                 </p>
                 <div className="grid grid-cols-3 gap-3">
                   <Card className="border-primary/20">
