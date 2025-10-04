@@ -14,7 +14,185 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      commission_tiers: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          id: string
+          max_sales: number | null
+          min_sales: number
+          tier_name: string
+        }
+        Insert: {
+          commission_rate: number
+          created_at?: string
+          id?: string
+          max_sales?: number | null
+          min_sales: number
+          tier_name: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          max_sales?: number | null
+          min_sales?: number
+          tier_name?: string
+        }
+        Relationships: []
+      }
+      designer_products: {
+        Row: {
+          base_price: number
+          category: string
+          created_at: string
+          description: string | null
+          designer_id: string
+          designer_price: number
+          id: string
+          image_url: string | null
+          name: string
+          status: string
+          total_sales: number
+          updated_at: string
+        }
+        Insert: {
+          base_price: number
+          category: string
+          created_at?: string
+          description?: string | null
+          designer_id: string
+          designer_price: number
+          id?: string
+          image_url?: string | null
+          name: string
+          status?: string
+          total_sales?: number
+          updated_at?: string
+        }
+        Update: {
+          base_price?: number
+          category?: string
+          created_at?: string
+          description?: string | null
+          designer_id?: string
+          designer_price?: number
+          id?: string
+          image_url?: string | null
+          name?: string
+          status?: string
+          total_sales?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designer_products_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      designer_profiles: {
+        Row: {
+          created_at: string
+          design_background: string | null
+          email: string
+          furniture_interests: string | null
+          id: string
+          name: string
+          portfolio_url: string | null
+          status: string
+          terms_accepted: boolean
+          terms_accepted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          design_background?: string | null
+          email: string
+          furniture_interests?: string | null
+          id?: string
+          name: string
+          portfolio_url?: string | null
+          status?: string
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          design_background?: string | null
+          email?: string
+          furniture_interests?: string | null
+          id?: string
+          name?: string
+          portfolio_url?: string | null
+          status?: string
+          terms_accepted?: boolean
+          terms_accepted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      product_sales: {
+        Row: {
+          base_price: number
+          commission_amount: number
+          commission_rate: number
+          designer_earnings: number
+          designer_id: string
+          designer_markup: number
+          id: string
+          product_id: string
+          sale_date: string
+          sale_price: number
+        }
+        Insert: {
+          base_price: number
+          commission_amount: number
+          commission_rate: number
+          designer_earnings: number
+          designer_id: string
+          designer_markup: number
+          id?: string
+          product_id: string
+          sale_date?: string
+          sale_price: number
+        }
+        Update: {
+          base_price?: number
+          commission_amount?: number
+          commission_rate?: number
+          designer_earnings?: number
+          designer_id?: string
+          designer_markup?: number
+          id?: string
+          product_id?: string
+          sale_date?: string
+          sale_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_sales_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_sales_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

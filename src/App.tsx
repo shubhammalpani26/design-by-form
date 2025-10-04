@@ -12,6 +12,7 @@ import Creators from "./pages/Creators";
 import DesignerSignup from "./pages/DesignerSignup";
 import HowItWorks from "./pages/HowItWorks";
 import Commissions from "./pages/Commissions";
+import Terms from "./pages/Terms";
 import About from "./pages/About";
 import Sustainability from "./pages/Sustainability";
 import Contact from "./pages/Contact";
@@ -35,6 +36,7 @@ const App = () => (
           <Route path="/designer-signup" element={<DesignerSignup />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/commissions" element={<Commissions />} />
+          <Route path="/terms" element={<Terms />} />
           <Route path="/about" element={<About />} />
           <Route path="/sustainability" element={<Sustainability />} />
           <Route path="/contact" element={<Contact />} />

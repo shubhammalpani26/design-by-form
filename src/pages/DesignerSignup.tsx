@@ -1,12 +1,84 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const DesignerSignup = () => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    portfolio: "",
+    background: "",
+    interests: "",
+    termsAccepted: false,
+  });
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.termsAccepted) {
+      toast({
+        title: "Terms Required",
+        description: "Please accept the terms and conditions to continue.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to submit your application.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase.from("designer_profiles").insert({
+        user_id: user.id,
+        name: formData.name,
+        email: formData.email,
+        portfolio_url: formData.portfolio,
+        design_background: formData.background,
+        furniture_interests: formData.interests,
+        terms_accepted: formData.termsAccepted,
+        terms_accepted_at: new Date().toISOString(),
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Application Submitted!",
+        description: "We'll review your application and get back to you soon.",
+      });
+
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit application. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -69,26 +141,35 @@ const DesignerSignup = () => {
             <Card>
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold mb-6 text-foreground">Designer Application</h2>
-                <form className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium mb-2 block text-foreground">First Name</label>
-                      <Input placeholder="John" />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium mb-2 block text-foreground">Last Name</label>
-                      <Input placeholder="Doe" />
-                    </div>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-foreground">Full Name</label>
+                    <Input 
+                      placeholder="Your name" 
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div>
                     <label className="text-sm font-medium mb-2 block text-foreground">Email</label>
-                    <Input type="email" placeholder="designer@example.com" />
+                    <Input 
+                      type="email" 
+                      placeholder="designer@example.com"
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                    />
                   </div>
 
                   <div>
                     <label className="text-sm font-medium mb-2 block text-foreground">Portfolio URL (optional)</label>
-                    <Input placeholder="https://yourportfolio.com" />
+                    <Input 
+                      placeholder="https://yourportfolio.com"
+                      value={formData.portfolio}
+                      onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
+                    />
                   </div>
 
                   <div>
@@ -96,6 +177,9 @@ const DesignerSignup = () => {
                     <Textarea 
                       placeholder="Share your experience, style, and what inspires your designs..."
                       className="min-h-[120px]"
+                      value={formData.background}
+                      onChange={(e) => setFormData({ ...formData, background: e.target.value })}
+                      required
                     />
                   </div>
 
@@ -104,18 +188,42 @@ const DesignerSignup = () => {
                     <Textarea 
                       placeholder="Chairs, tables, home decor..."
                       className="min-h-[80px]"
+                      value={formData.interests}
+                      onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                      required
                     />
                   </div>
 
-                  <Button variant="hero" className="w-full">
-                    Submit Application
+                  <div className="flex items-start space-x-3 py-4 border-t border-b">
+                    <Checkbox 
+                      id="terms" 
+                      checked={formData.termsAccepted}
+                      onCheckedChange={(checked) => 
+                        setFormData({ ...formData, termsAccepted: checked as boolean })
+                      }
+                      required
+                    />
+                    <label
+                      htmlFor="terms"
+                      className="text-sm leading-relaxed cursor-pointer"
+                    >
+                      I accept the{" "}
+                      <Link to="/terms" className="text-primary hover:underline" target="_blank">
+                        Terms & Conditions
+                      </Link>
+                      {" "}including intellectual property policies and commission structure
+                    </label>
+                  </div>
+
+                  <Button variant="hero" className="w-full" type="submit" disabled={loading}>
+                    {loading ? "Submitting..." : "Submit Application"}
                   </Button>
                 </form>
               </CardContent>
             </Card>
 
             <div className="mt-8 text-center text-sm text-muted-foreground">
-              Already have an account? <Link to="/login" className="text-primary hover:underline">Sign in</Link>
+              Already have an account? <Link to="/auth" className="text-primary hover:underline">Sign in</Link>
             </div>
           </div>
         </section>
