@@ -15,6 +15,8 @@ const DesignStudio = () => {
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [showWorkflow, setShowWorkflow] = useState(false);
+  const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const { toast } = useToast();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,15 +50,44 @@ const DesignStudio = () => {
 
     setIsGenerating(true);
     
-    // Placeholder for actual AI generation
-    setTimeout(() => {
-      setIsGenerating(false);
-      setGeneratedDesign("placeholder-design-url");
+    try {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-design`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate design');
+      }
+
+      const data = await response.json();
+      setGeneratedDesign(data.imageUrl);
+      
+      // Calculate estimated cost based on assumed cubic feet (placeholder calculation)
+      const assumedCubicFeet = 2.5; // Average furniture piece
+      const costPerCubicFoot = 7500; // $7,500 per cubic foot
+      setEstimatedCost(assumedCubicFeet * costPerCubicFoot);
+      
+      setShowWorkflow(true);
+      
       toast({
         title: "Design Generated!",
-        description: "Your furniture design is ready. View it in 3D or AR!",
+        description: "Your furniture design is ready. Review the details below.",
       });
-    }, 2000);
+    } catch (error) {
+      console.error('Generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
@@ -190,17 +221,25 @@ const DesignStudio = () => {
                     </TabsList>
                     
                     <TabsContent value="2d" className="mt-0">
-                      <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4">
-                        <div className="text-center space-y-3 p-8">
-                          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
-                            <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                      <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+                        {generatedDesign ? (
+                          <img 
+                            src={generatedDesign} 
+                            alt="Generated design" 
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-center space-y-3 p-8">
+                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <p className="text-muted-foreground">
+                              Your AI-generated design will appear here
+                            </p>
                           </div>
-                          <p className="text-muted-foreground">
-                            {generatedDesign ? "Generated design preview" : "Your AI-generated design will appear here"}
-                          </p>
-                        </div>
+                        )}
                       </div>
                     </TabsContent>
                     
@@ -220,6 +259,16 @@ const DesignStudio = () => {
                         {isGenerating ? "Generating..." : generatedDesign ? "Design Ready" : "Ready to generate"}
                       </span>
                     </div>
+                    {estimatedCost && (
+                      <div className="flex justify-between py-2 border-b border-border">
+                        <span className="text-muted-foreground">Estimated Cost:</span>
+                        <span className="font-medium">${estimatedCost.toLocaleString()}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between py-2 border-b border-border">
+                      <span className="text-muted-foreground">Lead Time:</span>
+                      <span className="font-medium">3-4 weeks</span>
+                    </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Your Commission:</span>
                       <span className="font-medium text-primary">10-15% per sale</span>
@@ -230,13 +279,18 @@ const DesignStudio = () => {
                     </div>
                   </div>
 
-                  {generatedDesign && (
+                  {generatedDesign && !showWorkflow && (
                     <div className="mt-4 pt-4 border-t border-border flex gap-2">
                       <Button variant="outline" size="sm" className="flex-1">
                         Refine Design
                       </Button>
-                      <Button variant="default" size="sm" className="flex-1">
-                        Publish to Store
+                      <Button 
+                        variant="default" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => setShowWorkflow(true)}
+                      >
+                        Continue to Workflow
                       </Button>
                     </div>
                   )}
@@ -279,6 +333,109 @@ const DesignStudio = () => {
             </div>
           </div>
         </section>
+
+        {/* Workflow Section */}
+        {showWorkflow && generatedDesign && (
+          <section className="container py-12 border-t border-border">
+            <div className="max-w-4xl mx-auto">
+              <h3 className="text-2xl font-bold mb-8 text-center text-foreground">
+                Your Design Journey
+              </h3>
+              
+              <div className="space-y-6">
+                {/* Step 1 */}
+                <div className="bg-background rounded-xl p-6 border border-primary shadow-soft">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
+                      ✓
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg mb-2 text-foreground">Design Generated</h4>
+                      <p className="text-muted-foreground">Your AI-generated design has been created and is ready for review.</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 2 */}
+                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-accent text-foreground flex items-center justify-center font-bold flex-shrink-0 border-2 border-primary">
+                      2
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg mb-2 text-foreground">Manufacturability Review</h4>
+                      <p className="text-muted-foreground mb-3">
+                        Our team will validate the design for 3D printing and manufacturing feasibility within 24-48 hours.
+                      </p>
+                      <div className="grid grid-cols-2 gap-3 text-sm">
+                        <div className="bg-accent p-3 rounded-lg">
+                          <p className="text-muted-foreground">Estimated Cost</p>
+                          <p className="font-semibold text-foreground">
+                            ${estimatedCost?.toLocaleString() || '18,750'}
+                          </p>
+                          <p className="text-xs text-muted-foreground mt-1">Based on ~2.5 cubic ft @ $7.5K/ft³</p>
+                        </div>
+                        <div className="bg-accent p-3 rounded-lg">
+                          <p className="text-muted-foreground">Production Time</p>
+                          <p className="font-semibold text-foreground">3-4 weeks</p>
+                          <p className="text-xs text-muted-foreground mt-1">From approval to listing</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 3 */}
+                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-muted text-foreground flex items-center justify-center font-bold flex-shrink-0">
+                      3
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg mb-2 text-foreground">Marketplace Listing</h4>
+                      <p className="text-muted-foreground">
+                        Once approved, your design will be listed on Forma marketplace. You'll receive a custom creator page with analytics.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Step 4 */}
+                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-full bg-muted text-foreground flex items-center justify-center font-bold flex-shrink-0">
+                      4
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-lg mb-2 text-foreground">Promotion & Sales</h4>
+                      <p className="text-muted-foreground mb-3">
+                        Share your design on social media, your portfolio, and with your network. You'll earn 10-15% commission on every sale, forever.
+                      </p>
+                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
+                        <p className="text-sm font-semibold mb-2 text-foreground">💡 Marketing Toolkit Included:</p>
+                        <ul className="text-sm text-muted-foreground space-y-1">
+                          <li>• Custom shareable link for your design</li>
+                          <li>• High-res product photos for social media</li>
+                          <li>• Real-time sales dashboard</li>
+                          <li>• Email templates for outreach</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" className="flex-1">
+                    Refine Design
+                  </Button>
+                  <Button variant="default" className="flex-1">
+                    Submit for Review
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* Example Prompts */}
         <section className="container py-12 border-t border-border">

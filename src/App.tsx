@@ -8,6 +8,7 @@ import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
 import DesignerProfile from "./pages/DesignerProfile";
 import DesignStudio from "./pages/DesignStudio";
+import Creators from "./pages/Creators";
 import DesignerSignup from "./pages/DesignerSignup";
 import HowItWorks from "./pages/HowItWorks";
 import Commissions from "./pages/Commissions";
@@ -30,6 +31,7 @@ const App = () => (
           <Route path="/product/:id" element={<ProductDetail />} />
           <Route path="/designer/:id" element={<DesignerProfile />} />
           <Route path="/design-studio" element={<DesignStudio />} />
+          <Route path="/creators" element={<Creators />} />
           <Route path="/designer-signup" element={<DesignerSignup />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/commissions" element={<Commissions />} />

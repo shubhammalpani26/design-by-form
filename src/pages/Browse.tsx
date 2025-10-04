@@ -2,10 +2,10 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import chairHero from "@/assets/chair-hero.jpg";
-import table1 from "@/assets/table-1.jpg";
-import shelf1 from "@/assets/shelf-1.jpg";
-import armchair1 from "@/assets/armchair-1.jpg";
-import desk1 from "@/assets/desk-1.jpg";
+import chairCurvy from "@/assets/chair-curvy.jpg";
+import tableCurvy from "@/assets/table-curvy.jpg";
+import vaseCurvy from "@/assets/vase-curvy.jpg";
+import benchCurvy from "@/assets/bench-curvy.jpg";
 
 const products = [
   {
@@ -18,43 +18,59 @@ const products = [
   },
   {
     id: "2",
-    name: "Horizon Table",
+    name: "Flow Coffee Table",
     designer: "Marcus Chen",
     designerId: "marcus",
     price: 1299,
-    image: table1,
+    image: tableCurvy,
   },
   {
     id: "3",
-    name: "Cascade Shelf",
+    name: "Wave Vase",
     designer: "Sarah Williams",
     designerId: "sarah",
-    price: 749,
-    image: shelf1,
+    price: 249,
+    image: vaseCurvy,
   },
   {
     id: "4",
-    name: "Solace Armchair",
+    name: "Curve Bench",
     designer: "Priya Sharma",
     designerId: "priya",
     price: 1099,
-    image: armchair1,
+    image: benchCurvy,
   },
   {
     id: "5",
-    name: "Focus Desk",
+    name: "Organic Dining Table",
     designer: "James Park",
     designerId: "james",
-    price: 1499,
-    image: desk1,
+    price: 1899,
+    image: tableCurvy,
   },
   {
     id: "6",
-    name: "Vista Coffee Table",
+    name: "Spiral Chair",
     designer: "Marcus Chen",
     designerId: "marcus",
-    price: 899,
-    image: table1,
+    price: 799,
+    image: chairCurvy,
+  },
+  {
+    id: "7",
+    name: "Fluid Bench",
+    designer: "Tejal Agarwal",
+    designerId: "tejal",
+    price: 1199,
+    image: benchCurvy,
+  },
+  {
+    id: "8",
+    name: "Sculptural Vase",
+    designer: "Sarah Williams",
+    designerId: "sarah",
+    price: 329,
+    image: vaseCurvy,
   },
 ];
 

@@ -64,16 +64,14 @@ const Home = () => {
                 </div>
                 
                 <h1 className="text-4xl md:text-6xl font-bold leading-tight text-foreground">
-                  Turn your ideas into{" "}
+                  Imagination meets{" "}
                   <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                    real furniture
-                  </span>{" "}
-                  with AI
+                    craftsmanship
+                  </span>
                 </h1>
                 
                 <p className="text-lg text-muted-foreground max-w-xl">
-                  Sketch it, describe it, or dream it - our AI transforms your vision into manufacturable designs. 
-                  Every piece you create earns you commissions, forever.
+                  Just imagine, and we bring it to life. From concept to creation, transform your vision into tangible masterpieces.
                 </p>
                 
                 <div className="flex flex-wrap gap-4">

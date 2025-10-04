@@ -13,8 +13,8 @@ export const Header = () => {
           <Link to="/browse" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Browse
           </Link>
-          <Link to="/designers" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-            Designers
+          <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+            Creators
           </Link>
           <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             About
@@ -23,7 +23,9 @@ export const Header = () => {
 
         <div className="flex items-center space-x-4">
           <Button variant="ghost" size="sm">Sign In</Button>
-          <Button variant="default" size="sm">Get Started</Button>
+          <Link to="/design-studio">
+            <Button variant="default" size="sm">Get Started</Button>
+          </Link>
         </div>
       </div>
     </header>
