@@ -1,11 +1,17 @@
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import chairHero from "@/assets/chair-hero.jpg";
 import chairCurvy from "@/assets/chair-curvy.jpg";
-import tableCurvy from "@/assets/table-curvy.jpg";
+import chairSpiral from "@/assets/chair-spiral.jpg";
+import tableFlow from "@/assets/table-flow.jpg";
+import tableDining from "@/assets/table-dining.jpg";
 import vaseCurvy from "@/assets/vase-curvy.jpg";
+import vaseSculptural from "@/assets/vase-sculptural.jpg";
 import benchCurvy from "@/assets/bench-curvy.jpg";
+import benchFluid from "@/assets/bench-fluid.jpg";
 
 const products = [
   {
@@ -16,6 +22,7 @@ const products = [
     price: 24999,
     weight: 3.2,
     image: chairHero,
+    category: "chairs",
   },
   {
     id: "2",
@@ -24,7 +31,8 @@ const products = [
     designerId: "marcus",
     price: 45999,
     weight: 5.8,
-    image: tableCurvy,
+    image: tableFlow,
+    category: "coffee-tables",
   },
   {
     id: "3",
@@ -34,6 +42,7 @@ const products = [
     price: 8999,
     weight: 1.1,
     image: vaseCurvy,
+    category: "vases",
   },
   {
     id: "4",
@@ -43,6 +52,7 @@ const products = [
     price: 38999,
     weight: 4.9,
     image: benchCurvy,
+    category: "benches",
   },
   {
     id: "5",
@@ -51,7 +61,8 @@ const products = [
     designerId: "james",
     price: 65999,
     weight: 8.2,
-    image: tableCurvy,
+    image: tableDining,
+    category: "dining-tables",
   },
   {
     id: "6",
@@ -60,7 +71,8 @@ const products = [
     designerId: "marcus",
     price: 27999,
     weight: 3.5,
-    image: chairCurvy,
+    image: chairSpiral,
+    category: "chairs",
   },
   {
     id: "7",
@@ -69,7 +81,8 @@ const products = [
     designerId: "tejal",
     price: 42999,
     weight: 5.2,
-    image: benchCurvy,
+    image: benchFluid,
+    category: "benches",
   },
   {
     id: "8",
@@ -78,28 +91,58 @@ const products = [
     designerId: "sarah",
     price: 11999,
     weight: 1.4,
-    image: vaseCurvy,
+    image: vaseSculptural,
+    category: "vases",
   },
 ];
 
 const Browse = () => {
+  const [searchParams] = useSearchParams();
+  const [filteredProducts, setFilteredProducts] = useState(products);
+  const category = searchParams.get('category');
+
+  useEffect(() => {
+    if (category) {
+      setFilteredProducts(products.filter(p => p.category === category));
+    } else {
+      setFilteredProducts(products);
+    }
+  }, [category]);
+
+  const getCategoryTitle = () => {
+    if (!category) return "Browse Products";
+    return category
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1 container py-12">
         <div className="mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">Browse Products</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">{getCategoryTitle()}</h1>
           <p className="text-lg text-muted-foreground">
-            Explore unique furniture pieces designed by creators worldwide
+            {category 
+              ? `Explore our collection of ${getCategoryTitle().toLowerCase()}`
+              : "Explore unique furniture pieces designed by creators worldwide"
+            }
           </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {products.map((product) => (
+          {filteredProducts.map((product) => (
             <ProductCard key={product.id} {...product} />
           ))}
         </div>
+
+        {filteredProducts.length === 0 && (
+          <div className="text-center py-16">
+            <p className="text-muted-foreground text-lg">No products found in this category yet.</p>
+          </div>
+        )}
       </main>
       
       <Footer />

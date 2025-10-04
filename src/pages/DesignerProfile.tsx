@@ -5,10 +5,12 @@ import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import chairHero from "@/assets/chair-hero.jpg";
-import chairCurvy from "@/assets/chair-curvy.jpg";
-import tableCurvy from "@/assets/table-curvy.jpg";
-import vaseCurvy from "@/assets/vase-curvy.jpg";
+import chairSpiral from "@/assets/chair-spiral.jpg";
+import tableFlow from "@/assets/table-flow.jpg";
+import benchFluid from "@/assets/bench-fluid.jpg";
 import benchCurvy from "@/assets/bench-curvy.jpg";
+import vaseCurvy from "@/assets/vase-curvy.jpg";
+import vaseSculptural from "@/assets/vase-sculptural.jpg";
 
 const designerData: Record<string, any> = {
   tejal: {
@@ -41,7 +43,7 @@ const designerData: Record<string, any> = {
         designerId: "tejal",
         price: 42999,
         weight: 5.2,
-        image: benchCurvy,
+        image: benchFluid,
       },
     ],
   },
@@ -66,7 +68,7 @@ const designerData: Record<string, any> = {
         designerId: "marcus",
         price: 45999,
         weight: 5.8,
-        image: tableCurvy,
+        image: tableFlow,
       },
       {
         id: "6",
@@ -75,7 +77,7 @@ const designerData: Record<string, any> = {
         designerId: "marcus",
         price: 27999,
         weight: 3.5,
-        image: chairCurvy,
+        image: chairSpiral,
       },
     ],
   },
@@ -109,7 +111,7 @@ const designerData: Record<string, any> = {
         designerId: "sarah",
         price: 11999,
         weight: 1.4,
-        image: vaseCurvy,
+        image: vaseSculptural,
       },
     ],
   },

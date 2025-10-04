@@ -4,8 +4,7 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import chairHero from "@/assets/chair-hero.jpg";
-import chairCurvy from "@/assets/chair-curvy.jpg";
-import tableCurvy from "@/assets/table-curvy.jpg";
+import tableFlow from "@/assets/table-flow.jpg";
 import vaseCurvy from "@/assets/vase-curvy.jpg";
 import benchCurvy from "@/assets/bench-curvy.jpg";
 
@@ -26,7 +25,7 @@ const featuredProducts = [
     designerId: "marcus",
     price: 45999,
     weight: 5.8,
-    image: tableCurvy,
+    image: tableFlow,
   },
   {
     id: "3",

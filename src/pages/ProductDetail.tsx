@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import chairHero from "@/assets/chair-hero.jpg";
+import installationGuide from "@/assets/installation-guide.jpg";
 
 const productData: Record<string, any> = {
   "1": {
@@ -135,6 +136,78 @@ const ProductDetail = () => {
             </Card>
           </div>
         </div>
+
+        {/* Installation Guide Section */}
+        <section className="container py-12 border-t border-border mt-12">
+          <div className="max-w-4xl mx-auto">
+            <h2 className="text-3xl font-bold mb-6 text-foreground">Installation Guide</h2>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <h3 className="text-xl font-semibold text-foreground">Easy Assembly</h3>
+                <p className="text-muted-foreground">
+                  Your furniture arrives ready to assemble with all necessary components and clear instructions.
+                </p>
+                
+                <div className="space-y-3">
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
+                      1
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Unpack Components</h4>
+                      <p className="text-sm text-muted-foreground">Carefully remove all pieces and verify contents</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
+                      2
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Follow Instructions</h4>
+                      <p className="text-sm text-muted-foreground">Connect pieces as shown in the manual</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 font-semibold text-primary">
+                      3
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-foreground">Secure & Enjoy</h4>
+                      <p className="text-sm text-muted-foreground">Tighten all connections and place in desired location</p>
+                    </div>
+                  </div>
+                </div>
+
+                <Card className="bg-secondary/10 border-secondary/20 mt-6">
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-secondary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <div className="text-sm">
+                        <p className="font-semibold text-foreground mb-1">No Special Tools Required</p>
+                        <p className="text-muted-foreground">All 3D printed furniture comes with snap-fit or simple bolt connections. Basic household tools may be needed for some pieces.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              <div>
+                <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
+                  <img
+                    src={installationGuide}
+                    alt="Installation guide"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
       
       <Footer />
