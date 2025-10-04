@@ -17,8 +17,12 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><Link to="/browse" className="text-muted-foreground hover:text-primary transition-colors">Browse All</Link></li>
               <li><Link to="/browse?category=chairs" className="text-muted-foreground hover:text-primary transition-colors">Chairs</Link></li>
-              <li><Link to="/browse?category=tables" className="text-muted-foreground hover:text-primary transition-colors">Tables</Link></li>
-              <li><Link to="/browse?category=storage" className="text-muted-foreground hover:text-primary transition-colors">Storage</Link></li>
+              <li><Link to="/browse?category=coffee-tables" className="text-muted-foreground hover:text-primary transition-colors">Coffee Tables</Link></li>
+              <li><Link to="/browse?category=benches" className="text-muted-foreground hover:text-primary transition-colors">Benches</Link></li>
+              <li><Link to="/browse?category=vases" className="text-muted-foreground hover:text-primary transition-colors">Vases</Link></li>
+              <li><Link to="/browse?category=installations" className="text-muted-foreground hover:text-primary transition-colors">Installations</Link></li>
+              <li><Link to="/browse?category=dining-tables" className="text-muted-foreground hover:text-primary transition-colors">Dining Tables</Link></li>
+              <li><Link to="/browse?category=home-decor" className="text-muted-foreground hover:text-primary transition-colors">Home Decor</Link></li>
             </ul>
           </div>
           
