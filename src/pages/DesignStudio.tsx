@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const DesignStudio = () => {
   const [prompt, setPrompt] = useState("");
@@ -79,20 +80,18 @@ const DesignStudio = () => {
     try {
       // Generate 3 variations in parallel
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
-        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-design`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ prompt, variationNumber: variationNum }),
+        const { data, error } = await supabase.functions.invoke('generate-design', {
+          body: { prompt, variationNumber: variationNum }
         });
 
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || 'Failed to generate design');
+        if (error) {
+          throw new Error(error.message || 'Failed to generate design');
         }
 
-        const data = await response.json();
+        if (!data?.imageUrl) {
+          throw new Error('No image generated');
+        }
+
         return data.imageUrl;
       });
 
