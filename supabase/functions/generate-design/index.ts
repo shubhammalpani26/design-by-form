@@ -31,25 +31,30 @@ serve(async (req) => {
       );
     }
 
-    // Refine the prompt to ensure manufacturability and 3D printability
+    // Refine the prompt to ensure 3D printability and manufacturability
     const refinedPrompt = `Create a high-quality, photorealistic furniture design image with these requirements:
     
 Original request: ${prompt}
 
-CRITICAL MANUFACTURING REQUIREMENTS:
-- The design MUST be structurally sound and manufacturable through 3D printing or CNC machining
-- Ensure proper weight distribution and stability
-- All curves must be smooth and continuous for manufacturing
-- Include realistic materials (wood grain, fabric texture, metal finish)
-- Design should be producible with standard furniture manufacturing techniques
-- Avoid impossible geometries or structurally unsound features
-- Consider standard furniture dimensions and ergonomics
+CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
+- The design MUST be fully 3D printable using large-format FDM/SLS 3D printing technology
+- All structural elements must be printable without impossible overhangs or unsupported spans
+- Design with layer-by-layer additive manufacturing in mind
+- Ensure proper wall thickness (minimum 3-5mm for structural integrity)
+- Avoid cantilevers longer than 50mm without support considerations
+- All curves and surfaces must be smooth, continuous, and printable
+- Consider print orientation and minimize support material needs
+- Design should work with FRP (Fibre-Reinforced Polymer) composite material
+- Ensure proper weight distribution and structural stability
+- Include realistic surface finish options (matte, glossy, textured)
+- Design must be outdoor-friendly and weather-resistant
+- Consider standard furniture ergonomics and dimensions
 - Show the piece from a 3/4 view angle with good lighting
-- Professional product photography style
-- Clean background, studio lighting
+- Professional product photography style with clean background
+- Studio lighting that showcases the form and details
 - High attention to detail and craftsmanship
 
-The final design should be both beautiful and practically manufacturable.`;
+The final design must be both aesthetically beautiful AND fully manufacturable through 3D printing with hand-finishing processes.`;
 
     console.log("Generating image with refined prompt");
 

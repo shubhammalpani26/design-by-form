@@ -67,10 +67,11 @@ const DesignStudio = () => {
       const data = await response.json();
       setGeneratedDesign(data.imageUrl);
       
-      // Calculate estimated cost based on assumed cubic feet (placeholder calculation)
-      const assumedCubicFeet = 2.5; // Average furniture piece
-      const costPerCubicFoot = 7500; // ₹7,500 per cubic foot (INR)
-      setEstimatedCost(assumedCubicFeet * costPerCubicFoot);
+      // Calculate estimated base cost - dining tables ~80-90K, smaller pieces proportionally less
+      const assumedCubicFeet = 3.5; // Average furniture piece volume
+      const costPerCubicFoot = 25000; // ₹25,000 per cubic foot base cost
+      const baseCost = assumedCubicFeet * costPerCubicFoot;
+      setEstimatedCost(baseCost);
       
       setShowWorkflow(true);
       
@@ -260,10 +261,15 @@ const DesignStudio = () => {
                       </span>
                     </div>
                     {estimatedCost && (
-                      <div className="flex justify-between py-2 border-b border-border">
-                        <span className="text-muted-foreground">Estimated Cost:</span>
-                        <span className="font-medium">₹{estimatedCost.toLocaleString()}</span>
-                      </div>
+                      <>
+                        <div className="flex justify-between py-2 border-b border-border">
+                          <span className="text-muted-foreground">Base Price:</span>
+                          <span className="font-medium">₹{estimatedCost.toLocaleString()} + GST</span>
+                        </div>
+                        <div className="bg-accent/50 p-3 rounded-lg text-xs text-muted-foreground border border-primary/10">
+                          <strong className="text-foreground">Note:</strong> This is the base manufacturing cost. You can list at a higher price—any markup goes directly to you. You earn 10-15% commission on the base price per sale.
+                        </div>
+                      </>
                     )}
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Lead Time:</span>
@@ -271,7 +277,7 @@ const DesignStudio = () => {
                     </div>
                     <div className="flex justify-between py-2 border-b border-border">
                       <span className="text-muted-foreground">Your Commission:</span>
-                      <span className="font-medium text-primary">10-15% per sale</span>
+                      <span className="font-medium text-primary">10-15% on base price</span>
                     </div>
                     <div className="flex justify-between py-2">
                       <span className="text-muted-foreground">Est. Generation:</span>
