@@ -132,11 +132,65 @@ const DesignStudio = () => {
                   </div>
 
                   <Textarea
-                    placeholder="Example: A modern minimalist chair with curved wooden legs and a soft fabric seat. Scandinavian style with warm oak finish..."
-                    className="min-h-[200px] text-base"
+                    placeholder="Example: A modern minimalist dining table with organic curved edges, matte finish..."
+                    className="min-h-[160px] text-base"
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                   />
+
+                  {/* Quick Prompt Ideas */}
+                  <div className="space-y-2">
+                    <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        "Modern dining table with curved edges",
+                        "Sculptural chair with flowing lines",
+                        "Minimalist side table",
+                        "Organic shelf unit",
+                      ].map((example, i) => (
+                        <button
+                          key={i}
+                          onClick={() => setPrompt(example)}
+                          className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
+                        >
+                          {example}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Customization Options */}
+                  <div className="space-y-3 pt-2">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Finishes:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete', 'Terrazzo', 'Custom'].map((finish) => (
+                          <button
+                            key={finish}
+                            onClick={() => setPrompt(prev => `${prev} ${prev ? 'with ' : ''}${finish.toLowerCase()} finish`)}
+                            className="text-xs px-3 py-1.5 rounded-full bg-secondary/10 hover:bg-secondary/20 border border-secondary/20 hover:border-secondary transition-all"
+                          >
+                            {finish}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L×B×H):</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"', 'Custom size'].map((size) => (
+                          <button
+                            key={size}
+                            onClick={() => setPrompt(prev => `${prev} ${prev ? ',' : ''} ${size}`)}
+                            className="text-xs px-3 py-1.5 rounded-full bg-accent hover:bg-accent/80 border border-border hover:border-primary transition-all"
+                          >
+                            {size}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
 
                   <div className="flex gap-3">
                     <Button 
@@ -187,25 +241,28 @@ const DesignStudio = () => {
               {/* Tips */}
               <Card className="bg-accent border-border">
                 <CardContent className="p-6">
-                  <h4 className="font-semibold mb-3 text-foreground">💡 Tips for better results</h4>
+                  <h4 className="font-semibold mb-3 text-foreground">💡 Design Guidelines</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>Mention specific materials (wood, metal, fabric)</span>
+                      <span className="text-primary mt-1">✓</span>
+                      <span>Focus on <strong className="text-foreground">single-piece forms</strong> (tables, chairs, shelves, planters)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>Describe the style (modern, vintage, minimalist)</span>
+                      <span className="text-primary mt-1">✓</span>
+                      <span>Describe <strong className="text-foreground">surface finishes</strong> (matte, glossy, marble effect, wood grain)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>Include dimensions or size preferences</span>
+                      <span className="text-primary mt-1">✓</span>
+                      <span>Include <strong className="text-foreground">style & shape</strong> (modern, organic, sculptural, curved)</span>
                     </li>
                     <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">•</span>
-                      <span>Reference existing furniture you like</span>
+                      <span className="text-destructive mt-1">✗</span>
+                      <span className="line-through">Avoid wheels, hinges, metal inserts, or multi-material assemblies</span>
                     </li>
                   </ul>
+                  <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
+                    All designs are 3D printed in premium FRP (Fiber-Reinforced Polymer) with hand-applied finishes
+                  </div>
                 </CardContent>
               </Card>
             </div>
@@ -451,12 +508,12 @@ const DesignStudio = () => {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {[
-                "A mid-century modern coffee table with tapered legs and walnut finish",
-                "Contemporary bookshelf with asymmetric compartments and metal frame",
-                "Ergonomic office chair with mesh back and adjustable lumbar support",
-                "Rustic farmhouse dining table made from reclaimed wood",
-                "Minimalist floating desk with hidden cable management",
-                "Scandinavian-style armchair with curved wooden frame",
+                "A sculptural dining table with organic flowing edges and marble finish, 72\"×40\"×30\"",
+                "Modern lounge chair with curved backrest and matte black finish",
+                "Minimalist side table with terrazzo effect and geometric base",
+                "Contemporary planter with glossy white finish and angular form",
+                "Organic coffee table with wood grain texture and smooth rounded corners",
+                "Statement shelf unit with asymmetric levels and metallic bronze finish",
               ].map((example, i) => (
                 <button
                   key={i}
