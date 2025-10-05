@@ -13,6 +13,8 @@ const DesignStudio = () => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
+  const [generatedVariations, setGeneratedVariations] = useState<string[]>([]);
+  const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showWorkflow, setShowWorkflow] = useState(false);
@@ -71,35 +73,41 @@ const DesignStudio = () => {
     }
 
     setIsGenerating(true);
+    setGeneratedVariations([]);
+    setSelectedVariation(null);
     
     try {
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-design`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
+      // Generate 3 variations in parallel
+      const variationPromises = [1, 2, 3].map(async (variationNum) => {
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-design`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ prompt, variationNumber: variationNum }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to generate design');
+        }
+
+        const data = await response.json();
+        return data.imageUrl;
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to generate design');
-      }
-
-      const data = await response.json();
-      setGeneratedDesign(data.imageUrl);
+      const variations = await Promise.all(variationPromises);
+      setGeneratedVariations(variations);
       
-      // Calculate estimated base cost - dining tables ~80-90K, smaller pieces proportionally less
-      const assumedCubicFeet = 3.5; // Average furniture piece volume
-      const costPerCubicFoot = 25000; // ₹25,000 per cubic foot base cost
+      // Calculate estimated base cost
+      const assumedCubicFeet = 3.5;
+      const costPerCubicFoot = 25000;
       const baseCost = assumedCubicFeet * costPerCubicFoot;
       setEstimatedCost(baseCost);
       
-      setShowWorkflow(true);
-      
       toast({
-        title: "Design Generated!",
-        description: "Your furniture design is ready. Review the details below.",
+        title: "Designs Generated!",
+        description: "3 variations created. Select your favorite to continue.",
       });
     } catch (error) {
       console.error('Generation error:', error);
@@ -111,6 +119,16 @@ const DesignStudio = () => {
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  const handleSelectVariation = (index: number) => {
+    setSelectedVariation(index);
+    setGeneratedDesign(generatedVariations[index]);
+    setShowWorkflow(true);
+    toast({
+      title: "Variation Selected",
+      description: "You can now proceed with this design or refine it further.",
+    });
   };
 
   return (
@@ -371,26 +389,56 @@ const DesignStudio = () => {
                     </TabsList>
                     
                     <TabsContent value="2d" className="mt-0">
-                      <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4 overflow-hidden">
-                        {generatedDesign ? (
-                          <img 
-                            src={generatedDesign} 
-                            alt="Generated design" 
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="text-center space-y-3 p-8">
-                            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
-                              <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                            </div>
-                            <p className="text-muted-foreground">
-                              Your AI-generated design will appear here
-                            </p>
+                      {generatedVariations.length > 0 && !selectedVariation && selectedVariation !== 0 ? (
+                        <div className="space-y-4">
+                          <p className="text-sm text-muted-foreground text-center mb-4">
+                            Choose your favorite design variation:
+                          </p>
+                          <div className="grid grid-cols-1 gap-4">
+                            {generatedVariations.map((variation, index) => (
+                              <button
+                                key={index}
+                                onClick={() => handleSelectVariation(index)}
+                                className="group relative rounded-xl border-2 border-border hover:border-primary transition-all overflow-hidden"
+                              >
+                                <div className="aspect-square">
+                                  <img 
+                                    src={variation} 
+                                    alt={`Variation ${index + 1}`} 
+                                    className="w-full h-full object-cover"
+                                  />
+                                </div>
+                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
+                                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground px-4 py-2 rounded-full font-semibold">
+                                    Select Option {index + 1}
+                                  </span>
+                                </div>
+                              </button>
+                            ))}
                           </div>
-                        )}
-                      </div>
+                        </div>
+                      ) : (
+                        <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4 overflow-hidden">
+                          {generatedDesign ? (
+                            <img 
+                              src={generatedDesign} 
+                              alt="Selected design" 
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-center space-y-3 p-8">
+                              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
+                                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                              <p className="text-muted-foreground">
+                                Your AI-generated designs will appear here
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </TabsContent>
                     
                     <TabsContent value="3d" className="mt-0 -m-6">

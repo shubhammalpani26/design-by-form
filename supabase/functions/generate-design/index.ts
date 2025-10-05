@@ -12,8 +12,8 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
-    console.log("Received prompt:", prompt);
+    const { prompt, variationNumber = 1 } = await req.json();
+    console.log("Received prompt:", prompt, "Variation:", variationNumber);
 
     if (!prompt || prompt.trim().length === 0) {
       return new Response(
@@ -31,8 +31,17 @@ serve(async (req) => {
       );
     }
 
+    // Create variations by adding different style hints
+    const variationHints = [
+      "Focus on bold, sculptural forms with dramatic curves",
+      "Emphasize minimalist elegance with refined proportions", 
+      "Create organic, flowing lines with nature-inspired shapes"
+    ];
+
     // Refine the prompt to ensure 3D printability and manufacturability
     const refinedPrompt = `Create a high-quality, photorealistic furniture design image with these requirements:
+    
+VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
     
 Original request: ${prompt}
 
