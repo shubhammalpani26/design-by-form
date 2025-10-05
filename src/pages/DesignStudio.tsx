@@ -17,7 +17,29 @@ const DesignStudio = () => {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const { toast } = useToast();
+
+  const designTemplates = [
+    {
+      id: "modern-table",
+      name: "Modern Dining Table",
+      image: "/placeholder.svg",
+      prompt: "A modern minimalist dining table with clean lines and organic curved edges, matte finish, 72\"×40\"×30\""
+    },
+    {
+      id: "sculptural-chair",
+      name: "Sculptural Chair",
+      image: "/placeholder.svg",
+      prompt: "Contemporary lounge chair with flowing sculptural form, smooth curves, and glossy white finish"
+    },
+    {
+      id: "geometric-shelf",
+      name: "Geometric Shelf",
+      image: "/placeholder.svg",
+      prompt: "Minimalist wall shelf with geometric asymmetric design and terrazzo finish, 48\"×12\"×8\""
+    }
+  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -111,23 +133,93 @@ const DesignStudio = () => {
               Create Furniture with AI
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Transform your ideas into manufacturable furniture designs in minutes. 
-              No design experience required.
+              Transform your ideas into real, production-ready furniture pieces. 
+              We manufacture and deliver your custom designs. No design experience required.
             </p>
+          </div>
+        </section>
+
+        {/* Template Selection */}
+        <section className="container py-12 border-b border-border">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-2xl font-bold mb-2 text-center text-foreground">
+              Start with a Template
+            </h2>
+            <p className="text-muted-foreground text-center mb-8">
+              Select a base design and customize it with your own prompt
+            </p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {designTemplates.map((template) => (
+                <button
+                  key={template.id}
+                  onClick={() => {
+                    setSelectedTemplate(template.id);
+                    setPrompt(template.prompt);
+                    toast({
+                      title: "Template Selected",
+                      description: "Now customize the design with your own ideas below",
+                    });
+                  }}
+                  className={`group relative overflow-hidden rounded-xl border-2 transition-all ${
+                    selectedTemplate === template.id
+                      ? "border-primary shadow-elegant scale-[1.02]"
+                      : "border-border hover:border-primary/50 hover:shadow-soft"
+                  }`}
+                >
+                  <div className="aspect-square bg-accent overflow-hidden">
+                    <img
+                      src={template.image}
+                      alt={template.name}
+                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                    />
+                  </div>
+                  <div className="p-4 bg-background/95 backdrop-blur-sm">
+                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
+                      {template.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                      {template.prompt}
+                    </p>
+                  </div>
+                  {selectedTemplate === template.id && (
+                    <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Design Interface */}
         <section className="container py-12">
+          <div className="max-w-6xl mx-auto">
+            {!selectedTemplate && (
+              <div className="text-center py-8 mb-8 bg-accent/50 rounded-xl border border-primary/20">
+                <p className="text-muted-foreground">
+                  👆 Please select a template above to start customizing
+                </p>
+              </div>
+            )}
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
             {/* Input Side */}
             <div className="space-y-6">
               <Card className="border-primary/20 shadow-medium">
                 <CardContent className="p-6 space-y-4">
                   <div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">Describe Your Design</h3>
+                    <h3 className="text-xl font-semibold mb-2 text-foreground">
+                      {selectedTemplate ? "Customize Your Design" : "Describe Your Design"}
+                    </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Tell us what you want to create. Be as detailed or simple as you like.
+                      {selectedTemplate 
+                        ? "Modify the template with your own ideas. Change colors, finishes, dimensions, or style."
+                        : "Select a template above first, then customize it here."
+                      }
                     </p>
                   </div>
 
@@ -197,7 +289,7 @@ const DesignStudio = () => {
                       variant="hero" 
                       className="flex-1 group" 
                       onClick={handleGenerate}
-                      disabled={isGenerating || !prompt.trim()}
+                      disabled={isGenerating || !prompt.trim() || !selectedTemplate}
                     >
                       {isGenerating ? (
                         <>
