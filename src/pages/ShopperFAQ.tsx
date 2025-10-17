@@ -87,7 +87,7 @@ const ShopperFAQ = () => {
                 What are your shipping and delivery options?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                We offer free shipping across India on orders above ₹50,000. Smaller items ship via courier, while larger furniture pieces are white-glove delivered with setup assistance. International shipping is available for select markets.
+                Shipping costs are calculated separately and added to your order based on size, weight, and destination. We offer worldwide shipping to all countries. Smaller items ship via courier, while larger furniture pieces are white-glove delivered with setup assistance.
               </AccordionContent>
             </AccordionItem>
 
