@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { useCart } from "@/contexts/CartContext";
+import { useToast } from "@/hooks/use-toast";
 import chairHero from "@/assets/chair-hero.jpg";
 import chairSpiral from "@/assets/chair-spiral.jpg";
 import tableFlow from "@/assets/table-flow.jpg";
@@ -185,11 +186,30 @@ const ProductDetail = () => {
   const { id } = useParams();
   const product = productData[id || "1"] || productData["1"];
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
+  const [selectedFinish, setSelectedFinish] = useState("Natural");
+  const [selectedSize, setSelectedSize] = useState("Standard");
+  const [isSaved, setIsSaved] = useState(false);
   const { addToCart } = useCart();
+  const { toast } = useToast();
 
-  const handleAddToCart = () => {
-    // In a real implementation, this would use the actual product ID from database
-    addToCart(id || "1");
+  const handleAddToCart = async () => {
+    try {
+      // Note: Using mock ID - in production, fetch from database
+      await addToCart(id || "1", {
+        finish: selectedFinish,
+        size: selectedSize
+      });
+    } catch (error) {
+      console.error('Add to cart error:', error);
+    }
+  };
+
+  const handleSave = () => {
+    setIsSaved(!isSaved);
+    toast({
+      title: isSaved ? "Removed from Saved" : "Saved!",
+      description: isSaved ? "Product removed from your saved items" : "Product saved for later",
+    });
   };
 
   return (
@@ -234,7 +254,56 @@ const ProductDetail = () => {
 
             <p className="text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
 
-            <p className="text-muted-foreground leading-relaxed">{product.description}</p>
+            <p className="text-muted-foreground leading-relaxed">
+              {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}
+            </p>
+
+            {/* Quick Customization */}
+            <Card className="bg-accent/50 border-primary/20">
+              <CardContent className="p-4 space-y-4">
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-2 block">Finish</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Natural', 'Matte Black', 'Glossy White', 'Walnut', 'Concrete'].map((finish) => (
+                      <button
+                        key={finish}
+                        onClick={() => setSelectedFinish(finish)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedFinish === finish
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : 'bg-background border border-border hover:border-primary'
+                        }`}
+                      >
+                        {finish}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-semibold text-foreground mb-2 block">Size</label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Standard', 'Large', 'Extra Large'].map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                          selectedSize === size
+                            ? 'bg-primary text-primary-foreground shadow-md'
+                            : 'bg-background border border-border hover:border-primary'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <Button variant="outline" className="w-full" size="sm">
+                  Request More Customizations
+                </Button>
+              </CardContent>
+            </Card>
 
             <Card className="bg-secondary/10 border-secondary/20 mb-6">
               <CardContent className="p-4">
@@ -325,8 +394,27 @@ const ProductDetail = () => {
               <Button variant="hero" size="lg" className="flex-1" onClick={handleAddToCart}>
                 Add to Cart
               </Button>
-              <Button variant="outline" size="lg">
-                Save
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={handleSave}
+                className={isSaved ? 'bg-primary/10 border-primary' : ''}
+              >
+                {isSaved ? (
+                  <>
+                    <svg className="w-5 h-5 mr-2 fill-current" viewBox="0 0 20 20">
+                      <path d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" />
+                    </svg>
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                    </svg>
+                    Save
+                  </>
+                )}
               </Button>
             </div>
 

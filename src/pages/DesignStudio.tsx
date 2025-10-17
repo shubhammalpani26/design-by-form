@@ -21,25 +21,25 @@ const DesignStudio = () => {
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
+  const [selectedFinish, setSelectedFinish] = useState<string>("");
+  const [selectedSize, setSelectedSize] = useState<string>("");
+  const [leadTime, setLeadTime] = useState<number | null>(null);
   const { toast } = useToast();
 
   const designTemplates = [
     {
       id: "modern-table",
       name: "Modern Dining Table",
-      image: "/placeholder.svg",
       prompt: "A modern minimalist dining table with clean lines and organic curved edges, matte finish, 72\"×40\"×30\""
     },
     {
       id: "sculptural-chair",
       name: "Sculptural Chair",
-      image: "/placeholder.svg",
       prompt: "Contemporary lounge chair with flowing sculptural form, smooth curves, and glossy white finish"
     },
     {
       id: "geometric-shelf",
       name: "Geometric Shelf",
-      image: "/placeholder.svg",
       prompt: "Minimalist wall shelf with geometric asymmetric design and terrazzo finish, 48\"×12\"×8\""
     }
   ];
@@ -78,19 +78,13 @@ const DesignStudio = () => {
     setSelectedVariation(null);
     
     try {
-      // Generate 3 variations in parallel
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
         const { data, error } = await supabase.functions.invoke('generate-design', {
           body: { prompt, variationNumber: variationNum }
         });
 
-        if (error) {
-          throw new Error(error.message || 'Failed to generate design');
-        }
-
-        if (!data?.imageUrl) {
-          throw new Error('No image generated');
-        }
+        if (error) throw new Error(error.message || 'Failed to generate design');
+        if (!data?.imageUrl) throw new Error('No image generated');
 
         return data.imageUrl;
       });
@@ -98,11 +92,11 @@ const DesignStudio = () => {
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
       
-      // Calculate estimated base cost
       const assumedCubicFeet = 3.5;
       const costPerCubicFoot = 25000;
       const baseCost = assumedCubicFeet * costPerCubicFoot;
       setEstimatedCost(baseCost);
+      setLeadTime(21);
       
       toast({
         title: "Designs Generated!",
@@ -156,14 +150,372 @@ const DesignStudio = () => {
           </div>
         </section>
 
-        {/* Template Selection */}
-        <section className="container py-12 border-b border-border">
+        {/* Design Interface */}
+        <section className="container py-12">
           <div className="max-w-6xl mx-auto">
-            <h2 className="text-2xl font-bold mb-2 text-center text-foreground">
-              Start with a Template
-            </h2>
-            <p className="text-muted-foreground text-center mb-8">
-              Select a base design and customize it with your own prompt
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Input Side */}
+              <div className="space-y-6">
+                <Card className="border-primary/20 shadow-medium">
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-foreground">Describe Your Design</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Describe your furniture piece in detail. Include style, dimensions, colors, and finishes.
+                      </p>
+                    </div>
+
+                    <Textarea
+                      placeholder="Example: A modern minimalist dining table with organic curved edges, matte black finish, 72×40×30 inches..."
+                      className="min-h-[160px] text-base"
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                    />
+
+                    {/* Quick Ideas */}
+                    <div className="space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          "Modern dining table with curved edges",
+                          "Sculptural chair with flowing lines",
+                          "Minimalist side table",
+                          "Organic shelf unit",
+                        ].map((example, i) => (
+                          <button
+                            key={i}
+                            onClick={() => setPrompt(example)}
+                            className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
+                          >
+                            {example}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Finish Selection */}
+                    <div className="space-y-3 pt-2">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete', 'Terrazzo'].map((finish) => (
+                            <button
+                              key={finish}
+                              onClick={() => {
+                                setSelectedFinish(finish);
+                                const finishRegex = /\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
+                                if (prompt.match(finishRegex)) {
+                                  setPrompt(prev => prev.replace(finishRegex, `${finish.toLowerCase()} finish`));
+                                } else {
+                                  setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                }
+                              }}
+                              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                selectedFinish === finish
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                              }`}
+                            >
+                              {finish}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      
+                      {/* Size Selection */}
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Size (L×W×H):</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"', 'Custom'].map((size) => (
+                            <button
+                              key={size}
+                              onClick={() => {
+                                setSelectedSize(size);
+                                const sizeRegex = /\b\d+["']?\s*[×x]\s*\d+["']?\s*[×x]\s*\d+["']?\b/gi;
+                                if (size !== 'Custom') {
+                                  if (prompt.match(sizeRegex)) {
+                                    setPrompt(prev => prev.replace(sizeRegex, size));
+                                  } else {
+                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${size}`);
+                                  }
+                                }
+                              }}
+                              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                selectedSize === size
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-accent hover:bg-accent/80 border-border hover:border-primary'
+                              }`}
+                            >
+                              {size}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3">
+                      <Button 
+                        variant="hero" 
+                        className="flex-1 group" 
+                        onClick={handleGenerate}
+                        disabled={isGenerating || !prompt.trim()}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            Generate Design
+                            <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </>
+                        )}
+                      </Button>
+                      <Button variant="outline" asChild>
+                        <label className="cursor-pointer">
+                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                          {uploadedImage ? "✓ Sketch" : "Upload Sketch"}
+                        </label>
+                      </Button>
+                    </div>
+                    {uploadedImage && (
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                        </svg>
+                        {uploadedImage.name}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* 3D Upload Option */}
+                <Card className="bg-secondary/10 border-secondary/20">
+                  <CardContent className="p-6">
+                    <h4 className="font-semibold mb-2 text-foreground flex items-center gap-2">
+                      <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                      </svg>
+                      Already Have a 3D Model?
+                    </h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Upload your .OBJ, .STL, or .FBX file and we'll prepare it for manufacturing
+                    </p>
+                    <Button variant="outline" size="sm" className="w-full" asChild>
+                      <label className="cursor-pointer">
+                        <input type="file" accept=".obj,.stl,.fbx" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            toast({
+                              title: "3D Model Uploaded",
+                              description: "We'll review your model for manufacturing feasibility",
+                            });
+                          }
+                        }} />
+                        Upload 3D Model
+                      </label>
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Tips */}
+                <Card className="bg-accent border-border">
+                  <CardContent className="p-6">
+                    <h4 className="font-semibold mb-3 text-foreground">💡 Design Guidelines</h4>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">✓</span>
+                        <span>Focus on <strong className="text-foreground">single-piece forms</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">✓</span>
+                        <span>Describe <strong className="text-foreground">surface finishes</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-primary mt-1">✓</span>
+                        <span>Include <strong className="text-foreground">style & shape</strong></span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-destructive mt-1">✗</span>
+                        <span className="line-through">Avoid wheels, hinges, or multi-material assemblies</span>
+                      </li>
+                    </ul>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Preview Side */}
+              <div className="space-y-6">
+                <Card className="border-border shadow-soft">
+                  <CardContent className="p-6">
+                    <Tabs value={previewMode} onValueChange={(value) => setPreviewMode(value as any)} className="w-full">
+                      <TabsList className="grid w-full grid-cols-3 mb-4">
+                        <TabsTrigger value="2d">2D Image</TabsTrigger>
+                        <TabsTrigger value="3d">3D Model</TabsTrigger>
+                        <TabsTrigger value="ar">AR View</TabsTrigger>
+                      </TabsList>
+                      
+                      <TabsContent value="2d" className="mt-0">
+                        {generatedVariations.length > 0 ? (
+                          <div className="space-y-4">
+                            {leadTime && (
+                              <div className="flex items-center justify-between p-3 bg-secondary/10 rounded-lg border border-secondary/20">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                  </svg>
+                                  <span className="text-sm font-semibold text-foreground">Lead Time</span>
+                                </div>
+                                <span className="text-sm text-muted-foreground">{leadTime} days</span>
+                              </div>
+                            )}
+                            <div className="grid grid-cols-1 gap-4">
+                              {generatedVariations.map((imageUrl, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => handleSelectVariation(index)}
+                                  className={`group relative overflow-hidden rounded-xl transition-all ${
+                                    selectedVariation === index
+                                      ? "ring-4 ring-primary shadow-elegant scale-[1.02]"
+                                      : "hover:shadow-soft hover:scale-[1.01]"
+                                  }`}
+                                >
+                                  <div className="aspect-square bg-accent">
+                                    <img src={imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
+                                  </div>
+                                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="absolute bottom-4 left-4 right-4">
+                                      <p className="text-white font-semibold">Variation {index + 1}</p>
+                                    </div>
+                                  </div>
+                                  {selectedVariation === index && (
+                                    <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                      </svg>
+                                    </div>
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8">
+                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              <p className="text-muted-foreground text-sm">Your generated designs will appear here</p>
+                            </div>
+                          </div>
+                        )}
+                      </TabsContent>
+
+                      <TabsContent value="3d" className="mt-0">
+                        {generatedDesign ? (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                            <ModelViewer3D productName="Generated Design" />
+                          </div>
+                        ) : (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8">
+                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                              <p className="text-muted-foreground text-sm">3D model will be available after selecting a design</p>
+                            </div>
+                          </div>
+                        )}
+                      </TabsContent>
+                      
+                      <TabsContent value="ar" className="mt-0">
+                        {generatedDesign ? (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                            <ARViewer productName="Generated Design" />
+                          </div>
+                        ) : (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8">
+                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                              </svg>
+                              <p className="text-muted-foreground text-sm">AR preview will be available after selecting a design</p>
+                            </div>
+                          </div>
+                        )}
+                      </TabsContent>
+                    </Tabs>
+                  </CardContent>
+                </Card>
+
+                {/* Design Details */}
+                {generatedDesign && estimatedCost && (
+                  <Card className="border-primary/20">
+                    <CardContent className="p-6 space-y-4">
+                      <h3 className="font-semibold text-lg text-foreground">Design Details</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Estimated Base Price</span>
+                          <span className="font-semibold text-foreground">₹{estimatedCost.toLocaleString()}</span>
+                        </div>
+                        {leadTime && (
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Lead Time</span>
+                            <span className="font-semibold text-foreground">{leadTime} days</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Commission Potential</span>
+                          <span className="font-semibold text-secondary">Up to 40%</span>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Workflow Section */}
+        {showWorkflow && (
+          <section className="bg-accent/30 py-16">
+            <div className="container max-w-5xl mx-auto">
+              <h2 className="text-3xl font-bold text-center mb-12 text-foreground">What Happens Next?</h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                {[
+                  { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for 3D printing feasibility" },
+                  { step: 2, title: "Manufacturing", desc: "Your piece is 3D printed using premium FRP and hand-finished" },
+                  { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
+                  { step: 4, title: "You Earn", desc: "Receive commissions automatically as your designs sell" }
+                ].map((item) => (
+                  <Card key={item.step} className="relative overflow-hidden">
+                    <CardContent className="p-6">
+                      <div className="absolute top-2 right-2 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                        <span className="font-bold text-primary">{item.step}</span>
+                      </div>
+                      <h4 className="font-semibold mb-2 mt-6 text-foreground">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground">{item.desc}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+        {/* Template Selection */}
+        <section className="container py-16 bg-accent/30">
+          <div className="max-w-6xl mx-auto">
+            <h2 className="text-3xl font-bold text-center mb-4 text-foreground">Or Start with a Template</h2>
+            <p className="text-center text-muted-foreground mb-12">
+              Select a base design and customize it with your own ideas
             </p>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -175,8 +527,9 @@ const DesignStudio = () => {
                     setPrompt(template.prompt);
                     toast({
                       title: "Template Selected",
-                      description: "Now customize the design with your own ideas below",
+                      description: "Now customize the design with your own ideas",
                     });
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className={`group relative overflow-hidden rounded-xl border-2 transition-all ${
                     selectedTemplate === template.id
@@ -184,20 +537,19 @@ const DesignStudio = () => {
                       : "border-border hover:border-primary/50 hover:shadow-soft"
                   }`}
                 >
-                  <div className="aspect-square bg-accent overflow-hidden">
-                    <img
-                      src={template.image}
-                      alt={template.name}
-                      className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                    />
+                  <div className="aspect-square bg-gradient-to-br from-accent via-secondary/5 to-primary/5 overflow-hidden flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
+                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <h3 className="font-bold text-lg text-foreground mb-2">{template.name}</h3>
+                      <p className="text-xs text-muted-foreground opacity-60">Click to customize</p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-background/95 backdrop-blur-sm">
-                    <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">
-                      {template.name}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                      {template.prompt}
-                    </p>
+                  <div className="p-4 bg-background/95 backdrop-blur-sm border-t border-border">
+                    <p className="text-xs text-muted-foreground line-clamp-2">{template.prompt}</p>
                   </div>
                   {selectedTemplate === template.id && (
                     <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
@@ -211,464 +563,8 @@ const DesignStudio = () => {
             </div>
           </div>
         </section>
-
-        {/* Design Interface */}
-        <section className="container py-12">
-          <div className="max-w-6xl mx-auto">
-            {!selectedTemplate && (
-              <div className="text-center py-8 mb-8 bg-accent/50 rounded-xl border border-primary/20">
-                <p className="text-muted-foreground">
-                  👆 Please select a template above to start customizing
-                </p>
-              </div>
-            )}
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-            {/* Input Side */}
-            <div className="space-y-6">
-              <Card className="border-primary/20 shadow-medium">
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">
-                      {selectedTemplate ? "Customize Your Design" : "Describe Your Design"}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      {selectedTemplate 
-                        ? "Modify the template with your own ideas. Change colors, finishes, dimensions, or style."
-                        : "Select a template above first, then customize it here."
-                      }
-                    </p>
-                  </div>
-
-                  <Textarea
-                    placeholder="Example: A modern minimalist dining table with organic curved edges, matte finish..."
-                    className="min-h-[160px] text-base"
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                  />
-
-                  {/* Quick Prompt Ideas */}
-                  <div className="space-y-2">
-                    <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
-                    <div className="flex flex-wrap gap-2">
-                      {[
-                        "Modern dining table with curved edges",
-                        "Sculptural chair with flowing lines",
-                        "Minimalist side table",
-                        "Organic shelf unit",
-                      ].map((example, i) => (
-                        <button
-                          key={i}
-                          onClick={() => setPrompt(example)}
-                          className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
-                        >
-                          {example}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Customization Options */}
-                  <div className="space-y-3 pt-2">
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Finishes:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete', 'Terrazzo', 'Custom'].map((finish) => (
-                          <button
-                            key={finish}
-                            onClick={() => setPrompt(prev => `${prev} ${prev ? 'with ' : ''}${finish.toLowerCase()} finish`)}
-                            className="text-xs px-3 py-1.5 rounded-full bg-secondary/10 hover:bg-secondary/20 border border-secondary/20 hover:border-secondary transition-all"
-                          >
-                            {finish}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                    
-                    <div>
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L×B×H):</p>
-                      <div className="flex flex-wrap gap-2">
-                        {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"', 'Custom size'].map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => setPrompt(prev => `${prev} ${prev ? ',' : ''} ${size}`)}
-                            className="text-xs px-3 py-1.5 rounded-full bg-accent hover:bg-accent/80 border border-border hover:border-primary transition-all"
-                          >
-                            {size}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button 
-                      variant="hero" 
-                      className="flex-1 group" 
-                      onClick={handleGenerate}
-                      disabled={isGenerating || !prompt.trim() || !selectedTemplate}
-                    >
-                      {isGenerating ? (
-                        <>
-                          <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                          </svg>
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          Generate Design
-                          <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                        </>
-                      )}
-                    </Button>
-                    <Button variant="outline" asChild>
-                      <label className="cursor-pointer">
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleImageUpload}
-                        />
-                        {uploadedImage ? "✓ Sketch Added" : "Upload Sketch"}
-                      </label>
-                    </Button>
-                  </div>
-                  {uploadedImage && (
-                    <div className="text-xs text-muted-foreground flex items-center gap-2">
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                      </svg>
-                      {uploadedImage.name}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Tips */}
-              <Card className="bg-accent border-border">
-                <CardContent className="p-6">
-                  <h4 className="font-semibold mb-3 text-foreground">💡 Design Guidelines</h4>
-                  <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
-                      <span>Focus on <strong className="text-foreground">single-piece forms</strong> (tables, chairs, shelves, planters)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
-                      <span>Describe <strong className="text-foreground">surface finishes</strong> (matte, glossy, marble effect, wood grain)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-primary mt-1">✓</span>
-                      <span>Include <strong className="text-foreground">style & shape</strong> (modern, organic, sculptural, curved)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-destructive mt-1">✗</span>
-                      <span className="line-through">Avoid wheels, hinges, metal inserts, or multi-material assemblies</span>
-                    </li>
-                  </ul>
-                  <div className="mt-3 pt-3 border-t border-border/50 text-xs text-muted-foreground">
-                    All designs are 3D printed in premium FRP (Fiber-Reinforced Polymer) with hand-applied finishes
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Preview Side */}
-            <div className="space-y-6">
-              <Card className="border-border shadow-soft">
-                <CardContent className="p-6">
-                  <Tabs value={previewMode} onValueChange={(value) => setPreviewMode(value as any)} className="w-full">
-                    <TabsList className="grid w-full grid-cols-3 mb-4">
-                      <TabsTrigger value="2d">2D Image</TabsTrigger>
-                      <TabsTrigger value="3d">3D Model</TabsTrigger>
-                      <TabsTrigger value="ar">AR View</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="2d" className="mt-0">
-                      {generatedVariations.length > 0 && !selectedVariation && selectedVariation !== 0 ? (
-                        <div className="space-y-4">
-                          <p className="text-sm text-muted-foreground text-center mb-4">
-                            Choose your favorite design variation:
-                          </p>
-                          <div className="grid grid-cols-1 gap-4">
-                            {generatedVariations.map((variation, index) => (
-                              <button
-                                key={index}
-                                onClick={() => handleSelectVariation(index)}
-                                className="group relative rounded-xl border-2 border-border hover:border-primary transition-all overflow-hidden"
-                              >
-                                <div className="aspect-square">
-                                  <img 
-                                    src={variation} 
-                                    alt={`Variation ${index + 1}`} 
-                                    className="w-full h-full object-cover"
-                                  />
-                                </div>
-                                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center">
-                                  <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-primary text-primary-foreground px-4 py-2 rounded-full font-semibold">
-                                    Select Option {index + 1}
-                                  </span>
-                                </div>
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="aspect-square bg-accent rounded-xl flex items-center justify-center mb-4 overflow-hidden">
-                          {generatedDesign ? (
-                            <img 
-                              src={generatedDesign} 
-                              alt="Selected design" 
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <div className="text-center space-y-3 p-8">
-                              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto animate-pulse">
-                                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                </svg>
-                              </div>
-                              <p className="text-muted-foreground">
-                                Your AI-generated designs will appear here
-                              </p>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </TabsContent>
-                    
-                    <TabsContent value="3d" className="mt-0 -m-6">
-                      <ModelViewer3D productName="Your Design" modelUrl={generatedDesign || undefined} />
-                    </TabsContent>
-                    
-                    <TabsContent value="ar" className="mt-0 -m-6">
-                      <ARViewer productName="Your Design" modelUrl={generatedDesign || undefined} />
-                    </TabsContent>
-                  </Tabs>
-
-                  <div className="space-y-3 text-sm">
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-muted-foreground">Status:</span>
-                      <span className="font-medium">
-                        {isGenerating ? "Generating..." : generatedDesign ? "Design Ready" : "Ready to generate"}
-                      </span>
-                    </div>
-                    {estimatedCost && (
-                      <>
-                        <div className="flex justify-between py-2 border-b border-border">
-                          <span className="text-muted-foreground">Base Price:</span>
-                          <span className="font-medium">₹{estimatedCost.toLocaleString()} + GST</span>
-                        </div>
-                        <div className="bg-accent/50 p-3 rounded-lg text-xs text-muted-foreground border border-primary/10">
-                          <strong className="text-foreground">Note:</strong> This is the base manufacturing cost. You can list at a higher price—any markup goes directly to you. You earn 10-15% commission on the base price per sale.
-                        </div>
-                      </>
-                    )}
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-muted-foreground">Lead Time:</span>
-                      <span className="font-medium">4-6 weeks</span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-border">
-                      <span className="text-muted-foreground">Your Commission:</span>
-                      <span className="font-medium text-primary">10-15% on base price</span>
-                    </div>
-                    <div className="flex justify-between py-2">
-                      <span className="text-muted-foreground">Est. Generation:</span>
-                      <span className="font-medium">~30 seconds</span>
-                    </div>
-                  </div>
-
-                  {generatedDesign && !showWorkflow && (
-                    <div className="mt-4 pt-4 border-t border-border flex gap-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Refine Design
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => setShowWorkflow(true)}
-                      >
-                        Continue to Workflow
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* Process Info */}
-              <Card className="bg-secondary/5 border-secondary/20">
-                <CardContent className="p-6">
-                  <h4 className="font-semibold mb-3 text-foreground flex items-center gap-2">
-                    <svg className="w-5 h-5 text-secondary" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    What happens next?
-                  </h4>
-                  <ol className="space-y-2 text-sm text-muted-foreground">
-                    <li className="flex gap-2">
-                      <span className="font-semibold text-foreground">1.</span>
-                      <span>AI generates multiple design variations</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-semibold text-foreground">2.</span>
-                      <span>You refine and approve your favorite</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-semibold text-foreground">3.</span>
-                      <span>We validate manufacturability</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-semibold text-foreground">4.</span>
-                      <span>Your design goes live on Forma marketplace</span>
-                    </li>
-                    <li className="flex gap-2">
-                      <span className="font-semibold text-foreground">5.</span>
-                      <span>Earn commissions on every sale forever</span>
-                    </li>
-                  </ol>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </section>
-
-        {/* Workflow Section */}
-        {showWorkflow && generatedDesign && (
-          <section className="container py-12 border-t border-border">
-            <div className="max-w-4xl mx-auto">
-              <h3 className="text-2xl font-bold mb-8 text-center text-foreground">
-                Your Design Journey
-              </h3>
-              
-              <div className="space-y-6">
-                {/* Step 1 */}
-                <div className="bg-background rounded-xl p-6 border border-primary shadow-soft">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold flex-shrink-0">
-                      ✓
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg mb-2 text-foreground">Design Generated</h4>
-                      <p className="text-muted-foreground">Your AI-generated design has been created and is ready for review.</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 2 */}
-                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-accent text-foreground flex items-center justify-center font-bold flex-shrink-0 border-2 border-primary">
-                      2
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg mb-2 text-foreground">Manufacturability Review</h4>
-                      <p className="text-muted-foreground mb-3">
-                        Our team will validate the design for 3D printing and manufacturing feasibility within 24-48 hours.
-                      </p>
-                      <div className="grid grid-cols-2 gap-3 text-sm">
-                        <div className="bg-accent p-3 rounded-lg">
-                          <p className="text-muted-foreground">Estimated Cost</p>
-                          <p className="font-semibold text-foreground">
-                            ₹{estimatedCost?.toLocaleString() || '18,750'}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">Based on ~2.5 cubic ft @ ₹7.5K/ft³</p>
-                        </div>
-                        <div className="bg-accent p-3 rounded-lg">
-                          <p className="text-muted-foreground">Production Time</p>
-                          <p className="font-semibold text-foreground">3-4 weeks</p>
-                          <p className="text-xs text-muted-foreground mt-1">From approval to listing</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 3 */}
-                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-muted text-foreground flex items-center justify-center font-bold flex-shrink-0">
-                      3
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg mb-2 text-foreground">Marketplace Listing</h4>
-                      <p className="text-muted-foreground">
-                        Once approved, your design will be listed on Forma marketplace. You'll receive a custom creator page with analytics.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Step 4 */}
-                <div className="bg-background rounded-xl p-6 border border-border shadow-soft">
-                  <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-full bg-muted text-foreground flex items-center justify-center font-bold flex-shrink-0">
-                      4
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-semibold text-lg mb-2 text-foreground">Promotion & Sales</h4>
-                      <p className="text-muted-foreground mb-3">
-                        Share your design on social media, your portfolio, and with your network. You'll earn 10-15% commission on every sale, forever.
-                      </p>
-                      <div className="bg-primary/5 p-4 rounded-lg border border-primary/20">
-                        <p className="text-sm font-semibold mb-2 text-foreground">💡 Marketing Toolkit Included:</p>
-                        <ul className="text-sm text-muted-foreground space-y-1">
-                          <li>• Custom shareable link for your design</li>
-                          <li>• High-res product photos for social media</li>
-                          <li>• Real-time sales dashboard</li>
-                          <li>• Email templates for outreach</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1">
-                    Refine Design
-                  </Button>
-                  <Button variant="default" className="flex-1">
-                    Submit for Review
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </section>
-        )}
-
-        {/* Example Prompts */}
-        <section className="container py-12 border-t border-border">
-          <div className="max-w-4xl mx-auto">
-            <h3 className="text-2xl font-bold mb-6 text-center text-foreground">
-              Need Inspiration? Try These Prompts
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                "A sculptural dining table with organic flowing edges and marble finish, 72\"×40\"×30\"",
-                "Modern lounge chair with curved backrest and matte black finish",
-                "Minimalist side table with terrazzo effect and geometric base",
-                "Contemporary planter with glossy white finish and angular form",
-                "Organic coffee table with wood grain texture and smooth rounded corners",
-                "Statement shelf unit with asymmetric levels and metallic bronze finish",
-              ].map((example, i) => (
-                <button
-                  key={i}
-                  onClick={() => setPrompt(example)}
-                  className="text-left p-4 rounded-xl border border-border hover:border-primary hover:bg-accent transition-all group"
-                >
-                  <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors">
-                    "{example}"
-                  </p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
-      
+
       <Footer />
     </div>
   );
