@@ -48,10 +48,10 @@ const CreatorFAQ = () => {
 
             <AccordionItem value="item-3">
               <AccordionTrigger className="text-left font-semibold">
-                What are the commission rates?
+                How much can I earn as a creator?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Base commission is 10% on all sales. This increases to 12% when you reach ₹4,15,000 in total sales, and 15% at ₹12,45,000+. Additionally, if you price your design higher than our base cost, 100% of that markup goes directly to you plus your commission on the base price.
+                You earn in two ways: (1) 100% of the markup you set above our base manufacturing cost, and (2) 5-20% commission on the base cost based on your sales volume. For example, if the base cost is ₹50,000 and you price it at ₹75,000, you earn ₹25,000 markup + ₹2,500-10,000 commission per sale. This gives you full control over your earnings!
               </AccordionContent>
             </AccordionItem>
 
@@ -111,10 +111,10 @@ const CreatorFAQ = () => {
 
             <AccordionItem value="item-10">
               <AccordionTrigger className="text-left font-semibold">
-                What if my design doesn't sell well?
+                What happens if my design doesn't sell?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                There's no cost to list designs, so there's no risk. If a design underperforms, you can work with our team to refine it, adjust pricing, or create new designs at no additional cost. We're invested in your success.
+                There's no cost to list designs, so there's no risk. If a design underperforms, you can enable smart pricing (auto-pricing), which gradually reduces your price by 10% monthly until sales pick up. This protects against overpricing while you keep trying to find the right market fit. Your price will never go below the base manufacturing cost.
               </AccordionContent>
             </AccordionItem>
 

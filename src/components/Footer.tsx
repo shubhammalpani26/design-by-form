@@ -1,6 +1,14 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export const Footer = () => {
+  const navigate = useNavigate();
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <footer className="border-t border-border bg-card mt-20">
       <div className="container py-12">
@@ -15,40 +23,42 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-4">Shop</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/browse" className="text-muted-foreground hover:text-primary transition-colors">Browse All</Link></li>
-              <li><Link to="/browse?category=chairs" className="text-muted-foreground hover:text-primary transition-colors">Chairs</Link></li>
-              <li><Link to="/browse?category=coffee-tables" className="text-muted-foreground hover:text-primary transition-colors">Coffee Tables</Link></li>
-              <li><Link to="/browse?category=benches" className="text-muted-foreground hover:text-primary transition-colors">Benches</Link></li>
-              <li><Link to="/browse?category=vases" className="text-muted-foreground hover:text-primary transition-colors">Vases</Link></li>
-              <li><Link to="/browse?category=installations" className="text-muted-foreground hover:text-primary transition-colors">Installations</Link></li>
-              <li><Link to="/browse?category=dining-tables" className="text-muted-foreground hover:text-primary transition-colors">Dining Tables</Link></li>
-              <li><Link to="/browse?category=home-decor" className="text-muted-foreground hover:text-primary transition-colors">Home Decor</Link></li>
+              <li><button onClick={() => handleNavigation("/browse")} className="text-muted-foreground hover:text-primary transition-colors text-left">Browse All</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=chairs")} className="text-muted-foreground hover:text-primary transition-colors text-left">Chairs</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=coffee-tables")} className="text-muted-foreground hover:text-primary transition-colors text-left">Coffee Tables</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=benches")} className="text-muted-foreground hover:text-primary transition-colors text-left">Benches</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=vases")} className="text-muted-foreground hover:text-primary transition-colors text-left">Vases</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=installations")} className="text-muted-foreground hover:text-primary transition-colors text-left">Installations</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=dining-tables")} className="text-muted-foreground hover:text-primary transition-colors text-left">Dining Tables</button></li>
+              <li><button onClick={() => handleNavigation("/browse?category=home-decor")} className="text-muted-foreground hover:text-primary transition-colors text-left">Home Decor</button></li>
+              <li><button onClick={() => handleNavigation("/shopper-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Shopper FAQ</button></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">For Creators</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/designer-signup" className="text-muted-foreground hover:text-primary transition-colors">Join as Creator</Link></li>
-              <li><Link to="/how-it-works" className="text-muted-foreground hover:text-primary transition-colors">How It Works</Link></li>
-              <li><Link to="/commissions" className="text-muted-foreground hover:text-primary transition-colors">Commissions</Link></li>
+              <li><button onClick={() => handleNavigation("/designer-signup")} className="text-muted-foreground hover:text-primary transition-colors text-left">Join as Creator</button></li>
+              <li><button onClick={() => handleNavigation("/how-it-works")} className="text-muted-foreground hover:text-primary transition-colors text-left">How It Works</button></li>
+              <li><button onClick={() => handleNavigation("/creator-earnings")} className="text-muted-foreground hover:text-primary transition-colors text-left">Your Earnings</button></li>
+              <li><button onClick={() => handleNavigation("/creator-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Creator FAQ</button></li>
             </ul>
           </div>
           
           <div>
             <h4 className="font-semibold mb-4">Company</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link to="/about" className="text-muted-foreground hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link to="/sustainability" className="text-muted-foreground hover:text-primary transition-colors">Sustainability</Link></li>
-              <li><Link to="/contact" className="text-muted-foreground hover:text-primary transition-colors">Contact</Link></li>
+              <li><button onClick={() => handleNavigation("/about")} className="text-muted-foreground hover:text-primary transition-colors text-left">About Us</button></li>
+              <li><button onClick={() => handleNavigation("/sustainability")} className="text-muted-foreground hover:text-primary transition-colors text-left">Sustainability</button></li>
+              <li><button onClick={() => handleNavigation("/contact")} className="text-muted-foreground hover:text-primary transition-colors text-left">Contact</button></li>
             </ul>
           </div>
         </div>
         
         <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
           <div className="flex justify-center gap-6 mb-4">
-            <Link to="/terms" className="hover:text-primary transition-colors">Terms & Conditions</Link>
-            <Link to="/contact" className="hover:text-primary transition-colors">Privacy Policy</Link>
+            <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>
+            <button onClick={() => handleNavigation("/contact")} className="hover:text-primary transition-colors">Privacy Policy</button>
           </div>
           <p>&copy; 2025 Forma. All rights reserved.</p>
         </div>

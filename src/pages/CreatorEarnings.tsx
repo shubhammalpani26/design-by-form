@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-const Commissions = () => {
+const CreatorEarnings = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -14,16 +14,50 @@ const Commissions = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Creator Commission Structure
+              How You Earn as a Creator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Transparent, fair, and designed to reward creativity
+              Set your price, keep 100% of markup, plus earn commission on every sale
             </p>
           </div>
         </section>
 
-        {/* Commission Rates */}
-        <section className="container py-16">
+        {/* Two Income Streams */}
+        <section className="container py-12">
+          <div className="max-w-5xl mx-auto mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">Your Price Markup</h3>
+                  <p className="text-4xl font-bold text-primary mb-4">100%</p>
+                  <p className="text-muted-foreground text-sm">
+                    Set your price above our base manufacturing cost. <strong className="text-foreground">You keep 100% of the difference.</strong> This is your primary income source and you have full control.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-secondary/30 bg-gradient-to-br from-secondary/5 to-transparent">
+                <CardContent className="p-8">
+                  <div className="w-12 h-12 rounded-full bg-secondary/10 flex items-center justify-center mb-4">
+                    <svg className="w-6 h-6 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-3 text-foreground">Commission Bonus</h3>
+                  <p className="text-4xl font-bold text-secondary mb-4">Up to 20%</p>
+                  <p className="text-muted-foreground text-sm">
+                    <strong className="text-foreground">Plus</strong> earn 5-20% commission on the base manufacturing cost based on your total sales volume. This rewards your success and grows with you.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+          
           <div className="max-w-4xl mx-auto">
             <h2 className="text-3xl font-bold mb-8 text-center text-foreground">Commission Tiers</h2>
             
@@ -102,23 +136,27 @@ const Commissions = () => {
             <Card className="mb-16 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-6 text-center text-foreground">
-                  Earnings Example
+                  Real Earnings Example
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <h4 className="font-semibold mb-3 text-foreground">Scenario</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Your Design Price:</span>
-                        <span className="font-medium">₹74,999</span>
+                        <span className="text-muted-foreground">Base Manufacturing Cost:</span>
+                        <span className="font-medium">₹50,000</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Your Selling Price:</span>
+                        <span className="font-medium">₹75,000</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Sales per Month:</span>
                         <span className="font-medium">20 units</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Commission Rate:</span>
-                        <span className="font-medium">10%</span>
+                        <span className="text-muted-foreground">Commission Tier:</span>
+                        <span className="font-medium">5% (Starter)</span>
                       </div>
                     </div>
                   </div>
@@ -126,16 +164,24 @@ const Commissions = () => {
                     <h4 className="font-semibold mb-3 text-foreground">Your Earnings</h4>
                     <div className="space-y-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Per Sale:</span>
-                        <span className="font-medium">₹7,500</span>
+                        <span className="text-muted-foreground">Markup per sale:</span>
+                        <span className="font-medium">₹25,000</span>
                       </div>
                       <div className="flex justify-between">
+                        <span className="text-muted-foreground">Commission per sale:</span>
+                        <span className="font-medium">₹2,500</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total per sale:</span>
+                        <span className="font-medium text-primary">₹27,500</span>
+                      </div>
+                      <div className="flex justify-between pt-2 border-t border-primary/20">
                         <span className="text-muted-foreground">Per Month:</span>
-                        <span className="font-medium text-primary">₹1,50,000</span>
+                        <span className="font-medium text-primary text-lg">₹5,50,000</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Per Year:</span>
-                        <span className="font-medium text-primary text-lg">₹18,00,000</span>
+                        <span className="font-bold text-primary text-xl">₹66,00,000</span>
                       </div>
                     </div>
                   </div>
@@ -248,4 +294,4 @@ const Commissions = () => {
   );
 };
 
-export default Commissions;
+export default CreatorEarnings;

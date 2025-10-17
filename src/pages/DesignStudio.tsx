@@ -434,26 +434,62 @@ const DesignStudio = () => {
                   </CardContent>
                 </Card>
 
-                {/* Design Details */}
+                {/* Set Your Price & Earnings */}
                 {generatedDesign && estimatedCost && (
                   <Card className="border-primary/20">
                     <CardContent className="p-6 space-y-4">
-                      <h3 className="font-semibold text-lg text-foreground">Design Details</h3>
+                      <h3 className="font-semibold text-lg text-foreground">Set Your Price & Earnings</h3>
                       <div className="space-y-3 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Estimated Base Price</span>
+                        <div className="flex justify-between pb-2 border-b border-border">
+                          <span className="text-muted-foreground">Base Manufacturing Cost</span>
                           <span className="font-semibold text-foreground">₹{estimatedCost.toLocaleString()}</span>
                         </div>
+                        
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium text-foreground">Your Selling Price (₹)</label>
+                          <input
+                            type="number"
+                            min={estimatedCost}
+                            defaultValue={estimatedCost * 1.5}
+                            className="w-full px-3 py-2 border border-border rounded-md text-foreground bg-background"
+                            onChange={(e) => {
+                              const markup = parseInt(e.target.value) - estimatedCost;
+                              const commission = estimatedCost * 0.05;
+                              const total = markup + commission;
+                              document.getElementById('markup-display')!.textContent = `₹${markup.toLocaleString()}`;
+                              document.getElementById('commission-display')!.textContent = `₹${commission.toLocaleString()}`;
+                              document.getElementById('total-earnings')!.textContent = `₹${total.toLocaleString()}`;
+                            }}
+                          />
+                          <p className="text-xs text-muted-foreground">Minimum: ₹{estimatedCost.toLocaleString()}</p>
+                        </div>
+
+                        <div className="bg-primary/5 rounded-lg p-3 space-y-2">
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Your Markup (100% yours)</span>
+                            <span id="markup-display" className="font-semibold text-primary">₹{(estimatedCost * 0.5).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between text-xs">
+                            <span className="text-muted-foreground">Commission (5% on base)</span>
+                            <span id="commission-display" className="font-semibold text-secondary">₹{(estimatedCost * 0.05).toLocaleString()}</span>
+                          </div>
+                          <div className="flex justify-between pt-2 border-t border-primary/20">
+                            <span className="font-semibold text-foreground">Per Sale Earnings</span>
+                            <span id="total-earnings" className="font-bold text-primary">₹{(estimatedCost * 0.55).toLocaleString()}</span>
+                          </div>
+                        </div>
+
+                        <div className="bg-accent/50 rounded-lg p-3">
+                          <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
+                          <p className="text-sm font-bold text-foreground">Monthly Income: ₹{(estimatedCost * 5.5).toLocaleString()}</p>
+                        </div>
+
                         {leadTime && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground">Lead Time</span>
+                          <div className="flex justify-between pt-2">
+                            <span className="text-muted-foreground">Manufacturing Time</span>
                             <span className="font-semibold text-foreground">{leadTime} days</span>
                           </div>
                         )}
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Commission Potential</span>
-                          <span className="font-semibold text-secondary">Up to 40%</span>
-                        </div>
                       </div>
                     </CardContent>
                   </Card>

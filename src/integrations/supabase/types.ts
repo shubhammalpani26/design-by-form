@@ -110,11 +110,13 @@ export type Database = {
       }
       designer_products: {
         Row: {
+          auto_pricing_enabled: boolean | null
           available_finishes: Json | null
           available_sizes: Json | null
           base_price: number
           category: string
           created_at: string
+          current_discount_level: number | null
           description: string | null
           designer_id: string
           designer_price: number
@@ -124,6 +126,8 @@ export type Database = {
           lead_time_days: number | null
           materials_description: string | null
           name: string
+          original_designer_price: number | null
+          price_reduction_date: string | null
           rejection_reason: string | null
           status: string
           total_sales: number
@@ -131,11 +135,13 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          auto_pricing_enabled?: boolean | null
           available_finishes?: Json | null
           available_sizes?: Json | null
           base_price: number
           category: string
           created_at?: string
+          current_discount_level?: number | null
           description?: string | null
           designer_id: string
           designer_price: number
@@ -145,6 +151,8 @@ export type Database = {
           lead_time_days?: number | null
           materials_description?: string | null
           name: string
+          original_designer_price?: number | null
+          price_reduction_date?: string | null
           rejection_reason?: string | null
           status?: string
           total_sales?: number
@@ -152,11 +160,13 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          auto_pricing_enabled?: boolean | null
           available_finishes?: Json | null
           available_sizes?: Json | null
           base_price?: number
           category?: string
           created_at?: string
+          current_discount_level?: number | null
           description?: string | null
           designer_id?: string
           designer_price?: number
@@ -166,6 +176,8 @@ export type Database = {
           lead_time_days?: number | null
           materials_description?: string | null
           name?: string
+          original_designer_price?: number | null
+          price_reduction_date?: string | null
           rejection_reason?: string | null
           status?: string
           total_sales?: number
@@ -327,6 +339,44 @@ export type Database = {
         }
         Relationships: []
       }
+      product_pricing_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          id: string
+          new_price: number
+          old_price: number
+          product_id: string
+          reason: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price: number
+          old_price: number
+          product_id: string
+          reason: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          id?: string
+          new_price?: number
+          old_price?: number
+          product_id?: string
+          reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_pricing_history_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_sales: {
         Row: {
           base_price: number
@@ -413,6 +463,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      reduce_stale_product_prices: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
     }
     Enums: {

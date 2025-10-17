@@ -14,7 +14,7 @@ import DesignerSignup from "./pages/DesignerSignup";
 import DesignerDashboard from "./pages/DesignerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import HowItWorks from "./pages/HowItWorks";
-import Commissions from "./pages/Commissions";
+import CreatorEarnings from "./pages/CreatorEarnings";
 import Terms from "./pages/Terms";
 import About from "./pages/About";
 import Sustainability from "./pages/Sustainability";
@@ -44,7 +44,8 @@ const App = () => (
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
-            <Route path="/commissions" element={<Commissions />} />
+            <Route path="/creator-earnings" element={<CreatorEarnings />} />
+            <Route path="/commissions" element={<CreatorEarnings />} /> {/* Redirect old URL */}
             <Route path="/terms" element={<Terms />} />
             <Route path="/about" element={<About />} />
             <Route path="/sustainability" element={<Sustainability />} />
