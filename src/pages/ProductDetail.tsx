@@ -226,12 +226,19 @@ const ProductDetail = () => {
               </TabsList>
               
               <TabsContent value="image" className="mt-0">
-                <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover"
-                  />
+                <div className="space-y-3">
+                  <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  {(selectedFinish !== "Natural" || selectedSize !== "Standard") && (
+                    <p className="text-xs text-center text-muted-foreground bg-secondary/10 py-2 px-3 rounded-lg border border-secondary/20">
+                      Preview shows default finish - your final product will be customized with <strong>{selectedFinish}</strong> finish in <strong>{selectedSize}</strong> size
+                    </p>
+                  )}
                 </div>
               </TabsContent>
               

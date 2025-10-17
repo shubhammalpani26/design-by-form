@@ -20,29 +20,10 @@ const DesignStudio = () => {
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [leadTime, setLeadTime] = useState<number | null>(null);
   const { toast } = useToast();
-
-  const designTemplates = [
-    {
-      id: "modern-table",
-      name: "Modern Dining Table",
-      prompt: "A modern minimalist dining table with clean lines and organic curved edges, matte finish, 72\"×40\"×30\""
-    },
-    {
-      id: "sculptural-chair",
-      name: "Sculptural Chair",
-      prompt: "Contemporary lounge chair with flowing sculptural form, smooth curves, and glossy white finish"
-    },
-    {
-      id: "geometric-shelf",
-      name: "Geometric Shelf",
-      prompt: "Minimalist wall shelf with geometric asymmetric design and terrazzo finish, 48\"×12\"×8\""
-    }
-  ];
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -203,9 +184,9 @@ const DesignStudio = () => {
                               key={finish}
                               onClick={() => {
                                 setSelectedFinish(finish);
-                                const finishRegex = /\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
+                                const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
                                 if (prompt.match(finishRegex)) {
-                                  setPrompt(prev => prev.replace(finishRegex, `${finish.toLowerCase()} finish`));
+                                  setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
                                 } else {
                                   setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
                                 }
@@ -231,10 +212,10 @@ const DesignStudio = () => {
                               key={size}
                               onClick={() => {
                                 setSelectedSize(size);
-                                const sizeRegex = /\b\d+["']?\s*[×x]\s*\d+["']?\s*[×x]\s*\d+["']?\b/gi;
+                                const sizeRegex = /,?\s*\b\d+["']?\s*[×x]\s*\d+["']?\s*[×x]\s*\d+["']?\b/gi;
                                 if (size !== 'Custom') {
                                   if (prompt.match(sizeRegex)) {
-                                    setPrompt(prev => prev.replace(sizeRegex, size));
+                                    setPrompt(prev => prev.replace(sizeRegex, `, ${size}`));
                                   } else {
                                     setPrompt(prev => `${prev}${prev ? ', ' : ''}${size}`);
                                   }
@@ -509,60 +490,6 @@ const DesignStudio = () => {
             </div>
           </section>
         )}
-
-        {/* Template Selection */}
-        <section className="container py-16 bg-accent/30">
-          <div className="max-w-6xl mx-auto">
-            <h2 className="text-3xl font-bold text-center mb-4 text-foreground">Or Start with a Template</h2>
-            <p className="text-center text-muted-foreground mb-12">
-              Select a base design and customize it with your own ideas
-            </p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {designTemplates.map((template) => (
-                <button
-                  key={template.id}
-                  onClick={() => {
-                    setSelectedTemplate(template.id);
-                    setPrompt(template.prompt);
-                    toast({
-                      title: "Template Selected",
-                      description: "Now customize the design with your own ideas",
-                    });
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className={`group relative overflow-hidden rounded-xl border-2 transition-all ${
-                    selectedTemplate === template.id
-                      ? "border-primary shadow-elegant scale-[1.02]"
-                      : "border-border hover:border-primary/50 hover:shadow-soft"
-                  }`}
-                >
-                  <div className="aspect-square bg-gradient-to-br from-accent via-secondary/5 to-primary/5 overflow-hidden flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <div className="w-20 h-20 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center">
-                        <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-bold text-lg text-foreground mb-2">{template.name}</h3>
-                      <p className="text-xs text-muted-foreground opacity-60">Click to customize</p>
-                    </div>
-                  </div>
-                  <div className="p-4 bg-background/95 backdrop-blur-sm border-t border-border">
-                    <p className="text-xs text-muted-foreground line-clamp-2">{template.prompt}</p>
-                  </div>
-                  {selectedTemplate === template.id && (
-                    <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                      <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        </section>
       </main>
 
       <Footer />
