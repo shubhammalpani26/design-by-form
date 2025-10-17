@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { designerSignupSchema } from "@/lib/validations";
 
 const DesignerSignup = () => {
   const navigate = useNavigate();
@@ -25,19 +26,12 @@ const DesignerSignup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.termsAccepted) {
-      toast({
-        title: "Terms Required",
-        description: "Please accept the terms and conditions to continue.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
+      // Validate input with zod
+      const validatedData = designerSignupSchema.parse(formData);
+
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
@@ -51,12 +45,12 @@ const DesignerSignup = () => {
 
       const { error } = await supabase.from("designer_profiles").insert({
         user_id: user.id,
-        name: formData.name,
-        email: formData.email,
-        portfolio_url: formData.portfolio,
-        design_background: formData.background,
-        furniture_interests: formData.interests,
-        terms_accepted: formData.termsAccepted,
+        name: validatedData.name,
+        email: validatedData.email,
+        portfolio_url: validatedData.portfolio || null,
+        design_background: validatedData.background,
+        furniture_interests: validatedData.interests,
+        terms_accepted: validatedData.termsAccepted,
         terms_accepted_at: new Date().toISOString(),
       });
 
@@ -69,11 +63,19 @@ const DesignerSignup = () => {
 
       navigate("/design-studio");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to submit application. Please try again.",
-        variant: "destructive",
-      });
+      if (error.name === 'ZodError') {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0]?.message || "Please check your input.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to submit application. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }

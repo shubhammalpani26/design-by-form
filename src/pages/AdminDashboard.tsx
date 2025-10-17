@@ -130,14 +130,18 @@ const AdminDashboard = () => {
   };
 
   const rejectProduct = async () => {
-    if (!selectedProduct || !rejectionReason.trim()) return;
+    if (!selectedProduct) return;
 
     try {
+      // Validate rejection reason
+      const { rejectionReasonSchema } = await import('@/lib/validations');
+      const validatedReason = rejectionReasonSchema.parse(rejectionReason);
+
       const { error } = await supabase
         .from('designer_products')
         .update({ 
           status: 'rejected',
-          rejection_reason: rejectionReason
+          rejection_reason: validatedReason
         })
         .eq('id', selectedProduct.id);
 

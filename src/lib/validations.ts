@@ -1,0 +1,67 @@
+import { z } from 'zod';
+
+// Designer signup validation
+export const designerSignupSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, 'Name is required')
+    .max(100, 'Name must be less than 100 characters'),
+  email: z.string()
+    .trim()
+    .email('Invalid email address')
+    .max(255, 'Email must be less than 255 characters'),
+  portfolio: z.string()
+    .trim()
+    .url('Invalid URL format')
+    .max(500, 'URL must be less than 500 characters')
+    .optional()
+    .or(z.literal('')),
+  background: z.string()
+    .trim()
+    .min(1, 'Design background is required')
+    .max(2000, 'Description must be less than 2000 characters'),
+  interests: z.string()
+    .trim()
+    .min(1, 'Furniture interests are required')
+    .max(1000, 'Description must be less than 1000 characters'),
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: 'You must accept the terms and conditions',
+  }),
+});
+
+// Admin rejection reason validation
+export const rejectionReasonSchema = z.string()
+  .trim()
+  .min(10, 'Rejection reason must be at least 10 characters')
+  .max(1000, 'Rejection reason must be less than 1000 characters');
+
+// Cart customizations validation
+export const cartCustomizationsSchema = z.object({
+  size: z.string().max(50).optional(),
+  finish: z.string().max(50).optional(),
+  color: z.string().max(50).optional(),
+  notes: z.string().max(500).optional(),
+}).passthrough(); // Allow additional properties but validate known ones
+
+// Edge function validations
+export const generateDesignSchema = z.object({
+  prompt: z.string()
+    .trim()
+    .min(10, 'Prompt must be at least 10 characters')
+    .max(2000, 'Prompt must be less than 2000 characters'),
+  variationNumber: z.number()
+    .int()
+    .min(1)
+    .max(10)
+    .optional(),
+});
+
+export const checkPlagiarismSchema = z.object({
+  imageUrl: z.string()
+    .trim()
+    .url('Invalid image URL')
+    .max(2000, 'URL must be less than 2000 characters'),
+  productId: z.string()
+    .uuid('Invalid product ID')
+    .optional(),
+});

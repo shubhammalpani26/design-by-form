@@ -1,7 +1,1 @@
 project_id = "rdcfakdhgndnhgzfkuvw"
-
-[functions.generate-design]
-verify_jwt = false
-
-[functions.check-plagiarism]
-verify_jwt = false

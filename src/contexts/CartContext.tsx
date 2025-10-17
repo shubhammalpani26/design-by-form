@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { cartCustomizationsSchema } from '@/lib/validations';
 
 interface CartItem {
   id: string;
@@ -78,12 +79,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      const { error } = await supabase.from('cart').upsert({
+      // Validate customizations
+      const validatedCustomizations = cartCustomizationsSchema.parse(customizations);
+
+      const { error } = await supabase.from('cart').upsert([{
         user_id: user.id,
         product_id: productId,
         quantity: 1,
-        customizations,
-      }, {
+        customizations: validatedCustomizations as any,
+      }], {
         onConflict: 'user_id,product_id',
       });
 
@@ -94,13 +98,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         title: 'Added to cart',
         description: 'Item successfully added to your cart',
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding to cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to add item to cart',
-        variant: 'destructive',
-      });
+      if (error.name === 'ZodError') {
+        toast({
+          title: 'Invalid customization',
+          description: error.errors[0]?.message || 'Please check your options.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to add item to cart',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
