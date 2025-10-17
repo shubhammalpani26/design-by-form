@@ -202,6 +202,7 @@ export type Database = {
           furniture_interests: string | null
           id: string
           name: string
+          phone_number: string | null
           portfolio_url: string | null
           status: string
           terms_accepted: boolean
@@ -216,6 +217,7 @@ export type Database = {
           furniture_interests?: string | null
           id?: string
           name: string
+          phone_number?: string | null
           portfolio_url?: string | null
           status?: string
           terms_accepted?: boolean
@@ -230,6 +232,7 @@ export type Database = {
           furniture_interests?: string | null
           id?: string
           name?: string
+          phone_number?: string | null
           portfolio_url?: string | null
           status?: string
           terms_accepted?: boolean

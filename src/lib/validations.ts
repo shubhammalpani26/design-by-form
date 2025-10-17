@@ -10,6 +10,11 @@ export const designerSignupSchema = z.object({
     .trim()
     .email('Invalid email address')
     .max(255, 'Email must be less than 255 characters'),
+  phone: z.string()
+    .trim()
+    .min(10, 'Phone number must be at least 10 digits')
+    .max(20, 'Phone number must be less than 20 characters')
+    .regex(/^[0-9+\-\s()]+$/, 'Invalid phone number format'),
   portfolio: z.string()
     .trim()
     .url('Invalid URL format')
@@ -26,6 +31,33 @@ export const designerSignupSchema = z.object({
     .max(1000, 'Description must be less than 1000 characters'),
   termsAccepted: z.boolean().refine(val => val === true, {
     message: 'You must accept the terms and conditions',
+  }),
+});
+
+// Design submission validation
+export const designSubmissionSchema = z.object({
+  name: z.string()
+    .trim()
+    .min(1, 'Design name is required')
+    .max(200, 'Design name must be less than 200 characters'),
+  description: z.string()
+    .trim()
+    .min(10, 'Description must be at least 10 characters')
+    .max(2000, 'Description must be less than 2000 characters'),
+  category: z.string()
+    .trim()
+    .min(1, 'Category is required'),
+  basePrice: z.number()
+    .min(1000, 'Base price must be at least ₹1,000')
+    .max(10000000, 'Base price must be less than ₹1 crore'),
+  designerPrice: z.number()
+    .min(1000, 'Your price must be at least ₹1,000')
+    .max(10000000, 'Your price must be less than ₹1 crore'),
+  imageUrl: z.string()
+    .trim()
+    .url('Invalid image URL'),
+  plagiarismTermsAccepted: z.boolean().refine(val => val === true, {
+    message: 'You must confirm that your design is original',
   }),
 });
 

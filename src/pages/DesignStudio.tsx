@@ -3,12 +3,15 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { designSubmissionSchema } from "@/lib/validations";
 
 const DesignStudio = () => {
   const [prompt, setPrompt] = useState("");
@@ -23,6 +26,16 @@ const DesignStudio = () => {
   const [selectedFinish, setSelectedFinish] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [leadTime, setLeadTime] = useState<number | null>(null);
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionData, setSubmissionData] = useState({
+    name: "",
+    description: "",
+    category: "chairs",
+    basePrice: 0,
+    designerPrice: 0,
+    plagiarismTermsAccepted: false,
+  });
   const { toast } = useToast();
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,10 +112,139 @@ const DesignStudio = () => {
     setSelectedVariation(index);
     setGeneratedDesign(generatedVariations[index]);
     setShowWorkflow(true);
+    setShowSubmissionForm(true);
+    if (estimatedCost) {
+      setSubmissionData(prev => ({
+        ...prev,
+        basePrice: estimatedCost,
+        designerPrice: estimatedCost * 1.5,
+      }));
+    }
     toast({
       title: "Variation Selected",
-      description: "You can now proceed with this design or refine it further.",
+      description: "Fill out the submission form below to list your design.",
     });
+  };
+
+  const handleSubmitDesign = async () => {
+    if (!generatedDesign) {
+      toast({
+        title: "No Design Selected",
+        description: "Please generate and select a design first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Validate submission data
+      const validatedData = designSubmissionSchema.parse({
+        ...submissionData,
+        imageUrl: generatedDesign,
+      });
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to submit your design.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Get designer profile
+      const { data: profile, error: profileError } = await supabase
+        .from("designer_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (profileError || !profile) {
+        toast({
+          title: "Profile Not Found",
+          description: "Please complete your designer profile first.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Check for plagiarism
+      const { data: plagiarismData, error: plagiarismError } = await supabase.functions.invoke(
+        'check-plagiarism',
+        { body: { imageUrl: generatedDesign } }
+      );
+
+      if (plagiarismError) {
+        console.error('Plagiarism check error:', plagiarismError);
+      }
+
+      if (plagiarismData?.isPlagiarized) {
+        toast({
+          title: "Similar Design Detected",
+          description: `This design appears similar to ${plagiarismData.similarCount} existing design(s). Please ensure your design is original.`,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create product
+      const { error: productError } = await supabase.from("designer_products").insert({
+        designer_id: profile.id,
+        name: validatedData.name,
+        description: validatedData.description,
+        category: validatedData.category,
+        base_price: validatedData.basePrice,
+        designer_price: validatedData.designerPrice,
+        original_designer_price: validatedData.designerPrice,
+        image_url: generatedDesign,
+        status: 'pending',
+      });
+
+      if (productError) throw productError;
+
+      toast({
+        title: "Design Submitted!",
+        description: "We'll review your design for manufacturing feasibility and notify you via email/SMS when it's approved.",
+      });
+
+      // Reset form
+      setGeneratedDesign(null);
+      setGeneratedVariations([]);
+      setSelectedVariation(null);
+      setShowSubmissionForm(false);
+      setShowWorkflow(false);
+      setSubmissionData({
+        name: "",
+        description: "",
+        category: "chairs",
+        basePrice: 0,
+        designerPrice: 0,
+        plagiarismTermsAccepted: false,
+      });
+      setPrompt("");
+
+    } catch (error: any) {
+      if (error.name === 'ZodError') {
+        toast({
+          title: "Validation Error",
+          description: error.errors[0]?.message || "Please check your input.",
+          variant: "destructive",
+        });
+      } else {
+        console.error('Submission error:', error);
+        toast({
+          title: "Submission Failed",
+          description: error.message || "Please try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -499,6 +641,154 @@ const DesignStudio = () => {
           </div>
         </section>
 
+        {/* Design Submission Form */}
+        {showSubmissionForm && (
+          <section className="bg-accent/20 py-16">
+            <div className="container max-w-3xl mx-auto">
+              <Card className="border-primary/20">
+                <CardContent className="p-8">
+                  <h2 className="text-2xl font-bold mb-2 text-foreground">Submit Your Design</h2>
+                  <p className="text-muted-foreground mb-6">
+                    Complete the details below to submit your design for review and listing
+                  </p>
+
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-sm font-medium mb-2 block text-foreground">Design Name *</label>
+                      <Input 
+                        placeholder="e.g., Modern Curve Chair"
+                        value={submissionData.name}
+                        onChange={(e) => setSubmissionData({ ...submissionData, name: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block text-foreground">Description *</label>
+                      <Textarea 
+                        placeholder="Describe your design, its features, and what makes it unique..."
+                        className="min-h-[100px]"
+                        value={submissionData.description}
+                        onChange={(e) => setSubmissionData({ ...submissionData, description: e.target.value })}
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-sm font-medium mb-2 block text-foreground">Category *</label>
+                      <select
+                        className="w-full px-3 py-2 border border-border rounded-md text-foreground bg-background"
+                        value={submissionData.category}
+                        onChange={(e) => setSubmissionData({ ...submissionData, category: e.target.value })}
+                      >
+                        <option value="chairs">Chairs</option>
+                        <option value="tables">Tables</option>
+                        <option value="storage">Storage</option>
+                        <option value="decor">Decor</option>
+                        <option value="lighting">Lighting</option>
+                      </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Base Price (₹) *</label>
+                        <Input 
+                          type="number"
+                          value={submissionData.basePrice}
+                          onChange={(e) => setSubmissionData({ ...submissionData, basePrice: parseFloat(e.target.value) })}
+                          min={1000}
+                          required
+                          disabled
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Your Price (₹) *</label>
+                        <Input 
+                          type="number"
+                          value={submissionData.designerPrice}
+                          onChange={(e) => setSubmissionData({ ...submissionData, designerPrice: parseFloat(e.target.value) })}
+                          min={submissionData.basePrice}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">Your selling price</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-primary/5 rounded-lg p-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
+                        <span className="text-xl font-bold text-primary">
+                          ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.05)).toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
+                        Commission: ₹{(submissionData.basePrice * 0.05).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <div className="border border-border rounded-lg p-4 space-y-4">
+                      <div className="flex items-start space-x-3">
+                        <Checkbox 
+                          id="plagiarism" 
+                          checked={submissionData.plagiarismTermsAccepted}
+                          onCheckedChange={(checked) => 
+                            setSubmissionData({ ...submissionData, plagiarismTermsAccepted: checked as boolean })
+                          }
+                          required
+                        />
+                        <label
+                          htmlFor="plagiarism"
+                          className="text-sm leading-relaxed cursor-pointer text-foreground"
+                        >
+                          <strong>I confirm that this design is my original work.</strong>
+                          <br />
+                          I certify that this design does not infringe on any existing copyrights, trademarks, 
+                          or intellectual property rights. I understand that plagiarized designs will be removed 
+                          and may result in account suspension.
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="bg-secondary/10 rounded-lg p-4 border border-secondary/20">
+                      <h4 className="font-semibold mb-2 text-foreground flex items-center gap-2">
+                        <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        Order Notifications
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        You'll receive email and SMS notifications when someone places an order for your design. 
+                        Make sure your contact details in your creator profile are up to date.
+                      </p>
+                    </div>
+
+                    <Button 
+                      variant="hero" 
+                      className="w-full" 
+                      onClick={handleSubmitDesign}
+                      disabled={isSubmitting || !submissionData.plagiarismTermsAccepted}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                          </svg>
+                          Submitting Design...
+                        </>
+                      ) : (
+                        "Submit Design for Review"
+                      )}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+        )}
+
         {/* Workflow Section */}
         {showWorkflow && (
           <section className="bg-accent/30 py-16">
@@ -510,7 +800,7 @@ const DesignStudio = () => {
                   { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for 3D printing feasibility" },
                   { step: 2, title: "Manufacturing", desc: "Your piece is 3D printed using premium FRP and hand-finished" },
                   { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
-                  { step: 4, title: "You Earn", desc: "Receive commissions automatically as your designs sell" }
+                  { step: 4, title: "You Earn", desc: "You'll receive notifications when orders are placed and earn income automatically" }
                 ].map((item) => (
                   <Card key={item.step} className="relative overflow-hidden">
                     <CardContent className="p-6">

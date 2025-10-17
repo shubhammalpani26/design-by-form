@@ -18,6 +18,7 @@ const DesignerSignup = () => {
   const [formData, setFormData] = useState({
     name: "",
     email: "",
+    phone: "",
     portfolio: "",
     background: "",
     interests: "",
@@ -47,6 +48,7 @@ const DesignerSignup = () => {
         user_id: user.id,
         name: validatedData.name,
         email: validatedData.email,
+        phone_number: validatedData.phone,
         portfolio_url: validatedData.portfolio || null,
         design_background: validatedData.background,
         furniture_interests: validatedData.interests,
@@ -163,6 +165,23 @@ const DesignerSignup = () => {
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       required
                     />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      You'll receive order notifications at this email
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-foreground">Phone Number</label>
+                    <Input 
+                      type="tel" 
+                      placeholder="+1 234 567 8900"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      You'll receive order notifications via SMS
+                    </p>
                   </div>
 
                   <div>
