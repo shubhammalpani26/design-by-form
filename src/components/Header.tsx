@@ -9,11 +9,13 @@ import {
 
 export const Header = () => {
   const categories = [
-    { name: "Chairs & Seating", path: "/browse?category=chairs" },
-    { name: "Tables & Desks", path: "/browse?category=tables" },
-    { name: "Storage & Shelving", path: "/browse?category=storage" },
-    { name: "Decorative Pieces", path: "/browse?category=decor" },
-    { name: "Outdoor Furniture", path: "/browse?category=outdoor" },
+    { name: "Chairs", path: "/browse?category=chairs" },
+    { name: "Coffee Tables", path: "/browse?category=coffee-tables" },
+    { name: "Dining Tables", path: "/browse?category=dining-tables" },
+    { name: "Benches", path: "/browse?category=benches" },
+    { name: "Vases", path: "/browse?category=vases" },
+    { name: "Home Decor", path: "/browse?category=home-decor" },
+    { name: "Installations", path: "/browse?category=installations" },
     { name: "All Products", path: "/browse" },
   ];
 

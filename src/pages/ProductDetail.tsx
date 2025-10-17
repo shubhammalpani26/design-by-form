@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
+import { useCart } from "@/contexts/CartContext";
 import chairHero from "@/assets/chair-hero.jpg";
 import chairSpiral from "@/assets/chair-spiral.jpg";
 import tableFlow from "@/assets/table-flow.jpg";
@@ -184,6 +185,12 @@ const ProductDetail = () => {
   const { id } = useParams();
   const product = productData[id || "1"] || productData["1"];
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
+  const { addToCart } = useCart();
+
+  const handleAddToCart = () => {
+    // In a real implementation, this would use the actual product ID from database
+    addToCart(id || "1");
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -315,7 +322,7 @@ const ProductDetail = () => {
             </div>
 
             <div className="flex gap-4 pt-4">
-              <Button variant="hero" size="lg" className="flex-1">
+              <Button variant="hero" size="lg" className="flex-1" onClick={handleAddToCart}>
                 Add to Cart
               </Button>
               <Button variant="outline" size="lg">

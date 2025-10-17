@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      cart: {
+        Row: {
+          created_at: string
+          customizations: Json | null
+          id: string
+          product_id: string
+          quantity: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          customizations?: Json | null
+          id?: string
+          product_id: string
+          quantity?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          customizations?: Json | null
+          id?: string
+          product_id?: string
+          quantity?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cart_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       commission_tiers: {
         Row: {
           commission_rate: number
@@ -41,48 +79,98 @@ export type Database = {
         }
         Relationships: []
       }
+      design_hashes: {
+        Row: {
+          created_at: string
+          id: string
+          image_hash: string
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          image_hash: string
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_hash?: string
+          product_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_hashes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       designer_products: {
         Row: {
+          available_finishes: Json | null
+          available_sizes: Json | null
           base_price: number
           category: string
           created_at: string
           description: string | null
           designer_id: string
           designer_price: number
+          dimensions: Json | null
           id: string
           image_url: string | null
+          lead_time_days: number | null
+          materials_description: string | null
           name: string
+          rejection_reason: string | null
           status: string
           total_sales: number
           updated_at: string
+          weight: number | null
         }
         Insert: {
+          available_finishes?: Json | null
+          available_sizes?: Json | null
           base_price: number
           category: string
           created_at?: string
           description?: string | null
           designer_id: string
           designer_price: number
+          dimensions?: Json | null
           id?: string
           image_url?: string | null
+          lead_time_days?: number | null
+          materials_description?: string | null
           name: string
+          rejection_reason?: string | null
           status?: string
           total_sales?: number
           updated_at?: string
+          weight?: number | null
         }
         Update: {
+          available_finishes?: Json | null
+          available_sizes?: Json | null
           base_price?: number
           category?: string
           created_at?: string
           description?: string | null
           designer_id?: string
           designer_price?: number
+          dimensions?: Json | null
           id?: string
           image_url?: string | null
+          lead_time_days?: number | null
+          materials_description?: string | null
           name?: string
+          rejection_reason?: string | null
           status?: string
           total_sales?: number
           updated_at?: string
+          weight?: number | null
         }
         Relationships: [
           {
@@ -136,6 +224,106 @@ export type Database = {
           terms_accepted_at?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      order_items: {
+        Row: {
+          commission_amount: number
+          commission_rate: number
+          created_at: string
+          customizations: Json | null
+          designer_earnings: number
+          designer_id: string | null
+          designer_price: number
+          id: string
+          order_id: string
+          price: number
+          product_id: string | null
+          quantity: number
+        }
+        Insert: {
+          commission_amount: number
+          commission_rate: number
+          created_at?: string
+          customizations?: Json | null
+          designer_earnings: number
+          designer_id?: string | null
+          designer_price: number
+          id?: string
+          order_id: string
+          price: number
+          product_id?: string | null
+          quantity: number
+        }
+        Update: {
+          commission_amount?: number
+          commission_rate?: number
+          created_at?: string
+          customizations?: Json | null
+          designer_earnings?: number
+          designer_id?: string | null
+          designer_price?: number
+          id?: string
+          order_id?: string
+          price?: number
+          product_id?: string | null
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_items_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          created_at: string
+          id: string
+          payment_details: Json | null
+          shipping_address: Json | null
+          status: string
+          total_amount: number
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          payment_details?: Json | null
+          shipping_address?: Json | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          payment_details?: Json | null
+          shipping_address?: Json | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -193,15 +381,42 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "designer" | "customer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -328,6 +543,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "designer", "customer"],
+    },
   },
 } as const
