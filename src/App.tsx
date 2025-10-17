@@ -17,6 +17,8 @@ import About from "./pages/About";
 import Sustainability from "./pages/Sustainability";
 import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
+import ShopperFAQ from "./pages/ShopperFAQ";
+import CreatorFAQ from "./pages/CreatorFAQ";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -42,6 +44,8 @@ const App = () => (
           <Route path="/sustainability" element={<Sustainability />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/auth" element={<Auth />} />
+          <Route path="/shopper-faq" element={<ShopperFAQ />} />
+          <Route path="/creator-faq" element={<CreatorFAQ />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
