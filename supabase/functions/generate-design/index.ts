@@ -20,30 +20,23 @@ serve(async (req) => {
   }
 
   try {
-    // Verify authentication
+    // Get the JWT from the authorization header
     const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      return new Response(
-        JSON.stringify({ error: 'Missing authorization header' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+    console.log('Auth header present:', !!authHeader);
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader } } }
-    );
+    // Create Supabase client with the auth header
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+    
+    const supabase = createClient(supabaseUrl, supabaseKey, {
+      global: { 
+        headers: authHeader ? { Authorization: authHeader } : {}
+      }
+    });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-    if (authError || !user) {
-      return new Response(
-        JSON.stringify({ error: 'Invalid authentication' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log('Authenticated user:', user.id);
+    // Try to get the user - this will work if they're authenticated
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Authenticated user:', user?.id || 'anonymous');
 
     const requestData = await req.json();
     
