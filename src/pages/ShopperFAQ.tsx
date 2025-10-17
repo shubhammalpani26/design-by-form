@@ -87,7 +87,7 @@ const ShopperFAQ = () => {
                 What are your shipping and delivery options?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Shipping costs are calculated separately and added to your order based on size, weight, and destination. We offer worldwide shipping to all countries. Smaller items ship via courier, while larger furniture pieces are white-glove delivered with setup assistance.
+                Shipping costs are calculated separately and added to your order based on size, weight, and destination. We offer worldwide shipping to all countries. Smaller items ship via courier, while larger furniture pieces use freight delivery.
               </AccordionContent>
             </AccordionItem>
 
