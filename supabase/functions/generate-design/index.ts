@@ -204,8 +204,8 @@ The final design must be both aesthetically beautiful AND fully manufacturable t
       try {
         console.log("Starting 3D model generation with Meshy");
         
-        // Create 3D generation task using image-to-3D
-        const meshyResponse = await fetch('https://api.meshy.ai/v2/image-to-3d', {
+        // Create 3D generation task using image-to-3D (correct endpoint)
+        const meshyResponse = await fetch('https://api.meshy.ai/openapi/v1/image-to-3d', {
           method: 'POST',
           headers: {
             'Authorization': `Bearer ${MESHY_API_KEY}`,
@@ -231,7 +231,7 @@ The final design must be both aesthetically beautiful AND fully manufacturable t
           while (attempts < maxAttempts && !taskComplete) {
             await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
             
-            const statusResponse = await fetch(`https://api.meshy.ai/v2/image-to-3d/${taskId}`, {
+            const statusResponse = await fetch(`https://api.meshy.ai/openapi/v1/image-to-3d/${taskId}`, {
               headers: {
                 'Authorization': `Bearer ${MESHY_API_KEY}`,
               },

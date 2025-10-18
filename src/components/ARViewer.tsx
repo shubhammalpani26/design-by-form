@@ -19,6 +19,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processedUrlCache, setProcessedUrlCache] = useState<Record<string, string>>({});
   const [furniturePosition, setFurniturePosition] = useState({ x: 50, y: 50 });
   const [furnitureScale, setFurnitureScale] = useState(50);
   const [furnitureRotation, setFurnitureRotation] = useState(0);
@@ -27,6 +28,33 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Persist AR state in sessionStorage
+  useEffect(() => {
+    const savedState = sessionStorage.getItem('ar-viewer-state');
+    if (savedState) {
+      try {
+        const state = JSON.parse(savedState);
+        setFurniturePosition(state.position || { x: 50, y: 50 });
+        setFurnitureScale(state.scale || 50);
+        setFurnitureRotation(state.rotation || 0);
+        setFurnitureLateralRotation(state.lateralRotation || 0);
+      } catch (e) {
+        console.error('Failed to restore AR state:', e);
+      }
+    }
+  }, []);
+
+  // Save state when it changes
+  useEffect(() => {
+    const state = {
+      position: furniturePosition,
+      scale: furnitureScale,
+      rotation: furnitureRotation,
+      lateralRotation: furnitureLateralRotation,
+    };
+    sessionStorage.setItem('ar-viewer-state', JSON.stringify(state));
+  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation]);
 
   useEffect(() => {
     // Load room image if provided
@@ -40,14 +68,21 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   }, [roomImage]);
 
   useEffect(() => {
-    // Process furniture image to remove background when imageUrl changes
+    // Process furniture image to remove background with caching
     const processFurniture = async () => {
       const urlToProcess = imageUrl || modelUrl;
       if (urlToProcess) {
+        // Check cache first
+        if (processedUrlCache[urlToProcess]) {
+          setProcessedFurnitureUrl(processedUrlCache[urlToProcess]);
+          return;
+        }
+
         setIsProcessing(true);
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
+          setProcessedUrlCache(prev => ({ ...prev, [urlToProcess]: processed }));
           console.log('Background removed from furniture image');
         } catch (error) {
           console.error('Failed to remove background:', error);
@@ -66,7 +101,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     };
 
     processFurniture();
-  }, [imageUrl, modelUrl, toast]);
+  }, [imageUrl, modelUrl, toast, processedUrlCache]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,7 +127,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (uploadedPhoto && modelUrl) {
+    if (uploadedPhoto && processedFurnitureUrl) {
       setIsDragging(true);
     }
   };
@@ -212,7 +247,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             )}
           </div>
 
-          {uploadedPhoto && modelUrl && (
+          {uploadedPhoto && processedFurnitureUrl && (
             <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <Move className="h-4 w-4 text-muted-foreground flex-shrink-0" />

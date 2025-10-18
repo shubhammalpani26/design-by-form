@@ -925,9 +925,9 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="3d" className="mt-0">
+                      <TabsContent value="3d" className="mt-0 h-full">
                         {generatedDesign && generated3DModel ? (
-                          <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                          <div className="h-full min-h-[600px] rounded-xl overflow-hidden bg-accent">
                             <Model3DViewer 
                               modelUrl={generated3DModel}
                               posterUrl={generatedDesign}
@@ -958,14 +958,20 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
                       
-                      <TabsContent value="ar" className="mt-0">
+                      <TabsContent value="ar" className="mt-0 h-full">
                         {generatedDesign ? (
-                          <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                          <div className="h-full min-h-[600px] rounded-xl overflow-auto bg-accent">
                             <ARViewer 
                               productName="Generated Design" 
                               imageUrl={generatedDesign}
-                              modelUrl={generated3DModel}
+                              modelUrl={generated3DModel || undefined}
                               roomImage={roomImage}
+                              onStartAR={() => {
+                                toast({
+                                  title: "AR Mode",
+                                  description: "Live AR is coming soon! For now, use the preview above to visualize your design.",
+                                });
+                              }}
                             />
                           </div>
                         ) : (
