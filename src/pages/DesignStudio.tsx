@@ -228,15 +228,49 @@ const DesignStudio = () => {
     }
   };
 
-  const handleSelectVariation = (index: number) => {
+  const handleSelectVariation = async (index: number) => {
     setSelectedVariation(index);
     setGeneratedDesign(generatedVariations[index].imageUrl);
     setGenerated3DModel(generatedVariations[index].modelUrl || null);
     setShowWorkflow(true);
+    
+    // Auto-suggest dimensions based on category and prompt
+    const suggestedDims = suggestDimensionsForDesign(submissionData.category, prompt);
+    setDimensions(suggestedDims);
+    calculatePriceFromDimensions(suggestedDims.length, suggestedDims.breadth, suggestedDims.height);
+    
     toast({
       title: "Variation Selected",
-      description: "Enter dimensions to calculate pricing and continue.",
+      description: "Dimensions auto-suggested based on your design. You can adjust them below.",
     });
+  };
+
+  const suggestDimensionsForDesign = (category: string, prompt: string): { length: string; breadth: string; height: string } => {
+    // Analyze prompt for size hints
+    const promptLower = prompt.toLowerCase();
+    const isLarge = promptLower.includes('large') || promptLower.includes('big') || promptLower.includes('spacious');
+    const isSmall = promptLower.includes('small') || promptLower.includes('compact') || promptLower.includes('mini');
+    
+    // Default dimensions based on category
+    const categoryDefaults: Record<string, { length: string; breadth: string; height: string }> = {
+      chairs: isLarge ? { length: "24", breadth: "24", height: "36" } : 
+              isSmall ? { length: "18", breadth: "18", height: "30" } :
+              { length: "20", breadth: "20", height: "32" },
+      tables: isLarge ? { length: "72", breadth: "40", height: "30" } :
+              isSmall ? { length: "36", breadth: "24", height: "28" } :
+              { length: "60", breadth: "36", height: "30" },
+      storage: isLarge ? { length: "48", breadth: "20", height: "72" } :
+               isSmall ? { length: "24", breadth: "16", height: "36" } :
+               { length: "36", breadth: "18", height: "60" },
+      decor: isLarge ? { length: "18", breadth: "18", height: "24" } :
+             isSmall ? { length: "8", breadth: "8", height: "12" } :
+             { length: "12", breadth: "12", height: "16" },
+      lighting: isLarge ? { length: "20", breadth: "20", height: "48" } :
+                isSmall ? { length: "10", breadth: "10", height: "18" } :
+                { length: "14", breadth: "14", height: "30" },
+    };
+    
+    return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
 
   const calculatePriceFromDimensions = (length: string, breadth: string, height: string) => {
@@ -1156,7 +1190,7 @@ const DesignStudio = () => {
                               required
                               disabled
                             />
-                            <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
+                            <p className="text-xs text-muted-foreground mt-1">Production cost</p>
                           </div>
 
                           <div>
@@ -1169,7 +1203,7 @@ const DesignStudio = () => {
                                 if (price < submissionData.basePrice) {
                                   toast({
                                     title: "Invalid Price",
-                                    description: `Your selling price cannot be less than the base manufacturing price of ₹${submissionData.basePrice.toLocaleString()}`,
+                                    description: `Your selling price cannot be less than the base price of ₹${submissionData.basePrice.toLocaleString()}`,
                                     variant: "destructive",
                                   });
                                   return;

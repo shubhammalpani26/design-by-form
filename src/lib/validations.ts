@@ -67,7 +67,7 @@ export const designSubmissionSchema = z.object({
     message: 'You must accept the terms and conditions',
   }),
 }).refine((data) => data.designerPrice >= data.basePrice, {
-  message: 'Your selling price cannot be less than the base manufacturing price',
+  message: 'Your selling price cannot be less than the base price',
   path: ['designerPrice'],
 });
 
