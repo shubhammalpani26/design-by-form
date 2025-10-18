@@ -31,15 +31,22 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     
     // Convert HTMLImageElement to canvas
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { 
+      alpha: true,
+      willReadFrequently: false
+    });
     
     if (!ctx) throw new Error('Could not get canvas context');
+    
+    // Disable image smoothing for crisp rendering
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     
     // Set canvas size to match image
     canvas.width = imageElement.naturalWidth;
     canvas.height = imageElement.naturalHeight;
     
-    // Draw the image
+    // Draw the image with high quality
     ctx.drawImage(imageElement, 0, 0);
     
     // Get image data

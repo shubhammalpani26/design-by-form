@@ -816,9 +816,14 @@ const DesignStudio = () => {
                                         : "hover:shadow-soft hover:scale-[1.01]"
                                     }`}
                                   >
-                                    <div className="aspect-square bg-accent">
-                                      <img src={variation.imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
-                                    </div>
+                                     <div className="aspect-square bg-accent">
+                                       <img 
+                                         src={variation.imageUrl} 
+                                         alt={`Design Variation ${index + 1}`} 
+                                         className="w-full h-full object-contain"
+                                         style={{ imageRendering: '-webkit-optimize-contrast' }}
+                                       />
+                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                       <div className="absolute bottom-4 left-4 right-4">
                                         <p className="text-white font-semibold">Variation {index + 1}</p>

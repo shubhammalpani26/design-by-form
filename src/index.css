@@ -109,4 +109,16 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground;
   }
+
+  /* High quality image rendering */
+  img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: high-quality;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  canvas {
+    image-rendering: high-quality;
+  }
 }

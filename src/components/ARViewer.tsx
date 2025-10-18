@@ -205,6 +205,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   src={uploadedPhoto} 
                   alt="Your space" 
                   className="w-full h-full object-cover"
+                  style={{ imageRendering: '-webkit-optimize-contrast' }}
                 />
                 {isProcessing ? (
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20">
