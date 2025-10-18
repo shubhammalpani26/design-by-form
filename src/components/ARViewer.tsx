@@ -4,6 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Move, RotateCw, ZoomIn } from "lucide-react";
+import { processImageUrl } from "@/lib/backgroundRemoval";
 
 interface ARViewerProps {
   productName: string;
@@ -15,6 +16,8 @@ interface ARViewerProps {
 export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARViewerProps) => {
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
+  const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [furniturePosition, setFurniturePosition] = useState({ x: 50, y: 50 });
   const [furnitureScale, setFurnitureScale] = useState(50);
   const [furnitureRotation, setFurnitureRotation] = useState(0);
@@ -33,6 +36,34 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
       reader.readAsDataURL(roomImage);
     }
   }, [roomImage]);
+
+  useEffect(() => {
+    // Process furniture image to remove background when modelUrl changes
+    const processFurniture = async () => {
+      if (modelUrl) {
+        setIsProcessing(true);
+        try {
+          const processed = await processImageUrl(modelUrl);
+          setProcessedFurnitureUrl(processed);
+          console.log('Background removed from furniture image');
+        } catch (error) {
+          console.error('Failed to remove background:', error);
+          setProcessedFurnitureUrl(modelUrl); // Fallback to original
+          toast({
+            title: "Background removal failed",
+            description: "Using original image. The furniture may have a background.",
+            variant: "destructive",
+          });
+        } finally {
+          setIsProcessing(false);
+        }
+      } else {
+        setProcessedFurnitureUrl(null);
+      }
+    };
+
+    processFurniture();
+  }, [modelUrl, toast]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -103,27 +134,33 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {uploadedPhoto && modelUrl ? (
+            {uploadedPhoto && processedFurnitureUrl ? (
               <>
                 <img 
                   src={uploadedPhoto} 
                   alt="Your space" 
                   className="w-full h-full object-cover"
                 />
-                <img
-                  src={modelUrl}
-                  alt={productName}
-                  className="absolute pointer-events-none"
-                  style={{
-                    left: `${furniturePosition.x}%`,
-                    top: `${furniturePosition.y}%`,
-                    transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
-                    width: '40%',
-                    maxWidth: '300px',
-                    filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
-                    transition: isDragging ? 'none' : 'transform 0.2s ease-out'
-                  }}
-                />
+                {isProcessing ? (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                    <div className="text-white text-sm">Removing background...</div>
+                  </div>
+                ) : (
+                  <img
+                    src={processedFurnitureUrl}
+                    alt={productName}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${furniturePosition.x}%`,
+                      top: `${furniturePosition.y}%`,
+                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
+                      width: '40%',
+                      maxWidth: '300px',
+                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                    }}
+                  />
+                )}
               </>
             ) : !uploadedPhoto && !modelUrl ? (
               <div className="text-center space-y-3 p-8">
