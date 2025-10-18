@@ -28,6 +28,11 @@ const DesignStudio = () => {
   const [leadTime, setLeadTime] = useState<number | null>(null);
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [dimensions, setDimensions] = useState({
+    length: "",
+    breadth: "",
+    height: ""
+  });
   const [submissionData, setSubmissionData] = useState({
     name: "",
     description: "",
@@ -90,7 +95,7 @@ const DesignStudio = () => {
       const costPerCubicFoot = 18000;
       const baseCost = assumedCubicFeet * costPerCubicFoot;
       setEstimatedCost(baseCost);
-      setLeadTime(21);
+      setLeadTime(28); // 4 weeks
       
       toast({
         title: "Designs Generated!",
@@ -345,23 +350,45 @@ const DesignStudio = () => {
                         </div>
                       </div>
                       
-                      {/* Size Selection */}
+                    {/* Size Selection */}
                       <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Size (L×W×H):</p>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L × B × H in inches):</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Input
+                            type="number"
+                            placeholder="L"
+                            value={dimensions.length}
+                            onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
+                            className="text-xs"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="B"
+                            value={dimensions.breadth}
+                            onChange={(e) => setDimensions({ ...dimensions, breadth: e.target.value })}
+                            className="text-xs"
+                          />
+                          <Input
+                            type="number"
+                            placeholder="H"
+                            value={dimensions.height}
+                            onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
+                            className="text-xs"
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">Or select a preset below</p>
+                      </div>
+                      
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Quick Presets:</p>
                         <div className="flex flex-wrap gap-2">
-                          {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"', 'Custom'].map((size) => (
+                          {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"'].map((size) => (
                             <button
                               key={size}
                               onClick={() => {
+                                const [l, b, h] = size.replace(/"/g, '').split('×');
+                                setDimensions({ length: l, breadth: b, height: h });
                                 setSelectedSize(size);
-                                const sizeRegex = /,?\s*\b\d+["']?\s*[×x]\s*\d+["']?\s*[×x]\s*\d+["']?\b/gi;
-                                if (size !== 'Custom') {
-                                  if (prompt.match(sizeRegex)) {
-                                    setPrompt(prev => prev.replace(sizeRegex, `, ${size}`));
-                                  } else {
-                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${size}`);
-                                  }
-                                }
                               }}
                               className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
                                 selectedSize === size
@@ -494,7 +521,18 @@ const DesignStudio = () => {
                                   </svg>
                                   <span className="text-sm font-semibold text-foreground">Lead Time</span>
                                 </div>
-                                <span className="text-sm text-muted-foreground">{leadTime} days</span>
+                                <span className="text-sm text-muted-foreground">{leadTime} days (~4 weeks)</span>
+                              </div>
+                            )}
+                            {dimensions.length && dimensions.breadth && dimensions.height && (
+                              <div className="flex items-center justify-between p-3 bg-primary/10 rounded-lg border border-primary/20">
+                                <div className="flex items-center gap-2">
+                                  <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                  </svg>
+                                  <span className="text-sm font-semibold text-foreground">Dimensions</span>
+                                </div>
+                                <span className="text-sm font-bold text-primary">{dimensions.length}" × {dimensions.breadth}" × {dimensions.height}"</span>
                               </div>
                             )}
                             <div className="grid grid-cols-1 gap-4">
