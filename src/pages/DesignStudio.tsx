@@ -127,15 +127,14 @@ const DesignStudio = () => {
           body: { prompt: enhancedPrompt, variationNumber: variationNum }
         });
 
-        // Check for HTTP errors (402, 500, etc.)
-        if (response.error) {
-          const errorMsg = response.error.message || 'Failed to generate design';
-          throw new Error(errorMsg);
-        }
-
-        // Check if the response contains an error in the data
+        // Check if response has an error message in the data (even with non-2xx status)
         if (response.data?.error) {
           throw new Error(response.data.error);
+        }
+
+        // Check for generic HTTP errors
+        if (response.error) {
+          throw new Error(response.error.message || 'Failed to generate design');
         }
 
         if (!response.data?.imageUrl) {
