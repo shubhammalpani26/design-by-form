@@ -32,6 +32,13 @@ export const designerSignupSchema = z.object({
   termsAccepted: z.boolean().refine(val => val === true, {
     message: 'You must accept the terms and conditions',
   }),
+  // Bank details (optional during signup, can be added later)
+  bankCountry: z.enum(['India', 'International']).optional(),
+  bankAccountHolderName: z.string().trim().max(200).optional(),
+  bankAccountNumber: z.string().trim().max(50).optional(),
+  bankIfscCode: z.string().trim().max(20).optional(),
+  bankSwiftCode: z.string().trim().max(20).optional(),
+  bankIban: z.string().trim().max(50).optional(),
 });
 
 // Design submission validation
@@ -56,8 +63,8 @@ export const designSubmissionSchema = z.object({
   imageUrl: z.string()
     .trim()
     .url('Invalid image URL'),
-  plagiarismTermsAccepted: z.boolean().refine(val => val === true, {
-    message: 'You must confirm that your design is original',
+  termsAccepted: z.boolean().refine(val => val === true, {
+    message: 'You must accept the terms and conditions',
   }),
 });
 

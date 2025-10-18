@@ -39,7 +39,7 @@ const DesignStudio = () => {
     category: "chairs",
     basePrice: 0,
     designerPrice: 0,
-    plagiarismTermsAccepted: false,
+    termsAccepted: false,
   });
   const { toast } = useToast();
 
@@ -243,7 +243,7 @@ const DesignStudio = () => {
         category: "chairs",
         basePrice: 0,
         designerPrice: 0,
-        plagiarismTermsAccepted: false,
+        termsAccepted: false,
       });
       setPrompt("");
 
@@ -655,7 +655,7 @@ const DesignStudio = () => {
                             className="w-full px-3 py-2 border border-border rounded-md text-foreground bg-background"
                             onChange={(e) => {
                               const markup = parseInt(e.target.value) - estimatedCost;
-                              const commission = estimatedCost * 0.05;
+                              const commission = estimatedCost * 0.10;
                               const total = markup + commission;
                               document.getElementById('markup-display')!.textContent = `₹${markup.toLocaleString()}`;
                               document.getElementById('commission-display')!.textContent = `₹${commission.toLocaleString()}`;
@@ -671,18 +671,18 @@ const DesignStudio = () => {
                             <span id="markup-display" className="font-semibold text-primary">₹{(estimatedCost * 0.5).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Commission (5% on base)</span>
-                            <span id="commission-display" className="font-semibold text-secondary">₹{(estimatedCost * 0.05).toLocaleString()}</span>
+                            <span className="text-muted-foreground">Commission (10% on base)</span>
+                            <span id="commission-display" className="font-semibold text-secondary">₹{(estimatedCost * 0.10).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-primary/20">
                             <span className="font-semibold text-foreground">Per Sale Earnings</span>
-                            <span id="total-earnings" className="font-bold text-primary">₹{(estimatedCost * 0.55).toLocaleString()}</span>
+                            <span id="total-earnings" className="font-bold text-primary">₹{(estimatedCost * 0.60).toLocaleString()}</span>
                           </div>
                         </div>
 
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
-                          <p className="text-sm font-bold text-foreground">Monthly Income: ₹{(estimatedCost * 5.5).toLocaleString()}</p>
+                          <p className="text-sm font-bold text-foreground">Monthly Income: ₹{(estimatedCost * 6).toLocaleString()}</p>
                         </div>
 
                         {leadTime && (
@@ -810,34 +810,34 @@ const DesignStudio = () => {
                       <div className="flex justify-between items-center mb-2">
                         <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
                         <span className="text-xl font-bold text-primary">
-                          ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.05)).toLocaleString()}
+                          ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)).toLocaleString()}
                         </span>
                       </div>
                       <p className="text-xs text-muted-foreground">
                         Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
-                        Commission: ₹{(submissionData.basePrice * 0.05).toLocaleString()}
+                        Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
                       </p>
                     </div>
 
                     <div className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-start space-x-3">
                         <Checkbox 
-                          id="plagiarism" 
-                          checked={submissionData.plagiarismTermsAccepted}
+                          id="terms" 
+                          checked={submissionData.termsAccepted}
                           onCheckedChange={(checked) => 
-                            setSubmissionData({ ...submissionData, plagiarismTermsAccepted: checked as boolean })
+                            setSubmissionData({ ...submissionData, termsAccepted: checked as boolean })
                           }
                           required
                         />
                         <label
-                          htmlFor="plagiarism"
+                          htmlFor="terms"
                           className="text-sm leading-relaxed cursor-pointer text-foreground"
                         >
-                          <strong>I confirm that this design is my original work.</strong>
-                          <br />
-                          I certify that this design does not infringe on any existing copyrights, trademarks, 
-                          or intellectual property rights. I understand that plagiarized designs will be removed 
-                          and may result in account suspension.
+                          I accept the{" "}
+                          <a href="/terms" target="_blank" className="text-primary hover:underline">
+                            Terms & Conditions
+                          </a>
+                          {" "}including commission structure, intellectual property policies, and manufacturing guidelines.
                         </label>
                       </div>
                     </div>
@@ -859,7 +859,7 @@ const DesignStudio = () => {
                       variant="hero" 
                       className="w-full" 
                       onClick={handleSubmitDesign}
-                      disabled={isSubmitting || !submissionData.plagiarismTermsAccepted}
+                      disabled={isSubmitting || !submissionData.termsAccepted}
                     >
                       {isSubmitting ? (
                         <>

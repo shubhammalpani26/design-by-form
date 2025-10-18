@@ -12,6 +12,7 @@ import DesignStudio from "./pages/DesignStudio";
 import Creators from "./pages/Creators";
 import DesignerSignup from "./pages/DesignerSignup";
 import DesignerDashboard from "./pages/DesignerDashboard";
+import DesignerBankDetails from "./pages/DesignerBankDetails";
 import AdminDashboard from "./pages/AdminDashboard";
 import HowItWorks from "./pages/HowItWorks";
 import CreatorEarnings from "./pages/CreatorEarnings";
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/creators" element={<Creators />} />
             <Route path="/designer-signup" element={<DesignerSignup />} />
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
+            <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
             
             {/* Creator Dashboard Routes */}
             <Route path="/creator/dashboard" element={<CreatorDashboard />} />

@@ -196,6 +196,13 @@ export type Database = {
       }
       designer_profiles: {
         Row: {
+          bank_account_holder_name: string | null
+          bank_account_number: string | null
+          bank_country: string | null
+          bank_details_verified: boolean | null
+          bank_iban: string | null
+          bank_ifsc_code: string | null
+          bank_swift_code: string | null
           created_at: string
           design_background: string | null
           email: string
@@ -211,6 +218,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bank_account_holder_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_details_verified?: boolean | null
+          bank_iban?: string | null
+          bank_ifsc_code?: string | null
+          bank_swift_code?: string | null
           created_at?: string
           design_background?: string | null
           email: string
@@ -226,6 +240,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bank_account_holder_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_details_verified?: boolean | null
+          bank_iban?: string | null
+          bank_ifsc_code?: string | null
+          bank_swift_code?: string | null
           created_at?: string
           design_background?: string | null
           email?: string
