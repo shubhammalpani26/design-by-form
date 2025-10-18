@@ -87,7 +87,7 @@ const DesignStudio = () => {
       setGeneratedVariations(variations);
       
       const assumedCubicFeet = 3.5;
-      const costPerCubicFoot = 9000;
+      const costPerCubicFoot = 18000;
       const baseCost = assumedCubicFeet * costPerCubicFoot;
       setEstimatedCost(baseCost);
       setLeadTime(21);
