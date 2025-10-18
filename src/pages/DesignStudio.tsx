@@ -1133,50 +1133,73 @@ const DesignStudio = () => {
                         <p className="text-xs text-muted-foreground mt-1">
                           {dimensions.length && dimensions.breadth && dimensions.height 
                             ? `${dimensions.length}" × ${dimensions.breadth}" × ${dimensions.height}"`
-                            : "Please enter dimensions above"}
+                            : "Please select dimensions from the size options above"}
                         </p>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm font-medium mb-2 block text-foreground">Base Price (₹) *</label>
-                        <Input 
-                          type="number"
-                          value={submissionData.basePrice}
-                          onChange={(e) => setSubmissionData({ ...submissionData, basePrice: parseFloat(e.target.value) })}
-                          min={1000}
-                          required
-                          disabled
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
-                      </div>
+                    {dimensions.length && dimensions.breadth && dimensions.height && submissionData.basePrice > 0 ? (
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="text-sm font-medium mb-2 block text-foreground">Base Price (₹) *</label>
+                            <Input 
+                              type="number"
+                              value={submissionData.basePrice}
+                              onChange={(e) => setSubmissionData({ ...submissionData, basePrice: parseFloat(e.target.value) })}
+                              min={1000}
+                              required
+                              disabled
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">Manufacturing cost</p>
+                          </div>
 
-                      <div>
-                        <label className="text-sm font-medium mb-2 block text-foreground">Your Price (₹) *</label>
-                        <Input 
-                          type="number"
-                          value={submissionData.designerPrice}
-                          onChange={(e) => setSubmissionData({ ...submissionData, designerPrice: parseFloat(e.target.value) })}
-                          min={submissionData.basePrice}
-                          required
-                        />
-                        <p className="text-xs text-muted-foreground mt-1">Your selling price</p>
+                          <div>
+                            <label className="text-sm font-medium mb-2 block text-foreground">Your Price (₹) *</label>
+                            <Input 
+                              type="number"
+                              value={submissionData.designerPrice}
+                              onChange={(e) => {
+                                const price = parseFloat(e.target.value);
+                                if (price < submissionData.basePrice) {
+                                  toast({
+                                    title: "Invalid Price",
+                                    description: `Your selling price cannot be less than the base manufacturing price of ₹${submissionData.basePrice.toLocaleString()}`,
+                                    variant: "destructive",
+                                  });
+                                  return;
+                                }
+                                setSubmissionData({ ...submissionData, designerPrice: price });
+                              }}
+                              min={submissionData.basePrice}
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">Must be at least ₹{submissionData.basePrice.toLocaleString()}</p>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="bg-accent/50 border border-border rounded-lg p-4 text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Please select dimensions from the size options above to see pricing information
+                        </p>
                       </div>
-                    </div>
+                    )}
 
-                    <div className="bg-primary/5 rounded-lg p-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
-                        <span className="text-xl font-bold text-primary">
-                          ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)).toLocaleString()}
-                        </span>
+                    {dimensions.length && dimensions.breadth && dimensions.height && submissionData.basePrice > 0 && submissionData.designerPrice > 0 && (
+                      <div className="bg-primary/5 rounded-lg p-4">
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
+                          <span className="text-xl font-bold text-primary">
+                            ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)).toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
+                          Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
+                        </p>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
-                        Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
-                      </p>
-                    </div>
+                    )}
 
                     <div className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-start space-x-3">
