@@ -21,6 +21,9 @@ const DesignStudio = () => {
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [roomImage, setRoomImage] = useState<File | null>(null);
+  const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
+  const [furnitureType, setFurnitureType] = useState<string>("");
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string>("");
@@ -42,6 +45,30 @@ const DesignStudio = () => {
     termsAccepted: false,
   });
   const { toast } = useToast();
+
+  const handleRoomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload an image smaller than 10MB",
+          variant: "destructive",
+        });
+        return;
+      }
+      setRoomImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setRoomImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      toast({
+        title: "Room image uploaded",
+        description: "AI will design furniture that fits your space perfectly",
+      });
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -77,9 +104,18 @@ const DesignStudio = () => {
     setSelectedVariation(null);
     
     try {
+      // Build enhanced prompt with room context
+      let enhancedPrompt = prompt;
+      
+      if (roomImage && furnitureType) {
+        enhancedPrompt = `Design a ${furnitureType} that fits perfectly in this interior space. The furniture should complement the existing room aesthetic. ${prompt}. Make sure the design harmonizes with the room's style, colors, and overall ambiance.`;
+      } else if (furnitureType) {
+        enhancedPrompt = `${furnitureType}: ${prompt}`;
+      }
+
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
         const { data, error } = await supabase.functions.invoke('generate-design', {
-          body: { prompt, variationNumber: variationNum }
+          body: { prompt: enhancedPrompt, variationNumber: variationNum }
         });
 
         if (error) throw new Error(error.message || 'Failed to generate design');
@@ -304,11 +340,11 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Design Real Products That Can Be Built
+              Turn Ideas Into Physical Furniture
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Create tangible furniture and decor pieces with AI. We manufacture and deliver your custom designs. 
-              From concept to physical product - no design experience required.
+              AI-designed furniture that perfectly fits your space. Upload your room, describe what you need, 
+              and we'll manufacture and deliver it. Real products, not just renders.
             </p>
           </div>
         </section>
@@ -319,12 +355,88 @@ const DesignStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Input Side */}
               <div className="space-y-6">
+                {/* Room Context Upload - NEW */}
+                <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/30 shadow-medium">
+                  <CardContent className="p-6 space-y-4">
+                    <div className="flex items-start gap-3">
+                      <div className="p-2 bg-primary/10 rounded-lg">
+                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold mb-1 text-foreground">Design for Your Space</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Upload your room photo and AI will design furniture that perfectly fits your interior
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
+                        <label className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleRoomImageUpload} 
+                          />
+                          <div className="flex items-center gap-3 w-full">
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-sm">
+                              {roomImage ? `✓ ${roomImage.name}` : "Upload Room Photo"}
+                            </span>
+                          </div>
+                        </label>
+                      </Button>
+
+                      {roomImagePreview && (
+                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20">
+                          <img 
+                            src={roomImagePreview} 
+                            alt="Room context" 
+                            className="w-full h-40 object-cover"
+                          />
+                          <button
+                            onClick={() => {
+                              setRoomImage(null);
+                              setRoomImagePreview(null);
+                            }}
+                            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                          What do you need for this space?
+                        </label>
+                        <Input
+                          placeholder="e.g., Coffee table, Dining chair, Side table..."
+                          value={furnitureType}
+                          onChange={(e) => setFurnitureType(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
                 <Card className="border-primary/20 shadow-medium">
                   <CardContent className="p-6 space-y-4">
                     <div>
                       <h3 className="text-xl font-semibold mb-2 text-foreground">Describe Your Design</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        Describe your furniture piece in detail. Include style, dimensions, colors, and finishes.
+                        {roomImage 
+                          ? "Describe details like style, materials, and finish - AI already knows your space"
+                          : "Describe your furniture piece in detail. Include style, dimensions, colors, and finishes."
+                        }
                       </p>
                     </div>
 
