@@ -21,6 +21,7 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
   const [furniturePosition, setFurniturePosition] = useState({ x: 50, y: 50 });
   const [furnitureScale, setFurnitureScale] = useState(50);
   const [furnitureRotation, setFurnitureRotation] = useState(0);
+  const [furnitureLateralRotation, setFurnitureLateralRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -153,11 +154,12 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
                     style={{
                       left: `${furniturePosition.x}%`,
                       top: `${furniturePosition.y}%`,
-                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
+                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotateZ(${furnitureRotation}deg) rotateY(${furnitureLateralRotation}deg)`,
                       width: '40%',
                       maxWidth: '300px',
                       filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
-                      transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                      transformStyle: 'preserve-3d'
                     }}
                   />
                 )}
@@ -229,12 +231,27 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
               
               <div className="flex items-center gap-3">
                 <RotateCw className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Rotate</span>
+                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Spin</span>
                 <Slider
                   value={[furnitureRotation]}
                   onValueChange={(value) => setFurnitureRotation(value[0])}
                   min={0}
                   max={360}
+                  step={1}
+                  className="flex-1"
+                />
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <svg className="h-4 w-4 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                </svg>
+                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Tilt</span>
+                <Slider
+                  value={[furnitureLateralRotation]}
+                  onValueChange={(value) => setFurnitureLateralRotation(value[0])}
+                  min={-180}
+                  max={180}
                   step={1}
                   className="flex-1"
                 />
