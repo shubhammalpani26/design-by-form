@@ -34,7 +34,9 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
     console.log('Starting background removal process...');
-    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+    
+    // Use image-to-image model for better background removal
+    const remover = await pipeline('image-to-image', 'briaai/RMBG-1.4', {
       device: 'webgpu',
     });
     
@@ -49,79 +51,36 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     console.log(`Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`);
     
     // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    const imageData = canvas.toDataURL('image/png', 1.0);
     console.log('Image converted to base64');
     
-    // Process the image with the segmentation model
-    console.log('Processing with segmentation model...');
-    const result = await segmenter(imageData);
+    // Process the image with the background removal model
+    console.log('Processing with background removal model...');
+    const result = await remover(imageData);
     
-    console.log('Segmentation result:', result);
+    console.log('Background removal result:', result);
     
-    if (!result || !Array.isArray(result) || result.length === 0) {
-      throw new Error('Invalid segmentation result');
+    if (!result) {
+      throw new Error('Invalid background removal result');
     }
     
-    // Furniture-related labels to keep
-    const furnitureLabels = ['table', 'chair', 'desk', 'sofa', 'bed', 'cabinet', 'shelf', 'bench', 'stool', 'ottoman', 'armchair'];
-    
-    // Find furniture masks
-    const furnitureMasks = result.filter(r => 
-      furnitureLabels.some(label => r.label.toLowerCase().includes(label))
-    );
-    
-    console.log('Found furniture masks:', furnitureMasks.map(m => m.label));
-    
-    // Create a new canvas for the masked image
+    // Convert RawImage result to canvas
     const outputCanvas = document.createElement('canvas');
-    outputCanvas.width = canvas.width;
-    outputCanvas.height = canvas.height;
+    const rawImage = Array.isArray(result) ? result[0] : result;
+    
+    // RawImage has width, height, and data properties
+    outputCanvas.width = rawImage.width;
+    outputCanvas.height = rawImage.height;
     const outputCtx = outputCanvas.getContext('2d');
     
     if (!outputCtx) throw new Error('Could not get output canvas context');
     
-    // Draw original image
-    outputCtx.drawImage(canvas, 0, 0);
+    // Create ImageData from RawImage
+    const imageDataOut = outputCtx.createImageData(rawImage.width, rawImage.height);
+    imageDataOut.data.set(rawImage.data);
+    outputCtx.putImageData(imageDataOut, 0, 0);
     
-    // Apply the mask
-    const outputImageData = outputCtx.getImageData(
-      0, 0,
-      outputCanvas.width,
-      outputCanvas.height
-    );
-    const data = outputImageData.data;
-    
-    // Create combined furniture mask
-    const combinedMask = new Uint8Array(canvas.width * canvas.height);
-    
-    if (furnitureMasks.length > 0) {
-      // Combine all furniture masks
-      for (const furnitureMask of furnitureMasks) {
-        if (furnitureMask.mask && furnitureMask.mask.data) {
-          for (let i = 0; i < furnitureMask.mask.data.length; i++) {
-            combinedMask[i] = Math.max(combinedMask[i], furnitureMask.mask.data[i]);
-          }
-        }
-      }
-      
-      // Apply the combined mask to keep furniture
-      for (let i = 0; i < combinedMask.length; i++) {
-        const alpha = combinedMask[i];
-        data[i * 4 + 3] = alpha;
-      }
-    } else {
-      // No furniture detected - keep the most prominent object (usually the first non-background)
-      console.log('No furniture detected, using first segment');
-      const firstMask = result.find(r => !['sky', 'wall', 'floor', 'ceiling'].includes(r.label.toLowerCase()));
-      if (firstMask && firstMask.mask) {
-        for (let i = 0; i < firstMask.mask.data.length; i++) {
-          data[i * 4 + 3] = firstMask.mask.data[i];
-        }
-      }
-    }
-    
-    outputCtx.putImageData(outputImageData, 0, 0);
-    console.log('Mask applied successfully');
+    console.log('Background removed successfully');
     
     // Convert canvas to blob
     return new Promise((resolve, reject) => {
