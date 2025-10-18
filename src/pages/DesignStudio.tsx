@@ -925,9 +925,9 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="3d" className="mt-0 h-full">
+                      <TabsContent value="3d" className="mt-0 h-full min-h-[600px]">
                         {generatedDesign && generated3DModel ? (
-                          <div className="h-full min-h-[600px] rounded-xl overflow-hidden bg-accent">
+                          <div className="h-full rounded-xl overflow-hidden bg-accent">
                             <Model3DViewer 
                               modelUrl={generated3DModel}
                               posterUrl={generatedDesign}
@@ -937,7 +937,7 @@ const DesignStudio = () => {
                             />
                           </div>
                         ) : generatedDesign ? (
-                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -947,7 +947,7 @@ const DesignStudio = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -958,9 +958,9 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
                       
-                      <TabsContent value="ar" className="mt-0 h-full">
+                      <TabsContent value="ar" className="mt-0 h-full min-h-[600px]">
                         {generatedDesign ? (
-                          <div className="h-full min-h-[600px] rounded-xl overflow-auto bg-accent">
+                          <div className="h-full rounded-xl overflow-auto bg-accent p-4">
                             <ARViewer 
                               productName="Generated Design" 
                               imageUrl={generatedDesign}
@@ -975,7 +975,7 @@ const DesignStudio = () => {
                             />
                           </div>
                         ) : (
-                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />

@@ -19,7 +19,6 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processedUrlCache, setProcessedUrlCache] = useState<Record<string, string>>({});
   const [furniturePosition, setFurniturePosition] = useState({ x: 50, y: 50 });
   const [furnitureScale, setFurnitureScale] = useState(50);
   const [furnitureRotation, setFurnitureRotation] = useState(0);
@@ -28,6 +27,32 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Get cached processed URL from sessionStorage
+  const getProcessedUrlFromCache = (url: string): string | null => {
+    try {
+      const cache = sessionStorage.getItem('ar-processed-cache');
+      if (cache) {
+        const parsed = JSON.parse(cache);
+        return parsed[url] || null;
+      }
+    } catch (e) {
+      console.error('Failed to read cache:', e);
+    }
+    return null;
+  };
+
+  // Save processed URL to sessionStorage cache
+  const saveProcessedUrlToCache = (url: string, processedUrl: string) => {
+    try {
+      const cache = sessionStorage.getItem('ar-processed-cache');
+      const parsed = cache ? JSON.parse(cache) : {};
+      parsed[url] = processedUrl;
+      sessionStorage.setItem('ar-processed-cache', JSON.stringify(parsed));
+    } catch (e) {
+      console.error('Failed to save to cache:', e);
+    }
+  };
 
   // Persist AR state in sessionStorage
   useEffect(() => {
@@ -68,13 +93,14 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   }, [roomImage]);
 
   useEffect(() => {
-    // Process furniture image to remove background with caching
+    // Process furniture image to remove background with persistent caching
     const processFurniture = async () => {
       const urlToProcess = imageUrl || modelUrl;
       if (urlToProcess) {
-        // Check cache first
-        if (processedUrlCache[urlToProcess]) {
-          setProcessedFurnitureUrl(processedUrlCache[urlToProcess]);
+        // Check sessionStorage cache first
+        const cached = getProcessedUrlFromCache(urlToProcess);
+        if (cached) {
+          setProcessedFurnitureUrl(cached);
           return;
         }
 
@@ -82,7 +108,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
-          setProcessedUrlCache(prev => ({ ...prev, [urlToProcess]: processed }));
+          saveProcessedUrlToCache(urlToProcess, processed);
           console.log('Background removed from furniture image');
         } catch (error) {
           console.error('Failed to remove background:', error);
@@ -101,7 +127,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     };
 
     processFurniture();
-  }, [imageUrl, modelUrl, toast, processedUrlCache]);
+  }, [imageUrl, modelUrl, toast]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -195,7 +221,6 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotateZ(${furnitureRotation}deg) rotateY(${furnitureLateralRotation}deg)`,
                       width: '40%',
                       maxWidth: '300px',
-                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
                       transition: isDragging ? 'none' : 'transform 0.2s ease-out',
                       transformStyle: 'preserve-3d',
                       backfaceVisibility: 'visible'
