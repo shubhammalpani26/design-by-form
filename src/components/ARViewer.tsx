@@ -130,6 +130,7 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
           <div 
             ref={containerRef}
             className="aspect-video bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
             onMouseUp={handleMouseUp}
@@ -159,7 +160,8 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
                       maxWidth: '300px',
                       filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
                       transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-                      transformStyle: 'preserve-3d'
+                      transformStyle: 'preserve-3d',
+                      backfaceVisibility: 'visible'
                     }}
                   />
                 )}
