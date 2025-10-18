@@ -341,7 +341,7 @@ const DesignStudio = () => {
                       <div>
                         <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
                         <div className="flex flex-wrap gap-2">
-                          {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete', 'Terrazzo'].map((finish) => (
+                          {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
                             <button
                               key={finish}
                               onClick={() => {
@@ -360,58 +360,6 @@ const DesignStudio = () => {
                               }`}
                             >
                               {finish}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                      
-                    {/* Size Selection */}
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L × B × H in inches):</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          <Input
-                            type="number"
-                            placeholder="L"
-                            value={dimensions.length}
-                            onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
-                            className="text-xs"
-                          />
-                          <Input
-                            type="number"
-                            placeholder="B"
-                            value={dimensions.breadth}
-                            onChange={(e) => setDimensions({ ...dimensions, breadth: e.target.value })}
-                            className="text-xs"
-                          />
-                          <Input
-                            type="number"
-                            placeholder="H"
-                            value={dimensions.height}
-                            onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
-                            className="text-xs"
-                          />
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">Or select a preset below</p>
-                      </div>
-                      
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Quick Presets:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"'].map((size) => (
-                            <button
-                              key={size}
-                              onClick={() => {
-                                const [l, b, h] = size.replace(/"/g, '').split('×');
-                                setDimensions({ length: l, breadth: b, height: h });
-                                setSelectedSize(size);
-                              }}
-                              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                selectedSize === size
-                                  ? 'bg-primary text-primary-foreground border-primary'
-                                  : 'bg-accent hover:bg-accent/80 border-border hover:border-primary'
-                              }`}
-                            >
-                              {size}
                             </button>
                           ))}
                         </div>
@@ -552,31 +500,89 @@ const DesignStudio = () => {
                             )}
                             <div className="grid grid-cols-1 gap-4">
                               {generatedVariations.map((imageUrl, index) => (
-                                <button
-                                  key={index}
-                                  onClick={() => handleSelectVariation(index)}
-                                  className={`group relative overflow-hidden rounded-xl transition-all ${
-                                    selectedVariation === index
-                                      ? "ring-4 ring-primary shadow-elegant scale-[1.02]"
-                                      : "hover:shadow-soft hover:scale-[1.01]"
-                                  }`}
-                                >
-                                  <div className="aspect-square bg-accent">
-                                    <img src={imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
-                                  </div>
-                                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <div className="absolute bottom-4 left-4 right-4">
-                                      <p className="text-white font-semibold">Variation {index + 1}</p>
+                                <div key={index} className="space-y-3">
+                                  <button
+                                    onClick={() => handleSelectVariation(index)}
+                                    className={`group relative overflow-hidden rounded-xl transition-all w-full ${
+                                      selectedVariation === index
+                                        ? "ring-4 ring-primary shadow-elegant scale-[1.02]"
+                                        : "hover:shadow-soft hover:scale-[1.01]"
+                                    }`}
+                                  >
+                                    <div className="aspect-square bg-accent">
+                                      <img src={imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
                                     </div>
-                                  </div>
+                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <div className="absolute bottom-4 left-4 right-4">
+                                        <p className="text-white font-semibold">Variation {index + 1}</p>
+                                      </div>
+                                    </div>
+                                    {selectedVariation === index && (
+                                      <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                      </div>
+                                    )}
+                                  </button>
+                                  
                                   {selectedVariation === index && (
-                                    <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                                      <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                      </svg>
-                                    </div>
+                                    <Card className="border-primary/20 bg-primary/5">
+                                      <CardContent className="p-4 space-y-3">
+                                        <h4 className="font-semibold text-foreground">Enter Dimensions for This Design</h4>
+                                        <div>
+                                          <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L × B × H in inches):</p>
+                                          <div className="grid grid-cols-3 gap-2">
+                                            <Input
+                                              type="number"
+                                              placeholder="L"
+                                              value={dimensions.length}
+                                              onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
+                                              className="text-sm"
+                                            />
+                                            <Input
+                                              type="number"
+                                              placeholder="B"
+                                              value={dimensions.breadth}
+                                              onChange={(e) => setDimensions({ ...dimensions, breadth: e.target.value })}
+                                              className="text-sm"
+                                            />
+                                            <Input
+                                              type="number"
+                                              placeholder="H"
+                                              value={dimensions.height}
+                                              onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
+                                              className="text-sm"
+                                            />
+                                          </div>
+                                        </div>
+                                        
+                                        <div>
+                                          <p className="text-xs font-medium text-muted-foreground mb-2">Or select a preset:</p>
+                                          <div className="flex flex-wrap gap-2">
+                                            {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"'].map((size) => (
+                                              <button
+                                                key={size}
+                                                onClick={() => {
+                                                  const [l, b, h] = size.replace(/"/g, '').split('×');
+                                                  setDimensions({ length: l, breadth: b, height: h });
+                                                  setSelectedSize(size);
+                                                }}
+                                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                                  selectedSize === size
+                                                    ? 'bg-primary text-primary-foreground border-primary'
+                                                    : 'bg-background hover:bg-accent border-border hover:border-primary'
+                                                }`}
+                                              >
+                                                {size}
+                                              </button>
+                                            ))}
+                                          </div>
+                                        </div>
+                                      </CardContent>
+                                    </Card>
                                   )}
-                                </button>
+                                </div>
                               ))}
                             </div>
                           </div>
