@@ -196,8 +196,80 @@ The final design must be both aesthetically beautiful AND fully manufacturable t
       );
     }
 
+    // Generate 3D model from the 2D image using Meshy
+    let modelUrl = null;
+    const MESHY_API_KEY = Deno.env.get('MESHY_API_KEY');
+    
+    if (MESHY_API_KEY) {
+      try {
+        console.log("Starting 3D model generation with Meshy");
+        
+        // Create 3D generation task using image-to-3D
+        const meshyResponse = await fetch('https://api.meshy.ai/v2/image-to-3d', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image_url: imageUrl,
+            enable_pbr: true,
+            ai_model: "meshy-4",
+          }),
+        });
+
+        if (meshyResponse.ok) {
+          const meshyData = await meshyResponse.json();
+          const taskId = meshyData.result;
+          console.log("Meshy task created:", taskId);
+          
+          // Poll for completion (max 2 minutes)
+          const maxAttempts = 24; // 24 * 5s = 2 minutes
+          let attempts = 0;
+          let taskComplete = false;
+          
+          while (attempts < maxAttempts && !taskComplete) {
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+            
+            const statusResponse = await fetch(`https://api.meshy.ai/v2/image-to-3d/${taskId}`, {
+              headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+              },
+            });
+            
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              console.log("Meshy status:", statusData.status);
+              
+              if (statusData.status === 'SUCCEEDED') {
+                modelUrl = statusData.model_urls?.glb;
+                taskComplete = true;
+                console.log("3D model generated successfully:", modelUrl);
+              } else if (statusData.status === 'FAILED') {
+                console.error("Meshy generation failed");
+                break;
+              }
+            }
+            
+            attempts++;
+          }
+          
+          if (!taskComplete) {
+            console.log("3D generation timed out, continuing with 2D only");
+          }
+        } else {
+          console.error("Failed to start Meshy task:", await meshyResponse.text());
+        }
+      } catch (meshyError) {
+        console.error("Error generating 3D model:", meshyError);
+        // Continue without 3D model
+      }
+    } else {
+      console.log("MESHY_API_KEY not configured, skipping 3D generation");
+    }
+
     return new Response(
-      JSON.stringify({ imageUrl }),
+      JSON.stringify({ imageUrl, modelUrl }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

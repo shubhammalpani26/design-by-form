@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
+import { Model3DViewer } from "@/components/Model3DViewer";
 import { ARViewer } from "@/components/ARViewer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +25,8 @@ const DesignStudio = () => {
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
-  const [generatedVariations, setGeneratedVariations] = useState<string[]>([]);
+  const [generated3DModel, setGenerated3DModel] = useState<string | null>(null);
+  const [generatedVariations, setGeneratedVariations] = useState<Array<{imageUrl: string, modelUrl?: string}>>([]);
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -185,7 +187,10 @@ const DesignStudio = () => {
           throw new Error('No image generated');
         }
 
-        return response.data.imageUrl;
+        return {
+          imageUrl: response.data.imageUrl,
+          modelUrl: response.data.modelUrl
+        };
       });
 
       const variations = await Promise.all(variationPromises);
@@ -225,7 +230,8 @@ const DesignStudio = () => {
 
   const handleSelectVariation = (index: number) => {
     setSelectedVariation(index);
-    setGeneratedDesign(generatedVariations[index]);
+    setGeneratedDesign(generatedVariations[index].imageUrl);
+    setGenerated3DModel(generatedVariations[index].modelUrl || null);
     setShowWorkflow(true);
     toast({
       title: "Variation Selected",
@@ -800,7 +806,7 @@ const DesignStudio = () => {
                               </div>
                             )}
                             <div className="grid grid-cols-1 gap-4">
-                              {generatedVariations.map((imageUrl, index) => (
+                              {generatedVariations.map((variation, index) => (
                                 <div key={index} className="space-y-3">
                                   <button
                                     onClick={() => handleSelectVariation(index)}
@@ -811,7 +817,7 @@ const DesignStudio = () => {
                                     }`}
                                   >
                                     <div className="aspect-square bg-accent">
-                                      <img src={imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
+                                      <img src={variation.imageUrl} alt={`Design Variation ${index + 1}`} className="w-full h-full object-cover" />
                                     </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                       <div className="absolute bottom-4 left-4 right-4">
@@ -920,9 +926,25 @@ const DesignStudio = () => {
                       </TabsContent>
 
                       <TabsContent value="3d" className="mt-0">
-                        {generatedDesign ? (
+                        {generatedDesign && generated3DModel ? (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent">
-                            <ModelViewer3D productName="Generated Design" />
+                            <Model3DViewer 
+                              modelUrl={generated3DModel}
+                              posterUrl={generatedDesign}
+                              alt="Generated Design 3D Model"
+                              enableAR={true}
+                              autoRotate={true}
+                            />
+                          </div>
+                        ) : generatedDesign ? (
+                          <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8">
+                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                              <p className="text-muted-foreground text-sm font-medium">3D Model Generating...</p>
+                              <p className="text-muted-foreground text-xs mt-2">This may take 1-2 minutes</p>
+                            </div>
                           </div>
                         ) : (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
@@ -941,7 +963,8 @@ const DesignStudio = () => {
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent">
                             <ARViewer 
                               productName="Generated Design" 
-                              modelUrl={generatedDesign}
+                              imageUrl={generatedDesign}
+                              modelUrl={generated3DModel}
                               roomImage={roomImage}
                             />
                           </div>

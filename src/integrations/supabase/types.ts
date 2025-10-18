@@ -125,6 +125,7 @@ export type Database = {
           image_url: string | null
           lead_time_days: number | null
           materials_description: string | null
+          model_url: string | null
           name: string
           original_designer_price: number | null
           price_reduction_date: string | null
@@ -150,6 +151,7 @@ export type Database = {
           image_url?: string | null
           lead_time_days?: number | null
           materials_description?: string | null
+          model_url?: string | null
           name: string
           original_designer_price?: number | null
           price_reduction_date?: string | null
@@ -175,6 +177,7 @@ export type Database = {
           image_url?: string | null
           lead_time_days?: number | null
           materials_description?: string | null
+          model_url?: string | null
           name?: string
           original_designer_price?: number | null
           price_reduction_date?: string | null
