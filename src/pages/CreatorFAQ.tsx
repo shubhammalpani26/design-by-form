@@ -141,7 +141,7 @@ const CreatorFAQ = () => {
                 What design guidelines should I follow?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Focus on single-piece forms (tables, chairs, shelves, decorative items) that can be 3D printed. Avoid designs requiring wheels, hinges, metal inserts, or multi-material assemblies. Our AI studio will guide you on what's manufacturable.
+                Focus on single-piece forms (tables, chairs, shelves, decorative items) that can be manufactured. Avoid designs requiring wheels, hinges, metal inserts, or multi-material assemblies. Our AI studio will guide you on what's manufacturable.
               </AccordionContent>
             </AccordionItem>
 

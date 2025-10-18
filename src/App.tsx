@@ -15,6 +15,9 @@ import DesignerDashboard from "./pages/DesignerDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import HowItWorks from "./pages/HowItWorks";
 import CreatorEarnings from "./pages/CreatorEarnings";
+import CreatorDashboard from "./pages/CreatorDashboard";
+import CreatorProfile from "./pages/CreatorProfile";
+import CreatorLeaderboard from "./pages/CreatorLeaderboard";
 import Terms from "./pages/Terms";
 import About from "./pages/About";
 import Sustainability from "./pages/Sustainability";
@@ -42,6 +45,15 @@ const App = () => (
             <Route path="/creators" element={<Creators />} />
             <Route path="/designer-signup" element={<DesignerSignup />} />
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
+            
+            {/* Creator Dashboard Routes */}
+            <Route path="/creator/dashboard" element={<CreatorDashboard />} />
+            <Route path="/creator/designs" element={<DesignerDashboard />} />
+            <Route path="/creator/earnings" element={<CreatorEarnings />} />
+            <Route path="/creator/profile" element={<CreatorProfile />} />
+            <Route path="/creator/settings" element={<CreatorProfile />} />
+            <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
+            
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/creator-earnings" element={<CreatorEarnings />} />

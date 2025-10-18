@@ -424,23 +424,23 @@ const DesignStudio = () => {
                       <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                       </svg>
-                      Already Have a 3D Model?
+                      Already Have a Model?
                     </h4>
                     <p className="text-sm text-muted-foreground mb-3">
                       Upload your .OBJ, .STL, or .FBX file and we'll prepare it for manufacturing
                     </p>
-                    <Button variant="outline" size="sm" className="w-full" asChild>
+                     <Button variant="outline" size="sm" className="w-full" asChild>
                       <label className="cursor-pointer">
                         <input type="file" accept=".obj,.stl,.fbx" className="hidden" onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
                             toast({
-                              title: "3D Model Uploaded",
+                              title: "Model Uploaded",
                               description: "We'll review your model for manufacturing feasibility",
                             });
                           }
                         }} />
-                        Upload 3D Model
+                        Upload Model File
                       </label>
                     </Button>
                   </CardContent>
@@ -797,8 +797,8 @@ const DesignStudio = () => {
               
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                  { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for 3D printing feasibility" },
-                  { step: 2, title: "Manufacturing", desc: "Your piece is 3D printed using premium FRP and hand-finished" },
+                  { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for manufacturing feasibility" },
+                  { step: 2, title: "Manufacturing", desc: "Your piece is manufactured using premium FRP and hand-finished" },
                   { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
                   { step: 4, title: "You Earn", desc: "You'll receive notifications when orders are placed and earn income automatically" }
                 ].map((item) => (
