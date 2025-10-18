@@ -489,20 +489,39 @@ const DesignStudio = () => {
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
                       <div className="flex flex-wrap gap-2">
-                        {[
-                          "Modern dining table with curved edges",
-                          "Sculptural chair with flowing lines",
-                          "Minimalist side table",
-                          "Organic shelf unit",
-                        ].map((example, i) => (
-                          <button
-                            key={i}
-                            onClick={() => setPrompt(example)}
-                            className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
-                          >
-                            {example}
-                          </button>
-                        ))}
+                        {(() => {
+                          const allIdeas = [
+                            "Modern dining table with curved edges",
+                            "Sculptural chair with flowing lines",
+                            "Minimalist side table",
+                            "Organic shelf unit",
+                            "Contemporary coffee table with marble finish",
+                            "Ergonomic office chair with mesh back",
+                            "Floating wall shelf with hidden brackets",
+                            "Round pedestal dining table",
+                            "Velvet accent chair with gold legs",
+                            "Industrial bookshelf with metal frame",
+                            "Modular storage cube system",
+                            "Curved sofa with deep seating",
+                            "Glass-top console table",
+                            "Tufted ottoman with storage",
+                            "Geometric pendant light fixture",
+                            "Ladder-style towel rack",
+                            "Nesting side tables set",
+                            "Cantilevered desk with drawers"
+                          ];
+                          // Shuffle and pick 4 random ideas
+                          const shuffled = [...allIdeas].sort(() => Math.random() - 0.5);
+                          return shuffled.slice(0, 4).map((example, i) => (
+                            <button
+                              key={i}
+                              onClick={() => setPrompt(example)}
+                              className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
+                            >
+                              {example}
+                            </button>
+                          ));
+                        })()}
                       </div>
                     </div>
 

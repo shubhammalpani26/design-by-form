@@ -74,17 +74,20 @@ serve(async (req) => {
     
     if (roomImageBase64) {
       // Room-aware generation with multimodal input
-      const roomAwarePrompt = `Based on the room shown in this image, design furniture that complements the space perfectly.
+      const roomAwarePrompt = `Create a high-quality, photorealistic furniture design. An optional reference image is provided for context and inspiration.
 
 VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
 
 User Request: ${prompt}
 
-Consider the room's:
-- Existing aesthetic, color palette, and style
-- Scale and proportions appropriate for this space
-- Lighting conditions and ambiance
-- How the furniture will harmonize with existing elements
+If the reference image shows a room or space:
+- Draw inspiration from the aesthetic, color palette, and style
+- Consider scale and proportions appropriate for such spaces
+- Think about how the furniture would harmonize with similar environments
+
+If the reference image is not a room (outdoor scene, objects, etc.):
+- Use it as visual inspiration for colors, textures, or mood
+- Focus on the user's prompt as the primary design direction
 
 CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
 - The design MUST be fully 3D printable using large-format FDM/SLS 3D printing technology
@@ -104,7 +107,7 @@ CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
 - Studio lighting that showcases the form and details
 - High attention to detail and craftsmanship
 
-Generate a single professional product photo on a clean white background that would fit perfectly in the shown room.`;
+Generate a single professional product photo on a clean white background.`;
 
       messages = [{
         role: 'user',
