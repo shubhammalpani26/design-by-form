@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { useToast } from "@/hooks/use-toast";
@@ -24,6 +26,8 @@ const DesignStudio = () => {
   const [roomImage, setRoomImage] = useState<File | null>(null);
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
   const [furnitureType, setFurnitureType] = useState<string>("");
+  const [isRoomSectionOpen, setIsRoomSectionOpen] = useState(false);
+  const [selectedColor, setSelectedColor] = useState<string>("");
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string>("");
@@ -398,82 +402,124 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Divider */}
-                    <div className="relative py-2">
-                      <div className="absolute inset-0 flex items-center">
-                        <div className="w-full border-t border-border"></div>
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Optional: Design for Your Space</span>
-                      </div>
-                    </div>
-
-                    {/* Room Context Upload */}
-                    <div className="space-y-3 bg-primary/5 rounded-lg p-4 border border-primary/10">
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-primary/10 rounded-lg">
-                          <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-semibold mb-1 text-foreground">Upload Your Room</h4>
-                          <p className="text-xs text-muted-foreground">
-                            AI will design furniture that perfectly complements your space
-                          </p>
-                        </div>
-                      </div>
-
-                      <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={handleRoomImageUpload} 
-                          />
-                          <div className="flex items-center gap-3 w-full">
-                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-sm">
-                              {roomImage ? `✓ ${roomImage.name}` : "Upload Room Photo"}
-                            </span>
+                    {/* Collapsible Room Context Upload */}
+                    <Collapsible open={isRoomSectionOpen} onOpenChange={setIsRoomSectionOpen}>
+                      <CollapsibleTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          className="w-full justify-between p-4 h-auto border border-primary/20 hover:bg-primary/5"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 bg-primary/10 rounded-lg">
+                              <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                              </svg>
+                            </div>
+                            <div className="text-left">
+                              <p className="font-semibold text-sm text-foreground">Design for Your Space (Optional)</p>
+                              <p className="text-xs text-muted-foreground">Upload room photo for contextual design</p>
+                            </div>
                           </div>
-                        </label>
-                      </Button>
+                          <ChevronDown className={`h-4 w-4 transition-transform ${isRoomSectionOpen ? 'rotate-180' : ''}`} />
+                        </Button>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent className="mt-3 space-y-3 animate-accordion-down">
+                        <div className="space-y-3 bg-primary/5 rounded-lg p-4 border border-primary/10">
+                          <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
+                            <label className="cursor-pointer">
+                              <input 
+                                type="file" 
+                                accept="image/*" 
+                                className="hidden" 
+                                onChange={handleRoomImageUpload} 
+                              />
+                              <div className="flex items-center gap-3 w-full">
+                                <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <span className="text-sm">
+                                  {roomImage ? `✓ ${roomImage.name}` : "Upload Room Photo"}
+                                </span>
+                              </div>
+                            </label>
+                          </Button>
 
-                      {roomImagePreview && (
-                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20">
-                          <img 
-                            src={roomImagePreview} 
-                            alt="Room context" 
-                            className="w-full h-40 object-cover"
-                          />
-                          <button
-                            onClick={() => {
-                              setRoomImage(null);
-                              setRoomImagePreview(null);
-                            }}
-                            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
+                          {roomImagePreview && (
+                            <div className="relative rounded-lg overflow-hidden border-2 border-primary/20">
+                              <img 
+                                src={roomImagePreview} 
+                                alt="Room context" 
+                                className="w-full h-40 object-cover"
+                              />
+                              <button
+                                onClick={() => {
+                                  setRoomImage(null);
+                                  setRoomImagePreview(null);
+                                }}
+                                className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            </div>
+                          )}
+
+                          <div>
+                            <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                              What do you need for this space?
+                            </label>
+                            <Input
+                              placeholder="e.g., Coffee table, Dining chair, Side table..."
+                              value={furnitureType}
+                              onChange={(e) => setFurnitureType(e.target.value)}
+                              className="text-sm"
+                            />
+                          </div>
                         </div>
-                      )}
+                      </CollapsibleContent>
+                    </Collapsible>
 
+                    {/* Color Picker */}
+                    <div className="space-y-3">
                       <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                          What do you need for this space?
-                        </label>
-                        <Input
-                          placeholder="e.g., Coffee table, Dining chair, Side table..."
-                          value={furnitureType}
-                          onChange={(e) => setFurnitureType(e.target.value)}
-                          className="text-sm"
-                        />
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Color:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {[
+                            { name: 'Black', value: '#000000' },
+                            { name: 'White', value: '#FFFFFF' },
+                            { name: 'Gray', value: '#808080' },
+                            { name: 'Brown', value: '#8B4513' },
+                            { name: 'Beige', value: '#F5F5DC' },
+                            { name: 'Navy', value: '#000080' },
+                            { name: 'Olive', value: '#808000' },
+                            { name: 'Burgundy', value: '#800020' }
+                          ].map((color) => (
+                            <button
+                              key={color.name}
+                              onClick={() => {
+                                setSelectedColor(color.name);
+                                const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
+                                if (prompt.match(colorRegex)) {
+                                  setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
+                                } else {
+                                  setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                                }
+                              }}
+                              className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                selectedColor === color.name
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                              }`}
+                            >
+                              <div 
+                                className="w-4 h-4 rounded-full border-2 border-border"
+                                style={{ backgroundColor: color.value }}
+                              />
+                              {color.name}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
@@ -503,6 +549,43 @@ const DesignStudio = () => {
                               {finish}
                             </button>
                           ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dimensions Input */}
+                    <div className="space-y-3">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (inches):</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Length</label>
+                          <Input
+                            type="number"
+                            placeholder="72"
+                            value={dimensions.length}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, length: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Breadth</label>
+                          <Input
+                            type="number"
+                            placeholder="40"
+                            value={dimensions.breadth}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, breadth: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Height</label>
+                          <Input
+                            type="number"
+                            placeholder="30"
+                            value={dimensions.height}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, height: e.target.value }))}
+                            className="text-sm"
+                          />
                         </div>
                       </div>
                     </div>
