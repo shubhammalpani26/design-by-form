@@ -361,14 +361,12 @@ const DesignStudio = () => {
               {/* Input Side */}
               <div className="space-y-6">
                 <Card className="border-primary/20 shadow-medium">
-                  <CardContent className="p-6 space-y-4">
+                  <CardContent className="p-6 space-y-6">
+                    {/* Main Design Description */}
                     <div>
                       <h3 className="text-xl font-semibold mb-2 text-foreground">Describe Your Design</h3>
                       <p className="text-sm text-muted-foreground mb-4">
-                        {roomImage 
-                          ? "Describe details like style, materials, and finish - AI already knows your space"
-                          : "Describe your furniture piece in detail. Include style, dimensions, colors, and finishes."
-                        }
+                        Describe your furniture piece in detail. Include style, materials, colors, and finishes.
                       </p>
                     </div>
 
@@ -400,95 +398,32 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Finish Selection */}
-                    <div className="space-y-3 pt-2">
-                      <div>
-                        <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
-                        <div className="flex flex-wrap gap-2">
-                          {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
-                            <button
-                              key={finish}
-                              onClick={() => {
-                                setSelectedFinish(finish);
-                                const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
-                                if (prompt.match(finishRegex)) {
-                                  setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
-                                } else {
-                                  setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
-                                }
-                              }}
-                              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                selectedFinish === finish
-                                  ? 'bg-primary text-primary-foreground border-primary'
-                                  : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
-                              }`}
-                            >
-                              {finish}
-                            </button>
-                          ))}
+                    {/* Divider */}
+                    <div className="relative py-2">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-border"></div>
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-card px-2 text-muted-foreground">Optional: Design for Your Space</span>
+                      </div>
+                    </div>
+
+                    {/* Room Context Upload */}
+                    <div className="space-y-3 bg-primary/5 rounded-lg p-4 border border-primary/10">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-primary/10 rounded-lg">
+                          <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-semibold mb-1 text-foreground">Upload Your Room</h4>
+                          <p className="text-xs text-muted-foreground">
+                            AI will design furniture that perfectly complements your space
+                          </p>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="space-y-3">
-                      <Button 
-                        variant="hero" 
-                        className="w-full group" 
-                        onClick={handleGenerate}
-                        disabled={isGenerating || !prompt.trim()}
-                      >
-                        {isGenerating ? (
-                          <>
-                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            Generate Design
-                            <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                          </>
-                        )}
-                      </Button>
-                      
-                      <div className="relative">
-                        <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Or upload an existing image</p>
-                        <Button variant="outline" className="w-full" asChild>
-                          <label className="cursor-pointer">
-                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
-                          </label>
-                        </Button>
-                      </div>
-                    </div>
-                    {uploadedImage && (
-                      <div className="text-xs text-muted-foreground flex items-center gap-2">
-                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                        </svg>
-                        {uploadedImage.name}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-
-                {/* Room Context Upload - OPTIONAL */}
-                <Card className="border-primary/20 shadow-medium">
-                  <CardContent className="p-6 space-y-4">
-                    <div>
-                      <h3 className="text-xl font-semibold mb-2 text-foreground">Design for Your Space (Optional)</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
-                        Upload your room photo and AI will design furniture that perfectly complements your interior
-                      </p>
-                    </div>
-
-                    <div className="space-y-3">
                       <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
                         <label className="cursor-pointer">
                           <input 
@@ -541,6 +476,83 @@ const DesignStudio = () => {
                         />
                       </div>
                     </div>
+
+                    {/* Finish Selection */}
+                    <div className="space-y-3">
+                      <div>
+                        <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
+                            <button
+                              key={finish}
+                              onClick={() => {
+                                setSelectedFinish(finish);
+                                const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
+                                if (prompt.match(finishRegex)) {
+                                  setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
+                                } else {
+                                  setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                }
+                              }}
+                              className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                selectedFinish === finish
+                                  ? 'bg-primary text-primary-foreground border-primary'
+                                  : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                              }`}
+                            >
+                              {finish}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Generate Button */}
+                    <div className="space-y-3">
+                      <Button 
+                        variant="hero" 
+                        className="w-full group" 
+                        onClick={handleGenerate}
+                        disabled={isGenerating || !prompt.trim()}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            Generate Design
+                            <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </>
+                        )}
+                      </Button>
+                      
+                      <div className="relative">
+                        <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Or upload an existing image</p>
+                        <Button variant="outline" className="w-full" asChild>
+                          <label className="cursor-pointer">
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
+                          </label>
+                        </Button>
+                      </div>
+                    </div>
+                    {uploadedImage && (
+                      <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                        </svg>
+                        {uploadedImage.name}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
 
