@@ -141,6 +141,15 @@ const DesignStudio = () => {
       return;
     }
 
+    if (!dimensions.length || !dimensions.breadth || !dimensions.height) {
+      toast({
+        title: "Dimensions Required",
+        description: "Please enter the dimensions (L × B × H) for your design.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -196,7 +205,7 @@ const DesignStudio = () => {
         return;
       }
 
-      // Create product
+      // Create product with dimensions
       const { error: productError } = await supabase.from("designer_products").insert({
         designer_id: profile.id,
         name: validatedData.name,
@@ -206,6 +215,11 @@ const DesignStudio = () => {
         designer_price: validatedData.designerPrice,
         original_designer_price: validatedData.designerPrice,
         image_url: generatedDesign,
+        dimensions: {
+          length: parseFloat(dimensions.length),
+          breadth: parseFloat(dimensions.breadth),
+          height: parseFloat(dimensions.height)
+        },
         status: 'pending',
       });
 
@@ -222,6 +236,7 @@ const DesignStudio = () => {
       setSelectedVariation(null);
       setShowSubmissionForm(false);
       setShowWorkflow(false);
+      setDimensions({ length: "", breadth: "", height: "" });
       setSubmissionData({
         name: "",
         description: "",
@@ -725,6 +740,37 @@ const DesignStudio = () => {
                         <option value="decor">Decor</option>
                         <option value="lighting">Lighting</option>
                       </select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Dimensions (L × B × H) *</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          <Input 
+                            type="number"
+                            placeholder="L"
+                            value={dimensions.length}
+                            disabled
+                          />
+                          <Input 
+                            type="number"
+                            placeholder="B"
+                            value={dimensions.breadth}
+                            disabled
+                          />
+                          <Input 
+                            type="number"
+                            placeholder="H"
+                            value={dimensions.height}
+                            disabled
+                          />
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {dimensions.length && dimensions.breadth && dimensions.height 
+                            ? `${dimensions.length}" × ${dimensions.breadth}" × ${dimensions.height}"`
+                            : "Please enter dimensions above"}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
