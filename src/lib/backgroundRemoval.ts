@@ -1,9 +1,3 @@
-import { pipeline, env } from '@huggingface/transformers';
-
-// Configure transformers.js to always download models
-env.allowLocalModels = false;
-env.useBrowserCache = false;
-
 const MAX_IMAGE_DIMENSION = 1024;
 
 function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
@@ -35,56 +29,46 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
   try {
     console.log('Starting background removal process...');
     
-    // Use image-to-image model for better background removal
-    const remover = await pipeline('image-to-image', 'briaai/RMBG-1.4', {
-      device: 'webgpu',
-    });
-    
     // Convert HTMLImageElement to canvas
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     
     if (!ctx) throw new Error('Could not get canvas context');
     
-    // Resize image if needed and draw it to canvas
-    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
-    console.log(`Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`);
+    // Set canvas size to match image
+    canvas.width = imageElement.naturalWidth;
+    canvas.height = imageElement.naturalHeight;
     
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/png', 1.0);
-    console.log('Image converted to base64');
+    // Draw the image
+    ctx.drawImage(imageElement, 0, 0);
     
-    // Process the image with the background removal model
-    console.log('Processing with background removal model...');
-    const result = await remover(imageData);
+    // Get image data
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const data = imageData.data;
     
-    console.log('Background removal result:', result);
+    // Remove white/near-white background
+    // Threshold for what we consider "white" (adjust if needed)
+    const threshold = 240; // RGB values above this are considered background
     
-    if (!result) {
-      throw new Error('Invalid background removal result');
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i];
+      const g = data[i + 1];
+      const b = data[i + 2];
+      
+      // If pixel is white or near-white, make it transparent
+      if (r > threshold && g > threshold && b > threshold) {
+        data[i + 3] = 0; // Set alpha to 0 (transparent)
+      }
     }
     
-    // Convert RawImage result to canvas
-    const outputCanvas = document.createElement('canvas');
-    const rawImage = Array.isArray(result) ? result[0] : result;
-    
-    // RawImage has width, height, and data properties
-    outputCanvas.width = rawImage.width;
-    outputCanvas.height = rawImage.height;
-    const outputCtx = outputCanvas.getContext('2d');
-    
-    if (!outputCtx) throw new Error('Could not get output canvas context');
-    
-    // Create ImageData from RawImage
-    const imageDataOut = outputCtx.createImageData(rawImage.width, rawImage.height);
-    imageDataOut.data.set(rawImage.data);
-    outputCtx.putImageData(imageDataOut, 0, 0);
+    // Put the modified image data back
+    ctx.putImageData(imageData, 0, 0);
     
     console.log('Background removed successfully');
     
     // Convert canvas to blob
     return new Promise((resolve, reject) => {
-      outputCanvas.toBlob(
+      canvas.toBlob(
         (blob) => {
           if (blob) {
             console.log('Successfully created final blob');
