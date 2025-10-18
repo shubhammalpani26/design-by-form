@@ -12,6 +12,7 @@ const corsHeaders = {
 const generateDesignSchema = z.object({
   prompt: z.string().trim().min(10).max(2000),
   variationNumber: z.number().int().min(1).max(10).optional().default(1),
+  roomImageBase64: z.string().optional(),
 });
 
 serve(async (req) => {
@@ -42,8 +43,8 @@ serve(async (req) => {
     
     // Validate input
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber } = validatedData;
-    console.log("Received prompt:", prompt, "Variation:", variationNumber);
+    const { prompt, variationNumber, roomImageBase64 } = validatedData;
+    console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64);
 
     if (!prompt || prompt.trim().length === 0) {
       return new Response(
@@ -68,8 +69,53 @@ serve(async (req) => {
       "Create organic, flowing lines with nature-inspired shapes"
     ];
 
-    // Refine the prompt to ensure 3D printability and manufacturability
-    const refinedPrompt = `Create a high-quality, photorealistic furniture design image with these requirements:
+    // Build message content based on whether room image is provided
+    let messages: any[];
+    
+    if (roomImageBase64) {
+      // Room-aware generation with multimodal input
+      const roomAwarePrompt = `Based on the room shown in this image, design furniture that complements the space perfectly.
+
+VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
+
+User Request: ${prompt}
+
+Consider the room's:
+- Existing aesthetic, color palette, and style
+- Scale and proportions appropriate for this space
+- Lighting conditions and ambiance
+- How the furniture will harmonize with existing elements
+
+CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
+- The design MUST be fully 3D printable using large-format FDM/SLS 3D printing technology
+- All structural elements must be printable without impossible overhangs or unsupported spans
+- Design with layer-by-layer additive manufacturing in mind
+- Ensure proper wall thickness (minimum 3-5mm for structural integrity)
+- Avoid cantilevers longer than 50mm without support considerations
+- All curves and surfaces must be smooth, continuous, and printable
+- Consider print orientation and minimize support material needs
+- Design should work with FRP (Fibre-Reinforced Polymer) composite material
+- Ensure proper weight distribution and structural stability
+- Include realistic surface finish options (matte, glossy, textured)
+- Design must be outdoor-friendly and weather-resistant
+- Consider standard furniture ergonomics and dimensions
+- Show the piece from a 3/4 view angle with good lighting
+- Professional product photography style with clean white background
+- Studio lighting that showcases the form and details
+- High attention to detail and craftsmanship
+
+Generate a single professional product photo on a clean white background that would fit perfectly in the shown room.`;
+
+      messages = [{
+        role: 'user',
+        content: [
+          { type: 'text', text: roomAwarePrompt },
+          { type: 'image_url', image_url: { url: roomImageBase64 } }
+        ]
+      }];
+    } else {
+      // Standard generation without room context
+      const refinedPrompt = `Create a high-quality, photorealistic furniture design image with these requirements:
     
 VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
     
@@ -95,7 +141,10 @@ CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
 
 The final design must be both aesthetically beautiful AND fully manufacturable through 3D printing with hand-finishing processes.`;
 
-    console.log("Generating image with refined prompt");
+      messages = [{ role: 'user', content: refinedPrompt }];
+    }
+
+    console.log("Generating image with", roomImageBase64 ? "room-aware" : "standard", "prompt");
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -105,12 +154,7 @@ The final design must be both aesthetically beautiful AND fully manufacturable t
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-image-preview',
-        messages: [
-          {
-            role: 'user',
-            content: refinedPrompt
-          }
-        ],
+        messages: messages,
         modalities: ['image', 'text']
       }),
     });

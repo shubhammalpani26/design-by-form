@@ -139,10 +139,19 @@ const DesignStudio = () => {
     setSelectedVariation(null);
     
     try {
-      // Build enhanced prompt with room context and manufacturability constraints
+      // Convert room image to base64 if uploaded
+      let roomImageBase64: string | undefined;
+      if (roomImage) {
+        roomImageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(roomImage);
+        });
+      }
+
+      // Build enhanced prompt
       let enhancedPrompt = prompt;
-      
-      // Add manufacturability guidelines
       const manufacturingConstraints = "Design must be 3D-printable and manufacturable with CNC milling. Use smooth, organic forms that avoid sharp internal corners or impossible overhangs. All elements should be structurally sound and producible with additive/subtractive manufacturing techniques. Consider material waste, assembly requirements, and structural integrity.";
       
       if (roomImage && furnitureType) {
@@ -155,7 +164,11 @@ const DesignStudio = () => {
 
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
         const response = await supabase.functions.invoke('generate-design', {
-          body: { prompt: enhancedPrompt, variationNumber: variationNum }
+          body: { 
+            prompt: enhancedPrompt, 
+            variationNumber: variationNum,
+            roomImageBase64: roomImageBase64
+          }
         });
 
         // Check if response has an error message in the data (even with non-2xx status)
@@ -186,8 +199,10 @@ const DesignStudio = () => {
       setLeadTime(28); // 4 weeks
       
       toast({
-        title: "Designs Generated!",
-        description: "3 variations created. Select your favorite to continue.",
+        title: roomImage ? "Room-Aware Designs Generated!" : "Designs Generated!",
+        description: roomImage 
+          ? "3 variations designed specifically for your space. Select your favorite to continue."
+          : "3 variations created. Select your favorite to continue.",
       });
     } catch (error) {
       console.error('Generation error:', error);
@@ -924,7 +939,11 @@ const DesignStudio = () => {
                       <TabsContent value="ar" className="mt-0">
                         {generatedDesign ? (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent">
-                            <ARViewer productName="Generated Design" />
+                            <ARViewer 
+                              productName="Generated Design" 
+                              modelUrl={generatedDesign}
+                              roomImage={roomImage}
+                            />
                           </div>
                         ) : (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">

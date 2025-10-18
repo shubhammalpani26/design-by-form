@@ -1,19 +1,38 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useState, useRef } from "react";
+import { Slider } from "@/components/ui/slider";
+import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { Move, RotateCw, ZoomIn } from "lucide-react";
 
 interface ARViewerProps {
   productName: string;
   modelUrl?: string;
   onStartAR?: () => void;
+  roomImage?: File | null;
 }
 
-export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) => {
+export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARViewerProps) => {
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
+  const [furniturePosition, setFurniturePosition] = useState({ x: 50, y: 50 });
+  const [furnitureScale, setFurnitureScale] = useState(50);
+  const [furnitureRotation, setFurnitureRotation] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    // Load room image if provided
+    if (roomImage) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedPhoto(reader.result as string);
+      };
+      reader.readAsDataURL(roomImage);
+    }
+  }, [roomImage]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -38,6 +57,28 @@ export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) =>
     }
   };
 
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (uploadedPhoto && modelUrl) {
+      setIsDragging(true);
+    }
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (isDragging && containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      setFurniturePosition({ 
+        x: Math.max(0, Math.min(100, x)), 
+        y: Math.max(0, Math.min(100, y)) 
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   return (
     <Card className="border-secondary/20 shadow-medium bg-secondary/5">
       <CardContent className="p-6">
@@ -54,13 +95,38 @@ export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) =>
             </span>
           </div>
 
-          <div className="aspect-video bg-accent rounded-xl flex items-center justify-center relative overflow-hidden">
+          <div 
+            ref={containerRef}
+            className="aspect-video bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          >
             {uploadedPhoto ? (
-              <img 
-                src={uploadedPhoto} 
-                alt="Your space" 
-                className="w-full h-full object-cover"
-              />
+              <>
+                <img 
+                  src={uploadedPhoto} 
+                  alt="Your space" 
+                  className="w-full h-full object-cover"
+                />
+                {modelUrl && (
+                  <img
+                    src={modelUrl}
+                    alt={productName}
+                    className="absolute pointer-events-none"
+                    style={{
+                      left: `${furniturePosition.x}%`,
+                      top: `${furniturePosition.y}%`,
+                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
+                      width: '40%',
+                      maxWidth: '300px',
+                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                    }}
+                  />
+                )}
+              </>
             ) : modelUrl ? (
               <div className="text-center space-y-4 p-8">
                 <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center mx-auto">
@@ -70,7 +136,7 @@ export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) =>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Ready for AR</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload a photo of your space or tap the button to view live</p>
+                  <p className="text-xs text-muted-foreground mt-1">Upload a photo of your space to visualize the furniture</p>
                 </div>
               </div>
             ) : (
@@ -86,6 +152,42 @@ export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) =>
               </div>
             )}
           </div>
+
+          {uploadedPhoto && modelUrl && (
+            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <Move className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Position</span>
+                <p className="text-xs text-muted-foreground">Drag furniture to move</p>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <ZoomIn className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Scale</span>
+                <Slider
+                  value={[furnitureScale]}
+                  onValueChange={(value) => setFurnitureScale(value[0])}
+                  min={20}
+                  max={100}
+                  step={1}
+                  className="flex-1"
+                />
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <RotateCw className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Rotate</span>
+                <Slider
+                  value={[furnitureRotation]}
+                  onValueChange={(value) => setFurnitureRotation(value[0])}
+                  min={0}
+                  max={360}
+                  step={1}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          )}
 
           {isARSupported ? (
             <div className="space-y-3">
@@ -128,10 +230,10 @@ export const ARViewer = ({ productName, modelUrl, onStartAR }: ARViewerProps) =>
                   How AR works:
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1 ml-6 list-disc">
-                  <li>Point your camera at a flat surface</li>
-                  <li>Move around to place the furniture</li>
-                  <li>Take photos to share or save</li>
-                  <li>Try different angles and positions</li>
+                  <li>Upload a photo of your space</li>
+                  <li>Drag to position the furniture</li>
+                  <li>Use sliders to scale and rotate</li>
+                  <li>Visualize before ordering</li>
                 </ul>
               </div>
 
