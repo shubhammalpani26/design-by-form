@@ -93,29 +93,39 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   }, [roomImage]);
 
   useEffect(() => {
-    // Process furniture image to remove background with persistent caching
+    // Process furniture image to remove background with AI and persistent caching
     const processFurniture = async () => {
       const urlToProcess = imageUrl || modelUrl;
       if (urlToProcess) {
         // Check sessionStorage cache first
         const cached = getProcessedUrlFromCache(urlToProcess);
         if (cached) {
+          console.log('Using cached background-removed image');
           setProcessedFurnitureUrl(cached);
           return;
         }
 
         setIsProcessing(true);
+        toast({
+          title: "Removing background",
+          description: "Using AI to remove background from the furniture. This may take a moment...",
+        });
+        
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
           saveProcessedUrlToCache(urlToProcess, processed);
-          console.log('Background removed from furniture image');
+          console.log('Background removed from furniture image using AI');
+          toast({
+            title: "Background removed!",
+            description: "The furniture is now ready for AR preview.",
+          });
         } catch (error) {
           console.error('Failed to remove background:', error);
           setProcessedFurnitureUrl(urlToProcess); // Fallback to original
           toast({
             title: "Background removal failed",
-            description: "Using original image. The furniture may have a background.",
+            description: "Using original image. Background may be visible in AR view.",
             variant: "destructive",
           });
         } finally {
@@ -208,8 +218,12 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   style={{ imageRendering: '-webkit-optimize-contrast' }}
                 />
                 {isProcessing ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/20">
-                    <div className="text-white text-sm">Removing background...</div>
+                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                    <div className="bg-white/90 rounded-lg p-4 text-center space-y-2">
+                      <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                      <div className="text-sm font-medium text-foreground">Removing background with AI...</div>
+                      <div className="text-xs text-muted-foreground">This may take 10-30 seconds</div>
+                    </div>
                   </div>
                 ) : (
                   <img
@@ -365,11 +379,20 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   How AR works:
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1 ml-6 list-disc">
+                  <li>AI removes background from furniture automatically</li>
                   <li>Upload a photo of your space</li>
                   <li>Drag to position the furniture</li>
                   <li>Use sliders to scale and rotate</li>
                   <li>Visualize before ordering</li>
                 </ul>
+                {!modelUrl && (
+                  <p className="text-xs text-amber-600 mt-2 flex items-start gap-1">
+                    <svg className="w-3 h-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
+                    <span>3D view unavailable. Using high-quality 2D AR with AI background removal.</span>
+                  </p>
+                )}
               </div>
 
               <div className="flex gap-2">

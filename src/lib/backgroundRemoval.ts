@@ -1,3 +1,9 @@
+import { pipeline, env } from '@huggingface/transformers';
+
+// Configure transformers.js to always download models
+env.allowLocalModels = false;
+env.useBrowserCache = false;
+
 const MAX_IMAGE_DIMENSION = 1024;
 
 function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
@@ -27,55 +33,62 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
-    console.log('Starting background removal process...');
+    console.log('Starting AI-based background removal...');
+    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+      device: 'webgpu',
+    });
     
     // Convert HTMLImageElement to canvas
     const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d', { 
-      alpha: true,
-      willReadFrequently: false
-    });
+    const ctx = canvas.getContext('2d');
     
     if (!ctx) throw new Error('Could not get canvas context');
     
-    // Disable image smoothing for crisp rendering
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = 'high';
+    // Resize image if needed and draw it to canvas
+    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
+    console.log(`Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`);
     
-    // Set canvas size to match image
-    canvas.width = imageElement.naturalWidth;
-    canvas.height = imageElement.naturalHeight;
+    // Get image data as base64
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    console.log('Image converted to base64');
     
-    // Draw the image with high quality
-    ctx.drawImage(imageElement, 0, 0);
+    // Process the image with the segmentation model
+    console.log('Processing with AI segmentation model...');
+    const result = await segmenter(imageData);
     
-    // Get image data
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const data = imageData.data;
+    console.log('Segmentation complete');
     
-    // Remove white/near-white background
-    // Threshold for what we consider "white" (adjust if needed)
-    const threshold = 240; // RGB values above this are considered background
-    
-    for (let i = 0; i < data.length; i += 4) {
-      const r = data[i];
-      const g = data[i + 1];
-      const b = data[i + 2];
-      
-      // If pixel is white or near-white, make it transparent
-      if (r > threshold && g > threshold && b > threshold) {
-        data[i + 3] = 0; // Set alpha to 0 (transparent)
-      }
+    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+      throw new Error('Invalid segmentation result');
     }
     
-    // Put the modified image data back
-    ctx.putImageData(imageData, 0, 0);
+    // Create a new canvas for the masked image
+    const outputCanvas = document.createElement('canvas');
+    outputCanvas.width = canvas.width;
+    outputCanvas.height = canvas.height;
+    const outputCtx = outputCanvas.getContext('2d');
     
-    console.log('Background removed successfully');
+    if (!outputCtx) throw new Error('Could not get output canvas context');
+    
+    // Draw original image
+    outputCtx.drawImage(canvas, 0, 0);
+    
+    // Apply the mask
+    const outputImageData = outputCtx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
+    const data = outputImageData.data;
+    
+    // Apply inverted mask to alpha channel (keep subject, remove background)
+    for (let i = 0; i < result[0].mask.data.length; i++) {
+      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
+      data[i * 4 + 3] = alpha;
+    }
+    
+    outputCtx.putImageData(outputImageData, 0, 0);
+    console.log('Background removed successfully with AI');
     
     // Convert canvas to blob
     return new Promise((resolve, reject) => {
-      canvas.toBlob(
+      outputCanvas.toBlob(
         (blob) => {
           if (blob) {
             console.log('Successfully created final blob');

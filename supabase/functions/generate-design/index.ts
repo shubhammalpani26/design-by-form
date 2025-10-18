@@ -269,7 +269,12 @@ The final design must be both aesthetically beautiful AND fully manufacturable t
     }
 
     return new Response(
-      JSON.stringify({ imageUrl, modelUrl }),
+      JSON.stringify({ 
+        imageUrl, 
+        modelUrl,
+        has3DSupport: !!modelUrl,
+        message: !modelUrl && MESHY_API_KEY ? "3D model generation unavailable (Meshy free plan limitation). High-quality 2D AR preview available with AI background removal." : undefined
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
