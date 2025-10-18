@@ -91,8 +91,9 @@ const DesignStudio = () => {
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
       
+      // Initial estimated cost (will be recalculated when dimensions are entered)
       const assumedCubicFeet = 3.5;
-      const costPerCubicFoot = 18000;
+      const costPerCubicFoot = 9000;
       const baseCost = assumedCubicFeet * costPerCubicFoot;
       setEstimatedCost(baseCost);
       setLeadTime(28); // 4 weeks
@@ -117,17 +118,36 @@ const DesignStudio = () => {
     setSelectedVariation(index);
     setGeneratedDesign(generatedVariations[index]);
     setShowWorkflow(true);
-    setShowSubmissionForm(true);
-    if (estimatedCost) {
-      setSubmissionData(prev => ({
-        ...prev,
-        basePrice: estimatedCost,
-        designerPrice: estimatedCost * 1.5,
-      }));
-    }
     toast({
       title: "Variation Selected",
-      description: "Fill out the submission form below to list your design.",
+      description: "Enter dimensions to calculate pricing and continue.",
+    });
+  };
+
+  const calculatePriceFromDimensions = (length: string, breadth: string, height: string) => {
+    if (!length || !breadth || !height) return;
+    
+    // Convert inches to feet and calculate cubic feet
+    const l = parseFloat(length) / 12;
+    const b = parseFloat(breadth) / 12;
+    const h = parseFloat(height) / 12;
+    const cubicFeet = l * b * h;
+    
+    // Calculate price at Rs.9,000 per cubic foot
+    const costPerCubicFoot = 9000;
+    const baseCost = Math.round(cubicFeet * costPerCubicFoot);
+    
+    setEstimatedCost(baseCost);
+    setSubmissionData(prev => ({
+      ...prev,
+      basePrice: baseCost,
+      designerPrice: Math.round(baseCost * 1.5),
+    }));
+    setShowSubmissionForm(true);
+    
+    toast({
+      title: "Price Calculated",
+      description: `Base price: ₹${baseCost.toLocaleString()} for ${cubicFeet.toFixed(2)} cubic feet`,
     });
   };
 
@@ -284,11 +304,11 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Create Furniture with AI
+              Create Custom Designs with AI
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Transform your ideas into real, production-ready furniture pieces. 
-              We manufacture and deliver your custom designs. No design experience required.
+              Transform your ideas into real, production-ready designs - furniture, decor, installations, and more. 
+              We manufacture and deliver your custom creations. No design experience required.
             </p>
           </div>
         </section>
@@ -366,10 +386,10 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    <div className="flex gap-3">
+                    <div className="space-y-3">
                       <Button 
                         variant="hero" 
-                        className="flex-1 group" 
+                        className="w-full group" 
                         onClick={handleGenerate}
                         disabled={isGenerating || !prompt.trim()}
                       >
@@ -389,12 +409,19 @@ const DesignStudio = () => {
                           </>
                         )}
                       </Button>
-                      <Button variant="outline" asChild>
-                        <label className="cursor-pointer">
-                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                          {uploadedImage ? "✓ Sketch" : "Upload Sketch"}
-                        </label>
-                      </Button>
+                      
+                      <div className="relative">
+                        <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Or upload an existing image</p>
+                        <Button variant="outline" className="w-full" asChild>
+                          <label className="cursor-pointer">
+                            <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
+                          </label>
+                        </Button>
+                      </div>
                     </div>
                     {uploadedImage && (
                       <div className="text-xs text-muted-foreground flex items-center gap-2">
@@ -532,53 +559,73 @@ const DesignStudio = () => {
                                         <h4 className="font-semibold text-foreground">Enter Dimensions for This Design</h4>
                                         <div>
                                           <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (L × B × H in inches):</p>
-                                          <div className="grid grid-cols-3 gap-2">
+                                           <div className="grid grid-cols-3 gap-2">
                                             <Input
                                               type="number"
                                               placeholder="L"
                                               value={dimensions.length}
-                                              onChange={(e) => setDimensions({ ...dimensions, length: e.target.value })}
+                                              onChange={(e) => {
+                                                const newDims = { ...dimensions, length: e.target.value };
+                                                setDimensions(newDims);
+                                                if (newDims.length && newDims.breadth && newDims.height) {
+                                                  calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
+                                                }
+                                              }}
                                               className="text-sm"
                                             />
                                             <Input
                                               type="number"
                                               placeholder="B"
                                               value={dimensions.breadth}
-                                              onChange={(e) => setDimensions({ ...dimensions, breadth: e.target.value })}
+                                              onChange={(e) => {
+                                                const newDims = { ...dimensions, breadth: e.target.value };
+                                                setDimensions(newDims);
+                                                if (newDims.length && newDims.breadth && newDims.height) {
+                                                  calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
+                                                }
+                                              }}
                                               className="text-sm"
                                             />
                                             <Input
                                               type="number"
                                               placeholder="H"
                                               value={dimensions.height}
-                                              onChange={(e) => setDimensions({ ...dimensions, height: e.target.value })}
+                                              onChange={(e) => {
+                                                const newDims = { ...dimensions, height: e.target.value };
+                                                setDimensions(newDims);
+                                                if (newDims.length && newDims.breadth && newDims.height) {
+                                                  calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
+                                                }
+                                              }}
                                               className="text-sm"
                                             />
                                           </div>
                                         </div>
                                         
-                                        <div>
-                                          <p className="text-xs font-medium text-muted-foreground mb-2">Or select a preset:</p>
-                                          <div className="flex flex-wrap gap-2">
-                                            {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"'].map((size) => (
-                                              <button
-                                                key={size}
-                                                onClick={() => {
-                                                  const [l, b, h] = size.replace(/"/g, '').split('×');
-                                                  setDimensions({ length: l, breadth: b, height: h });
-                                                  setSelectedSize(size);
-                                                }}
-                                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                                  selectedSize === size
-                                                    ? 'bg-primary text-primary-foreground border-primary'
-                                                    : 'bg-background hover:bg-accent border-border hover:border-primary'
-                                                }`}
-                                              >
-                                                {size}
-                                              </button>
-                                            ))}
-                                          </div>
-                                        </div>
+                                          <div>
+                                           <p className="text-xs font-medium text-muted-foreground mb-2">Or select a preset:</p>
+                                           <div className="flex flex-wrap gap-2">
+                                             {['48"×24"×30"', '60"×36"×18"', '72"×40"×30"', '36"×36"×16"'].map((size) => (
+                                               <button
+                                                 key={size}
+                                                 onClick={() => {
+                                                   const [l, b, h] = size.replace(/"/g, '').split('×');
+                                                   const newDims = { length: l, breadth: b, height: h };
+                                                   setDimensions(newDims);
+                                                   setSelectedSize(size);
+                                                   calculatePriceFromDimensions(l, b, h);
+                                                 }}
+                                                 className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                                                   selectedSize === size
+                                                     ? 'bg-primary text-primary-foreground border-primary'
+                                                     : 'bg-background hover:bg-accent border-border hover:border-primary'
+                                                 }`}
+                                               >
+                                                 {size}
+                                               </button>
+                                             ))}
+                                           </div>
+                                         </div>
                                       </CardContent>
                                     </Card>
                                   )}
