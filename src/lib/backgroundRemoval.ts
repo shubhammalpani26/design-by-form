@@ -58,9 +58,19 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     
     console.log('Segmentation result:', result);
     
-    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
+    if (!result || !Array.isArray(result) || result.length === 0) {
       throw new Error('Invalid segmentation result');
     }
+    
+    // Furniture-related labels to keep
+    const furnitureLabels = ['table', 'chair', 'desk', 'sofa', 'bed', 'cabinet', 'shelf', 'bench', 'stool', 'ottoman', 'armchair'];
+    
+    // Find furniture masks
+    const furnitureMasks = result.filter(r => 
+      furnitureLabels.some(label => r.label.toLowerCase().includes(label))
+    );
+    
+    console.log('Found furniture masks:', furnitureMasks.map(m => m.label));
     
     // Create a new canvas for the masked image
     const outputCanvas = document.createElement('canvas');
@@ -81,11 +91,33 @@ export const removeBackground = async (imageElement: HTMLImageElement): Promise<
     );
     const data = outputImageData.data;
     
-    // Apply inverted mask to alpha channel
-    for (let i = 0; i < result[0].mask.data.length; i++) {
-      // Invert the mask value (1 - value) to keep the subject instead of the background
-      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
-      data[i * 4 + 3] = alpha;
+    // Create combined furniture mask
+    const combinedMask = new Uint8Array(canvas.width * canvas.height);
+    
+    if (furnitureMasks.length > 0) {
+      // Combine all furniture masks
+      for (const furnitureMask of furnitureMasks) {
+        if (furnitureMask.mask && furnitureMask.mask.data) {
+          for (let i = 0; i < furnitureMask.mask.data.length; i++) {
+            combinedMask[i] = Math.max(combinedMask[i], furnitureMask.mask.data[i]);
+          }
+        }
+      }
+      
+      // Apply the combined mask to keep furniture
+      for (let i = 0; i < combinedMask.length; i++) {
+        const alpha = combinedMask[i];
+        data[i * 4 + 3] = alpha;
+      }
+    } else {
+      // No furniture detected - keep the most prominent object (usually the first non-background)
+      console.log('No furniture detected, using first segment');
+      const firstMask = result.find(r => !['sky', 'wall', 'floor', 'ceiling'].includes(r.label.toLowerCase()));
+      if (firstMask && firstMask.mask) {
+        for (let i = 0; i < firstMask.mask.data.length; i++) {
+          data[i * 4 + 3] = firstMask.mask.data[i];
+        }
+      }
     }
     
     outputCtx.putImageData(outputImageData, 0, 0);
