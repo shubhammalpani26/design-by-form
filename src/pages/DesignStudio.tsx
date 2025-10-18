@@ -304,11 +304,11 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Create Custom Designs with AI
+              Design Real Products That Can Be Built
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Transform your ideas into real, production-ready designs - furniture, decor, installations, and more. 
-              We manufacture and deliver your custom creations. No design experience required.
+              Create tangible furniture and decor pieces with AI. We manufacture and deliver your custom designs. 
+              From concept to physical product - no design experience required.
             </p>
           </div>
         </section>
@@ -495,7 +495,7 @@ const DesignStudio = () => {
                   <CardContent className="p-6">
                     <Tabs value={previewMode} onValueChange={(value) => setPreviewMode(value as any)} className="w-full">
                       <TabsList className="grid w-full grid-cols-3 mb-4">
-                        <TabsTrigger value="2d">2D Image</TabsTrigger>
+                        <TabsTrigger value="2d">Image</TabsTrigger>
                         <TabsTrigger value="3d">3D Model</TabsTrigger>
                         <TabsTrigger value="ar">AR View</TabsTrigger>
                       </TabsList>
