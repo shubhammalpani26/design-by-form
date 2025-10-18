@@ -104,13 +104,18 @@ const DesignStudio = () => {
     setSelectedVariation(null);
     
     try {
-      // Build enhanced prompt with room context
+      // Build enhanced prompt with room context and manufacturability constraints
       let enhancedPrompt = prompt;
       
+      // Add manufacturability guidelines
+      const manufacturingConstraints = "Design must be 3D-printable and manufacturable with CNC milling. Use smooth, organic forms that avoid sharp internal corners or impossible overhangs. All elements should be structurally sound and producible with additive/subtractive manufacturing techniques. Consider material waste, assembly requirements, and structural integrity.";
+      
       if (roomImage && furnitureType) {
-        enhancedPrompt = `Design a ${furnitureType} that fits perfectly in this interior space. The furniture should complement the existing room aesthetic. ${prompt}. Make sure the design harmonizes with the room's style, colors, and overall ambiance.`;
+        enhancedPrompt = `Design a ${furnitureType} that fits perfectly in this interior space. The furniture should complement the existing room aesthetic. ${prompt}. ${manufacturingConstraints} Make sure the design harmonizes with the room's style, colors, and overall ambiance while being practical to manufacture.`;
       } else if (furnitureType) {
-        enhancedPrompt = `${furnitureType}: ${prompt}`;
+        enhancedPrompt = `${furnitureType}: ${prompt}. ${manufacturingConstraints}`;
+      } else {
+        enhancedPrompt = `${prompt}. ${manufacturingConstraints}`;
       }
 
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
@@ -355,79 +360,6 @@ const DesignStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Input Side */}
               <div className="space-y-6">
-                {/* Room Context Upload - NEW */}
-                <Card className="bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/30 shadow-medium">
-                  <CardContent className="p-6 space-y-4">
-                    <div className="flex items-start gap-3">
-                      <div className="p-2 bg-primary/10 rounded-lg">
-                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-1 text-foreground">Design for Your Space</h3>
-                        <p className="text-sm text-muted-foreground">
-                          Upload your room photo and AI will design furniture that perfectly fits your interior
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
-                        <label className="cursor-pointer">
-                          <input 
-                            type="file" 
-                            accept="image/*" 
-                            className="hidden" 
-                            onChange={handleRoomImageUpload} 
-                          />
-                          <div className="flex items-center gap-3 w-full">
-                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                            <span className="text-sm">
-                              {roomImage ? `✓ ${roomImage.name}` : "Upload Room Photo"}
-                            </span>
-                          </div>
-                        </label>
-                      </Button>
-
-                      {roomImagePreview && (
-                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20">
-                          <img 
-                            src={roomImagePreview} 
-                            alt="Room context" 
-                            className="w-full h-40 object-cover"
-                          />
-                          <button
-                            onClick={() => {
-                              setRoomImage(null);
-                              setRoomImagePreview(null);
-                            }}
-                            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
-                          >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                          </button>
-                        </div>
-                      )}
-
-                      <div>
-                        <label className="text-xs font-medium text-muted-foreground mb-2 block">
-                          What do you need for this space?
-                        </label>
-                        <Input
-                          placeholder="e.g., Coffee table, Dining chair, Side table..."
-                          value={furnitureType}
-                          onChange={(e) => setFurnitureType(e.target.value)}
-                          className="text-sm"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
                 <Card className="border-primary/20 shadow-medium">
                   <CardContent className="p-6 space-y-4">
                     <div>
@@ -543,6 +475,72 @@ const DesignStudio = () => {
                         {uploadedImage.name}
                       </div>
                     )}
+                  </CardContent>
+                </Card>
+
+                {/* Room Context Upload - OPTIONAL */}
+                <Card className="border-primary/20 shadow-medium">
+                  <CardContent className="p-6 space-y-4">
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2 text-foreground">Design for Your Space (Optional)</h3>
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Upload your room photo and AI will design furniture that perfectly complements your interior
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
+                        <label className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            className="hidden" 
+                            onChange={handleRoomImageUpload} 
+                          />
+                          <div className="flex items-center gap-3 w-full">
+                            <svg className="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                            <span className="text-sm">
+                              {roomImage ? `✓ ${roomImage.name}` : "Upload Room Photo"}
+                            </span>
+                          </div>
+                        </label>
+                      </Button>
+
+                      {roomImagePreview && (
+                        <div className="relative rounded-lg overflow-hidden border-2 border-primary/20">
+                          <img 
+                            src={roomImagePreview} 
+                            alt="Room context" 
+                            className="w-full h-40 object-cover"
+                          />
+                          <button
+                            onClick={() => {
+                              setRoomImage(null);
+                              setRoomImagePreview(null);
+                            }}
+                            className="absolute top-2 right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+
+                      <div>
+                        <label className="text-xs font-medium text-muted-foreground mb-2 block">
+                          What do you need for this space?
+                        </label>
+                        <Input
+                          placeholder="e.g., Coffee table, Dining chair, Side table..."
+                          value={furnitureType}
+                          onChange={(e) => setFurnitureType(e.target.value)}
+                          className="text-sm"
+                        />
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
 
