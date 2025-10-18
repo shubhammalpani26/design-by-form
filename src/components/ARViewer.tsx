@@ -103,52 +103,68 @@ export const ARViewer = ({ productName, modelUrl, onStartAR, roomImage }: ARView
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {uploadedPhoto ? (
+            {uploadedPhoto && modelUrl ? (
               <>
                 <img 
                   src={uploadedPhoto} 
                   alt="Your space" 
                   className="w-full h-full object-cover"
                 />
-                {modelUrl && (
-                  <img
-                    src={modelUrl}
-                    alt={productName}
-                    className="absolute pointer-events-none"
-                    style={{
-                      left: `${furniturePosition.x}%`,
-                      top: `${furniturePosition.y}%`,
-                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
-                      width: '40%',
-                      maxWidth: '300px',
-                      filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
-                      transition: isDragging ? 'none' : 'transform 0.2s ease-out'
-                    }}
-                  />
-                )}
+                <img
+                  src={modelUrl}
+                  alt={productName}
+                  className="absolute pointer-events-none"
+                  style={{
+                    left: `${furniturePosition.x}%`,
+                    top: `${furniturePosition.y}%`,
+                    transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotate(${furnitureRotation}deg)`,
+                    width: '40%',
+                    maxWidth: '300px',
+                    filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))',
+                    transition: isDragging ? 'none' : 'transform 0.2s ease-out'
+                  }}
+                />
               </>
-            ) : modelUrl ? (
-              <div className="text-center space-y-4 p-8">
-                <div className="w-20 h-20 rounded-full bg-secondary/20 flex items-center justify-center mx-auto">
-                  <svg className="w-10 h-10 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+            ) : !uploadedPhoto && !modelUrl ? (
+              <div className="text-center space-y-3 p-8">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Ready for AR</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload a photo of your space to visualize the furniture</p>
+                  <p className="text-sm font-medium text-foreground">AR Preview Unavailable</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    To use AR preview: <br/>
+                    1. Upload a room photo in customization options<br/>
+                    2. Generate a design<br/>
+                    3. Select a variation
+                  </p>
+                </div>
+              </div>
+            ) : !modelUrl ? (
+              <div className="text-center space-y-3 p-8">
+                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Design Generated!</p>
+                  <p className="text-xs text-muted-foreground mt-1">Upload a room photo in customization options to see AR preview</p>
                 </div>
               </div>
             ) : (
               <div className="text-center space-y-3 p-8">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
                   <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  AR model will be available after generation
-                </p>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Room Photo Uploaded!</p>
+                  <p className="text-xs text-muted-foreground mt-1">Generate a design to see AR preview</p>
+                </div>
               </div>
             )}
           </div>
