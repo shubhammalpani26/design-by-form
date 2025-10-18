@@ -348,10 +348,11 @@ const DesignStudio = () => {
 
       if (profileError || !profile) {
         toast({
-          title: "Profile Not Found",
-          description: "Please complete your designer profile first.",
-          variant: "destructive",
+          title: "Complete Your Creator Profile",
+          description: "Let's set up your creator profile to submit designs.",
         });
+        // Redirect to designer signup to complete profile
+        navigate('/designer-signup');
         return;
       }
 
@@ -415,6 +416,11 @@ const DesignStudio = () => {
         termsAccepted: false,
       });
       setPrompt("");
+
+      // Redirect to leaderboard after successful submission
+      setTimeout(() => {
+        navigate('/creator-leaderboard');
+      }, 1500);
 
     } catch (error: any) {
       if (error.name === 'ZodError') {
