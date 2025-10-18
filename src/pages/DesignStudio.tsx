@@ -290,7 +290,7 @@ const DesignStudio = () => {
     setSubmissionData(prev => ({
       ...prev,
       basePrice: baseCost,
-      designerPrice: Math.round(baseCost * 1.5),
+      designerPrice: Math.round(baseCost * 1.25), // Default 25% markup
     }));
     setShowSubmissionForm(true);
     
@@ -1080,7 +1080,11 @@ const DesignStudio = () => {
 
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
-                          <p className="text-sm font-bold text-foreground">Monthly Income: ₹{(estimatedCost * 6).toLocaleString()}</p>
+                          <p className="text-sm font-bold text-foreground">
+                            Monthly Income: ₹{(submissionData.designerPrice > 0 
+                              ? ((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)) * 10 
+                              : estimatedCost * 6).toLocaleString()}
+                          </p>
                         </div>
 
                         {leadTime && (

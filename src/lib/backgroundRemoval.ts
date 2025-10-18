@@ -33,8 +33,8 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
 
 export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
   try {
-    console.log('Starting AI-based background removal with improved model...');
-    const segmenter = await pipeline('image-segmentation', 'Xenova/deeplabv3_mobilenet_v3_large_1024', {
+    console.log('Starting AI-based background removal with advanced segmentation...');
+    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer_b2_clothes', {
       device: 'webgpu',
     });
     
