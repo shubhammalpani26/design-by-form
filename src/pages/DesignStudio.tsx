@@ -123,14 +123,26 @@ const DesignStudio = () => {
       }
 
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
-        const { data, error } = await supabase.functions.invoke('generate-design', {
+        const response = await supabase.functions.invoke('generate-design', {
           body: { prompt: enhancedPrompt, variationNumber: variationNum }
         });
 
-        if (error) throw new Error(error.message || 'Failed to generate design');
-        if (!data?.imageUrl) throw new Error('No image generated');
+        // Check for HTTP errors (402, 500, etc.)
+        if (response.error) {
+          const errorMsg = response.error.message || 'Failed to generate design';
+          throw new Error(errorMsg);
+        }
 
-        return data.imageUrl;
+        // Check if the response contains an error in the data
+        if (response.data?.error) {
+          throw new Error(response.data.error);
+        }
+
+        if (!response.data?.imageUrl) {
+          throw new Error('No image generated');
+        }
+
+        return response.data.imageUrl;
       });
 
       const variations = await Promise.all(variationPromises);
@@ -149,9 +161,16 @@ const DesignStudio = () => {
       });
     } catch (error) {
       console.error('Generation error:', error);
+      const errorMessage = error instanceof Error ? error.message : "Please try again.";
+      
+      // Check if it's a credits error
+      const isCreditsError = errorMessage.includes('credits') || errorMessage.includes('402');
+      
       toast({
-        title: "Generation Failed",
-        description: error instanceof Error ? error.message : "Please try again.",
+        title: isCreditsError ? "AI Credits Depleted" : "Generation Failed",
+        description: isCreditsError 
+          ? "Your Lovable AI credits have been depleted. Please add credits in Settings → Workspace → Usage to continue generating designs."
+          : errorMessage,
         variant: "destructive",
       });
     } finally {
