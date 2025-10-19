@@ -10,10 +10,24 @@ const corsHeaders = {
 
 // Validation schema
 const generateDesignSchema = z.object({
-  prompt: z.string().trim().min(10).max(2000),
+  prompt: z.string().trim().max(2000),
   variationNumber: z.number().int().min(1).max(10).optional().default(1),
   roomImageBase64: z.string().optional(),
-});
+  generate3D: z.boolean().optional().default(false),
+  imageUrl: z.string().optional(), // For generating 3D from existing image
+}).refine(
+  (data) => {
+    // If not generating 3D, prompt is required
+    if (!data.generate3D) {
+      return data.prompt.length >= 10;
+    }
+    // If generating 3D, imageUrl is required
+    return !!data.imageUrl;
+  },
+  {
+    message: "Either prompt (for 2D) or imageUrl (for 3D) is required",
+  }
+);
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -41,14 +55,93 @@ serve(async (req) => {
 
     const requestData = await req.json();
     
-    // Validate input
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64 } = validatedData;
-    console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64);
+    const { prompt, variationNumber, roomImageBase64, generate3D, imageUrl: existingImageUrl } = validatedData;
+    console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
-    if (!prompt || prompt.trim().length === 0) {
+    // If generating 3D from existing image, skip image generation
+    if (generate3D && existingImageUrl) {
+      console.log("Generating 3D model from existing image");
+      let modelUrl = null;
+      const MESHY_API_KEY = Deno.env.get('MESHY_API_KEY');
+      
+      if (!MESHY_API_KEY) {
+        return new Response(
+          JSON.stringify({ error: "3D generation not configured" }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      try {
+        console.log("Starting 3D model generation with Meshy");
+        
+        const meshyResponse = await fetch('https://api.meshy.ai/openapi/v1/image-to-3d', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${MESHY_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image_url: existingImageUrl,
+            enable_pbr: true,
+            ai_model: "meshy-4",
+          }),
+        });
+
+        if (meshyResponse.ok) {
+          const meshyData = await meshyResponse.json();
+          const taskId = meshyData.result;
+          console.log("Meshy task created:", taskId);
+          
+          // Poll for completion (max 2 minutes to prevent timeout)
+          const maxAttempts = 24;
+          let attempts = 0;
+          let taskComplete = false;
+          
+          while (attempts < maxAttempts && !taskComplete) {
+            await new Promise(resolve => setTimeout(resolve, 5000));
+            
+            const statusResponse = await fetch(`https://api.meshy.ai/openapi/v1/image-to-3d/${taskId}`, {
+              headers: {
+                'Authorization': `Bearer ${MESHY_API_KEY}`,
+              },
+            });
+            
+            if (statusResponse.ok) {
+              const statusData = await statusResponse.json();
+              console.log("Meshy status:", statusData.status);
+              
+              if (statusData.status === 'SUCCEEDED') {
+                modelUrl = statusData.model_urls?.glb;
+                taskComplete = true;
+                console.log("3D model generated successfully:", modelUrl);
+              } else if (statusData.status === 'FAILED') {
+                console.error("Meshy generation failed");
+                break;
+              }
+            }
+            
+            attempts++;
+          }
+        }
+      } catch (error) {
+        console.error("Error generating 3D model:", error);
+      }
+
       return new Response(
-        JSON.stringify({ error: "Prompt is required" }),
+        JSON.stringify({ 
+          imageUrl: existingImageUrl,
+          modelUrl,
+          has3DSupport: !!modelUrl
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate prompt only if not generating 3D from existing image
+    if (!generate3D && (!prompt || prompt.trim().length === 0)) {
+      return new Response(
+        JSON.stringify({ error: "Prompt is required for image generation" }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -219,11 +312,11 @@ Respond ONLY in valid JSON format (no markdown):
       // Continue with default pricing
     }
 
-    // Generate 3D model from the 2D image using Meshy
+    // Generate 3D model from the 2D image using Meshy (only if requested)
     let modelUrl = null;
     const MESHY_API_KEY = Deno.env.get('MESHY_API_KEY');
     
-    if (MESHY_API_KEY) {
+    if (MESHY_API_KEY && generate3D) {
       try {
         console.log("Starting 3D model generation with Meshy");
         

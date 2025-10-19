@@ -190,7 +190,8 @@ const DesignStudio = () => {
             body: { 
               prompt: enhancedPrompt, 
               variationNumber: variationNum,
-              roomImageBase64: roomImageBase64
+              roomImageBase64: roomImageBase64,
+              generate3D: false // Don't generate 3D initially
             }
           });
 
@@ -302,6 +303,49 @@ const DesignStudio = () => {
       finalDimensions.height, 
       pricingData.pricePerCubicFoot
     );
+    
+    // Generate 3D model for selected variation if not already generated
+    if (!selectedVar.modelUrl && selectedVar.imageUrl) {
+      toast({
+        title: "Generating 3D Model",
+        description: "Creating 3D model for selected design. This may take 2-3 minutes...",
+      });
+      
+      // Generate 3D in background
+      (async () => {
+        try {
+          const response = await supabase.functions.invoke('generate-design', {
+            body: { 
+              prompt: "", // Not needed for 3D only generation
+              imageUrl: selectedVar.imageUrl, // Pass the existing image URL
+              variationNumber: index + 1,
+              generate3D: true
+            }
+          });
+          
+          if (response.data?.modelUrl) {
+            // Update the variation with the 3D model
+            setGeneratedVariations(prev => {
+              const updated = [...prev];
+              updated[index] = { ...updated[index], modelUrl: response.data.modelUrl };
+              return updated;
+            });
+            
+            // Update current view if still on this variation
+            if (selectedVariation === index) {
+              setGenerated3DModel(response.data.modelUrl);
+            }
+            
+            toast({
+              title: "3D Model Ready!",
+              description: "Your 3D model has been generated successfully.",
+            });
+          }
+        } catch (error) {
+          console.error("Error generating 3D model:", error);
+        }
+      })();
+    }
     
     toast({
       title: "Variation Selected",
