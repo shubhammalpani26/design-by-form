@@ -459,10 +459,10 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Design Physical Furniture, Home Decor & Installations
+              From Imagination to Creation
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              AI-designed furniture that perfectly fits your space. Upload your room, describe what you need, 
+              Design custom furniture, home decor, and installations with AI. Upload your room, describe your vision, 
               and we'll manufacture and deliver it. Real products, not just renders.
             </p>
           </div>
@@ -700,7 +700,7 @@ const DesignStudio = () => {
                               </svg>
                             </div>
                             <div className="text-left">
-                              <p className="font-semibold text-sm text-foreground">Design for Your Space (Optional)</p>
+                              <p className="font-semibold text-sm text-foreground">Design for Your Space</p>
                               <p className="text-xs text-muted-foreground">Upload your room photo for contextual designs</p>
                             </div>
                           </div>
