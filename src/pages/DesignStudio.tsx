@@ -459,7 +459,7 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Turn Ideas Into Physical Furniture
+              Design Physical Furniture, Home Decor & Installations
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               AI-designed furniture that perfectly fits your space. Upload your room, describe what you need, 
@@ -558,7 +558,135 @@ const DesignStudio = () => {
                       </Button>
                     </div>
 
-                    {/* Collapsible Customization Options */}
+                    {/* Color Picker - Always Visible */}
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Color:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { name: 'Black', value: '#000000' },
+                          { name: 'White', value: '#FFFFFF' },
+                          { name: 'Gray', value: '#808080' },
+                          { name: 'Brown', value: '#8B4513' },
+                          { name: 'Beige', value: '#F5F5DC' },
+                          { name: 'Navy', value: '#000080' },
+                          { name: 'Olive', value: '#808000' },
+                          { name: 'Burgundy', value: '#800020' }
+                        ].map((color) => (
+                          <button
+                            key={color.name}
+                            onClick={() => {
+                              setSelectedColor(color.name);
+                              const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
+                              if (prompt.match(colorRegex)) {
+                                setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
+                              } else {
+                                setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                              }
+                            }}
+                            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
+                              selectedColor === color.name
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                            }`}
+                          >
+                            <div 
+                              className="w-4 h-4 rounded-full border-2 border-border"
+                              style={{ backgroundColor: color.value }}
+                            />
+                            {color.name}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Finish Selection - Always Visible */}
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
+                          <button
+                            key={finish}
+                            onClick={() => {
+                              setSelectedFinish(finish);
+                              const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
+                              if (prompt.match(finishRegex)) {
+                                setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
+                              } else {
+                                setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                              }
+                            }}
+                            className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
+                              selectedFinish === finish
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                            }`}
+                          >
+                            {finish}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Dimensions Input - Always Visible */}
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (inches):</p>
+                      <div className="grid grid-cols-3 gap-3">
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Length</label>
+                          <Input
+                            type="number"
+                            placeholder="72"
+                            value={dimensions.length}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, length: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Breadth</label>
+                          <Input
+                            type="number"
+                            placeholder="40"
+                            value={dimensions.breadth}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, breadth: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-xs text-muted-foreground mb-1 block">Height</label>
+                          <Input
+                            type="number"
+                            placeholder="30"
+                            value={dimensions.height}
+                            onChange={(e) => setDimensions(prev => ({ ...prev, height: e.target.value }))}
+                            className="text-sm"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Upload Sketch - Always Visible */}
+                    <div className="space-y-3 border-t pt-4">
+                      <p className="text-xs font-medium text-muted-foreground mb-2">Upload Sketch or Reference Image:</p>
+                      <Button variant="outline" className="w-full" asChild>
+                        <label className="cursor-pointer">
+                          <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
+                          <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
+                        </label>
+                      </Button>
+                      {uploadedImage && (
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                          <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                          </svg>
+                          {uploadedImage.name}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Collapsible Room Context Section */}
                     <Collapsible open={isRoomSectionOpen} onOpenChange={setIsRoomSectionOpen} className="border-t pt-4">
                       <CollapsibleTrigger asChild>
                         <Button 
@@ -568,26 +696,19 @@ const DesignStudio = () => {
                           <div className="flex items-center gap-3">
                             <div className="p-2 bg-primary/10 rounded-lg">
                               <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                               </svg>
                             </div>
                             <div className="text-left">
-                              <p className="font-semibold text-sm text-foreground">Customization Options (Optional)</p>
-                              <p className="text-xs text-muted-foreground">Room context, colors, finish, dimensions & more</p>
+                              <p className="font-semibold text-sm text-foreground">Design for Your Space (Optional)</p>
+                              <p className="text-xs text-muted-foreground">Upload your room photo for contextual designs</p>
                             </div>
                           </div>
                           <ChevronDown className={`h-4 w-4 transition-transform ${isRoomSectionOpen ? 'rotate-180' : ''}`} />
                         </Button>
                       </CollapsibleTrigger>
-                      <CollapsibleContent className="mt-4 space-y-6 animate-accordion-down">
-                        {/* Room Context Upload */}
+                      <CollapsibleContent className="mt-4 space-y-4 animate-accordion-down">
                         <div className="space-y-3 bg-primary/5 rounded-lg p-4 border border-primary/10">
-                          <div className="flex items-center gap-2 mb-2">
-                            <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            <p className="font-semibold text-sm">Design for Your Space</p>
-                          </div>
                           <Button variant="outline" className="w-full justify-start h-auto py-3" asChild>
                             <label className="cursor-pointer">
                               <input 
@@ -639,134 +760,6 @@ const DesignStudio = () => {
                               className="text-sm"
                             />
                           </div>
-                        </div>
-
-                        {/* Color Picker */}
-                        <div className="space-y-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Color:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {[
-                              { name: 'Black', value: '#000000' },
-                              { name: 'White', value: '#FFFFFF' },
-                              { name: 'Gray', value: '#808080' },
-                              { name: 'Brown', value: '#8B4513' },
-                              { name: 'Beige', value: '#F5F5DC' },
-                              { name: 'Navy', value: '#000080' },
-                              { name: 'Olive', value: '#808000' },
-                              { name: 'Burgundy', value: '#800020' }
-                            ].map((color) => (
-                              <button
-                                key={color.name}
-                                onClick={() => {
-                                  setSelectedColor(color.name);
-                                  const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
-                                  if (prompt.match(colorRegex)) {
-                                    setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
-                                  } else {
-                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
-                                  }
-                                }}
-                                className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                  selectedColor === color.name
-                                    ? 'bg-primary text-primary-foreground border-primary'
-                                    : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
-                                }`}
-                              >
-                                <div 
-                                  className="w-4 h-4 rounded-full border-2 border-border"
-                                  style={{ backgroundColor: color.value }}
-                                />
-                                {color.name}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Finish Selection */}
-                        <div className="space-y-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
-                              <button
-                                key={finish}
-                                onClick={() => {
-                                  setSelectedFinish(finish);
-                                  const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
-                                  if (prompt.match(finishRegex)) {
-                                    setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
-                                  } else {
-                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
-                                  }
-                                }}
-                                className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                  selectedFinish === finish
-                                    ? 'bg-primary text-primary-foreground border-primary'
-                                    : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
-                                }`}
-                              >
-                                {finish}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Dimensions Input */}
-                        <div className="space-y-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (inches):</p>
-                          <div className="grid grid-cols-3 gap-3">
-                            <div>
-                              <label className="text-xs text-muted-foreground mb-1 block">Length</label>
-                              <Input
-                                type="number"
-                                placeholder="72"
-                                value={dimensions.length}
-                                onChange={(e) => setDimensions(prev => ({ ...prev, length: e.target.value }))}
-                                className="text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground mb-1 block">Breadth</label>
-                              <Input
-                                type="number"
-                                placeholder="40"
-                                value={dimensions.breadth}
-                                onChange={(e) => setDimensions(prev => ({ ...prev, breadth: e.target.value }))}
-                                className="text-sm"
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs text-muted-foreground mb-1 block">Height</label>
-                              <Input
-                                type="number"
-                                placeholder="30"
-                                value={dimensions.height}
-                                onChange={(e) => setDimensions(prev => ({ ...prev, height: e.target.value }))}
-                                className="text-sm"
-                              />
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Upload Sketch */}
-                        <div className="space-y-3">
-                          <p className="text-xs font-medium text-muted-foreground mb-2 text-center">Or upload an existing sketch</p>
-                          <Button variant="outline" className="w-full" asChild>
-                            <label className="cursor-pointer">
-                              <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-                              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                              </svg>
-                              {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
-                            </label>
-                          </Button>
-                          {uploadedImage && (
-                            <div className="text-xs text-muted-foreground flex items-center gap-2">
-                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                              </svg>
-                              {uploadedImage.name}
-                            </div>
-                          )}
                         </div>
                       </CollapsibleContent>
                     </Collapsible>

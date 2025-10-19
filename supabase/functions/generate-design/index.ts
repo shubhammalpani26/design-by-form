@@ -74,40 +74,11 @@ serve(async (req) => {
     
     if (roomImageBase64) {
       // Room-aware generation with multimodal input
-      const roomAwarePrompt = `Create a high-quality, photorealistic furniture design. An optional reference image is provided for context and inspiration.
+      const roomAwarePrompt = `Design a photorealistic furniture piece. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
 
-VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
+${prompt}
 
-User Request: ${prompt}
-
-If the reference image shows a room or space:
-- Draw inspiration from the aesthetic, color palette, and style
-- Consider scale and proportions appropriate for such spaces
-- Think about how the furniture would harmonize with similar environments
-
-If the reference image is not a room (outdoor scene, objects, etc.):
-- Use it as visual inspiration for colors, textures, or mood
-- Focus on the user's prompt as the primary design direction
-
-CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
-- The design MUST be fully 3D printable using large-format FDM/SLS 3D printing technology
-- All structural elements must be printable without impossible overhangs or unsupported spans
-- Design with layer-by-layer additive manufacturing in mind
-- Ensure proper wall thickness (minimum 3-5mm for structural integrity)
-- Avoid cantilevers longer than 50mm without support considerations
-- All curves and surfaces must be smooth, continuous, and printable
-- Consider print orientation and minimize support material needs
-- Design should work with FRP (Fibre-Reinforced Polymer) composite material
-- Ensure proper weight distribution and structural stability
-- Include realistic surface finish options (matte, glossy, textured)
-- Design must be outdoor-friendly and weather-resistant
-- Consider standard furniture ergonomics and dimensions
-- Show the piece from a 3/4 view angle with good lighting
-- Professional product photography style with clean white background
-- Studio lighting that showcases the form and details
-- High attention to detail and craftsmanship
-
-Generate a single professional product photo on a clean white background.`;
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
 
       messages = [{
         role: 'user',
@@ -118,31 +89,11 @@ Generate a single professional product photo on a clean white background.`;
       }];
     } else {
       // Standard generation without room context
-      const refinedPrompt = `Create a high-quality, photorealistic furniture design image with these requirements:
-    
-VARIATION STYLE: ${variationHints[variationNumber - 1] || variationHints[0]}
-    
-Original request: ${prompt}
+      const refinedPrompt = `Design a photorealistic furniture piece. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
 
-CRITICAL 3D PRINTING & MANUFACTURING REQUIREMENTS:
-- The design MUST be fully 3D printable using large-format FDM/SLS 3D printing technology
-- All structural elements must be printable without impossible overhangs or unsupported spans
-- Design with layer-by-layer additive manufacturing in mind
-- Ensure proper wall thickness (minimum 3-5mm for structural integrity)
-- Avoid cantilevers longer than 50mm without support considerations
-- All curves and surfaces must be smooth, continuous, and printable
-- Consider print orientation and minimize support material needs
-- Design should work with FRP (Fibre-Reinforced Polymer) composite material
-- Ensure proper weight distribution and structural stability
-- Include realistic surface finish options (matte, glossy, textured)
-- Design must be outdoor-friendly and weather-resistant
-- Consider standard furniture ergonomics and dimensions
-- Show the piece from a 3/4 view angle with good lighting
-- Professional product photography style with clean background
-- Studio lighting that showcases the form and details
-- High attention to detail and craftsmanship
+${prompt}
 
-The final design must be both aesthetically beautiful AND fully manufacturable through 3D printing with hand-finishing processes.`;
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }
