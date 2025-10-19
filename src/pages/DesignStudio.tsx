@@ -157,6 +157,8 @@ const DesignStudio = () => {
     setIsGenerating(true);
     setGeneratedVariations([]);
     setSelectedVariation(null);
+    setVariationDimensions({});
+    setVariationSelectedSize({});
     
     try {
       // Convert room image to base64 if uploaded
@@ -271,15 +273,25 @@ const DesignStudio = () => {
     };
     setCurrentPricing(pricingData);
     
-    // Auto-suggest dimensions based on category and prompt
+    // Check if this variation already has dimensions stored, otherwise use suggested dimensions
     const suggestedDims = suggestDimensionsForDesign(submissionData.category, prompt);
-    setDimensions(suggestedDims);
+    const finalDimensions = variationDimensions[index] || suggestedDims;
+    
+    // Store dimensions for this variation if not already stored
+    if (!variationDimensions[index]) {
+      setVariationDimensions(prev => ({
+        ...prev,
+        [index]: suggestedDims
+      }));
+    }
+    
+    setDimensions(finalDimensions);
     
     // Calculate price using AI-determined price per cubic foot
     calculatePriceFromDimensions(
-      suggestedDims.length, 
-      suggestedDims.breadth, 
-      suggestedDims.height, 
+      finalDimensions.length, 
+      finalDimensions.breadth, 
+      finalDimensions.height, 
       pricingData.pricePerCubicFoot
     );
     
@@ -461,6 +473,8 @@ const DesignStudio = () => {
       setShowSubmissionForm(false);
       setShowWorkflow(false);
       setDimensions({ length: "", breadth: "", height: "" });
+      setVariationDimensions({});
+      setVariationSelectedSize({});
       setSubmissionData({
         name: "",
         description: "",
