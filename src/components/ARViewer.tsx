@@ -243,6 +243,22 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   />
                 )}
               </>
+            ) : uploadedPhoto && (imageUrl || modelUrl) && !processedFurnitureUrl ? (
+              <>
+                <img 
+                  src={uploadedPhoto} 
+                  alt="Your space" 
+                  className="w-full h-full object-cover"
+                  style={{ imageRendering: '-webkit-optimize-contrast' }}
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                  <div className="bg-white/90 rounded-lg p-4 text-center space-y-2">
+                    <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <div className="text-sm font-medium text-foreground">Preparing AR Preview...</div>
+                    <div className="text-xs text-muted-foreground">Removing background with AI</div>
+                  </div>
+                </div>
+              </>
             ) : !uploadedPhoto && !imageUrl && !modelUrl ? (
               <div className="text-center space-y-3 p-8">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
