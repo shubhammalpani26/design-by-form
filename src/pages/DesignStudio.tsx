@@ -695,7 +695,12 @@ const DesignStudio = () => {
                           <label className="text-xs text-muted-foreground mb-1 block">Length</label>
                           <Input
                             type="number"
-                            placeholder="72"
+                            placeholder={
+                              submissionData.category === 'chairs' ? '20' :
+                              submissionData.category === 'tables' ? '60' :
+                              submissionData.category === 'benches' ? '48' :
+                              submissionData.category === 'decor' ? '12' : '36'
+                            }
                             value={dimensions.length}
                             onChange={(e) => {
                               const newDimensions = { ...dimensions, length: e.target.value };
@@ -722,7 +727,12 @@ const DesignStudio = () => {
                           <label className="text-xs text-muted-foreground mb-1 block">Breadth</label>
                           <Input
                             type="number"
-                            placeholder="40"
+                            placeholder={
+                              submissionData.category === 'chairs' ? '20' :
+                              submissionData.category === 'tables' ? '36' :
+                              submissionData.category === 'benches' ? '18' :
+                              submissionData.category === 'decor' ? '12' : '24'
+                            }
                             value={dimensions.breadth}
                             onChange={(e) => {
                               const newDimensions = { ...dimensions, breadth: e.target.value };
@@ -749,7 +759,12 @@ const DesignStudio = () => {
                           <label className="text-xs text-muted-foreground mb-1 block">Height</label>
                           <Input
                             type="number"
-                            placeholder="30"
+                            placeholder={
+                              submissionData.category === 'chairs' ? '32' :
+                              submissionData.category === 'tables' ? '30' :
+                              submissionData.category === 'benches' ? '18' :
+                              submissionData.category === 'decor' ? '16' : '30'
+                            }
                             value={dimensions.height}
                             onChange={(e) => {
                               const newDimensions = { ...dimensions, height: e.target.value };
@@ -1292,6 +1307,7 @@ const DesignStudio = () => {
                       >
                         <option value="chairs">Chairs</option>
                         <option value="tables">Tables</option>
+                        <option value="benches">Benches</option>
                         <option value="storage">Storage</option>
                         <option value="decor">Decor</option>
                         <option value="lighting">Lighting</option>
