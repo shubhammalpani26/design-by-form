@@ -500,24 +500,26 @@ const DesignStudio = () => {
                       <div className="flex flex-wrap gap-2">
                         {(() => {
                           const allIdeas = [
-                            "Modern dining table with curved edges",
-                            "Sculptural chair with flowing lines",
-                            "Minimalist side table",
-                            "Organic shelf unit",
-                            "Contemporary coffee table with marble finish",
-                            "Ergonomic office chair with mesh back",
-                            "Floating wall shelf with hidden brackets",
-                            "Round pedestal dining table",
-                            "Velvet accent chair with gold legs",
-                            "Industrial bookshelf with metal frame",
-                            "Modular storage cube system",
-                            "Curved sofa with deep seating",
-                            "Glass-top console table",
-                            "Tufted ottoman with storage",
-                            "Geometric pendant light fixture",
-                            "Ladder-style towel rack",
-                            "Nesting side tables set",
-                            "Cantilevered desk with drawers"
+                            "Organic vase with flowing spiral curves",
+                            "Sculptural chair with parametric lattice structure",
+                            "Minimalist planter with geometric cutouts",
+                            "Abstract bookend with fluid curves",
+                            "Biomorphic side table with organic legs",
+                            "Wave-pattern wall shelf",
+                            "Twisted candle holder with organic form",
+                            "Parametric bowl with voronoi pattern",
+                            "Flowing sculptural lamp base",
+                            "Nature-inspired branch coat rack",
+                            "Organic pen holder with cave-like structure",
+                            "Curved desk organizer with flowing divisions",
+                            "Abstract sculpture with interlocking forms",
+                            "Spiral staircase bookshelf miniature",
+                            "Fluid-form jewelry stand",
+                            "Organic napkin ring with leaf motifs",
+                            "Parametric phone stand with lattice design",
+                            "Sculptural fruit bowl with woven pattern",
+                            "Wave-form magazine rack",
+                            "Biomorphic planter with organic drainage"
                           ];
                           // Shuffle and pick 4 random ideas
                           const shuffled = [...allIdeas].sort(() => Math.random() - 0.5);
