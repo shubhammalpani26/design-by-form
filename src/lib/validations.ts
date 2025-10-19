@@ -55,7 +55,7 @@ export const designSubmissionSchema = z.object({
     .trim()
     .min(1, 'Category is required'),
   basePrice: z.number()
-    .min(1000, 'Base price must be at least ₹1,000')
+    .min(5000, 'Base price must be at least ₹5,000')
     .max(10000000, 'Base price must be less than ₹1 crore'),
   designerPrice: z.number()
     .min(1000, 'Your price must be at least ₹1,000')

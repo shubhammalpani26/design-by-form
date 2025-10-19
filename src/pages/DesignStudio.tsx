@@ -26,7 +26,16 @@ const DesignStudio = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedDesign, setGeneratedDesign] = useState<string | null>(null);
   const [generated3DModel, setGenerated3DModel] = useState<string | null>(null);
-  const [generatedVariations, setGeneratedVariations] = useState<Array<{imageUrl: string, modelUrl?: string}>>([]);
+  const [generatedVariations, setGeneratedVariations] = useState<Array<{
+    imageUrl: string;
+    modelUrl?: string;
+    pricing?: {
+      basePrice: number;
+      complexity: string;
+      pricePerCubicFoot: number;
+      reasoning: string;
+    };
+  }>>([]);
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -37,6 +46,12 @@ const DesignStudio = () => {
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [showWorkflow, setShowWorkflow] = useState(false);
   const [estimatedCost, setEstimatedCost] = useState<number | null>(null);
+  const [currentPricing, setCurrentPricing] = useState<{
+    basePrice: number;
+    complexity: string;
+    pricePerCubicFoot: number;
+    reasoning: string;
+  } | null>(null);
   const [selectedFinish, setSelectedFinish] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [leadTime, setLeadTime] = useState<number | null>(null);
@@ -233,18 +248,37 @@ const DesignStudio = () => {
 
   const handleSelectVariation = async (index: number) => {
     setSelectedVariation(index);
-    setGeneratedDesign(generatedVariations[index].imageUrl);
-    setGenerated3DModel(generatedVariations[index].modelUrl || null);
+    const selectedVar = generatedVariations[index];
+    setGeneratedDesign(selectedVar.imageUrl);
+    setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
+    
+    // Store the pricing data for this variation
+    const pricingData = selectedVar.pricing || {
+      basePrice: 12000,
+      complexity: 'medium',
+      pricePerCubicFoot: 12000,
+      reasoning: 'Standard pricing'
+    };
+    setCurrentPricing(pricingData);
     
     // Auto-suggest dimensions based on category and prompt
     const suggestedDims = suggestDimensionsForDesign(submissionData.category, prompt);
     setDimensions(suggestedDims);
-    calculatePriceFromDimensions(suggestedDims.length, suggestedDims.breadth, suggestedDims.height);
+    
+    // Calculate price using AI-determined price per cubic foot
+    calculatePriceFromDimensions(
+      suggestedDims.length, 
+      suggestedDims.breadth, 
+      suggestedDims.height, 
+      pricingData.pricePerCubicFoot
+    );
     
     toast({
       title: "Variation Selected",
-      description: "Dimensions auto-suggested based on your design. You can adjust them below.",
+      description: pricingData 
+        ? `AI-analyzed: ${pricingData.complexity} complexity. ${pricingData.reasoning}`
+        : "Dimensions auto-suggested based on your design.",
     });
   };
 
@@ -276,7 +310,7 @@ const DesignStudio = () => {
     return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
 
-  const calculatePriceFromDimensions = (length: string, breadth: string, height: string) => {
+  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 12000) => {
     if (!length || !breadth || !height) return;
     
     // Convert inches to feet and calculate cubic feet
@@ -285,9 +319,8 @@ const DesignStudio = () => {
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
     
-    // Calculate price at Rs.9,000 per cubic foot
-    const costPerCubicFoot = 9000;
-    const baseCost = Math.round(cubicFeet * costPerCubicFoot);
+    // Calculate price using AI-determined or default price per cubic foot
+    const baseCost = Math.round(cubicFeet * pricePerCubicFoot);
     
     setEstimatedCost(baseCost);
     setSubmissionData(prev => ({
@@ -500,26 +533,26 @@ const DesignStudio = () => {
                       <div className="flex flex-wrap gap-2">
                         {(() => {
                           const allIdeas = [
-                            "Organic vase with flowing spiral curves",
-                            "Sculptural chair with parametric lattice structure",
-                            "Minimalist planter with geometric cutouts",
-                            "Abstract bookend with fluid curves",
-                            "Biomorphic side table with organic legs",
+                            "Sculptural accent chair with flowing curves",
+                            "Organic coffee table with parametric base",
+                            "Lounge chair with lattice back pattern",
+                            "Geometric coffee table with brass inlays",
+                            "Ergonomic desk chair with mesh details",
+                            "Round coffee table with twisted pedestal",
+                            "Cantilever chair with gradient finish",
+                            "Nesting coffee tables with organic forms",
+                            "Rocking chair with biomorphic armrests",
+                            "Low-profile coffee table with stone top",
+                            "Swivel accent chair with metallic legs",
+                            "Modular coffee table with hidden storage",
+                            "Dining chair with curved backrest",
+                            "Oval coffee table with wood and resin mix",
+                            "High-back lounge chair with tufted cushion",
+                            "Minimalist side table with single-color finish",
                             "Wave-pattern wall shelf",
-                            "Twisted candle holder with organic form",
-                            "Parametric bowl with voronoi pattern",
-                            "Flowing sculptural lamp base",
-                            "Nature-inspired branch coat rack",
-                            "Organic pen holder with cave-like structure",
-                            "Curved desk organizer with flowing divisions",
-                            "Abstract sculpture with interlocking forms",
-                            "Spiral staircase bookshelf miniature",
-                            "Fluid-form jewelry stand",
-                            "Organic napkin ring with leaf motifs",
-                            "Parametric phone stand with lattice design",
-                            "Sculptural fruit bowl with woven pattern",
-                            "Wave-form magazine rack",
-                            "Biomorphic planter with organic drainage"
+                            "Organic vase with spiral curves",
+                            "Sculptural planter with drainage design",
+                            "Parametric lamp base with lattice structure"
                           ];
                           // Shuffle and pick 4 random ideas
                           const shuffled = [...allIdeas].sort(() => Math.random() - 0.5);
@@ -642,7 +675,24 @@ const DesignStudio = () => {
                             type="number"
                             placeholder="72"
                             value={dimensions.length}
-                            onChange={(e) => setDimensions(prev => ({ ...prev, length: e.target.value }))}
+                            onChange={(e) => {
+                              const newDimensions = { ...dimensions, length: e.target.value };
+                              setDimensions(newDimensions);
+                              if (selectedVariation !== null) {
+                                setVariationDimensions(prev => ({
+                                  ...prev,
+                                  [selectedVariation]: newDimensions
+                                }));
+                              }
+                              if (newDimensions.length && newDimensions.breadth && newDimensions.height) {
+                                calculatePriceFromDimensions(
+                                  newDimensions.length,
+                                  newDimensions.breadth,
+                                  newDimensions.height,
+                                  currentPricing?.pricePerCubicFoot || 12000
+                                );
+                              }
+                            }}
                             className="text-sm"
                           />
                         </div>
@@ -652,7 +702,24 @@ const DesignStudio = () => {
                             type="number"
                             placeholder="40"
                             value={dimensions.breadth}
-                            onChange={(e) => setDimensions(prev => ({ ...prev, breadth: e.target.value }))}
+                            onChange={(e) => {
+                              const newDimensions = { ...dimensions, breadth: e.target.value };
+                              setDimensions(newDimensions);
+                              if (selectedVariation !== null) {
+                                setVariationDimensions(prev => ({
+                                  ...prev,
+                                  [selectedVariation]: newDimensions
+                                }));
+                              }
+                              if (newDimensions.length && newDimensions.breadth && newDimensions.height) {
+                                calculatePriceFromDimensions(
+                                  newDimensions.length,
+                                  newDimensions.breadth,
+                                  newDimensions.height,
+                                  currentPricing?.pricePerCubicFoot || 12000
+                                );
+                              }
+                            }}
                             className="text-sm"
                           />
                         </div>
@@ -662,7 +729,24 @@ const DesignStudio = () => {
                             type="number"
                             placeholder="30"
                             value={dimensions.height}
-                            onChange={(e) => setDimensions(prev => ({ ...prev, height: e.target.value }))}
+                            onChange={(e) => {
+                              const newDimensions = { ...dimensions, height: e.target.value };
+                              setDimensions(newDimensions);
+                              if (selectedVariation !== null) {
+                                setVariationDimensions(prev => ({
+                                  ...prev,
+                                  [selectedVariation]: newDimensions
+                                }));
+                              }
+                              if (newDimensions.length && newDimensions.breadth && newDimensions.height) {
+                                calculatePriceFromDimensions(
+                                  newDimensions.length,
+                                  newDimensions.breadth,
+                                  newDimensions.height,
+                                  currentPricing?.pricePerCubicFoot || 12000
+                                );
+                              }
+                            }}
                             className="text-sm"
                           />
                         </div>

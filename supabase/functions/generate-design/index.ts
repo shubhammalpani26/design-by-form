@@ -150,6 +150,75 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
       );
     }
 
+    // Analyze design for pricing using Aarav's expertise
+    let pricingData = {
+      basePrice: 12000, // Default fallback
+      complexity: 'medium',
+      pricePerCubicFoot: 12000,
+      reasoning: 'Standard furniture piece'
+    };
+
+    try {
+      console.log("Analyzing design for pricing with Aarav");
+      
+      const pricingPrompt = `You are Aarav, the Master Maker and AI craftsman. Analyze this furniture design and provide pricing.
+
+Design Prompt: ${prompt}
+
+Analyze this furniture piece and determine:
+1. Manufacturing complexity (simple/medium/high)
+2. Material requirements (single PP / PP + one add-on / multi-material)
+3. Finishing type (matte single-color / dual-finish texture / gloss metallic hand-polished)
+4. Customization level (minimal / moderate / fully bespoke)
+5. Assembly difficulty (single piece / modular / multi-part)
+
+Based on your analysis, provide a price per cubic foot between ₹9,000 and ₹25,000.
+
+Decision Framework:
+- Low Complexity (₹9,000-12,000/ft³): Simple forms, single material PP, matte/single-color, minimal custom, basic craft, single piece
+- Medium Complexity (₹13,000-18,000/ft³): Curved/organic, PP + one add-on, dual-finish/texture, moderate custom, modular
+- High Complexity (₹19,000-25,000/ft³): Sculptural/intricate, multi-material, gloss/hand-polished/metallic, fully bespoke, intensive handwork, multi-part
+
+Respond ONLY in valid JSON format (no markdown):
+{
+  "complexity": "low|medium|high",
+  "pricePerCubicFoot": number,
+  "reasoning": "brief explanation of pricing factors"
+}`;
+
+      const pricingResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [{ role: 'user', content: pricingPrompt }],
+          response_format: { type: 'json_object' }
+        }),
+      });
+
+      if (pricingResponse.ok) {
+        const pricingResult = await pricingResponse.json();
+        const content = pricingResult.choices?.[0]?.message?.content;
+        
+        if (content) {
+          const parsed = JSON.parse(content);
+          pricingData = {
+            basePrice: Math.max(9000, Math.min(25000, parsed.pricePerCubicFoot || 12000)),
+            complexity: parsed.complexity || 'medium',
+            pricePerCubicFoot: Math.max(9000, Math.min(25000, parsed.pricePerCubicFoot || 12000)),
+            reasoning: parsed.reasoning || 'AI-analyzed pricing'
+          };
+          console.log("Pricing analysis complete:", pricingData);
+        }
+      }
+    } catch (pricingError) {
+      console.error("Error analyzing pricing:", pricingError);
+      // Continue with default pricing
+    }
+
     // Generate 3D model from the 2D image using Meshy
     let modelUrl = null;
     const MESHY_API_KEY = Deno.env.get('MESHY_API_KEY');
@@ -227,6 +296,7 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
         imageUrl, 
         modelUrl,
         has3DSupport: !!modelUrl,
+        pricing: pricingData,
         message: !modelUrl && MESHY_API_KEY ? "3D model generation unavailable (Meshy free plan limitation). High-quality 2D AR preview available with AI background removal." : undefined
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
