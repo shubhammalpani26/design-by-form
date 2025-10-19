@@ -207,17 +207,26 @@ const DesignStudio = () => {
 
         return {
           imageUrl: response.data.imageUrl,
-          modelUrl: response.data.modelUrl
+          modelUrl: response.data.modelUrl,
+          pricing: response.data.pricing
         };
       });
 
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
       
-      // Initial estimated cost (will be recalculated when dimensions are entered)
-      const assumedCubicFeet = 3.5;
-      const costPerCubicFoot = 9000;
-      const baseCost = assumedCubicFeet * costPerCubicFoot;
+      // Calculate initial estimated cost using category default dimensions and AI pricing
+      const defaultDims = suggestDimensionsForDesign(submissionData.category, prompt);
+      const l = parseFloat(defaultDims.length) / 12;
+      const b = parseFloat(defaultDims.breadth) / 12;
+      const h = parseFloat(defaultDims.height) / 12;
+      const cubicFeet = l * b * h;
+      
+      // Use pricing from first variation if available
+      const initialPricing = variations[0]?.pricing;
+      const pricePerCubicFoot = initialPricing?.pricePerCubicFoot || 12000;
+      const baseCost = Math.round(cubicFeet * pricePerCubicFoot);
+      
       setEstimatedCost(baseCost);
       setLeadTime(28); // 4 weeks
       
@@ -285,10 +294,11 @@ const DesignStudio = () => {
   const suggestDimensionsForDesign = (category: string, prompt: string): { length: string; breadth: string; height: string } => {
     // Analyze prompt for size hints
     const promptLower = prompt.toLowerCase();
-    const isLarge = promptLower.includes('large') || promptLower.includes('big') || promptLower.includes('spacious');
+    const isLarge = promptLower.includes('large') || promptLower.includes('big') || promptLower.includes('spacious') || promptLower.includes('six-seater') || promptLower.includes('four-seater');
     const isSmall = promptLower.includes('small') || promptLower.includes('compact') || promptLower.includes('mini');
+    const isBench = promptLower.includes('bench');
     
-    // Default dimensions based on category
+    // Default dimensions based on category (in inches)
     const categoryDefaults: Record<string, { length: string; breadth: string; height: string }> = {
       chairs: isLarge ? { length: "24", breadth: "24", height: "36" } : 
               isSmall ? { length: "18", breadth: "18", height: "30" } :
@@ -296,6 +306,9 @@ const DesignStudio = () => {
       tables: isLarge ? { length: "72", breadth: "40", height: "30" } :
               isSmall ? { length: "36", breadth: "24", height: "28" } :
               { length: "60", breadth: "36", height: "30" },
+      benches: isLarge ? { length: "72", breadth: "18", height: "18" } :
+               isSmall ? { length: "36", breadth: "16", height: "16" } :
+               { length: "48", breadth: "18", height: "18" },
       storage: isLarge ? { length: "48", breadth: "20", height: "72" } :
                isSmall ? { length: "24", breadth: "16", height: "36" } :
                { length: "36", breadth: "18", height: "60" },
@@ -306,6 +319,11 @@ const DesignStudio = () => {
                 isSmall ? { length: "10", breadth: "10", height: "18" } :
                 { length: "14", breadth: "14", height: "30" },
     };
+    
+    // If prompt mentions bench but category isn't benches, use bench dimensions
+    if (isBench && category !== 'benches') {
+      return categoryDefaults['benches'];
+    }
     
     return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
@@ -539,16 +557,20 @@ const DesignStudio = () => {
                             "Geometric coffee table with brass inlays",
                             "Ergonomic desk chair with mesh details",
                             "Round coffee table with twisted pedestal",
+                            "Two-seater bench with curved backrest",
                             "Cantilever chair with gradient finish",
                             "Nesting coffee tables with organic forms",
                             "Rocking chair with biomorphic armrests",
                             "Low-profile coffee table with stone top",
+                            "Four-seater dining bench with wood slats",
                             "Swivel accent chair with metallic legs",
                             "Modular coffee table with hidden storage",
                             "Dining chair with curved backrest",
                             "Oval coffee table with wood and resin mix",
+                            "Outdoor bench with organic flowing lines",
                             "High-back lounge chair with tufted cushion",
                             "Minimalist side table with single-color finish",
+                            "Large six-seater bench with sculptural base",
                             "Wave-pattern wall shelf",
                             "Organic vase with spiral curves",
                             "Sculptural planter with drainage design",
