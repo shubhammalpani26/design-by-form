@@ -459,7 +459,7 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              From Imagination to Creation
+              Design.Create.Earn
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Design custom furniture, home decor, and installations with AI. Upload your room, describe your vision, 
