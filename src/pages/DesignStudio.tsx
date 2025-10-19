@@ -185,33 +185,41 @@ const DesignStudio = () => {
       }
 
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
-        const response = await supabase.functions.invoke('generate-design', {
-          body: { 
-            prompt: enhancedPrompt, 
-            variationNumber: variationNum,
-            roomImageBase64: roomImageBase64
+        try {
+          const response = await supabase.functions.invoke('generate-design', {
+            body: { 
+              prompt: enhancedPrompt, 
+              variationNumber: variationNum,
+              roomImageBase64: roomImageBase64
+            }
+          });
+
+          // Check if response has an error message in the data (even with non-2xx status)
+          if (response.data?.error) {
+            console.error(`Variation ${variationNum} error:`, response.data.error);
+            throw new Error(response.data.error);
           }
-        });
 
-        // Check if response has an error message in the data (even with non-2xx status)
-        if (response.data?.error) {
-          throw new Error(response.data.error);
+          // Check for generic HTTP errors
+          if (response.error) {
+            console.error(`Variation ${variationNum} HTTP error:`, response.error);
+            throw new Error(response.error.message || 'Failed to generate design');
+          }
+
+          if (!response.data?.imageUrl) {
+            console.error(`Variation ${variationNum} missing image`);
+            throw new Error('No image generated');
+          }
+
+          return {
+            imageUrl: response.data.imageUrl,
+            modelUrl: response.data.modelUrl,
+            pricing: response.data.pricing
+          };
+        } catch (error) {
+          console.error(`Error generating variation ${variationNum}:`, error);
+          throw error;
         }
-
-        // Check for generic HTTP errors
-        if (response.error) {
-          throw new Error(response.error.message || 'Failed to generate design');
-        }
-
-        if (!response.data?.imageUrl) {
-          throw new Error('No image generated');
-        }
-
-        return {
-          imageUrl: response.data.imageUrl,
-          modelUrl: response.data.modelUrl,
-          pricing: response.data.pricing
-        };
       });
 
       const variations = await Promise.all(variationPromises);

@@ -246,8 +246,8 @@ Respond ONLY in valid JSON format (no markdown):
           const taskId = meshyData.result;
           console.log("Meshy task created:", taskId);
           
-          // Poll for completion (max 10 minutes for premium Meshy - complex designs may take longer)
-          const maxAttempts = 120; // 120 * 5s = 10 minutes
+          // Poll for completion (max 2 minutes to prevent edge function timeout)
+          const maxAttempts = 24; // 24 * 5s = 2 minutes
           let attempts = 0;
           let taskComplete = false;
           
