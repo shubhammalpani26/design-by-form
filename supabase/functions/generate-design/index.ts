@@ -177,8 +177,8 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
           const taskId = meshyData.result;
           console.log("Meshy task created:", taskId);
           
-          // Poll for completion (max 5 minutes for premium Meshy)
-          const maxAttempts = 60; // 60 * 5s = 5 minutes
+          // Poll for completion (max 10 minutes for premium Meshy - complex designs may take longer)
+          const maxAttempts = 120; // 120 * 5s = 10 minutes
           let attempts = 0;
           let taskComplete = false;
           

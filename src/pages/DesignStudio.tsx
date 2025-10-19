@@ -47,6 +47,9 @@ const DesignStudio = () => {
     breadth: "",
     height: ""
   });
+  // Store dimensions per variation to prevent cross-contamination
+  const [variationDimensions, setVariationDimensions] = useState<Record<number, {length: string, breadth: string, height: string}>>({});
+  const [variationSelectedSize, setVariationSelectedSize] = useState<Record<number, string>>({});
   const [submissionData, setSubmissionData] = useState({
     name: "",
     description: "",
@@ -890,7 +893,7 @@ const DesignStudio = () => {
                                     )}
                                   </button>
                                   
-                                  {selectedVariation === index && (
+                                   {selectedVariation === index && (
                                     <Card className="border-primary/20 bg-primary/5">
                                       <CardContent className="p-4 space-y-3">
                                         <h4 className="font-semibold text-foreground">Enter Dimensions for This Design</h4>
@@ -900,9 +903,15 @@ const DesignStudio = () => {
                                             <Input
                                               type="number"
                                               placeholder="L"
-                                              value={dimensions.length}
+                                              value={variationDimensions[index]?.length || ""}
                                               onChange={(e) => {
-                                                const newDims = { ...dimensions, length: e.target.value };
+                                                const newDims = { 
+                                                  ...variationDimensions[index],
+                                                  length: e.target.value,
+                                                  breadth: variationDimensions[index]?.breadth || "",
+                                                  height: variationDimensions[index]?.height || ""
+                                                };
+                                                setVariationDimensions(prev => ({ ...prev, [index]: newDims }));
                                                 setDimensions(newDims);
                                                 if (newDims.length && newDims.breadth && newDims.height) {
                                                   calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
@@ -913,9 +922,15 @@ const DesignStudio = () => {
                                             <Input
                                               type="number"
                                               placeholder="B"
-                                              value={dimensions.breadth}
+                                              value={variationDimensions[index]?.breadth || ""}
                                               onChange={(e) => {
-                                                const newDims = { ...dimensions, breadth: e.target.value };
+                                                const newDims = { 
+                                                  ...variationDimensions[index],
+                                                  breadth: e.target.value,
+                                                  length: variationDimensions[index]?.length || "",
+                                                  height: variationDimensions[index]?.height || ""
+                                                };
+                                                setVariationDimensions(prev => ({ ...prev, [index]: newDims }));
                                                 setDimensions(newDims);
                                                 if (newDims.length && newDims.breadth && newDims.height) {
                                                   calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
@@ -926,9 +941,15 @@ const DesignStudio = () => {
                                             <Input
                                               type="number"
                                               placeholder="H"
-                                              value={dimensions.height}
+                                              value={variationDimensions[index]?.height || ""}
                                               onChange={(e) => {
-                                                const newDims = { ...dimensions, height: e.target.value };
+                                                const newDims = { 
+                                                  ...variationDimensions[index],
+                                                  height: e.target.value,
+                                                  length: variationDimensions[index]?.length || "",
+                                                  breadth: variationDimensions[index]?.breadth || ""
+                                                };
+                                                setVariationDimensions(prev => ({ ...prev, [index]: newDims }));
                                                 setDimensions(newDims);
                                                 if (newDims.length && newDims.breadth && newDims.height) {
                                                   calculatePriceFromDimensions(newDims.length, newDims.breadth, newDims.height);
@@ -948,12 +969,13 @@ const DesignStudio = () => {
                                                  onClick={() => {
                                                    const [l, b, h] = size.replace(/"/g, '').split('×');
                                                    const newDims = { length: l, breadth: b, height: h };
+                                                   setVariationDimensions(prev => ({ ...prev, [index]: newDims }));
+                                                   setVariationSelectedSize(prev => ({ ...prev, [index]: size }));
                                                    setDimensions(newDims);
-                                                   setSelectedSize(size);
                                                    calculatePriceFromDimensions(l, b, h);
                                                  }}
                                                  className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                                                   selectedSize === size
+                                                   variationSelectedSize[index] === size
                                                      ? 'bg-primary text-primary-foreground border-primary'
                                                      : 'bg-background hover:bg-accent border-border hover:border-primary'
                                                  }`}
