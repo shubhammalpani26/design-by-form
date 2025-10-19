@@ -1317,7 +1317,32 @@ const DesignStudio = () => {
                       <select
                         className="w-full px-3 py-2 border border-border rounded-md text-foreground bg-background"
                         value={submissionData.category}
-                        onChange={(e) => setSubmissionData({ ...submissionData, category: e.target.value })}
+                        onChange={(e) => {
+                          const newCategory = e.target.value;
+                          setSubmissionData({ ...submissionData, category: newCategory });
+                          
+                          // Auto-update dimensions based on new category
+                          const newDims = suggestDimensionsForDesign(newCategory, prompt);
+                          setDimensions(newDims);
+                          
+                          // Update variationDimensions if a variation is selected
+                          if (selectedVariation !== null) {
+                            setVariationDimensions(prev => ({
+                              ...prev,
+                              [selectedVariation]: newDims
+                            }));
+                          }
+                          
+                          // Recalculate price with new dimensions
+                          if (newDims.length && newDims.breadth && newDims.height) {
+                            calculatePriceFromDimensions(
+                              newDims.length,
+                              newDims.breadth,
+                              newDims.height,
+                              currentPricing?.pricePerCubicFoot || 12000
+                            );
+                          }
+                        }}
                       >
                         <option value="chairs">Chairs</option>
                         <option value="tables">Tables</option>
