@@ -33,12 +33,21 @@ export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => 
 
   useEffect(() => {
     // Load model-viewer script if not already loaded
-    if (!customElements.get('model-viewer')) {
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
-      document.head.appendChild(script);
-    }
+    const loadScript = async () => {
+      if (!customElements.get('model-viewer')) {
+        const script = document.createElement('script');
+        script.type = 'module';
+        script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+        document.head.appendChild(script);
+        
+        // Wait for script to load
+        await new Promise((resolve) => {
+          script.onload = resolve;
+        });
+      }
+    };
+    
+    loadScript();
   }, []);
 
   return (

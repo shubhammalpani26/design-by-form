@@ -81,20 +81,12 @@ const DesignStudio = () => {
   });
   const { toast } = useToast();
 
-  // Persist AR view state across tab switches
+  // Clear AR mode from session when component unmounts
   useEffect(() => {
-    if (previewMode === "ar") {
-      sessionStorage.setItem('last-preview-mode', 'ar');
-    }
-  }, [previewMode]);
-
-  // Restore AR view on mount if it was last used
-  useEffect(() => {
-    const lastMode = sessionStorage.getItem('last-preview-mode');
-    if (lastMode === 'ar' && generatedDesign) {
-      setPreviewMode('ar');
-    }
-  }, [generatedDesign]);
+    return () => {
+      sessionStorage.removeItem('last-preview-mode');
+    };
+  }, []);
 
   useEffect(() => {
     // Set up auth state listener

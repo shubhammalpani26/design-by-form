@@ -28,31 +28,8 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const containerRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  // Get cached processed URL from sessionStorage
-  const getProcessedUrlFromCache = (url: string): string | null => {
-    try {
-      const cache = sessionStorage.getItem('ar-processed-cache');
-      if (cache) {
-        const parsed = JSON.parse(cache);
-        return parsed[url] || null;
-      }
-    } catch (e) {
-      console.error('Failed to read cache:', e);
-    }
-    return null;
-  };
-
-  // Save processed URL to sessionStorage cache
-  const saveProcessedUrlToCache = (url: string, processedUrl: string) => {
-    try {
-      const cache = sessionStorage.getItem('ar-processed-cache');
-      const parsed = cache ? JSON.parse(cache) : {};
-      parsed[url] = processedUrl;
-      sessionStorage.setItem('ar-processed-cache', JSON.stringify(parsed));
-    } catch (e) {
-      console.error('Failed to save to cache:', e);
-    }
-  };
+  // Track which URLs have been processed to prevent re-processing
+  const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
 
   // Persist AR state in sessionStorage
   useEffect(() => {
@@ -97,11 +74,9 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     const processFurniture = async () => {
       const urlToProcess = imageUrl || modelUrl;
       if (urlToProcess) {
-        // Check sessionStorage cache first
-        const cached = getProcessedUrlFromCache(urlToProcess);
-        if (cached) {
-          console.log('Using cached background-removed image');
-          setProcessedFurnitureUrl(cached);
+        // Check if we've already processed this URL
+        if (processedUrls.has(urlToProcess)) {
+          console.log('Already processed this URL, skipping background removal');
           return;
         }
 
@@ -114,7 +89,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
-          saveProcessedUrlToCache(urlToProcess, processed);
+          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
           console.log('Background removed from furniture image using AI');
           toast({
             title: "Background removed!",
@@ -123,6 +98,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         } catch (error) {
           console.error('Failed to remove background:', error);
           setProcessedFurnitureUrl(urlToProcess); // Fallback to original
+          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
           toast({
             title: "Background removal failed",
             description: "Using original image. Background may be visible in AR view.",
@@ -136,7 +112,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       }
     };
 
-    processFurniture();
+    // Only process if we haven't seen this URL before
+    const urlToCheck = imageUrl || modelUrl;
+    if (urlToCheck && !processedUrls.has(urlToCheck)) {
+      processFurniture();
+    }
   }, [imageUrl, modelUrl, toast]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
