@@ -17,6 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
 import type { User, Session } from "@supabase/supabase-js";
+import { applyColorTransformToFurniture } from "@/lib/colorTransform";
 
 const DesignStudio = () => {
   const navigate = useNavigate();
@@ -364,7 +365,7 @@ const DesignStudio = () => {
     });
   };
 
-  const applyColorFinishToSelected = (color?: string, finish?: string) => {
+  const applyColorFinishToSelected = async (color?: string, finish?: string) => {
     if (selectedVariation === null) {
       toast({
         title: "No Design Selected",
@@ -381,6 +382,9 @@ const DesignStudio = () => {
       return; // Silently ignore if nothing selected
     }
 
+    setSelectedColor(colorToApply);
+    setSelectedFinish(finishToApply);
+
     const selectedVar = generatedVariations[selectedVariation];
     
     // Check if this color/finish combo is already cached
@@ -396,15 +400,36 @@ const DesignStudio = () => {
       return;
     }
     
-    // Apply CSS filter for instant preview (no AI cost)
-    const filter = getColorFilter(colorToApply, finishToApply);
-    setAppliedCSSFilter(filter);
-    setIsUsingFilter(true);
-    
-    toast({
-      title: "Preview Applied",
-      description: "Using CSS preview. Click 'Generate with AI' for accurate colors.",
-    });
+    // Apply canvas-based color transformation
+    try {
+      setIsUsingFilter(true);
+      toast({
+        title: "Applying Color...",
+        description: "Transforming the furniture color...",
+      });
+
+      const transformedUrl = await applyColorTransformToFurniture(
+        selectedVar.imageUrl,
+        colorToApply,
+        finishToApply
+      );
+
+      setGeneratedDesign(transformedUrl);
+      setAppliedCSSFilter('');
+      
+      toast({
+        title: "Color Applied",
+        description: "Canvas preview applied. Click 'Generate with AI' for perfect accuracy.",
+      });
+    } catch (error) {
+      console.error('Color transformation failed:', error);
+      toast({
+        title: "Preview Failed",
+        description: "Could not apply color preview. Try 'Generate with AI' instead.",
+        variant: "destructive",
+      });
+      setIsUsingFilter(false);
+    }
   };
 
   const getColorFilter = (color: string, finish: string): string => {
@@ -1250,12 +1275,15 @@ const DesignStudio = () => {
                                   >
                                      <div className="aspect-square bg-accent">
                                        <img 
-                                         src={variation.imageUrl} 
+                                         src={
+                                           selectedVariation === index && generatedDesign 
+                                             ? generatedDesign 
+                                             : variation.imageUrl
+                                         } 
                                          alt={`Design Variation ${index + 1}`} 
                                          className="w-full h-full object-contain transition-all"
                                          style={{ 
-                                           imageRendering: '-webkit-optimize-contrast',
-                                           filter: selectedVariation === index && isUsingFilter ? appliedCSSFilter : 'none'
+                                           imageRendering: '-webkit-optimize-contrast'
                                          }}
                                        />
                                        {selectedVariation === index && isUsingFilter && (
