@@ -12,10 +12,12 @@ serve(async (req) => {
   }
 
   try {
-    const { modelUrl } = await req.json();
+    // Get model URL from query parameter
+    const url = new URL(req.url);
+    const modelUrl = url.searchParams.get('url');
 
     if (!modelUrl) {
-      throw new Error('modelUrl is required');
+      throw new Error('Missing "url" query parameter');
     }
 
     console.log('🔄 Proxying 3D model from:', modelUrl);
@@ -27,16 +29,17 @@ serve(async (req) => {
       throw new Error(`Failed to fetch model: ${response.status} ${response.statusText}`);
     }
 
-    // Get the model data
+    // Get the model data as arrayBuffer
     const modelData = await response.arrayBuffer();
-    console.log('✅ Successfully fetched model, size:', modelData.byteLength, 'bytes');
+    const modelSize = modelData.byteLength;
+    console.log('✅ Successfully fetched model, size:', modelSize, 'bytes');
 
-    // Return the model with proper CORS headers and content-type
+    // Return the GLB file directly with proper CORS headers
     return new Response(modelData, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'model/gltf-binary',
-        'Content-Length': modelData.byteLength.toString(),
+        'Content-Length': modelSize.toString(),
         'Cache-Control': 'public, max-age=31536000', // Cache for 1 year
       },
     });

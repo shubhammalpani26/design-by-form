@@ -98,7 +98,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     loadScript();
   }, []);
 
-  // Setup model viewer event listeners and proxy if needed
+  // Setup model viewer - always use proxy to avoid CORS issues
   useEffect(() => {
     if (!modelUrl || loadingState === 'loading-script') return;
 
@@ -108,75 +108,56 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
       setLoadProgress(0);
       setErrorMessage("");
 
-      // Try to get file size
-      try {
-        const response = await fetch(modelUrl, { method: 'HEAD' });
-        const size = response.headers.get('content-length');
-        if (size) {
-          const sizeInMB = (parseInt(size) / (1024 * 1024)).toFixed(2);
-          setModelFileSize(`${sizeInMB} MB`);
-          console.log(`📊 Model file size: ${sizeInMB} MB`);
-        }
-      } catch (e) {
-        console.log('⚠️ Could not fetch file size:', e);
-      }
-
-      // Try direct URL first
-      setProxiedUrl(modelUrl);
+      // Always use proxy to avoid CORS issues with external GLB files
+      console.log('🔄 Loading model via proxy to handle CORS...');
       
-      const viewer = modelViewerRef.current;
-      if (!viewer) return;
-
-      const handleLoad = () => {
-        console.log('✅ 3D model loaded successfully');
-        setLoadingState('loaded');
-        setLoadProgress(100);
-      };
-
-      const handleError = async (event: Event) => {
-        console.error('❌ Direct model load failed:', event);
-        console.log('🔄 Attempting to load via proxy...');
+      try {
+        // Build proxy URL - the edge function will fetch and serve the GLB with CORS headers
+        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
+        console.log('📡 Proxy URL:', proxyUrl);
+        setProxiedUrl(proxyUrl);
         
-        // Try loading through proxy
-        try {
-          const { data, error } = await supabase.functions.invoke('proxy-3d-model', {
-            body: { modelUrl }
-          });
+        const viewer = modelViewerRef.current;
+        if (!viewer) return;
 
-          if (error) throw error;
+        const handleLoad = () => {
+          console.log('✅ 3D model loaded successfully');
+          setLoadingState('loaded');
+          setLoadProgress(100);
+        };
 
-          if (data?.proxyUrl) {
-            console.log('✅ Using proxy URL:', data.proxyUrl);
-            setProxiedUrl(data.proxyUrl);
-          } else {
-            throw new Error('Proxy did not return a valid URL');
-          }
-        } catch (proxyError) {
-          console.error('❌ Proxy failed:', proxyError);
+        const handleError = async (event: Event) => {
+          console.error('❌ Model load failed:', event);
           setLoadingState('error');
-          const msg = 'Failed to load 3D model. The model file may have CORS restrictions.';
+          const msg = 'Failed to load 3D model. Please try again or contact support.';
           setErrorMessage(msg);
           onError?.(msg);
-        }
-      };
+        };
 
-      const handleProgress = (event: any) => {
-        if (event.detail && event.detail.totalProgress !== undefined) {
-          const progress = Math.round(event.detail.totalProgress * 100);
-          setLoadProgress(progress);
-          console.log(`📈 Loading progress: ${progress}%`);
-        }
-      };
+        const handleProgress = (event: any) => {
+          if (event.detail && event.detail.totalProgress !== undefined) {
+            const progress = Math.round(event.detail.totalProgress * 100);
+            setLoadProgress(progress);
+            console.log(`📈 Loading progress: ${progress}%`);
+          }
+        };
 
-      viewer.addEventListener('load', handleLoad);
-      viewer.addEventListener('error', handleError);
-      viewer.addEventListener('progress', handleProgress);
+        viewer.addEventListener('load', handleLoad);
+        viewer.addEventListener('error', handleError);
+        viewer.addEventListener('progress', handleProgress);
 
-      return () => {
-        viewer.removeEventListener('load', handleLoad);
-        viewer.removeEventListener('error', handleError);
-        viewer.removeEventListener('progress', handleProgress);
-      };
+        return () => {
+          viewer.removeEventListener('load', handleLoad);
+          viewer.removeEventListener('error', handleError);
+          viewer.removeEventListener('progress', handleProgress);
+        };
+      } catch (error) {
+        console.error('❌ Setup failed:', error);
+        setLoadingState('error');
+        const msg = 'Failed to setup 3D viewer. Please try again.';
+        setErrorMessage(msg);
+        onError?.(msg);
+      }
     };
 
     setupModel();
