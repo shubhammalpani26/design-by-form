@@ -30,6 +30,7 @@ const DesignStudio = () => {
   const [generatedVariations, setGeneratedVariations] = useState<Array<{
     imageUrl: string;
     modelUrl?: string;
+    taskId?: string;
     pricing?: {
       basePrice: number;
       complexity: string;
@@ -38,6 +39,7 @@ const DesignStudio = () => {
     };
     colorVariations?: Record<string, Record<string, string>>; // color -> finish -> imageUrl
   }>>([]);
+  const [polling3DStatus, setPolling3DStatus] = useState<Record<number, boolean>>({});
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -78,6 +80,21 @@ const DesignStudio = () => {
     termsAccepted: false,
   });
   const { toast } = useToast();
+
+  // Persist AR view state across tab switches
+  useEffect(() => {
+    if (previewMode === "ar") {
+      sessionStorage.setItem('last-preview-mode', 'ar');
+    }
+  }, [previewMode]);
+
+  // Restore AR view on mount if it was last used
+  useEffect(() => {
+    const lastMode = sessionStorage.getItem('last-preview-mode');
+    if (lastMode === 'ar' && generatedDesign) {
+      setPreviewMode('ar');
+    }
+  }, [generatedDesign]);
 
   useEffect(() => {
     // Set up auth state listener
@@ -163,6 +180,7 @@ const DesignStudio = () => {
     setSelectedVariation(null);
     setVariationDimensions({});
     setVariationSelectedSize({});
+    setPolling3DStatus({});
     
     try {
       // Convert room image to base64 if uploaded
@@ -208,7 +226,7 @@ const DesignStudio = () => {
               variationNumber: variationNum,
               roomImageBase64: roomImageBase64,
               sketchImageBase64: sketchImageBase64,
-              generate3D: false
+              generate3D: true // Always request 3D
             }
           });
 
@@ -225,6 +243,7 @@ const DesignStudio = () => {
           return {
             imageUrl: response.data.imageUrl,
             modelUrl: response.data.modelUrl,
+            taskId: response.data.taskId,
             pricing: response.data.pricing,
             colorVariations: {} // Empty initially, filled on-demand
           };
@@ -236,6 +255,13 @@ const DesignStudio = () => {
 
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
+      
+      // Start polling for 3D models if taskIds are present
+      variations.forEach((variation, index) => {
+        if (variation.taskId) {
+          poll3DStatus(index, variation.taskId);
+        }
+      });
       
       // Calculate initial estimated cost using category default dimensions and AI pricing
       const defaultDims = suggestDimensionsForDesign(submissionData.category, prompt);
@@ -255,8 +281,8 @@ const DesignStudio = () => {
       toast({
         title: roomImage ? "Room-Aware Designs Generated!" : "Designs Generated!",
         description: roomImage 
-          ? "3 variations designed specifically for your space. Select your favorite to continue."
-          : "3 variations created. Select your favorite to continue.",
+          ? "3 variations designed for your space. 3D models generating in background..."
+          : "3 variations created. 3D models generating in background...",
       });
     } catch (error) {
       console.error('Generation error:', error);
@@ -277,6 +303,68 @@ const DesignStudio = () => {
     }
   };
 
+  const poll3DStatus = async (variationIndex: number, taskId: string) => {
+    setPolling3DStatus(prev => ({ ...prev, [variationIndex]: true }));
+    
+    const maxAttempts = 60; // 60 attempts * 10s = 10 minutes max
+    let attempts = 0;
+    
+    const checkStatus = async () => {
+      try {
+        const response = await supabase.functions.invoke('check-3d-status', {
+          body: { taskId }
+        });
+        
+        if (response.data?.status === 'SUCCEEDED' && response.data?.modelUrl) {
+          // Update variation with model URL
+          setGeneratedVariations(prev => {
+            const updated = [...prev];
+            updated[variationIndex] = {
+              ...updated[variationIndex],
+              modelUrl: response.data.modelUrl
+            };
+            return updated;
+          });
+          
+          // Update selected design if this is the selected variation
+          if (selectedVariation === variationIndex) {
+            setGenerated3DModel(response.data.modelUrl);
+          }
+          
+          setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+          
+          toast({
+            title: "3D Model Ready!",
+            description: `Variation ${variationIndex + 1} 3D model is now available`,
+          });
+          
+          return true; // Stop polling
+        } else if (response.data?.status === 'FAILED') {
+          setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+          console.error('3D generation failed for variation', variationIndex);
+          return true; // Stop polling
+        } else {
+          // Still processing
+          attempts++;
+          if (attempts < maxAttempts) {
+            setTimeout(checkStatus, 10000); // Check every 10 seconds
+          } else {
+            setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+            console.log('3D generation timed out for variation', variationIndex);
+          }
+          return false;
+        }
+      } catch (error) {
+        console.error('Error checking 3D status:', error);
+        setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+        return true; // Stop polling on error
+      }
+    };
+    
+    // Start polling after 5 seconds (give Meshy time to start)
+    setTimeout(checkStatus, 5000);
+  };
+
   const handleSelectVariation = async (index: number) => {
     setSelectedVariation(index);
     const selectedVar = generatedVariations[index];
@@ -284,6 +372,7 @@ const DesignStudio = () => {
     setGeneratedDesign(selectedVar.imageUrl);
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
+    setPreviewMode("2d"); // Reset to 2D view when selecting new variation
     
     // Store the pricing data for this variation
     const pricingData = selectedVar.pricing || {
@@ -1264,51 +1353,65 @@ const DesignStudio = () => {
                             )}
                             <div className="grid grid-cols-1 gap-4">
                               {generatedVariations.map((variation, index) => (
-                                <div key={index} className="space-y-3">
-                                  <button
-                                    onClick={() => handleSelectVariation(index)}
-                                    className={`group relative overflow-hidden rounded-xl transition-all w-full ${
-                                      selectedVariation === index
-                                        ? "ring-4 ring-primary shadow-elegant scale-[1.02]"
-                                        : "hover:shadow-soft hover:scale-[1.01]"
-                                    }`}
-                                  >
-                                     <div className="aspect-square bg-accent">
-                                       <img 
-                                         src={
-                                           selectedVariation === index && generatedDesign 
-                                             ? generatedDesign 
-                                             : variation.imageUrl
-                                         } 
-                                         alt={`Design Variation ${index + 1}`} 
-                                         className="w-full h-full object-contain transition-all"
-                                         style={{ 
-                                           imageRendering: '-webkit-optimize-contrast'
-                                         }}
-                                       />
-                                       {selectedVariation === index && isUsingFilter && (
-                                         <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-500/90 text-yellow-950 text-xs rounded-full flex items-center gap-1">
-                                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                                           </svg>
-                                           Preview
-                                         </div>
-                                       )}
+                                 <div key={index} className="space-y-3">
+                                   <button
+                                     onClick={() => handleSelectVariation(index)}
+                                     className={`group relative overflow-hidden rounded-xl transition-all w-full ${
+                                       selectedVariation === index
+                                         ? "ring-4 ring-primary shadow-elegant scale-[1.02]"
+                                         : "hover:shadow-soft hover:scale-[1.01]"
+                                     }`}
+                                   >
+                                      <div className="aspect-square bg-accent">
+                                        <img 
+                                          src={
+                                            selectedVariation === index && generatedDesign 
+                                              ? generatedDesign 
+                                              : variation.imageUrl
+                                          } 
+                                          alt={`Design Variation ${index + 1}`} 
+                                          className="w-full h-full object-contain transition-all"
+                                          style={{ 
+                                            imageRendering: '-webkit-optimize-contrast'
+                                          }}
+                                        />
+                                        {selectedVariation === index && isUsingFilter && (
+                                          <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-500/90 text-yellow-950 text-xs rounded-full flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                            </svg>
+                                            Preview
+                                          </div>
+                                        )}
+                                        {polling3DStatus[index] && (
+                                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-blue-500/90 text-white text-xs rounded-full flex items-center gap-1">
+                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            Generating 3D...
+                                          </div>
+                                        )}
+                                        {!polling3DStatus[index] && variation.modelUrl && (
+                                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-green-500/90 text-white text-xs rounded-full flex items-center gap-1">
+                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                            </svg>
+                                            3D Ready
+                                          </div>
+                                        )}
+                                      </div>
+                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <div className="absolute bottom-4 left-4 right-4">
+                                         <p className="text-white font-semibold">Variation {index + 1}</p>
+                                       </div>
                                      </div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <div className="absolute bottom-4 left-4 right-4">
-                                        <p className="text-white font-semibold">Variation {index + 1}</p>
-                                      </div>
-                                    </div>
-                                    {selectedVariation === index && (
-                                      <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                        </svg>
-                                      </div>
-                                    )}
-                                  </button>
+                                     {selectedVariation === index && (
+                                       <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                         </svg>
+                                       </div>
+                                     )}
+                                   </button>
                                   
                                    {selectedVariation === index && (
                                     <Card className="border-primary/20 bg-primary/5">
