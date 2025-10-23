@@ -660,78 +660,76 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Color Picker */}
-                    <div className="space-y-3 border-t pt-4">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Color:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { name: 'Black', value: '#000000' },
-                          { name: 'White', value: '#FFFFFF' },
-                          { name: 'Gray', value: '#808080' },
-                          { name: 'Brown', value: '#8B4513' },
-                          { name: 'Beige', value: '#F5F5DC' },
-                          { name: 'Navy', value: '#000080' },
-                          { name: 'Olive', value: '#808000' },
-                          { name: 'Burgundy', value: '#800020' }
-                        ].map((color) => (
-                          <button
-                            key={color.name}
-                            onClick={() => {
-                              setSelectedColor(color.name);
-                              const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
-                              if (prompt.match(colorRegex)) {
-                                setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
-                              } else {
-                                setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
-                              }
-                            }}
-                            className={`flex items-center gap-2 text-xs px-3 py-1.5 rounded-full border transition-all ${
-                              selectedColor === color.name
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
-                            }`}
-                          >
-                            <div 
-                              className="w-4 h-4 rounded-full border-2 border-border"
-                              style={{ backgroundColor: color.value }}
-                            />
-                            {color.name}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    {/* Color & Finish - Combined in one line */}
+                    <div className="border-t pt-3 space-y-2">
+                      <div className="grid grid-cols-2 gap-3">
+                        {/* Color Picker */}
+                        <div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              { name: 'Black', value: '#000000' },
+                              { name: 'White', value: '#FFFFFF' },
+                              { name: 'Gray', value: '#808080' },
+                              { name: 'Brown', value: '#8B4513' }
+                            ].map((color) => (
+                              <button
+                                key={color.name}
+                                onClick={() => {
+                                  setSelectedColor(color.name);
+                                  const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
+                                  if (prompt.match(colorRegex)) {
+                                    setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
+                                  } else {
+                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                                  }
+                                }}
+                                className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all ${
+                                  selectedColor === color.name
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                                }`}
+                              >
+                                <div 
+                                  className="w-3 h-3 rounded-full border border-border"
+                                  style={{ backgroundColor: color.value }}
+                                />
+                                {color.name}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
 
-                    {/* Finish Selection */}
-                    <div className="space-y-3 border-t pt-4">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
-                      <div className="flex flex-wrap gap-2">
-                        {['Matte', 'Glossy', 'Metallic', 'Marble', 'Wood Grain', 'Concrete'].map((finish) => (
-                          <button
-                            key={finish}
-                            onClick={() => {
-                              setSelectedFinish(finish);
-                              const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
-                              if (prompt.match(finishRegex)) {
-                                setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
-                              } else {
-                                setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
-                              }
-                            }}
-                            className={`text-xs px-3 py-1.5 rounded-full border transition-all ${
-                              selectedFinish === finish
-                                ? 'bg-primary text-primary-foreground border-primary'
-                                : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
-                            }`}
-                          >
-                            {finish}
-                          </button>
-                        ))}
+                        {/* Finish Selection */}
+                        <div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {['Matte', 'Glossy', 'Metallic'].map((finish) => (
+                              <button
+                                key={finish}
+                                onClick={() => {
+                                  setSelectedFinish(finish);
+                                  const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
+                                  if (prompt.match(finishRegex)) {
+                                    setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
+                                  } else {
+                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                  }
+                                }}
+                                className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
+                                  selectedFinish === finish
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-secondary/10 hover:bg-secondary/20 border-secondary/20 hover:border-secondary'
+                                }`}
+                              >
+                                {finish}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                     </div>
 
                     {/* Dimensions Input */}
-                    <div className="space-y-3 border-t pt-4">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (inches):</p>
+                    <div className="border-t pt-3">
                       <div className="grid grid-cols-3 gap-3">
                         <div>
                           <label className="text-xs text-muted-foreground mb-1 block">Length</label>
@@ -833,8 +831,7 @@ const DesignStudio = () => {
                     </div>
 
                     {/* Upload Sketch */}
-                    <div className="space-y-3 border-t pt-4">
-                      <p className="text-xs font-medium text-muted-foreground mb-2">Upload Sketch or Reference Image:</p>
+                    <div className="border-t pt-3">
                       <Button variant="outline" className="w-full" asChild>
                         <label className="cursor-pointer">
                           <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -845,7 +842,7 @@ const DesignStudio = () => {
                         </label>
                       </Button>
                       {uploadedImage && (
-                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <div className="text-xs text-muted-foreground flex items-center gap-2 mt-2">
                           <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
                           </svg>
