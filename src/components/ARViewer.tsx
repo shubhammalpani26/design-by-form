@@ -29,7 +29,14 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const { toast } = useToast();
 
   // Track which URLs have been processed to prevent re-processing
-  const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
+  const [processedUrls, setProcessedUrls] = useState<Set<string>>(() => {
+    try {
+      const saved = sessionStorage.getItem('ar-processed-urls');
+      return saved ? new Set(JSON.parse(saved)) : new Set();
+    } catch {
+      return new Set();
+    }
+  });
 
   // Persist AR state in sessionStorage
   useEffect(() => {
@@ -89,7 +96,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
-          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
+          setProcessedUrls(prev => {
+            const newSet = new Set(prev).add(urlToProcess);
+            sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
+            return newSet;
+          });
           console.log('Background removed from furniture image using AI');
           toast({
             title: "Background removed!",
@@ -98,7 +109,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         } catch (error) {
           console.error('Failed to remove background:', error);
           setProcessedFurnitureUrl(urlToProcess); // Fallback to original
-          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
+          setProcessedUrls(prev => {
+            const newSet = new Set(prev).add(urlToProcess);
+            sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
+            return newSet;
+          });
           toast({
             title: "Background removal failed",
             description: "Using original image. Background may be visible in AR view.",
