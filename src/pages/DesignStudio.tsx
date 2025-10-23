@@ -617,7 +617,7 @@ const DesignStudio = () => {
                     {/* Quick Ideas */}
                     <div className="space-y-2">
                       <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex gap-2">
                         {(() => {
                           const allIdeas = [
                             "Sculptural accent chair with flowing curves",
@@ -645,13 +645,13 @@ const DesignStudio = () => {
                             "Sculptural planter with drainage design",
                             "Parametric lamp base with lattice structure"
                           ];
-                          // Shuffle and pick 4 random ideas
+                          // Shuffle and pick 2 random ideas
                           const shuffled = [...allIdeas].sort(() => Math.random() - 0.5);
-                          return shuffled.slice(0, 4).map((example, i) => (
+                          return shuffled.slice(0, 2).map((example, i) => (
                             <button
                               key={i}
                               onClick={() => setPrompt(example)}
-                              className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all"
+                              className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all flex-1"
                             >
                               {example}
                             </button>
