@@ -732,12 +732,19 @@ const DesignStudio = () => {
                               <button
                                 key={color.name}
                                 onClick={() => {
-                                  setSelectedColor(color.name);
                                   const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
-                                  if (prompt.match(colorRegex)) {
-                                    setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
+                                  if (selectedColor === color.name) {
+                                    // Unselect - remove color from prompt
+                                    setSelectedColor("");
+                                    setPrompt(prev => prev.replace(colorRegex, '').replace(/,\s*,/g, ',').replace(/^,\s*/, '').trim());
                                   } else {
-                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                                    // Select - add or replace color in prompt
+                                    setSelectedColor(color.name);
+                                    if (prompt.match(colorRegex)) {
+                                      setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
+                                    } else {
+                                      setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                                    }
                                   }
                                 }}
                                 className={`flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-all ${
@@ -763,12 +770,19 @@ const DesignStudio = () => {
                               <button
                                 key={finish}
                                 onClick={() => {
-                                  setSelectedFinish(finish);
-                                  const finishRegex = /,?\s*\b(matte|glossy|metallic|marble|wood grain|concrete|terrazzo)\s+(finish|effect)\b/gi;
-                                  if (prompt.match(finishRegex)) {
-                                    setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
+                                  const finishRegex = /,?\s*\b(matte|glossy|metallic|satin|textured|marble|wood grain|concrete)\s+(finish|effect)\b/gi;
+                                  if (selectedFinish === finish) {
+                                    // Unselect - remove finish from prompt
+                                    setSelectedFinish("");
+                                    setPrompt(prev => prev.replace(finishRegex, '').replace(/,\s*,/g, ',').replace(/^,\s*/, '').trim());
                                   } else {
-                                    setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                    // Select - add or replace finish in prompt
+                                    setSelectedFinish(finish);
+                                    if (prompt.match(finishRegex)) {
+                                      setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
+                                    } else {
+                                      setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                    }
                                   }
                                 }}
                                 className={`text-xs px-2.5 py-1 rounded-full border transition-all ${
