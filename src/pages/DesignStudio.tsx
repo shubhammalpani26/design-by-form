@@ -226,7 +226,7 @@ const DesignStudio = () => {
               variationNumber: variationNum,
               roomImageBase64: roomImageBase64,
               sketchImageBase64: sketchImageBase64,
-              generate3D: true // Request 3D generation
+              generate3D: false // Don't auto-generate 3D
             }
           });
 
@@ -256,12 +256,7 @@ const DesignStudio = () => {
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
       
-      // Start polling for 3D models if taskIds are present
-      variations.forEach((variation, index) => {
-        if (variation.taskId) {
-          poll3DStatus(index, variation.taskId);
-        }
-      });
+      // Don't auto-start 3D generation anymore
       
       // Calculate initial estimated cost using category default dimensions and AI pricing
       const defaultDims = suggestDimensionsForDesign(submissionData.category, prompt);
@@ -281,8 +276,8 @@ const DesignStudio = () => {
       toast({
         title: roomImage ? "Room-Aware Designs Generated!" : "Designs Generated!",
         description: roomImage 
-          ? "3 variations designed for your space. 3D models generating in background..."
-          : "3 variations created. 3D models generating in background...",
+          ? "3 variations designed for your space."
+          : "3 variations created. Select a design to continue.",
       });
     } catch (error) {
       console.error('Generation error:', error);
@@ -1384,20 +1379,6 @@ const DesignStudio = () => {
                                             Preview
                                           </div>
                                         )}
-                                        {polling3DStatus[index] && (
-                                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-blue-500/90 text-white text-xs rounded-full flex items-center gap-1">
-                                            <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                                            Generating 3D...
-                                          </div>
-                                        )}
-                                        {!polling3DStatus[index] && variation.modelUrl && (
-                                          <div className="absolute bottom-2 right-2 px-2 py-1 bg-green-500/90 text-white text-xs rounded-full flex items-center gap-1">
-                                            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                            </svg>
-                                            3D Ready
-                                          </div>
-                                        )}
                                       </div>
                                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                        <div className="absolute bottom-4 left-4 right-4">
@@ -1572,17 +1553,14 @@ const DesignStudio = () => {
                       </TabsContent>
 
                       <TabsContent value="3d" className="mt-0 h-full min-h-[600px]">
-                        {generatedDesign && generated3DModel ? (
-                          <div className="h-full rounded-xl overflow-hidden bg-accent">
-                            <Model3DViewer 
-                              modelUrl={generated3DModel}
-                              posterUrl={generatedDesign}
-                              alt="Generated Design 3D Model"
-                              enableAR={true}
-                              autoRotate={true}
+                        {selectedVariation !== null && generatedVariations[selectedVariation]?.modelUrl ? (
+                          <div className="h-full">
+                            <ModelViewer3D 
+                              modelUrl={generatedVariations[selectedVariation].modelUrl} 
+                              productName="Generated Design"
                             />
                           </div>
-                        ) : generatedDesign ? (
+                        ) : polling3DStatus[selectedVariation!] ? (
                           <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
                               <div className="relative w-16 h-16 mx-auto mb-4">
@@ -1600,6 +1578,67 @@ const DesignStudio = () => {
                               <p className="text-muted-foreground text-xs">This may take 3-5 minutes</p>
                             </div>
                           </div>
+                        ) : generatedDesign ? (
+                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8 space-y-4">
+                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                              </svg>
+                              <div>
+                                <p className="text-muted-foreground text-sm font-medium mb-2">Ready to Create 3D Model</p>
+                                <p className="text-muted-foreground text-xs">Create an interactive 3D model for AR viewing and rotation</p>
+                              </div>
+                              <Button 
+                                variant="hero" 
+                                size="lg"
+                                onClick={async () => {
+                                  if (selectedVariation === null) return;
+                                  
+                                  const confirmed = window.confirm(
+                                    "Creating a 3D model will take 3-5 minutes and uses AI credits. Do you want to proceed?"
+                                  );
+                                  
+                                  if (!confirmed) return;
+                                  
+                                  try {
+                                    toast({
+                                      title: "Starting 3D Generation",
+                                      description: "This may take 3-5 minutes. You can continue working while we generate the model.",
+                                    });
+                                    
+                                    const variation = generatedVariations[selectedVariation];
+                                    const response = await supabase.functions.invoke('generate-design', {
+                                      body: { 
+                                        imageUrl: variation.imageUrl,
+                                        generate3D: true
+                                      }
+                                    });
+                                    
+                                    if (response.data?.taskId) {
+                                      poll3DStatus(selectedVariation, response.data.taskId);
+                                    } else {
+                                      throw new Error('Failed to start 3D generation');
+                                    }
+                                  } catch (error) {
+                                    console.error('3D generation error:', error);
+                                    toast({
+                                      title: "3D Generation Failed",
+                                      description: error instanceof Error ? error.message : "Please try again.",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                }}
+                              >
+                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                Create 3D Model
+                              </Button>
+                              <p className="text-xs text-muted-foreground">
+                                💡 Once created, you can rotate and view in AR
+                              </p>
+                            </div>
+                          </div>
                         ) : (
                           <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
@@ -1612,13 +1651,13 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
                       
-                      <TabsContent value="ar" className="mt-0 h-full min-h-[600px]">
+                       <TabsContent value="ar" className="mt-0 h-full min-h-[600px]">
                         {generatedDesign ? (
                           <div className="h-full rounded-xl overflow-auto bg-accent p-4">
                             <ARViewer 
                               productName="Generated Design" 
                               imageUrl={generatedDesign}
-                              modelUrl={generated3DModel || undefined}
+                              modelUrl={selectedVariation !== null ? generatedVariations[selectedVariation]?.modelUrl : undefined}
                               roomImage={roomImage}
                               onStartAR={() => {
                                 toast({
