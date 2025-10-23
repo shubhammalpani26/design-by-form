@@ -48,6 +48,12 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         setFurnitureScale(state.scale || 50);
         setFurnitureRotation(state.rotation || 0);
         setFurnitureLateralRotation(state.lateralRotation || 0);
+        if (state.uploadedPhoto) {
+          setUploadedPhoto(state.uploadedPhoto);
+        }
+        if (state.processedFurnitureUrl) {
+          setProcessedFurnitureUrl(state.processedFurnitureUrl);
+        }
       } catch (e) {
         console.error('Failed to restore AR state:', e);
       }
@@ -61,13 +67,15 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       scale: furnitureScale,
       rotation: furnitureRotation,
       lateralRotation: furnitureLateralRotation,
+      uploadedPhoto,
+      processedFurnitureUrl,
     };
     sessionStorage.setItem('ar-viewer-state', JSON.stringify(state));
-  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation]);
+  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, uploadedPhoto, processedFurnitureUrl]);
 
   useEffect(() => {
-    // Load room image if provided
-    if (roomImage) {
+    // Load room image if provided (only if we don't already have one cached)
+    if (roomImage && !uploadedPhoto) {
       const reader = new FileReader();
       reader.onloadend = () => {
         setUploadedPhoto(reader.result as string);
@@ -81,10 +89,21 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     const processFurniture = async () => {
       const urlToProcess = imageUrl || modelUrl;
       if (urlToProcess) {
-        // Check if we've already processed this URL
+        // Check cache first - see if we have the processed result stored
+        const cacheKey = `ar-processed-${urlToProcess}`;
+        const cachedResult = sessionStorage.getItem(cacheKey);
+        
+        if (cachedResult) {
+          console.log('Using cached processed furniture image');
+          setProcessedFurnitureUrl(cachedResult);
+          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
+          return;
+        }
+
+        // Check if we've already processed this URL in this session
         if (processedUrls.has(urlToProcess)) {
-          console.log('Already processed this URL, using original image');
-          setProcessedFurnitureUrl(urlToProcess);
+          console.log('Already processed this URL in this session');
+          // If it's in processedUrls but not in cache, we need to use the current processedFurnitureUrl
           return;
         }
 
@@ -98,12 +117,16 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         try {
           const processed = await processImageUrl(urlToProcess);
           setProcessedFurnitureUrl(processed);
+          
+          // Save both the URL marker and the processed result
+          sessionStorage.setItem(cacheKey, processed);
           setProcessedUrls(prev => {
             const newSet = new Set(prev).add(urlToProcess);
             sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
             console.log('Saved processed URL to cache:', urlToProcess);
             return newSet;
           });
+          
           console.log('Background removed from furniture image using AI');
           toast({
             title: "Background removed!",
@@ -131,15 +154,9 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     };
 
     const urlToCheck = imageUrl || modelUrl;
-    if (urlToCheck) {
-      if (processedUrls.has(urlToCheck)) {
-        // Already processed, just set the URL
-        console.log('URL already in cache, skipping processing');
-        setProcessedFurnitureUrl(urlToCheck);
-      } else {
-        // Need to process
-        processFurniture();
-      }
+    if (urlToCheck && !processedFurnitureUrl) {
+      // Only process if we don't already have a processed furniture URL
+      processFurniture();
     }
   }, [imageUrl, modelUrl]);
 

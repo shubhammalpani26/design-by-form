@@ -84,7 +84,14 @@ export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => 
           </div>
 
           <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[500px]">
-            {modelUrl && isScriptLoaded ? (
+            {!isScriptLoaded ? (
+              <div className="text-center space-y-3 p-8">
+                <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+                <p className="text-sm text-muted-foreground">
+                  Loading 3D viewer...
+                </p>
+              </div>
+            ) : modelUrl ? (
               <model-viewer
                 ref={modelViewerRef}
                 src={modelUrl}
@@ -99,16 +106,10 @@ export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => 
                 style={{ 
                   width: '100%', 
                   height: '100%',
-                  minHeight: '500px'
+                  minHeight: '500px',
+                  backgroundColor: 'transparent'
                 }}
               />
-            ) : modelUrl && !isScriptLoaded ? (
-              <div className="text-center space-y-3 p-8">
-                <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground">
-                  Loading 3D viewer...
-                </p>
-              </div>
             ) : (
               <div className="text-center space-y-3 p-8">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
