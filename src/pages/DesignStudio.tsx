@@ -226,7 +226,7 @@ const DesignStudio = () => {
               variationNumber: variationNum,
               roomImageBase64: roomImageBase64,
               sketchImageBase64: sketchImageBase64,
-              generate3D: true // Always request 3D
+              generate3D: true // Request 3D generation
             }
           });
 

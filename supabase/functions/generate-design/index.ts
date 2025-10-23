@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // Validation schema
 const generateDesignSchema = z.object({
-  prompt: z.string().trim().max(2000),
+  prompt: z.string().trim().max(2000).optional(),
   variationNumber: z.number().int().min(1).max(10).optional().default(1),
   roomImageBase64: z.string().optional(),
   sketchImageBase64: z.string().optional(), // User's uploaded sketch
@@ -18,15 +18,18 @@ const generateDesignSchema = z.object({
   imageUrl: z.string().optional(), // For generating 3D from existing image
 }).refine(
   (data) => {
-    // If not generating 3D, prompt or sketch is required
-    if (!data.generate3D) {
-      return data.prompt.length >= 10 || !!data.sketchImageBase64;
+    // For 3D-only generation (converting existing 2D to 3D)
+    if (data.generate3D && data.imageUrl) {
+      return true;
     }
-    // If generating 3D, imageUrl is required
-    return !!data.imageUrl;
+    // For 2D generation (with optional 3D after), need prompt or sketch
+    if (!data.generate3D || !data.imageUrl) {
+      return (data.prompt && data.prompt.length >= 10) || !!data.sketchImageBase64;
+    }
+    return false;
   },
   {
-    message: "Either prompt, sketch, or imageUrl (for 3D) is required",
+    message: "Either prompt (min 10 chars) or sketch is required for 2D generation, or imageUrl for 3D-only generation",
   }
 );
 
