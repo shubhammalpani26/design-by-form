@@ -129,6 +129,10 @@ export type Database = {
           name: string
           original_designer_price: number | null
           price_reduction_date: string | null
+          pricing_calculated_at: string | null
+          pricing_complexity: string | null
+          pricing_per_cubic_foot: number | null
+          pricing_reasoning: string | null
           rejection_reason: string | null
           status: string
           total_sales: number
@@ -155,6 +159,10 @@ export type Database = {
           name: string
           original_designer_price?: number | null
           price_reduction_date?: string | null
+          pricing_calculated_at?: string | null
+          pricing_complexity?: string | null
+          pricing_per_cubic_foot?: number | null
+          pricing_reasoning?: string | null
           rejection_reason?: string | null
           status?: string
           total_sales?: number
@@ -181,6 +189,10 @@ export type Database = {
           name?: string
           original_designer_price?: number | null
           price_reduction_date?: string | null
+          pricing_calculated_at?: string | null
+          pricing_complexity?: string | null
+          pricing_per_cubic_foot?: number | null
+          pricing_reasoning?: string | null
           rejection_reason?: string | null
           status?: string
           total_sales?: number
@@ -491,10 +503,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      reduce_stale_product_prices: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      reduce_stale_product_prices: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "designer" | "customer"

@@ -349,9 +349,7 @@ const DesignStudio = () => {
     
     toast({
       title: "Variation Selected",
-      description: pricingData 
-        ? `AI-analyzed: ${pricingData.complexity} complexity. ${pricingData.reasoning}`
-        : "Dimensions auto-suggested based on your design.",
+      description: "Ready to customize dimensions and submit your design.",
     });
   };
 
@@ -493,7 +491,7 @@ const DesignStudio = () => {
         return;
       }
 
-      // Create product with dimensions
+      // Create product with dimensions and pricing analytics
       const { error: productError } = await supabase.from("designer_products").insert({
         designer_id: profile.id,
         name: validatedData.name,
@@ -508,6 +506,11 @@ const DesignStudio = () => {
           breadth: parseFloat(dimensions.breadth),
           height: parseFloat(dimensions.height)
         },
+        // Save pricing analytics for backend data analysis (not shown to customer)
+        pricing_complexity: currentPricing?.complexity || null,
+        pricing_per_cubic_foot: currentPricing?.pricePerCubicFoot || null,
+        pricing_reasoning: currentPricing?.reasoning || null,
+        pricing_calculated_at: new Date().toISOString(),
         status: 'pending',
       });
 
