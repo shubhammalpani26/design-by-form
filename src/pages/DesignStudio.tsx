@@ -58,6 +58,8 @@ const DesignStudio = () => {
   const [leadTime, setLeadTime] = useState<number | null>(null);
   const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [appliedCSSFilter, setAppliedCSSFilter] = useState<string>("");
+  const [isUsingFilter, setIsUsingFilter] = useState(false);
   const [dimensions, setDimensions] = useState({
     length: "",
     breadth: "",
@@ -362,7 +364,7 @@ const DesignStudio = () => {
     });
   };
 
-  const applyColorFinishToSelected = async (color?: string, finish?: string) => {
+  const applyColorFinishToSelected = (color?: string, finish?: string) => {
     if (selectedVariation === null) {
       toast({
         title: "No Design Selected",
@@ -381,23 +383,87 @@ const DesignStudio = () => {
 
     const selectedVar = generatedVariations[selectedVariation];
     
-    // Check if we already have this color/finish combo cached
-    const colorVariations = selectedVar.colorVariations || {};
-    if (colorVariations[colorToApply]?.[finishToApply]) {
-      // Use cached version - instant switch!
-      setGeneratedDesign(colorVariations[colorToApply][finishToApply]);
+    // Check if this color/finish combo is already cached
+    const cachedUrl = selectedVar.colorVariations?.[colorToApply]?.[finishToApply];
+    if (cachedUrl) {
+      setGeneratedDesign(cachedUrl);
+      setIsUsingFilter(false);
+      setAppliedCSSFilter("");
       toast({
-        title: "Color & Finish Applied",
-        description: "Design updated instantly from cache.",
+        title: "Design Retrieved",
+        description: "Loaded from cache instantly!",
       });
       return;
     }
     
-    // Generate on-demand (only when user actually clicks)
+    // Apply CSS filter for instant preview (no AI cost)
+    const filter = getColorFilter(colorToApply, finishToApply);
+    setAppliedCSSFilter(filter);
+    setIsUsingFilter(true);
+    
     toast({
-      title: "Applying Color & Finish",
-      description: "Generating your customized design...",
+      title: "Preview Applied",
+      description: "Using CSS preview. Click 'Generate with AI' for accurate colors.",
     });
+  };
+
+  const getColorFilter = (color: string, finish: string): string => {
+    // Base color filters
+    let colorFilter = "";
+    switch (color.toLowerCase()) {
+      case "black":
+        colorFilter = "brightness(0.3) contrast(1.2)";
+        break;
+      case "white":
+        colorFilter = "brightness(1.3) contrast(0.9)";
+        break;
+      case "gray":
+        colorFilter = "grayscale(60%) brightness(0.8)";
+        break;
+      case "brown":
+        colorFilter = "sepia(80%) saturate(0.6) hue-rotate(-10deg)";
+        break;
+      default:
+        colorFilter = "";
+    }
+    
+    // Add finish effect
+    let finishFilter = "";
+    switch (finish.toLowerCase()) {
+      case "glossy":
+        finishFilter = " saturate(1.3) contrast(1.15)";
+        break;
+      case "metallic":
+        finishFilter = " saturate(0.7) brightness(1.1) contrast(1.2)";
+        break;
+      case "satin":
+        finishFilter = " saturate(1.1) contrast(1.05)";
+        break;
+      case "textured":
+        finishFilter = " contrast(1.1)";
+        break;
+      case "wood grain":
+        finishFilter = " sepia(40%) saturate(0.8)";
+        break;
+      case "marble":
+        finishFilter = " grayscale(20%) brightness(1.1)";
+        break;
+      case "concrete":
+        finishFilter = " grayscale(50%) brightness(0.9)";
+        break;
+      default:
+        finishFilter = "";
+    }
+    
+    return colorFilter + finishFilter;
+  };
+
+  const generateWithAI = async () => {
+    if (selectedVariation === null) return;
+    
+    const selectedVar = generatedVariations[selectedVariation];
+    const colorToApply = selectedColor || "Default";
+    const finishToApply = selectedFinish || "Matte";
     
     setIsGenerating(true);
     try {
@@ -429,16 +495,18 @@ const DesignStudio = () => {
         });
         
         setGeneratedDesign(newImageUrl);
+        setIsUsingFilter(false);
+        setAppliedCSSFilter("");
         
         toast({
-          title: "Color & Finish Applied!",
-          description: "Your design has been customized and cached.",
+          title: "AI Generation Complete!",
+          description: "Your design has been regenerated with accurate colors.",
         });
       }
     } catch (error) {
       console.error("Error applying color/finish:", error);
       toast({
-        title: "Customization Failed",
+        title: "Generation Failed",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -768,12 +836,14 @@ const DesignStudio = () => {
                             ].map((color) => (
                               <button
                                 key={color.name}
-                                onClick={async () => {
+                                onClick={() => {
                                   const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
                                   if (selectedColor === color.name) {
                                     // Unselect - remove color from prompt
                                     setSelectedColor("");
                                     setPrompt(prev => prev.replace(colorRegex, '').replace(/,\s*,/g, ',').replace(/^,\s*/, '').trim());
+                                    setIsUsingFilter(false);
+                                    setAppliedCSSFilter("");
                                   } else {
                                     // Select - add or replace color in prompt
                                     setSelectedColor(color.name);
@@ -784,7 +854,7 @@ const DesignStudio = () => {
                                     }
                                     // Apply to selected variation if exists
                                     if (selectedVariation !== null) {
-                                      await applyColorFinishToSelected(color.name, selectedFinish);
+                                      applyColorFinishToSelected(color.name, selectedFinish);
                                     }
                                   }
                                 }}
@@ -810,12 +880,14 @@ const DesignStudio = () => {
                             {['Matte', 'Glossy', 'Metallic', 'Satin', 'Textured', 'Wood Grain', 'Marble', 'Concrete'].map((finish) => (
                               <button
                                 key={finish}
-                                onClick={async () => {
+                                onClick={() => {
                                   const finishRegex = /,?\s*\b(matte|glossy|metallic|satin|textured|marble|wood grain|concrete)\s+(finish|effect)\b/gi;
                                   if (selectedFinish === finish) {
                                     // Unselect - remove finish from prompt
                                     setSelectedFinish("");
                                     setPrompt(prev => prev.replace(finishRegex, '').replace(/,\s*,/g, ',').replace(/^,\s*/, '').trim());
+                                    setIsUsingFilter(false);
+                                    setAppliedCSSFilter("");
                                   } else {
                                     // Select - add or replace finish in prompt
                                     setSelectedFinish(finish);
@@ -826,7 +898,7 @@ const DesignStudio = () => {
                                     }
                                     // Apply to selected variation if exists
                                     if (selectedVariation !== null) {
-                                      await applyColorFinishToSelected(selectedColor, finish);
+                                      applyColorFinishToSelected(selectedColor, finish);
                                     }
                                   }
                                 }}
@@ -1180,9 +1252,21 @@ const DesignStudio = () => {
                                        <img 
                                          src={variation.imageUrl} 
                                          alt={`Design Variation ${index + 1}`} 
-                                         className="w-full h-full object-contain"
-                                         style={{ imageRendering: '-webkit-optimize-contrast' }}
+                                         className="w-full h-full object-contain transition-all"
+                                         style={{ 
+                                           imageRendering: '-webkit-optimize-contrast',
+                                           filter: selectedVariation === index && isUsingFilter ? appliedCSSFilter : 'none'
+                                         }}
                                        />
+                                       {selectedVariation === index && isUsingFilter && (
+                                         <div className="absolute top-2 left-2 px-2 py-1 bg-yellow-500/90 text-yellow-950 text-xs rounded-full flex items-center gap-1">
+                                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                           </svg>
+                                           Preview
+                                         </div>
+                                       )}
                                      </div>
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                                       <div className="absolute bottom-4 left-4 right-4">
@@ -1292,11 +1376,58 @@ const DesignStudio = () => {
                                          </div>
                                       </CardContent>
                                     </Card>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
+                                   )}
+                                   
+                                   {/* Generate with AI Button */}
+                                   {selectedVariation === index && isUsingFilter && (
+                                     <Card className="border-yellow-500/30 bg-yellow-500/5">
+                                       <CardContent className="p-4 space-y-3">
+                                         <div className="flex items-start gap-3">
+                                           <div className="flex-shrink-0">
+                                             <svg className="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                             </svg>
+                                           </div>
+                                           <div className="flex-1 space-y-2">
+                                             <p className="text-sm text-foreground font-medium">
+                                               You're viewing a CSS preview
+                                             </p>
+                                             <p className="text-xs text-muted-foreground">
+                                               This is an instant color approximation. For accurate colors and finishes, generate with AI. 
+                                               <span className="font-semibold"> (Uses 1 AI credit)</span>
+                                             </p>
+                                             <Button 
+                                               onClick={generateWithAI}
+                                               disabled={isGenerating}
+                                               variant="default"
+                                               size="sm"
+                                               className="w-full mt-2"
+                                             >
+                                               {isGenerating ? (
+                                                 <>
+                                                   <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                   </svg>
+                                                   Generating...
+                                                 </>
+                                               ) : (
+                                                 <>
+                                                   Generate with AI
+                                                   <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                                   </svg>
+                                                 </>
+                                               )}
+                                             </Button>
+                                           </div>
+                                         </div>
+                                       </CardContent>
+                                     </Card>
+                                   )}
+                                 </div>
+                               ))}
+                             </div>
+                           </div>
                         ) : (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
