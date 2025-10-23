@@ -571,7 +571,7 @@ const DesignStudio = () => {
       
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-8">
           <div className="container text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
               <span className="relative flex h-2 w-2">
