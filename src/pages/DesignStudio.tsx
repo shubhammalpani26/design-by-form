@@ -40,6 +40,7 @@ const DesignStudio = () => {
     colorVariations?: Record<string, Record<string, string>>; // color -> finish -> imageUrl
   }>>([]);
   const [polling3DStatus, setPolling3DStatus] = useState<Record<number, boolean>>({});
+  const [model3DProgress, setModel3DProgress] = useState<Record<number, number>>({});
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
@@ -292,6 +293,7 @@ const DesignStudio = () => {
 
   const poll3DStatus = async (variationIndex: number, taskId: string) => {
     setPolling3DStatus(prev => ({ ...prev, [variationIndex]: true }));
+    setModel3DProgress(prev => ({ ...prev, [variationIndex]: 0 }));
     
     const maxAttempts = 60; // 60 attempts * 10s = 10 minutes max
     let attempts = 0;
@@ -301,6 +303,11 @@ const DesignStudio = () => {
         const response = await supabase.functions.invoke('check-3d-status', {
           body: { taskId }
         });
+        
+        // Update progress if available
+        if (response.data?.progress !== undefined) {
+          setModel3DProgress(prev => ({ ...prev, [variationIndex]: response.data.progress }));
+        }
         
         if (response.data?.status === 'SUCCEEDED' && response.data?.modelUrl) {
           // Update variation with model URL
@@ -319,6 +326,7 @@ const DesignStudio = () => {
           }
           
           setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+          setModel3DProgress(prev => ({ ...prev, [variationIndex]: 100 }));
           
           toast({
             title: "3D Model Ready!",
@@ -328,6 +336,7 @@ const DesignStudio = () => {
           return true; // Stop polling
         } else if (response.data?.status === 'FAILED') {
           setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+          setModel3DProgress(prev => ({ ...prev, [variationIndex]: 0 }));
           console.error('3D generation failed for variation', variationIndex);
           return true; // Stop polling
         } else {
@@ -337,6 +346,7 @@ const DesignStudio = () => {
             setTimeout(checkStatus, 10000); // Check every 10 seconds
           } else {
             setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+            setModel3DProgress(prev => ({ ...prev, [variationIndex]: 0 }));
             console.log('3D generation timed out for variation', variationIndex);
           }
           return false;
@@ -344,6 +354,7 @@ const DesignStudio = () => {
       } catch (error) {
         console.error('Error checking 3D status:', error);
         setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
+        setModel3DProgress(prev => ({ ...prev, [variationIndex]: 0 }));
         return true; // Stop polling on error
       }
     };
@@ -1554,20 +1565,37 @@ const DesignStudio = () => {
                           </div>
                         ) : polling3DStatus[selectedVariation!] ? (
                           <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <div className="text-center p-8">
-                              <div className="relative w-16 h-16 mx-auto mb-4">
-                                <svg className="w-16 h-16 text-primary animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <div className="text-center p-8 space-y-4">
+                              <div className="relative w-24 h-24 mx-auto">
+                                <svg className="w-24 h-24 text-primary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                                 </svg>
-                                <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center">
+                                  <div className="text-2xl font-bold text-primary">
+                                    {model3DProgress[selectedVariation!] || 0}%
+                                  </div>
+                                </div>
                               </div>
-                              <p className="text-muted-foreground text-sm font-medium mb-2">Crafting Your 3D Model...</p>
-                              <div className="flex items-center justify-center gap-1 mb-2">
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                              
+                              {/* Progress bar */}
+                              <div className="w-full max-w-xs mx-auto">
+                                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                                  <div 
+                                    className="h-full bg-primary transition-all duration-500 ease-out"
+                                    style={{ width: `${model3DProgress[selectedVariation!] || 0}%` }}
+                                  />
+                                </div>
                               </div>
-                              <p className="text-muted-foreground text-xs">This may take 3-5 minutes</p>
+                              
+                              <div>
+                                <p className="text-muted-foreground text-sm font-medium mb-1">Crafting Your 3D Model...</p>
+                                <div className="flex items-center justify-center gap-1 mb-2">
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                                </div>
+                                <p className="text-muted-foreground text-xs">This may take 3-5 minutes</p>
+                              </div>
                             </div>
                           </div>
                         ) : generatedDesign ? (

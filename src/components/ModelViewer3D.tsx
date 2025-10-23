@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 // Extend the JSX types to include model-viewer
 declare global {
@@ -30,21 +30,46 @@ interface ModelViewer3DProps {
 
 export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => {
   const modelViewerRef = useRef<HTMLElement>(null);
+  const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
   useEffect(() => {
     // Load model-viewer script if not already loaded
     const loadScript = async () => {
-      if (!customElements.get('model-viewer')) {
-        const script = document.createElement('script');
-        script.type = 'module';
-        script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
-        document.head.appendChild(script);
-        
-        // Wait for script to load
-        await new Promise((resolve) => {
-          script.onload = resolve;
-        });
+      if (customElements.get('model-viewer')) {
+        setIsScriptLoaded(true);
+        return;
       }
+      
+      const script = document.createElement('script');
+      script.type = 'module';
+      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+      
+      script.onload = () => {
+        // Wait for custom element to be defined
+        if (customElements.get('model-viewer')) {
+          setIsScriptLoaded(true);
+        } else {
+          // Poll for custom element definition
+          const checkElement = setInterval(() => {
+            if (customElements.get('model-viewer')) {
+              setIsScriptLoaded(true);
+              clearInterval(checkElement);
+            }
+          }, 100);
+          
+          // Timeout after 5 seconds
+          setTimeout(() => {
+            clearInterval(checkElement);
+            console.error('model-viewer custom element not defined after 5 seconds');
+          }, 5000);
+        }
+      };
+      
+      script.onerror = () => {
+        console.error('Failed to load model-viewer script');
+      };
+      
+      document.head.appendChild(script);
     };
     
     loadScript();
@@ -59,7 +84,7 @@ export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => 
           </div>
 
           <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[500px]">
-            {modelUrl ? (
+            {modelUrl && isScriptLoaded ? (
               <model-viewer
                 ref={modelViewerRef}
                 src={modelUrl}
@@ -77,6 +102,13 @@ export const ModelViewer3D = ({ modelUrl, productName }: ModelViewer3DProps) => 
                   minHeight: '500px'
                 }}
               />
+            ) : modelUrl && !isScriptLoaded ? (
+              <div className="text-center space-y-3 p-8">
+                <div className="w-12 h-12 border-4 border-primary/30 border-t-primary rounded-full animate-spin mx-auto" />
+                <p className="text-sm text-muted-foreground">
+                  Loading 3D viewer...
+                </p>
+              </div>
             ) : (
               <div className="text-center space-y-3 p-8">
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">

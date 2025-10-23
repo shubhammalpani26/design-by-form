@@ -83,11 +83,13 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       if (urlToProcess) {
         // Check if we've already processed this URL
         if (processedUrls.has(urlToProcess)) {
-          console.log('Already processed this URL, skipping background removal');
+          console.log('Already processed this URL, using original image');
+          setProcessedFurnitureUrl(urlToProcess);
           return;
         }
 
         setIsProcessing(true);
+        console.log('Starting background removal for:', urlToProcess);
         toast({
           title: "Removing background",
           description: "Using AI to remove background from the furniture. This may take a moment...",
@@ -99,6 +101,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
           setProcessedUrls(prev => {
             const newSet = new Set(prev).add(urlToProcess);
             sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
+            console.log('Saved processed URL to cache:', urlToProcess);
             return newSet;
           });
           console.log('Background removed from furniture image using AI');
@@ -127,12 +130,18 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       }
     };
 
-    // Only process if we haven't seen this URL before
     const urlToCheck = imageUrl || modelUrl;
-    if (urlToCheck && !processedUrls.has(urlToCheck)) {
-      processFurniture();
+    if (urlToCheck) {
+      if (processedUrls.has(urlToCheck)) {
+        // Already processed, just set the URL
+        console.log('URL already in cache, skipping processing');
+        setProcessedFurnitureUrl(urlToCheck);
+      } else {
+        // Need to process
+        processFurniture();
+      }
     }
-  }, [imageUrl, modelUrl, toast]);
+  }, [imageUrl, modelUrl]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
