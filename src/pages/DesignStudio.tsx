@@ -11,7 +11,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
-import { Model3DViewer } from "@/components/Model3DViewer";
 import { ARViewer } from "@/components/ARViewer";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";

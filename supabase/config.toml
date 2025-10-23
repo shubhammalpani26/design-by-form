@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.check-3d-status]
 verify_jwt = false
+
+[functions.proxy-3d-model]
+verify_jwt = false
