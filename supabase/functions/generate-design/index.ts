@@ -13,19 +13,20 @@ const generateDesignSchema = z.object({
   prompt: z.string().trim().max(2000),
   variationNumber: z.number().int().min(1).max(10).optional().default(1),
   roomImageBase64: z.string().optional(),
+  sketchImageBase64: z.string().optional(), // User's uploaded sketch
   generate3D: z.boolean().optional().default(false),
   imageUrl: z.string().optional(), // For generating 3D from existing image
 }).refine(
   (data) => {
-    // If not generating 3D, prompt is required
+    // If not generating 3D, prompt or sketch is required
     if (!data.generate3D) {
-      return data.prompt.length >= 10;
+      return data.prompt.length >= 10 || !!data.sketchImageBase64;
     }
     // If generating 3D, imageUrl is required
     return !!data.imageUrl;
   },
   {
-    message: "Either prompt (for 2D) or imageUrl (for 3D) is required",
+    message: "Either prompt, sketch, or imageUrl (for 3D) is required",
   }
 );
 
@@ -56,8 +57,8 @@ serve(async (req) => {
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64, generate3D, imageUrl: existingImageUrl } = validatedData;
-    console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
+    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl } = validatedData;
+    console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
     if (generate3D && existingImageUrl) {
@@ -138,10 +139,10 @@ serve(async (req) => {
       );
     }
 
-    // Validate prompt only if not generating 3D from existing image
-    if (!generate3D && (!prompt || prompt.trim().length === 0)) {
+    // Validate prompt only if not generating 3D from existing image and no sketch provided
+    if (!generate3D && !sketchImageBase64 && (!prompt || prompt.trim().length === 0)) {
       return new Response(
-        JSON.stringify({ error: "Prompt is required for image generation" }),
+        JSON.stringify({ error: "Prompt or sketch is required for image generation" }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -162,10 +163,25 @@ serve(async (req) => {
       "Create organic, flowing lines with nature-inspired shapes"
     ];
 
-    // Build message content based on whether room image is provided
+    // Build message content based on whether room image or sketch is provided
     let messages: any[];
     
-    if (roomImageBase64) {
+    if (sketchImageBase64) {
+      // Sketch-based generation
+      const sketchPrompt = `Based on this sketch/reference image, create a refined, photorealistic furniture design. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
+
+${prompt || 'Improve and refine this design'}
+
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
+
+      messages = [{
+        role: 'user',
+        content: [
+          { type: 'text', text: sketchPrompt },
+          { type: 'image_url', image_url: { url: sketchImageBase64 } }
+        ]
+      }];
+    } else if (roomImageBase64) {
       // Room-aware generation with multimodal input
       const roomAwarePrompt = `Design a photorealistic furniture piece. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
 
@@ -191,7 +207,7 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
       messages = [{ role: 'user', content: refinedPrompt }];
     }
 
-    console.log("Generating image with", roomImageBase64 ? "room-aware" : "standard", "prompt");
+    console.log("Generating image with", sketchImageBase64 ? "sketch reference" : roomImageBase64 ? "room-aware" : "standard", "prompt");
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',

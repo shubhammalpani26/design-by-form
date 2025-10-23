@@ -145,10 +145,10 @@ const DesignStudio = () => {
   };
 
   const handleGenerate = async () => {
-    if (!prompt.trim()) {
+    if (!prompt.trim() && !uploadedImage) {
       toast({
         title: "Missing Description",
-        description: "Please describe your furniture design first.",
+        description: "Please describe your furniture design or upload a sketch.",
         variant: "destructive",
       });
       return;
@@ -172,8 +172,19 @@ const DesignStudio = () => {
         });
       }
 
+      // Convert uploaded sketch to base64 if uploaded
+      let sketchImageBase64: string | undefined;
+      if (uploadedImage) {
+        sketchImageBase64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(uploadedImage);
+        });
+      }
+
       // Build enhanced prompt
-      let enhancedPrompt = prompt;
+      let enhancedPrompt = prompt || "Create a furniture design based on the uploaded sketch";
       const manufacturingConstraints = "Design must be 3D-printable and manufacturable with CNC milling. Use smooth, organic forms that avoid sharp internal corners or impossible overhangs. All elements should be structurally sound and producible with additive/subtractive manufacturing techniques. Consider material waste, assembly requirements, and structural integrity.";
       
       if (roomImage && furnitureType) {
@@ -191,6 +202,7 @@ const DesignStudio = () => {
               prompt: enhancedPrompt, 
               variationNumber: variationNum,
               roomImageBase64: roomImageBase64,
+              sketchImageBase64: sketchImageBase64,
               generate3D: false // Don't generate 3D initially
             }
           });
@@ -269,7 +281,52 @@ const DesignStudio = () => {
   const handleSelectVariation = async (index: number) => {
     setSelectedVariation(index);
     const selectedVar = generatedVariations[index];
-    setGeneratedDesign(selectedVar.imageUrl);
+    
+    // Apply color and finish if selected
+    let finalImageUrl = selectedVar.imageUrl;
+    if (selectedColor || selectedFinish) {
+      toast({
+        title: "Applying Color & Finish",
+        description: "Generating your design with selected color and finish...",
+      });
+      
+      try {
+        const colorFinishPrompt = `Apply ${selectedColor || 'the existing color'} color and ${selectedFinish || 'the existing finish'} finish to this furniture design. Keep the same design but change only the color and finish.`;
+        
+        const response = await supabase.functions.invoke('generate-design', {
+          body: { 
+            prompt: colorFinishPrompt,
+            imageUrl: selectedVar.imageUrl,
+            variationNumber: index + 1,
+            generate3D: false
+          }
+        });
+        
+        if (response.data?.imageUrl) {
+          finalImageUrl = response.data.imageUrl;
+          // Update the variation with the new colored version
+          setGeneratedVariations(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], imageUrl: finalImageUrl };
+            return updated;
+          });
+          
+          toast({
+            title: "Color & Finish Applied!",
+            description: "Your design has been customized.",
+          });
+        }
+      } catch (error) {
+        console.error("Error applying color/finish:", error);
+        toast({
+          title: "Color/Finish Application Failed",
+          description: "Using original design. You can try selecting color/finish again.",
+          variant: "destructive",
+        });
+      }
+    }
+    
+    setGeneratedDesign(finalImageUrl);
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
     
@@ -702,7 +759,7 @@ const DesignStudio = () => {
                         {/* Finish Selection */}
                         <div>
                           <div className="flex flex-wrap gap-1.5">
-                            {['Matte', 'Glossy', 'Metallic'].map((finish) => (
+                            {['Matte', 'Glossy', 'Metallic', 'Satin', 'Textured', 'Wood Grain', 'Marble', 'Concrete'].map((finish) => (
                               <button
                                 key={finish}
                                 onClick={() => {
