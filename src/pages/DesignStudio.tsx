@@ -196,19 +196,10 @@ const DesignStudio = () => {
         enhancedPrompt = `${prompt}. ${manufacturingConstraints}`;
       }
 
-      // Define common color/finish combinations to pre-generate
-      const colorFinishCombos = [
-        { color: "White", finish: "Matte" },
-        { color: "White", finish: "Glossy" },
-        { color: "Black", finish: "Matte" },
-        { color: "Black", finish: "Textured" },
-        { color: "Wood Finish", finish: "Matte" },
-      ];
-
+      // Only generate base designs initially (3 AI calls instead of 18!)
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
         try {
-          // Generate base design
-          const baseResponse = await supabase.functions.invoke('generate-design', {
+          const response = await supabase.functions.invoke('generate-design', {
             body: { 
               prompt: enhancedPrompt, 
               variationNumber: variationNum,
@@ -218,49 +209,21 @@ const DesignStudio = () => {
             }
           });
 
-          if (baseResponse.data?.error || baseResponse.error) {
-            console.error(`Variation ${variationNum} error:`, baseResponse.data?.error || baseResponse.error);
-            throw new Error(baseResponse.data?.error || baseResponse.error?.message || 'Failed to generate design');
+          if (response.data?.error || response.error) {
+            console.error(`Variation ${variationNum} error:`, response.data?.error || response.error);
+            throw new Error(response.data?.error || response.error?.message || 'Failed to generate design');
           }
 
-          if (!baseResponse.data?.imageUrl) {
+          if (!response.data?.imageUrl) {
             console.error(`Variation ${variationNum} missing image`);
             throw new Error('No image generated');
           }
 
-          // Generate color/finish variations in parallel
-          const colorVariations: Record<string, Record<string, string>> = {};
-          
-          const colorPromises = colorFinishCombos.map(async ({ color, finish }) => {
-            try {
-              const colorResponse = await supabase.functions.invoke('generate-design', {
-                body: { 
-                  prompt: `Apply ${color} color and ${finish} finish to this furniture design. Keep the exact same design shape, only change the color and surface finish.`,
-                  imageUrl: baseResponse.data.imageUrl,
-                  variationNumber: variationNum,
-                  generate3D: false
-                }
-              });
-              
-              if (colorResponse.data?.imageUrl) {
-                if (!colorVariations[color]) {
-                  colorVariations[color] = {};
-                }
-                colorVariations[color][finish] = colorResponse.data.imageUrl;
-              }
-            } catch (err) {
-              console.error(`Error generating ${color}/${finish} for variation ${variationNum}:`, err);
-              // Continue even if one combo fails
-            }
-          });
-
-          await Promise.all(colorPromises);
-
           return {
-            imageUrl: baseResponse.data.imageUrl,
-            modelUrl: baseResponse.data.modelUrl,
-            pricing: baseResponse.data.pricing,
-            colorVariations
+            imageUrl: response.data.imageUrl,
+            modelUrl: response.data.modelUrl,
+            pricing: response.data.pricing,
+            colorVariations: {} // Empty initially, filled on-demand
           };
         } catch (error) {
           console.error(`Error generating variation ${variationNum}:`, error);
@@ -399,7 +362,7 @@ const DesignStudio = () => {
     });
   };
 
-  const applyColorFinishToSelected = (color?: string, finish?: string) => {
+  const applyColorFinishToSelected = async (color?: string, finish?: string) => {
     if (selectedVariation === null) {
       toast({
         title: "No Design Selected",
@@ -418,26 +381,70 @@ const DesignStudio = () => {
 
     const selectedVar = generatedVariations[selectedVariation];
     
-    // Check if we have a pre-generated variation for this color/finish combo
-    const colorVariations = selectedVar.colorVariations;
-    if (colorVariations && colorToApply && finishToApply) {
-      const imageUrl = colorVariations[colorToApply]?.[finishToApply];
-      if (imageUrl) {
-        // Just switch to the pre-generated variation
-        setGeneratedDesign(imageUrl);
-        toast({
-          title: "Color & Finish Applied",
-          description: "Design updated with your selection.",
-        });
-        return;
-      }
+    // Check if we already have this color/finish combo cached
+    const colorVariations = selectedVar.colorVariations || {};
+    if (colorVariations[colorToApply]?.[finishToApply]) {
+      // Use cached version - instant switch!
+      setGeneratedDesign(colorVariations[colorToApply][finishToApply]);
+      toast({
+        title: "Color & Finish Applied",
+        description: "Design updated instantly from cache.",
+      });
+      return;
     }
     
-    // Fallback: show message that this combo isn't available
+    // Generate on-demand (only when user actually clicks)
     toast({
-      title: "Generating New Variation",
-      description: "This color/finish combination will be available after initial generation. The design variations are pre-generated with common color/finish options.",
+      title: "Applying Color & Finish",
+      description: "Generating your customized design...",
     });
+    
+    setIsGenerating(true);
+    try {
+      const colorFinishPrompt = `Apply ${colorToApply} color and ${finishToApply} finish to this furniture design. Keep the exact same design shape, only change the color and surface finish.`;
+      
+      const response = await supabase.functions.invoke('generate-design', {
+        body: { 
+          prompt: colorFinishPrompt,
+          imageUrl: selectedVar.imageUrl,
+          variationNumber: selectedVariation + 1,
+          generate3D: false
+        }
+      });
+      
+      if (response.data?.imageUrl) {
+        const newImageUrl = response.data.imageUrl;
+        
+        // Cache the result for instant reuse
+        setGeneratedVariations(prev => {
+          const updated = [...prev];
+          if (!updated[selectedVariation].colorVariations) {
+            updated[selectedVariation].colorVariations = {};
+          }
+          if (!updated[selectedVariation].colorVariations![colorToApply]) {
+            updated[selectedVariation].colorVariations![colorToApply] = {};
+          }
+          updated[selectedVariation].colorVariations![colorToApply][finishToApply] = newImageUrl;
+          return updated;
+        });
+        
+        setGeneratedDesign(newImageUrl);
+        
+        toast({
+          title: "Color & Finish Applied!",
+          description: "Your design has been customized and cached.",
+        });
+      }
+    } catch (error) {
+      console.error("Error applying color/finish:", error);
+      toast({
+        title: "Customization Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const suggestDimensionsForDesign = (category: string, prompt: string): { length: string; breadth: string; height: string } => {
@@ -777,7 +784,7 @@ const DesignStudio = () => {
                                     }
                                     // Apply to selected variation if exists
                                     if (selectedVariation !== null) {
-                                      applyColorFinishToSelected(color.name, selectedFinish);
+                                      await applyColorFinishToSelected(color.name, selectedFinish);
                                     }
                                   }
                                 }}
@@ -819,7 +826,7 @@ const DesignStudio = () => {
                                     }
                                     // Apply to selected variation if exists
                                     if (selectedVariation !== null) {
-                                      applyColorFinishToSelected(selectedColor, finish);
+                                      await applyColorFinishToSelected(selectedColor, finish);
                                     }
                                   }
                                 }}
