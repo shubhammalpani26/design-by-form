@@ -284,8 +284,10 @@ Analyze this furniture piece and determine:
 Based on your analysis, provide a COMPETITIVE price per cubic foot between ₹6,000 and ₹18,000.
 We aim to be the most competitive option in the market while maintaining quality.
 
+IMPORTANT: For small decor items (planters, vases, bowls, shelves under 18"), use LOWER pricing (₹6,000-9,000/ft³) as these are smaller items with less material.
+
 Decision Framework:
-- Low Complexity (₹6,000-9,000/ft³): Simple forms, single material PP, matte/single-color, minimal custom, basic craft, single piece
+- Low Complexity (₹6,000-9,000/ft³): Simple forms, single material PP, matte/single-color, minimal custom, basic craft, single piece, SMALL DECOR ITEMS (planters, vases, bowls)
 - Medium Complexity (₹10,000-14,000/ft³): Curved/organic, PP + one add-on, dual-finish/texture, moderate custom, modular
 - High Complexity (₹15,000-18,000/ft³): Sculptural/intricate, multi-material, gloss/hand-polished/metallic, fully bespoke, intensive handwork, multi-part
 

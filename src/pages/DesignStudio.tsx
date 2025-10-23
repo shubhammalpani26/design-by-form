@@ -366,7 +366,7 @@ const DesignStudio = () => {
     });
   };
 
-  const applyColorFinishToSelected = async () => {
+  const applyColorFinishToSelected = async (color?: string, finish?: string) => {
     if (selectedVariation === null) {
       toast({
         title: "No Design Selected",
@@ -376,7 +376,11 @@ const DesignStudio = () => {
       return;
     }
 
-    if (!selectedColor && !selectedFinish) {
+    // Use provided values or fall back to state
+    const colorToApply = color || selectedColor;
+    const finishToApply = finish || selectedFinish;
+
+    if (!colorToApply && !finishToApply) {
       toast({
         title: "No Color or Finish Selected",
         description: "Please select a color or finish to apply",
@@ -394,7 +398,7 @@ const DesignStudio = () => {
     
     setIsGenerating(true);
     try {
-      const colorFinishPrompt = `Apply ${selectedColor || 'the existing color'} color and ${selectedFinish || 'the existing finish'} finish to this furniture design. Keep the same design but change only the color and finish.`;
+      const colorFinishPrompt = `Apply ${colorToApply || 'the existing color'} color and ${finishToApply || 'the existing finish'} finish to this furniture design. Keep the same design but change only the color and finish.`;
       
       const response = await supabase.functions.invoke('generate-design', {
         body: { 
@@ -770,8 +774,8 @@ const DesignStudio = () => {
                                       setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
                                     }
                                     // Apply to selected variation if exists
-                                    if (selectedVariation) {
-                                      await applyColorFinishToSelected();
+                                    if (selectedVariation !== null) {
+                                      await applyColorFinishToSelected(color.name, selectedFinish);
                                     }
                                   }
                                 }}
@@ -812,8 +816,8 @@ const DesignStudio = () => {
                                       setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
                                     }
                                     // Apply to selected variation if exists
-                                    if (selectedVariation) {
-                                      await applyColorFinishToSelected();
+                                    if (selectedVariation !== null) {
+                                      await applyColorFinishToSelected(selectedColor, finish);
                                     }
                                   }
                                 }}
