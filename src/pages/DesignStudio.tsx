@@ -282,51 +282,7 @@ const DesignStudio = () => {
     setSelectedVariation(index);
     const selectedVar = generatedVariations[index];
     
-    // Apply color and finish if selected
-    let finalImageUrl = selectedVar.imageUrl;
-    if (selectedColor || selectedFinish) {
-      toast({
-        title: "Applying Color & Finish",
-        description: "Generating your design with selected color and finish...",
-      });
-      
-      try {
-        const colorFinishPrompt = `Apply ${selectedColor || 'the existing color'} color and ${selectedFinish || 'the existing finish'} finish to this furniture design. Keep the same design but change only the color and finish.`;
-        
-        const response = await supabase.functions.invoke('generate-design', {
-          body: { 
-            prompt: colorFinishPrompt,
-            imageUrl: selectedVar.imageUrl,
-            variationNumber: index + 1,
-            generate3D: false
-          }
-        });
-        
-        if (response.data?.imageUrl) {
-          finalImageUrl = response.data.imageUrl;
-          // Update the variation with the new colored version
-          setGeneratedVariations(prev => {
-            const updated = [...prev];
-            updated[index] = { ...updated[index], imageUrl: finalImageUrl };
-            return updated;
-          });
-          
-          toast({
-            title: "Color & Finish Applied!",
-            description: "Your design has been customized.",
-          });
-        }
-      } catch (error) {
-        console.error("Error applying color/finish:", error);
-        toast({
-          title: "Color/Finish Application Failed",
-          description: "Using original design. You can try selecting color/finish again.",
-          variant: "destructive",
-        });
-      }
-    }
-    
-    setGeneratedDesign(finalImageUrl);
+    setGeneratedDesign(selectedVar.imageUrl);
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
     
@@ -408,6 +364,74 @@ const DesignStudio = () => {
       title: "Variation Selected",
       description: "Ready to customize dimensions and submit your design.",
     });
+  };
+
+  const applyColorFinishToSelected = async () => {
+    if (selectedVariation === null) {
+      toast({
+        title: "No Design Selected",
+        description: "Please select a design first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!selectedColor && !selectedFinish) {
+      toast({
+        title: "No Color or Finish Selected",
+        description: "Please select a color or finish to apply",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const selectedVar = generatedVariations[selectedVariation];
+    
+    toast({
+      title: "Applying Color & Finish",
+      description: "Generating your design with selected color and finish...",
+    });
+    
+    setIsGenerating(true);
+    try {
+      const colorFinishPrompt = `Apply ${selectedColor || 'the existing color'} color and ${selectedFinish || 'the existing finish'} finish to this furniture design. Keep the same design but change only the color and finish.`;
+      
+      const response = await supabase.functions.invoke('generate-design', {
+        body: { 
+          prompt: colorFinishPrompt,
+          imageUrl: selectedVar.imageUrl,
+          variationNumber: selectedVariation + 1,
+          generate3D: false
+        }
+      });
+      
+      if (response.data?.imageUrl) {
+        const finalImageUrl = response.data.imageUrl;
+        // Update the variation with the new colored version
+        setGeneratedVariations(prev => {
+          const updated = [...prev];
+          updated[selectedVariation] = { ...updated[selectedVariation], imageUrl: finalImageUrl };
+          return updated;
+        });
+        
+        // Update the current display
+        setGeneratedDesign(finalImageUrl);
+        
+        toast({
+          title: "Color & Finish Applied!",
+          description: "Your design has been customized.",
+        });
+      }
+    } catch (error) {
+      console.error("Error applying color/finish:", error);
+      toast({
+        title: "Color/Finish Application Failed",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const suggestDimensionsForDesign = (category: string, prompt: string): { length: string; breadth: string; height: string } => {
@@ -731,7 +755,7 @@ const DesignStudio = () => {
                             ].map((color) => (
                               <button
                                 key={color.name}
-                                onClick={() => {
+                                onClick={async () => {
                                   const colorRegex = /,?\s*\b(black|white|gray|grey|brown|beige|navy|olive|burgundy|red|blue|green|yellow)\s+(color|finish|tone)\b/gi;
                                   if (selectedColor === color.name) {
                                     // Unselect - remove color from prompt
@@ -744,6 +768,10 @@ const DesignStudio = () => {
                                       setPrompt(prev => prev.replace(colorRegex, `, ${color.name.toLowerCase()} color`));
                                     } else {
                                       setPrompt(prev => `${prev}${prev ? ', ' : ''}${color.name.toLowerCase()} color`);
+                                    }
+                                    // Apply to selected variation if exists
+                                    if (selectedVariation) {
+                                      await applyColorFinishToSelected();
                                     }
                                   }
                                 }}
@@ -769,7 +797,7 @@ const DesignStudio = () => {
                             {['Matte', 'Glossy', 'Metallic', 'Satin', 'Textured', 'Wood Grain', 'Marble', 'Concrete'].map((finish) => (
                               <button
                                 key={finish}
-                                onClick={() => {
+                                onClick={async () => {
                                   const finishRegex = /,?\s*\b(matte|glossy|metallic|satin|textured|marble|wood grain|concrete)\s+(finish|effect)\b/gi;
                                   if (selectedFinish === finish) {
                                     // Unselect - remove finish from prompt
@@ -782,6 +810,10 @@ const DesignStudio = () => {
                                       setPrompt(prev => prev.replace(finishRegex, `, ${finish.toLowerCase()} finish`));
                                     } else {
                                       setPrompt(prev => `${prev}${prev ? ', ' : ''}${finish.toLowerCase()} finish`);
+                                    }
+                                    // Apply to selected variation if exists
+                                    if (selectedVariation) {
+                                      await applyColorFinishToSelected();
                                     }
                                   }
                                 }}
