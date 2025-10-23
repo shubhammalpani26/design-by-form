@@ -601,8 +601,8 @@ const DesignStudio = () => {
                   <CardContent className="p-6 space-y-6">
                     {/* Main Design Description */}
                     <div>
-                      <h3 className="text-xl font-semibold mb-2 text-foreground">Describe Your Design</h3>
-                      <p className="text-sm text-muted-foreground mb-4">
+                      <h3 className="text-lg font-semibold mb-1 text-foreground">Describe Your Design</h3>
+                      <p className="text-xs text-muted-foreground mb-3">
                         Describe your furniture piece in detail. Include style, materials, colors, and finishes.
                       </p>
                     </div>
@@ -660,34 +660,7 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Generate Button - Prominently placed */}
-                    <div className="space-y-3">
-                      <Button 
-                        variant="hero" 
-                        size="lg"
-                        className="w-full group" 
-                        onClick={handleGenerate}
-                        disabled={isGenerating || !prompt.trim()}
-                      >
-                        {isGenerating ? (
-                          <>
-                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                            </svg>
-                            Generating...
-                          </>
-                        ) : (
-                          <>
-                            Generate Design
-                            <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                          </>
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Color Picker - Always Visible */}
+                    {/* Color Picker */}
                     <div className="space-y-3 border-t pt-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Color:</p>
                       <div className="flex flex-wrap gap-2">
@@ -728,7 +701,7 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Finish Selection - Always Visible */}
+                    {/* Finish Selection */}
                     <div className="space-y-3 border-t pt-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Finish:</p>
                       <div className="flex flex-wrap gap-2">
@@ -756,7 +729,7 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Dimensions Input - Always Visible */}
+                    {/* Dimensions Input */}
                     <div className="space-y-3 border-t pt-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Dimensions (inches):</p>
                       <div className="grid grid-cols-3 gap-3">
@@ -859,7 +832,7 @@ const DesignStudio = () => {
                       </div>
                     </div>
 
-                    {/* Upload Sketch - Always Visible */}
+                    {/* Upload Sketch */}
                     <div className="space-y-3 border-t pt-4">
                       <p className="text-xs font-medium text-muted-foreground mb-2">Upload Sketch or Reference Image:</p>
                       <Button variant="outline" className="w-full" asChild>
@@ -895,8 +868,8 @@ const DesignStudio = () => {
                               </svg>
                             </div>
                             <div className="text-left">
-                              <p className="font-semibold text-sm text-foreground">Design for Your Space</p>
-                              <p className="text-xs text-muted-foreground">Upload your room photo for contextual designs</p>
+                              <p className="font-semibold text-sm text-foreground">Upload Your Space</p>
+                              <p className="text-xs text-muted-foreground">Get designs tailored to your room</p>
                             </div>
                           </div>
                           <ChevronDown className={`h-4 w-4 transition-transform ${isRoomSectionOpen ? 'rotate-180' : ''}`} />
@@ -958,6 +931,33 @@ const DesignStudio = () => {
                         </div>
                       </CollapsibleContent>
                     </Collapsible>
+
+                    {/* Generate Button - At the end, prominently visible */}
+                    <div className="space-y-3 border-t pt-4">
+                      <Button 
+                        variant="hero" 
+                        size="lg"
+                        className="w-full group" 
+                        onClick={handleGenerate}
+                        disabled={isGenerating || !prompt.trim()}
+                      >
+                        {isGenerating ? (
+                          <>
+                            <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                            Generating...
+                          </>
+                        ) : (
+                          <>
+                            Generate Design
+                            <svg className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
 
