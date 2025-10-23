@@ -235,7 +235,7 @@ const DesignStudio = () => {
       
       // Use pricing from first variation if available
       const initialPricing = variations[0]?.pricing;
-      const pricePerCubicFoot = initialPricing?.pricePerCubicFoot || 12000;
+      const pricePerCubicFoot = initialPricing?.pricePerCubicFoot || 9000;
       const baseCost = Math.round(cubicFeet * pricePerCubicFoot);
       
       setEstimatedCost(baseCost);
@@ -275,10 +275,10 @@ const DesignStudio = () => {
     
     // Store the pricing data for this variation
     const pricingData = selectedVar.pricing || {
-      basePrice: 12000,
+      basePrice: 9000,
       complexity: 'medium',
-      pricePerCubicFoot: 12000,
-      reasoning: 'Standard pricing'
+      pricePerCubicFoot: 9000,
+      reasoning: 'Competitive pricing'
     };
     setCurrentPricing(pricingData);
     
@@ -392,7 +392,7 @@ const DesignStudio = () => {
     return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
 
-  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 12000) => {
+  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 9000) => {
     if (!length || !breadth || !height) return;
     
     // Convert inches to feet and calculate cubic feet
@@ -1207,11 +1207,19 @@ const DesignStudio = () => {
                         ) : generatedDesign ? (
                           <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
-                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                              <p className="text-muted-foreground text-sm font-medium">3D Model Generating...</p>
-                              <p className="text-muted-foreground text-xs mt-2">This may take 3-5 minutes</p>
+                              <div className="relative w-16 h-16 mx-auto mb-4">
+                                <svg className="w-16 h-16 text-primary animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                                </svg>
+                                <div className="absolute inset-0 w-16 h-16 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                              </div>
+                              <p className="text-muted-foreground text-sm font-medium mb-2">Crafting Your 3D Model...</p>
+                              <div className="flex items-center justify-center gap-1 mb-2">
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                                <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                              </div>
+                              <p className="text-muted-foreground text-xs">This may take 3-5 minutes</p>
                             </div>
                           </div>
                         ) : (
