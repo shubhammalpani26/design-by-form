@@ -45,11 +45,22 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   
   // Initialize from cache if available to prevent flashing/reloading
   const cachedUrl = modelUrl ? loadedModelsCache.get(modelUrl) : undefined;
-  const [loadingState, setLoadingState] = useState<LoadingState>(cachedUrl ? 'loaded' : 'idle');
+  const [loadingState, setLoadingState] = useState<LoadingState>(() => {
+    const initial = cachedUrl ? 'loaded' : 'idle';
+    console.log('🎬 ModelViewer3D mount - initial loadingState:', initial, 'cachedUrl:', !!cachedUrl);
+    return initial;
+  });
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadProgress, setLoadProgress] = useState(cachedUrl ? 100 : 0);
-  const [proxiedUrl, setProxiedUrl] = useState<string>(cachedUrl || "");
+  const [proxiedUrl, setProxiedUrl] = useState<string>(() => {
+    const initial = cachedUrl || "";
+    console.log('🎬 ModelViewer3D mount - initial proxiedUrl:', !!initial);
+    return initial;
+  });
   const [modelFileSize, setModelFileSize] = useState<string>("");
+  
+  // Log cache state on every render
+  console.log('🔍 Render - loadingState:', loadingState, 'proxiedUrl:', !!proxiedUrl, 'modelUrl:', !!modelUrl, 'cache size:', loadedModelsCache.size);
 
   // Load model-viewer script
   useEffect(() => {
@@ -106,16 +117,22 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
   // Setup model viewer - always use proxy to avoid CORS issues
   useEffect(() => {
-    if (!modelUrl || loadingState === 'loading-script') return;
+    console.log('🔄 useEffect triggered - modelUrl:', !!modelUrl, 'loadingState:', loadingState, 'proxiedUrl:', !!proxiedUrl);
+    
+    if (!modelUrl || loadingState === 'loading-script') {
+      console.log('⏭️ Skipping - no modelUrl or loading script');
+      return;
+    }
     
     // Skip if already loaded (states initialized from cache on mount)
     if (loadingState === 'loaded' && proxiedUrl) {
-      console.log('✅ Model already loaded, skipping setup');
+      console.log('✅ SKIP: Already loaded with proxiedUrl, not reloading');
       return;
     }
     
     // Skip if in cache (shouldn't happen as states are initialized from cache)
     const cachedUrl = loadedModelsCache.get(modelUrl);
+    console.log('🔍 Checking cache - found:', !!cachedUrl);
     if (cachedUrl) {
       console.log('✅ Model found in cache during setup, using it');
       setProxiedUrl(cachedUrl);
