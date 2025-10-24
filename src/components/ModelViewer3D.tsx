@@ -109,9 +109,11 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     const cachedUrl = loadedModelsCache.current.get(modelUrl);
     if (cachedUrl) {
       console.log('✅ Model already loaded from cache:', modelUrl);
+      // Set all states synchronously to prevent flashing
       setProxiedUrl(cachedUrl);
       setLoadingState('loaded');
       setLoadProgress(100);
+      setErrorMessage("");
       return;
     }
 

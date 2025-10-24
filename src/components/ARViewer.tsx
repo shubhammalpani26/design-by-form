@@ -85,9 +85,18 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   }, [roomImage]);
 
   useEffect(() => {
-    // Process furniture image to remove background with AI and persistent caching
+    // Use 3D model directly if available, otherwise process 2D image
     const processFurniture = async () => {
-      const urlToProcess = imageUrl || modelUrl;
+      // Prefer 3D model - no background removal needed
+      if (modelUrl) {
+        console.log('Using 3D model for AR preview (no background removal needed)');
+        setProcessedFurnitureUrl(modelUrl);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // Fall back to 2D image with background removal
+      const urlToProcess = imageUrl;
       if (urlToProcess) {
         // Check cache first - see if we have the processed result stored
         const cacheKey = `ar-processed-${urlToProcess}`;
@@ -153,9 +162,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       }
     };
 
-    const urlToCheck = imageUrl || modelUrl;
-    if (urlToCheck && !processedFurnitureUrl) {
-      // Only process if we don't already have a processed furniture URL
+    // Process when either URL changes, prioritizing 3D model
+    if ((imageUrl || modelUrl) && !processedFurnitureUrl) {
+      processFurniture();
+    } else if (modelUrl && processedFurnitureUrl !== modelUrl) {
+      // If 3D model becomes available, switch to it immediately
       processFurniture();
     }
   }, [imageUrl, modelUrl]);
