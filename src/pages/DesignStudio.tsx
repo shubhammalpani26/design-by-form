@@ -1554,7 +1554,7 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="3d" className="mt-0 h-full min-h-[600px]">
+                      <TabsContent value="3d" className="mt-0 h-full min-h-[600px]" forceMount>
                         {selectedVariation !== null && generatedVariations[selectedVariation]?.modelUrl ? (
                           <div className="h-full">
                             <ModelViewer3D 
@@ -1670,7 +1670,7 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
                       
-                       <TabsContent value="ar" className="mt-0 h-full min-h-[600px]">
+                       <TabsContent value="ar" className="mt-0 h-full min-h-[600px]" forceMount>
                         {generatedDesign ? (
                           <div className="h-full rounded-xl overflow-auto bg-accent p-4">
                             <ARViewer 

@@ -46,34 +46,25 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   // Initialize from cache if available to prevent flashing/reloading
   const cachedUrl = modelUrl ? loadedModelsCache.get(modelUrl) : undefined;
   const [loadingState, setLoadingState] = useState<LoadingState>(() => {
-    const initial = cachedUrl ? 'loaded' : 'idle';
-    console.log('🎬 ModelViewer3D mount - initial loadingState:', initial, 'cachedUrl:', !!cachedUrl);
-    return initial;
+    return cachedUrl ? 'loaded' : 'idle';
   });
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadProgress, setLoadProgress] = useState(cachedUrl ? 100 : 0);
   const [proxiedUrl, setProxiedUrl] = useState<string>(() => {
-    const initial = cachedUrl || "";
-    console.log('🎬 ModelViewer3D mount - initial proxiedUrl:', !!initial);
-    return initial;
+    return cachedUrl || "";
   });
   const [modelFileSize, setModelFileSize] = useState<string>("");
-  
-  // Log cache state on every render
-  console.log('🔍 Render - loadingState:', loadingState, 'proxiedUrl:', !!proxiedUrl, 'modelUrl:', !!modelUrl, 'cache size:', loadedModelsCache.size);
 
   // Load model-viewer script
   useEffect(() => {
     const loadScript = async () => {
       // Check if already loaded globally
       if (modelViewerScriptLoaded || customElements.get('model-viewer')) {
-        console.log('✅ model-viewer already loaded');
         setLoadingState('idle');
         return;
       }
 
       setLoadingState('loading-script');
-      console.log('📦 Loading model-viewer script...');
 
       const script = document.createElement('script');
       script.type = 'module';
@@ -83,7 +74,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
         const checkElement = setInterval(() => {
           if (customElements.get('model-viewer')) {
             modelViewerScriptLoaded = true;
-            console.log('✅ model-viewer script loaded successfully');
             setLoadingState('idle');
             clearInterval(checkElement);
           }
@@ -92,7 +82,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
         setTimeout(() => {
           clearInterval(checkElement);
           if (!modelViewerScriptLoaded) {
-            console.error('❌ model-viewer custom element not defined after 5 seconds');
             setLoadingState('error');
             setErrorMessage('Failed to load 3D viewer library');
           }
@@ -100,7 +89,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
       };
       
       script.onerror = () => {
-        console.error('❌ Failed to load model-viewer script');
         setLoadingState('error');
         setErrorMessage('Failed to load 3D viewer library');
       };
@@ -117,24 +105,18 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
   // Setup model viewer - always use proxy to avoid CORS issues
   useEffect(() => {
-    console.log('🔄 useEffect triggered - modelUrl:', !!modelUrl, 'loadingState:', loadingState, 'proxiedUrl:', !!proxiedUrl);
-    
     if (!modelUrl || loadingState === 'loading-script') {
-      console.log('⏭️ Skipping - no modelUrl or loading script');
       return;
     }
     
     // Skip if already loaded (states initialized from cache on mount)
     if (loadingState === 'loaded' && proxiedUrl) {
-      console.log('✅ SKIP: Already loaded with proxiedUrl, not reloading');
       return;
     }
     
     // Skip if in cache (shouldn't happen as states are initialized from cache)
     const cachedUrl = loadedModelsCache.get(modelUrl);
-    console.log('🔍 Checking cache - found:', !!cachedUrl);
     if (cachedUrl) {
-      console.log('✅ Model found in cache during setup, using it');
       setProxiedUrl(cachedUrl);
       setLoadingState('loaded');
       setLoadProgress(100);
@@ -143,25 +125,21 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     }
 
     const setupModel = async () => {
-      console.log('🎨 Setting up 3D model:', modelUrl);
       setLoadingState('loading-model');
       setLoadProgress(0);
       setErrorMessage("");
 
       // Always use proxy to avoid CORS issues with external GLB files
-      console.log('🔄 Loading model via proxy to handle CORS...');
       
       try {
         // Build proxy URL - the edge function will fetch and serve the GLB with CORS headers
         const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
-        console.log('📡 Proxy URL:', proxyUrl);
         setProxiedUrl(proxyUrl);
         
         const viewer = modelViewerRef.current;
         if (!viewer) return;
 
         const handleLoad = () => {
-          console.log('✅ 3D model loaded successfully');
           loadedModelsCache.set(modelUrl, proxyUrl); // Cache this model with its proxy URL
           setLoadingState('loaded');
           setLoadProgress(100);
@@ -179,7 +157,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
           if (event.detail && event.detail.totalProgress !== undefined) {
             const progress = Math.round(event.detail.totalProgress * 100);
             setLoadProgress(progress);
-            console.log(`📈 Loading progress: ${progress}%`);
           }
         };
 
@@ -193,7 +170,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
           viewer.removeEventListener('progress', handleProgress);
         };
       } catch (error) {
-        console.error('❌ Setup failed:', error);
+        console.error('Error setting up 3D model:', error);
         setLoadingState('error');
         const msg = 'Failed to setup 3D viewer. Please try again.';
         setErrorMessage(msg);
