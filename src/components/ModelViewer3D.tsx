@@ -108,11 +108,16 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   useEffect(() => {
     if (!modelUrl || loadingState === 'loading-script') return;
     
-    // Skip if already loaded this model (prevents reload on tab switch)
+    // Skip if already loaded (states initialized from cache on mount)
+    if (loadingState === 'loaded' && proxiedUrl) {
+      console.log('✅ Model already loaded, skipping setup');
+      return;
+    }
+    
+    // Skip if in cache (shouldn't happen as states are initialized from cache)
     const cachedUrl = loadedModelsCache.get(modelUrl);
     if (cachedUrl) {
-      console.log('✅ Model already loaded from cache:', modelUrl);
-      // Set all states synchronously to prevent flashing
+      console.log('✅ Model found in cache during setup, using it');
       setProxiedUrl(cachedUrl);
       setLoadingState('loaded');
       setLoadProgress(100);
