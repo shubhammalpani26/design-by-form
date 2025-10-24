@@ -162,13 +162,9 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       }
     };
 
-    // Process when either URL changes, prioritizing 3D model
-    if ((imageUrl || modelUrl) && !processedFurnitureUrl) {
-      processFurniture();
-    } else if (modelUrl && processedFurnitureUrl !== modelUrl) {
-      // If 3D model becomes available, switch to it immediately
-      processFurniture();
-    }
+    // Always prefer 3D model if available
+    // Process when URLs change or when switching from 2D to 3D becomes available
+    processFurniture();
   }, [imageUrl, modelUrl]);
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
