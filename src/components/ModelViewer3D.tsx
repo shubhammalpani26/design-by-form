@@ -100,7 +100,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
   // Setup model viewer - always use proxy to avoid CORS issues
   useEffect(() => {
-    if (!modelUrl || loadingState === 'loading-script') return;
+    if (!modelUrl || loadingState === 'loading-script' || loadingState === 'loaded') return;
 
     const setupModel = async () => {
       console.log('🎨 Setting up 3D model:', modelUrl);
@@ -161,7 +161,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     };
 
     setupModel();
-  }, [modelUrl, loadingState, onError]);
+  }, [modelUrl, onError]);
 
   const handleOpenInNewTab = () => {
     if (modelUrl) {
