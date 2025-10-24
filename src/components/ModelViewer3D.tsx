@@ -42,10 +42,13 @@ type LoadingState = 'idle' | 'loading-script' | 'loading-model' | 'loaded' | 'er
 
 export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DProps) => {
   const modelViewerRef = useRef<HTMLElement>(null);
-  const [loadingState, setLoadingState] = useState<LoadingState>('idle');
+  
+  // Initialize from cache if available to prevent flashing/reloading
+  const cachedUrl = modelUrl ? loadedModelsCache.get(modelUrl) : undefined;
+  const [loadingState, setLoadingState] = useState<LoadingState>(cachedUrl ? 'loaded' : 'idle');
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [loadProgress, setLoadProgress] = useState(0);
-  const [proxiedUrl, setProxiedUrl] = useState<string>("");
+  const [loadProgress, setLoadProgress] = useState(cachedUrl ? 100 : 0);
+  const [proxiedUrl, setProxiedUrl] = useState<string>(cachedUrl || "");
   const [modelFileSize, setModelFileSize] = useState<string>("");
 
   // Load model-viewer script
