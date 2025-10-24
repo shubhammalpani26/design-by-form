@@ -44,6 +44,9 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
+  
+  // Cache loaded models to prevent reloading on tab switch
+  const loadedModelsCache = useRef<Set<string>>(new Set());
 
   // Load model-viewer script
   useEffect(() => {
@@ -100,7 +103,14 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
   // Setup model viewer - always use proxy to avoid CORS issues
   useEffect(() => {
-    if (!modelUrl || loadingState === 'loading-script' || loadingState === 'loaded') return;
+    if (!modelUrl || loadingState === 'loading-script') return;
+    
+    // Skip if already loaded this model (prevents reload on tab switch)
+    if (loadedModelsCache.current.has(modelUrl)) {
+      console.log('✅ Model already loaded from cache:', modelUrl);
+      setLoadingState('loaded');
+      return;
+    }
 
     const setupModel = async () => {
       console.log('🎨 Setting up 3D model:', modelUrl);
@@ -122,6 +132,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
         const handleLoad = () => {
           console.log('✅ 3D model loaded successfully');
+          loadedModelsCache.current.add(modelUrl); // Cache this model
           setLoadingState('loaded');
           setLoadProgress(100);
         };
