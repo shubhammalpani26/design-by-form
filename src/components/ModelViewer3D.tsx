@@ -7,6 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 // Global flag to track if model-viewer script is loaded
 let modelViewerScriptLoaded = false;
 
+// Global cache for loaded models - persists across component mounts/unmounts
+const loadedModelsCache = new Map<string, string>();
+
 // Extend the JSX types to include model-viewer
 declare global {
   namespace JSX {
@@ -44,9 +47,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
-  
-  // Cache loaded models to prevent reloading on tab switch
-  const loadedModelsCache = useRef<Map<string, string>>(new Map());
 
   // Load model-viewer script
   useEffect(() => {
@@ -106,7 +106,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     if (!modelUrl || loadingState === 'loading-script') return;
     
     // Skip if already loaded this model (prevents reload on tab switch)
-    const cachedUrl = loadedModelsCache.current.get(modelUrl);
+    const cachedUrl = loadedModelsCache.get(modelUrl);
     if (cachedUrl) {
       console.log('✅ Model already loaded from cache:', modelUrl);
       // Set all states synchronously to prevent flashing
@@ -137,7 +137,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
 
         const handleLoad = () => {
           console.log('✅ 3D model loaded successfully');
-          loadedModelsCache.current.set(modelUrl, proxyUrl); // Cache this model with its proxy URL
+          loadedModelsCache.set(modelUrl, proxyUrl); // Cache this model with its proxy URL
           setLoadingState('loaded');
           setLoadProgress(100);
         };
