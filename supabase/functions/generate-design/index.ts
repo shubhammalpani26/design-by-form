@@ -108,20 +108,38 @@ serve(async (req) => {
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         } else {
-          console.error("Failed to start Meshy task:", await meshyResponse.text());
+          const errorText = await meshyResponse.text();
+          console.error("Failed to start Meshy task:", errorText);
+          
+          let errorMessage = "Failed to start 3D generation";
+          try {
+            const errorData = JSON.parse(errorText);
+            if (errorData.message) {
+              errorMessage = errorData.message;
+            }
+          } catch (e) {
+            // If parsing fails, use the raw error text
+            errorMessage = errorText || errorMessage;
+          }
+          
+          return new Response(
+            JSON.stringify({ 
+              error: errorMessage,
+              has3DSupport: false
+            }),
+            { status: meshyResponse.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
         }
       } catch (error) {
         console.error("Error generating 3D model:", error);
+        return new Response(
+          JSON.stringify({ 
+            error: error instanceof Error ? error.message : "3D generation failed",
+            has3DSupport: false
+          }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
       }
-
-      return new Response(
-        JSON.stringify({ 
-          imageUrl: existingImageUrl,
-          has3DSupport: false,
-          error: "Failed to start 3D generation"
-        }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
     }
 
     // Validate prompt only if not generating 3D from existing image and no sketch provided

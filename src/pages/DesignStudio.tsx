@@ -336,7 +336,11 @@ const DesignStudio = () => {
         } else if (response.data?.status === 'FAILED') {
           setPolling3DStatus(prev => ({ ...prev, [variationIndex]: false }));
           setModel3DProgress(prev => ({ ...prev, [variationIndex]: 0 }));
-          console.error('3D generation failed for variation', variationIndex);
+          toast({
+            title: "3D Generation Failed",
+            description: "The 3D model generation failed. Please try again.",
+            variant: "destructive",
+          });
           return true; // Stop polling
         } else {
           // Still processing
@@ -421,6 +425,10 @@ const DesignStudio = () => {
             }
           });
           
+          if (response.error) {
+            throw new Error(response.error.message || 'Failed to generate 3D model');
+          }
+          
           if (response.data?.modelUrl) {
             // Update the variation with the 3D model
             setGeneratedVariations(prev => {
@@ -441,6 +449,21 @@ const DesignStudio = () => {
           }
         } catch (error) {
           console.error("Error generating 3D model:", error);
+          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+          
+          if (errorMsg.includes('Insufficient funds') || errorMsg.includes('funds')) {
+            toast({
+              title: "3D Generation Failed",
+              description: "Meshy API credits depleted. Please add funds to your Meshy account or update MESHY_API_KEY secret.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "3D Generation Failed",
+              description: errorMsg,
+              variant: "destructive",
+            });
+          }
         }
       })();
     }
@@ -1646,6 +1669,10 @@ const DesignStudio = () => {
                                         generate3D: true
                                       }
                                     });
+                                    
+                                    if (response.error) {
+                                      throw new Error(response.error.message || 'Failed to start 3D generation');
+                                    }
                                     
                                     if (response.data?.taskId) {
                                       poll3DStatus(selectedVariation, response.data.taskId);
