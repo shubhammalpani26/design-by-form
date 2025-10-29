@@ -23,6 +23,14 @@ interface GuideStep {
 
 const guideSteps: GuideStep[] = [
   {
+    title: "Welcome to AI Studio",
+    description: "Let's walk through how to create your first furniture design. This quick guide will show you each step of the process.",
+    icon: <Lightbulb className="w-6 h-6" />,
+    target: "",
+    tip: "You start with 10 free credits each month to create designs!",
+    position: "bottom",
+  },
+  {
     title: "Describe Your Design",
     description: "Start by typing a detailed description of the furniture you want to create. Be specific about style, materials, and features.",
     icon: <Wand2 className="w-6 h-6" />,
@@ -40,26 +48,10 @@ const guideSteps: GuideStep[] = [
   },
   {
     title: "Generate Your Designs",
-    description: "Click here to create 3 unique variations. Each generation uses 1 credit from your monthly balance.",
+    description: "Click the generate button to create 3 unique variations. Each generation uses 1 credit from your monthly balance.",
     icon: <MousePointer className="w-6 h-6" />,
     target: "generate-button",
-    tip: "You start with 10 free credits each month!",
-    position: "top",
-  },
-  {
-    title: "Select & Customize",
-    description: "After generation, choose your favorite design. You can then customize colors, finishes, dimensions, and pricing.",
-    icon: <Settings className="w-6 h-6" />,
-    target: "variations-section",
-    tip: "Try different colors and finishes - pricing updates automatically!",
-    position: "left",
-  },
-  {
-    title: "Submit to Marketplace",
-    description: "Ready? Submit your design for review. Approved designs get listed in the marketplace where buyers can purchase them.",
-    icon: <CheckCircle2 className="w-6 h-6" />,
-    target: "submit-section",
-    tip: "All designs go through quality review to ensure manufacturability.",
+    tip: "The AI will create three different variations for you to choose from!",
     position: "top",
   },
 ];
@@ -79,6 +71,13 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
     
     const updateTargetPosition = () => {
       const step = guideSteps[currentStep];
+      
+      // If no target specified (welcome screen), don't try to find element
+      if (!step.target) {
+        setTargetPosition(null);
+        return;
+      }
+      
       const element = document.getElementById(step.target);
       
       if (element) {
@@ -93,18 +92,21 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
         // Scroll element into view smoothly
         element.scrollIntoView({ behavior: 'smooth', block: 'center' });
       } else {
+        // Element not found yet
+        console.log(`Guide element not found: ${step.target}`);
         setTargetPosition(null);
       }
     };
 
-    // Update position on step change
-    updateTargetPosition();
+    // Delay to ensure DOM is ready
+    const timer = setTimeout(updateTargetPosition, 100);
     
     // Update on scroll/resize
     window.addEventListener('scroll', updateTargetPosition);
     window.addEventListener('resize', updateTargetPosition);
     
     return () => {
+      clearTimeout(timer);
       window.removeEventListener('scroll', updateTargetPosition);
       window.removeEventListener('resize', updateTargetPosition);
     };
@@ -141,8 +143,16 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
   const progress = ((currentStep + 1) / guideSteps.length) * 100;
 
   // Calculate tooltip position based on target and preferred position
-  const getTooltipStyle = () => {
-    if (!targetPosition) return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+  const getTooltipStyle = (): React.CSSProperties => {
+    // Center the tooltip if no target position (welcome screen or element not found)
+    if (!targetPosition) {
+      return { 
+        position: 'fixed' as const,
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)'
+      };
+    }
     
     const padding = 20;
     const tooltipWidth = 400;
@@ -155,28 +165,34 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
         style = {
           ...style,
           top: targetPosition.top + targetPosition.height + padding,
-          left: targetPosition.left + (targetPosition.width / 2) - (tooltipWidth / 2),
+          left: Math.max(10, Math.min(
+            window.innerWidth - tooltipWidth - 10,
+            targetPosition.left + (targetPosition.width / 2) - (tooltipWidth / 2)
+          )),
         };
         break;
       case 'top':
         style = {
           ...style,
-          top: targetPosition.top - tooltipHeight - padding,
-          left: targetPosition.left + (targetPosition.width / 2) - (tooltipWidth / 2),
+          top: Math.max(10, targetPosition.top - tooltipHeight - padding),
+          left: Math.max(10, Math.min(
+            window.innerWidth - tooltipWidth - 10,
+            targetPosition.left + (targetPosition.width / 2) - (tooltipWidth / 2)
+          )),
         };
         break;
       case 'left':
         style = {
           ...style,
-          top: targetPosition.top + (targetPosition.height / 2) - (tooltipHeight / 2),
-          left: targetPosition.left - tooltipWidth - padding,
+          top: Math.max(10, targetPosition.top + (targetPosition.height / 2) - (tooltipHeight / 2)),
+          left: Math.max(10, targetPosition.left - tooltipWidth - padding),
         };
         break;
       case 'right':
         style = {
           ...style,
-          top: targetPosition.top + (targetPosition.height / 2) - (tooltipHeight / 2),
-          left: targetPosition.left + targetPosition.width + padding,
+          top: Math.max(10, targetPosition.top + (targetPosition.height / 2) - (tooltipHeight / 2)),
+          left: Math.min(window.innerWidth - tooltipWidth - 10, targetPosition.left + targetPosition.width + padding),
         };
         break;
     }
