@@ -12,6 +12,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { ChevronDown } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
+import { DesignerGuide, HelpButton } from "@/components/DesignerGuide";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
@@ -79,7 +80,17 @@ const DesignStudio = () => {
     designerPrice: 0,
     termsAccepted: false,
   });
+  const [showGuide, setShowGuide] = useState(false);
   const { toast } = useToast();
+
+  // Check if user has seen the guide
+  useEffect(() => {
+    const hasSeenGuide = localStorage.getItem("designer-guide-completed");
+    if (!hasSeenGuide && user) {
+      // Show guide after a brief delay for better UX
+      setTimeout(() => setShowGuide(true), 1000);
+    }
+  }, [user]);
 
   // Clear AR mode from session when component unmounts
   useEffect(() => {
@@ -944,6 +955,7 @@ const DesignStudio = () => {
                     </div>
 
                     <Textarea
+                      id="prompt-input"
                       placeholder="Example: A modern minimalist dining table with organic curved edges, matte black finish, 72×40×30 inches..."
                       className="min-h-[160px] text-base"
                       value={prompt}
@@ -1207,7 +1219,7 @@ const DesignStudio = () => {
                     </div>
 
                     {/* Upload Sketch */}
-                    <div className="border-t pt-3">
+                    <div id="upload-section" className="border-t pt-3">
                       <Button variant="outline" className="w-full" asChild>
                         <label className="cursor-pointer">
                           <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
@@ -1306,7 +1318,7 @@ const DesignStudio = () => {
                     </Collapsible>
 
                     {/* Generate Button - At the end, prominently visible */}
-                    <div className="space-y-3 border-t pt-4">
+                    <div id="generate-button" className="space-y-3 border-t pt-4">
                       <Button 
                         variant="hero" 
                         size="lg"
@@ -1425,7 +1437,7 @@ const DesignStudio = () => {
                                 <span className="text-sm font-bold text-primary">{dimensions.length}" × {dimensions.breadth}" × {dimensions.height}"</span>
                               </div>
                             )}
-                            <div className="grid grid-cols-1 gap-4">
+                            <div id="variations-section" className="grid grid-cols-1 gap-4">
                               {generatedVariations.map((variation, index) => (
                                  <div key={index} className="space-y-3">
                                    <button
@@ -1858,7 +1870,7 @@ const DesignStudio = () => {
 
         {/* Design Submission Form */}
         {showSubmissionForm && (
-          <section className="bg-accent/20 py-16">
+          <section id="submit-section" className="bg-accent/20 py-16">
             <div className="container max-w-3xl mx-auto">
               <Card className="border-primary/20">
                 <CardContent className="p-8">
@@ -2114,6 +2126,21 @@ const DesignStudio = () => {
       </main>
 
       <Footer />
+
+      {/* Designer Guide Dialog */}
+      <DesignerGuide
+        isOpen={showGuide}
+        onClose={() => setShowGuide(false)}
+        onComplete={() => {
+          toast({
+            title: "Welcome!",
+            description: "You're all set. Start creating your first design.",
+          });
+        }}
+      />
+
+      {/* Help Button */}
+      <HelpButton onClick={() => setShowGuide(true)} />
     </div>
   );
 };
