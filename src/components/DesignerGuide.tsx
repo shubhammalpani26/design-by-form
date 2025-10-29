@@ -168,7 +168,7 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
     <>
       {/* Backdrop overlay */}
       <div 
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/50"
         style={{ zIndex: 10000 }}
         onClick={handleSkip}
       />
