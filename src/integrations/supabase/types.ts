@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      ar_sessions: {
+        Row: {
+          created_at: string
+          id: string
+          product_id: string | null
+          room_image_url: string | null
+          session_type: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          room_image_url?: string | null
+          session_type: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          product_id?: string | null
+          room_image_url?: string | null
+          session_type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ar_sessions_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cart: {
         Row: {
           created_at: string
@@ -79,6 +114,36 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       design_hashes: {
         Row: {
           created_at: string
@@ -101,6 +166,114 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "design_hashes_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_listings: {
+        Row: {
+          created_at: string
+          featured_fee_amount: number | null
+          featured_until: string | null
+          id: string
+          is_featured: boolean
+          listing_fee_amount: number | null
+          listing_fee_paid: boolean
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          featured_fee_amount?: number | null
+          featured_until?: string | null
+          id?: string
+          is_featured?: boolean
+          listing_fee_amount?: number | null
+          listing_fee_paid?: boolean
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          featured_fee_amount?: number | null
+          featured_until?: string | null
+          id?: string
+          is_featured?: boolean
+          listing_fee_amount?: number | null
+          listing_fee_paid?: boolean
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_listings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      designer_earnings: {
+        Row: {
+          commission_amount: number
+          created_at: string
+          designer_id: string
+          id: string
+          order_id: string | null
+          paid_at: string | null
+          product_id: string
+          royalty_amount: number
+          royalty_percentage: number
+          sale_amount: number
+          status: string
+        }
+        Insert: {
+          commission_amount: number
+          created_at?: string
+          designer_id: string
+          id?: string
+          order_id?: string | null
+          paid_at?: string | null
+          product_id: string
+          royalty_amount: number
+          royalty_percentage?: number
+          sale_amount: number
+          status?: string
+        }
+        Update: {
+          commission_amount?: number
+          created_at?: string
+          designer_id?: string
+          id?: string
+          order_id?: string | null
+          paid_at?: string | null
+          product_id?: string
+          royalty_amount?: number
+          royalty_percentage?: number
+          sale_amount?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designer_earnings_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "designer_earnings_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "designer_earnings_product_id_fkey"
             columns: ["product_id"]
             isOneToOne: false
             referencedRelation: "designer_products"
@@ -378,6 +551,27 @@ export type Database = {
         }
         Relationships: []
       }
+      pricing_config: {
+        Row: {
+          config_key: string
+          config_value: Json
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          config_key: string
+          config_value: Json
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          config_key?: string
+          config_value?: Json
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       product_pricing_history: {
         Row: {
           changed_at: string
@@ -470,6 +664,107 @@ export type Database = {
           },
         ]
       }
+      subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          created_at: string
+          current_period_end: string
+          current_period_start: string
+          id: string
+          plan_type: string
+          status: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end: string
+          current_period_start: string
+          id?: string
+          plan_type: string
+          status: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          created_at?: string
+          current_period_end?: string
+          current_period_start?: string
+          id?: string
+          plan_type?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      usage_analytics: {
+        Row: {
+          action_type: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "usage_analytics_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_credits: {
+        Row: {
+          balance: number
+          created_at: string
+          free_credits_reset_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          balance?: number
+          created_at?: string
+          free_credits_reset_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          balance?: number
+          created_at?: string
+          free_credits_reset_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -504,6 +799,7 @@ export type Database = {
         Returns: boolean
       }
       reduce_stale_product_prices: { Args: never; Returns: undefined }
+      reset_monthly_credits: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "designer" | "customer"
