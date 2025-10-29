@@ -51,7 +51,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             <Button
               size="sm"
               variant="secondary"
-              className="bg-white/90 hover:bg-white backdrop-blur-sm shadow-md"
+              className="backdrop-blur-sm shadow-lg"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
