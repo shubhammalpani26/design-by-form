@@ -944,7 +944,7 @@ const DesignStudio = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Input Side */}
               <div className="space-y-6">
-                <Card className="border-primary/20 shadow-medium">
+                <Card id="welcome-card" className="border-primary/20 shadow-medium">
                   <CardContent className="p-6 space-y-6">
                     {/* Main Design Description */}
                     <div>
