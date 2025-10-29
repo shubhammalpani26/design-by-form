@@ -167,12 +167,49 @@ const DesignStudio = () => {
       return;
     }
 
+    // Check credits before generation
+    try {
+      const { data: creditCheck, error: creditError } = await supabase.functions.invoke('check-credits', {
+        body: { action: 'check', creditsNeeded: 1 }
+      });
+
+      if (creditError) throw creditError;
+
+      if (!creditCheck.hasCredits) {
+        toast({
+          title: "Insufficient Credits",
+          description: `You need ${creditCheck.creditsNeeded} credit to generate a design. You have ${creditCheck.balance} credits.`,
+          variant: "destructive",
+        });
+        return;
+      }
+    } catch (error) {
+      console.error('Credit check error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to check credits. Please try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsGenerating(true);
     setGeneratedVariations([]);
     setSelectedVariation(null);
     setVariationDimensions({});
     setVariationSelectedSize({});
     setPolling3DStatus({});
+    
+    // Deduct credits after successful generation start
+    const deductCreditsAfterGeneration = async () => {
+      try {
+        await supabase.functions.invoke('check-credits', {
+          body: { action: 'deduct', creditsNeeded: 1 }
+        });
+      } catch (error) {
+        console.error('Credit deduction error:', error);
+      }
+    };
     
     try {
       // Convert room image to base64 if uploaded
@@ -247,6 +284,9 @@ const DesignStudio = () => {
 
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
+      
+      // Deduct credits after successful generation
+      await deductCreditsAfterGeneration();
       
       // Don't auto-start 3D generation anymore
       

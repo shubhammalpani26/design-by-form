@@ -8,3 +8,12 @@ verify_jwt = false
 
 [functions.proxy-3d-model]
 verify_jwt = false
+
+[functions.check-credits]
+verify_jwt = true
+
+[functions.purchase-credits]
+verify_jwt = true
+
+[functions.check-plagiarism]
+verify_jwt = false
