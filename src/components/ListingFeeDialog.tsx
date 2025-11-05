@@ -130,13 +130,27 @@ export const ListingFeeDialog = ({
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>{isPersonalMode ? 'Manufacturing feasibility review' : 'Your design listed on our global marketplace with 2D images'}</span>
+                <span>{isPersonalMode ? 'Manufacturing feasibility review' : 'Your design listed on our global marketplace'}</span>
               </li>
               {!isPersonalMode && (
-                <li className="flex items-start gap-2">
-                  <span className="text-primary mt-0.5">✓</span>
-                  <span>Earn on every sale (your markup + 10% commission)</span>
-                </li>
+                <>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span>AI-generated product photos from multiple angles</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span>Complete Success Kit with social media templates & captions</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span>Trackable product links for marketing</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-primary mt-0.5">✓</span>
+                    <span>Earn on every sale (your markup + 10% commission)</span>
+                  </li>
+                </>
               )}
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>

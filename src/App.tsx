@@ -16,6 +16,7 @@ import DesignerBankDetails from "./pages/DesignerBankDetails";
 import AdminDashboard from "./pages/AdminDashboard";
 import HowItWorks from "./pages/HowItWorks";
 import CreatorEarnings from "./pages/CreatorEarnings";
+import CreatorEarningsDashboard from "./pages/CreatorEarningsDashboard";
 import CreatorDashboard from "./pages/CreatorDashboard";
 import CreatorProfile from "./pages/CreatorProfile";
 import CreatorLeaderboard from "./pages/CreatorLeaderboard";
@@ -54,7 +55,7 @@ const App = () => (
             {/* Creator Dashboard Routes */}
             <Route path="/creator/dashboard" element={<CreatorDashboard />} />
             <Route path="/creator/designs" element={<DesignerDashboard />} />
-            <Route path="/creator/earnings" element={<CreatorEarnings />} />
+            <Route path="/creator/earnings" element={<CreatorEarningsDashboard />} />
             <Route path="/creator/profile" element={<CreatorProfile />} />
             <Route path="/creator/settings" element={<CreatorProfile />} />
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
