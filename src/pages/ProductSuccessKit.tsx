@@ -79,46 +79,39 @@ const ProductSuccessKit = () => {
     ));
 
     try {
-      const prompt = `Professional product photography of ${product.name}, ${angle.toLowerCase()}, studio lighting, white background, high resolution, commercial quality`;
-      
-      const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${import.meta.env.VITE_LOVABLE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'google/gemini-2.5-flash-image-preview',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                { type: 'text', text: prompt },
-                { type: 'image_url', image_url: { url: product.image_url } }
-              ]
-            }
-          ],
-          modalities: ['image', 'text']
-        }),
+      const { data, error } = await supabase.functions.invoke('generate-angle-view', {
+        body: {
+          imageUrl: product.image_url,
+          angle: angle,
+          productName: product.name
+        }
       });
 
-      const data = await response.json();
-      const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to generate angle view');
+      }
 
-      if (imageUrl) {
+      if (data?.error) {
+        throw new Error(data.error);
+      }
+
+      if (data?.imageUrl) {
         setAngleShots(prev => prev.map((shot, idx) => 
-          idx === index ? { ...shot, url: imageUrl, loading: false } : shot
+          idx === index ? { ...shot, url: data.imageUrl, loading: false } : shot
         ));
         toast({
           title: 'Success',
           description: `${angle} generated successfully!`,
         });
+      } else {
+        throw new Error('No image URL returned');
       }
     } catch (error) {
       console.error('Error generating angle:', error);
       toast({
         title: 'Error',
-        description: 'Failed to generate angle view',
+        description: error instanceof Error ? error.message : 'Failed to generate angle view',
         variant: 'destructive',
       });
       setAngleShots(prev => prev.map((shot, idx) => 

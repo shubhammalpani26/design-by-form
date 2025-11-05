@@ -23,3 +23,6 @@ verify_jwt = true
 
 [functions.pay-3d-generation-fee]
 verify_jwt = true
+
+[functions.generate-angle-view]
+verify_jwt = true
