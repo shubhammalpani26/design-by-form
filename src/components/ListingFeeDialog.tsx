@@ -17,6 +17,7 @@ interface ListingFeeDialogProps {
   onOpenChange: (open: boolean) => void;
   productId: string;
   onSuccess: () => void;
+  isPersonalMode?: boolean;
 }
 
 export const ListingFeeDialog = ({
@@ -24,6 +25,7 @@ export const ListingFeeDialog = ({
   onOpenChange,
   productId,
   onSuccess,
+  isPersonalMode = false,
 }: ListingFeeDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [country, setCountry] = useState("IN");
@@ -66,16 +68,21 @@ export const ListingFeeDialog = ({
     }
   };
 
+  const dialogTitle = isPersonalMode ? "Design Assessment Fee" : "Listing Fee";
+  const dialogDescription = isPersonalMode 
+    ? "One-time fee to assess your design for manufacturing feasibility" 
+    : "One-time fee to list your design on our marketplace";
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="h-5 w-5 text-primary" />
-            Pay Listing Fee
+            {dialogTitle}
           </DialogTitle>
           <DialogDescription>
-            A one-time fee to list your design on our marketplace
+            {dialogDescription}
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +109,9 @@ export const ListingFeeDialog = ({
           {/* Fee Display */}
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">Listing Fee</span>
+              <span className="text-sm font-medium text-foreground">
+                {isPersonalMode ? 'Assessment Fee' : 'Listing Fee'}
+              </span>
               <div className="flex items-center gap-1">
                 <DollarSign className="w-5 h-5 text-primary" />
                 <span className="text-2xl font-bold text-primary">
@@ -111,7 +120,7 @@ export const ListingFeeDialog = ({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              One-time fee • No monthly charges • Keep 100% of your markup
+              One-time fee • No monthly charges{!isPersonalMode && ' • Keep 100% of your markup'}
             </p>
           </div>
 
@@ -121,12 +130,14 @@ export const ListingFeeDialog = ({
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Your design listed on our global marketplace with 2D images</span>
+                <span>{isPersonalMode ? 'Manufacturing feasibility review' : 'Your design listed on our global marketplace with 2D images'}</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">✓</span>
-                <span>Earn on every sale (your markup + 10% commission)</span>
-              </li>
+              {!isPersonalMode && (
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Earn on every sale (your markup + 10% commission)</span>
+                </li>
+              )}
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
                 <span>Manufacturing quality check & approval</span>
@@ -135,13 +146,21 @@ export const ListingFeeDialog = ({
                 <span className="text-primary mt-0.5">✓</span>
                 <span>Professional product photography</span>
               </li>
-              <li className="flex items-start gap-2">
-                <span className="text-primary mt-0.5">✓</span>
-                <span>Marketing to our customer base</span>
-              </li>
+              {!isPersonalMode && (
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Marketing to our customer base</span>
+                </li>
+              )}
+              {isPersonalMode && (
+                <li className="flex items-start gap-2">
+                  <span className="text-primary mt-0.5">✓</span>
+                  <span>Private design - not listed publicly</span>
+                </li>
+              )}
             </ul>
             <div className="mt-3 p-2 bg-accent/20 rounded text-xs text-muted-foreground">
-              <p><strong>Optional:</strong> Add 3D model & AR preview for an additional fee after listing</p>
+              <p><strong>Optional:</strong> Add 3D model & AR preview for an additional fee</p>
             </div>
           </div>
 

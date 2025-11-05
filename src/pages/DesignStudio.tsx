@@ -15,6 +15,7 @@ import { ARViewer } from "@/components/ARViewer";
 import { DesignerGuide, HelpButton } from "@/components/DesignerGuide";
 import { ListingFeeDialog } from "@/components/ListingFeeDialog";
 import { ThreeDGenerationFeeDialog } from "@/components/ThreeDGenerationFeeDialog";
+import { IntentSelectionDialog } from "@/components/IntentSelectionDialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
@@ -87,6 +88,8 @@ const DesignStudio = () => {
   const [show3DFeeDialog, setShow3DFeeDialog] = useState(false);
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [threeDFeePaid, setThreeDFeePaid] = useState(false);
+  const [showIntentDialog, setShowIntentDialog] = useState(true);
+  const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
   const { toast } = useToast();
 
   // Check if user has seen the guide
@@ -717,6 +720,16 @@ const DesignStudio = () => {
       return;
     }
 
+    if (!userIntent) {
+      toast({
+        title: "Please Select Intent",
+        description: "Please choose if you're creating to sell or for personal use.",
+        variant: "destructive",
+      });
+      setShowIntentDialog(true);
+      return;
+    }
+
     if (!dimensions.length || !dimensions.breadth || !dimensions.height) {
       toast({
         title: "Dimensions Required",
@@ -746,39 +759,57 @@ const DesignStudio = () => {
         return;
       }
 
-      // Get designer profile
+      // Get designer profile (or create for personal mode)
       const { data: profile, error: profileError } = await supabase
         .from("designer_profiles")
         .select("id, status, terms_accepted")
         .eq("user_id", user.id)
         .single();
 
-      if (profileError || !profile) {
-        toast({
-          title: "Complete Designer Onboarding",
-          description: "Please complete the designer onboarding process first.",
-        });
-        navigate('/designer-onboarding');
-        return;
-      }
+      // For personal mode, skip designer onboarding requirement
+      if (userIntent === 'designer') {
+        if (profileError || !profile) {
+          toast({
+            title: "Complete Designer Onboarding",
+            description: "Please complete the designer onboarding process first.",
+          });
+          navigate('/designer-onboarding');
+          return;
+        }
 
-      if (!profile.terms_accepted) {
-        toast({
-          title: "Terms Not Accepted",
-          description: "Please complete the designer onboarding to accept terms.",
-          variant: "destructive",
-        });
-        navigate('/designer-onboarding');
-        return;
-      }
+        if (!profile.terms_accepted) {
+          toast({
+            title: "Terms Not Accepted",
+            description: "Please complete the designer onboarding to accept terms.",
+            variant: "destructive",
+          });
+          navigate('/designer-onboarding');
+          return;
+        }
 
-      if (profile.status !== 'approved') {
-        toast({
-          title: "Profile Under Review",
-          description: "Your designer profile is currently under review. We'll notify you once approved.",
-          variant: "destructive",
-        });
-        return;
+        if (profile.status !== 'approved') {
+          toast({
+            title: "Profile Under Review",
+            description: "Your designer profile is currently under review. We'll notify you once approved.",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else if (!profile && userIntent === 'personal') {
+        // Create a basic designer profile for personal mode users
+        const { data: newProfile, error: createError } = await supabase
+          .from("designer_profiles")
+          .insert({
+            user_id: user.id,
+            name: user.user_metadata?.full_name || user.email || 'Personal User',
+            email: user.email || '',
+            terms_accepted: true,
+            status: 'approved', // Auto-approve for personal mode
+          })
+          .select()
+          .single();
+
+        if (createError) throw createError;
       }
 
       // Check for plagiarism
@@ -822,7 +853,7 @@ const DesignStudio = () => {
           pricing_per_cubic_foot: currentPricing?.pricePerCubicFoot || null,
           pricing_reasoning: currentPricing?.reasoning || null,
           pricing_calculated_at: new Date().toISOString(),
-          status: 'draft', // Will become pending after listing fee is paid
+          status: userIntent === 'personal' ? 'private' : 'draft', // Will become 'pending' for designers after listing fee is paid
         })
         .select()
         .single();
@@ -2091,16 +2122,40 @@ const DesignStudio = () => {
 
       <Footer />
 
+      {/* Intent Selection Dialog */}
+      <IntentSelectionDialog
+        isOpen={showIntentDialog}
+        onSelect={(intent) => {
+          setUserIntent(intent);
+          setShowIntentDialog(false);
+          if (intent === 'designer') {
+            toast({
+              title: "Designer Mode Selected",
+              description: "You'll need to complete designer onboarding before listing your design.",
+            });
+          } else {
+            toast({
+              title: "Personal Mode Selected",
+              description: "Your design will be private and manufactured for your personal use only.",
+            });
+          }
+        }}
+      />
+
       {/* Listing Fee Dialog */}
       {pendingProductId && (
         <ListingFeeDialog
           open={showListingFeeDialog}
           onOpenChange={setShowListingFeeDialog}
           productId={pendingProductId}
+          isPersonalMode={userIntent === 'personal'}
           onSuccess={() => {
+            const successMessage = userIntent === 'personal' 
+              ? "Assessment fee paid! Your design is being reviewed for manufacturing feasibility."
+              : "Listing fee paid! Your design is now under review and will be listed in the marketplace.";
             toast({
-              title: "Design Submitted!",
-              description: "We'll review your design and notify you when it's approved.",
+              title: userIntent === 'personal' ? "Assessment Complete" : "Design Submitted!",
+              description: successMessage,
             });
             setGeneratedDesign(null);
             setGeneratedVariations([]);
