@@ -30,12 +30,13 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
               <div>
                 <h3 className="font-semibold text-lg mb-2">Create to Sell</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  List your design in our marketplace and earn royalties on every sale
+                  List your design in our marketplace and earn on every sale
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Become a verified designer</li>
                   <li>• Pay listing fee (₹1,000)</li>
-                  <li>• Earn 7% royalties on sales</li>
+                  <li>• Keep 100% of your markup above manufacturing cost</li>
+                  <li>• Earn up to 15%* platform commission</li>
                   <li>• Public marketplace listing</li>
                 </ul>
               </div>
@@ -57,18 +58,24 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Skip designer onboarding</li>
-                  <li>• Pay assessment fee (₹1,000)</li>
-                  <li>• Private, not listed publicly</li>
-                  <li>• Direct to manufacturing</li>
+                  <li>• Professional feasibility review (₹1,000)</li>
+                  <li>• Expert manufacturing assessment</li>
+                  <li>• Private design, not listed publicly</li>
+                  <li>• Direct to production after approval</li>
                 </ul>
               </div>
             </div>
           </button>
         </div>
 
-        <p className="text-xs text-center text-muted-foreground mt-4">
-          You can always become a designer later if you choose personal use
-        </p>
+        <div className="mt-4 space-y-1">
+          <p className="text-xs text-center text-muted-foreground">
+            * Commission rate increases with sales performance (7% - 15%)
+          </p>
+          <p className="text-xs text-center text-muted-foreground">
+            You can always become a designer later if you choose personal use
+          </p>
+        </div>
       </DialogContent>
     </Dialog>
   );
