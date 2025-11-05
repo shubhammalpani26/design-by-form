@@ -26,6 +26,7 @@ import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import ShopperFAQ from "./pages/ShopperFAQ";
 import CreatorFAQ from "./pages/CreatorFAQ";
+import DesignerOnboarding from "./pages/DesignerOnboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/designer-onboarding" element={<DesignerOnboarding />} />
             <Route path="/shopper-faq" element={<ShopperFAQ />} />
             <Route path="/creator-faq" element={<CreatorFAQ />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

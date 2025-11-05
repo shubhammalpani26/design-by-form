@@ -17,3 +17,6 @@ verify_jwt = true
 
 [functions.check-plagiarism]
 verify_jwt = false
+
+[functions.pay-listing-fee]
+verify_jwt = true

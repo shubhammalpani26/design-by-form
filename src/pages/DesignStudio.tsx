@@ -13,6 +13,7 @@ import { ChevronDown } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { DesignerGuide, HelpButton } from "@/components/DesignerGuide";
+import { ListingFeeDialog } from "@/components/ListingFeeDialog";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
@@ -81,6 +82,8 @@ const DesignStudio = () => {
     termsAccepted: false,
   });
   const [showGuide, setShowGuide] = useState(false);
+  const [showListingFeeDialog, setShowListingFeeDialog] = useState(false);
+  const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Check if user has seen the guide
@@ -805,17 +808,35 @@ const DesignStudio = () => {
       // Get designer profile
       const { data: profile, error: profileError } = await supabase
         .from("designer_profiles")
-        .select("id")
+        .select("id, status, terms_accepted")
         .eq("user_id", user.id)
         .single();
 
       if (profileError || !profile) {
         toast({
-          title: "Complete Your Creator Profile",
-          description: "Let's set up your creator profile to submit designs.",
+          title: "Complete Designer Onboarding",
+          description: "Please complete the designer onboarding process first.",
         });
-        // Redirect to designer signup to complete profile
-        navigate('/designer-signup');
+        navigate('/designer-onboarding');
+        return;
+      }
+
+      if (!profile.terms_accepted) {
+        toast({
+          title: "Terms Not Accepted",
+          description: "Please complete the designer onboarding to accept terms.",
+          variant: "destructive",
+        });
+        navigate('/designer-onboarding');
+        return;
+      }
+
+      if (profile.status !== 'approved') {
+        toast({
+          title: "Profile Under Review",
+          description: "Your designer profile is currently under review. We'll notify you once approved.",
+          variant: "destructive",
+        });
         return;
       }
 
@@ -839,58 +860,37 @@ const DesignStudio = () => {
       }
 
       // Create product with dimensions and pricing analytics
-      const { error: productError } = await supabase.from("designer_products").insert({
-        designer_id: profile.id,
-        name: validatedData.name,
-        description: validatedData.description,
-        category: validatedData.category,
-        base_price: validatedData.basePrice,
-        designer_price: validatedData.designerPrice,
-        original_designer_price: validatedData.designerPrice,
-        image_url: generatedDesign,
-        dimensions: {
-          length: parseFloat(dimensions.length),
-          breadth: parseFloat(dimensions.breadth),
-          height: parseFloat(dimensions.height)
-        },
-        // Save pricing analytics for backend data analysis (not shown to customer)
-        pricing_complexity: currentPricing?.complexity || null,
-        pricing_per_cubic_foot: currentPricing?.pricePerCubicFoot || null,
-        pricing_reasoning: currentPricing?.reasoning || null,
-        pricing_calculated_at: new Date().toISOString(),
-        status: 'pending',
-      });
+      const { data: newProduct, error: productError } = await supabase.from("designer_products")
+        .insert({
+          designer_id: profile.id,
+          name: validatedData.name,
+          description: validatedData.description,
+          category: validatedData.category,
+          base_price: validatedData.basePrice,
+          designer_price: validatedData.designerPrice,
+          original_designer_price: validatedData.designerPrice,
+          image_url: generatedDesign,
+          model_url: selectedVariation !== null ? generatedVariations[selectedVariation]?.modelUrl : null,
+          dimensions: {
+            length: parseFloat(dimensions.length),
+            breadth: parseFloat(dimensions.breadth),
+            height: parseFloat(dimensions.height)
+          },
+          // Save pricing analytics for backend data analysis (not shown to customer)
+          pricing_complexity: currentPricing?.complexity || null,
+          pricing_per_cubic_foot: currentPricing?.pricePerCubicFoot || null,
+          pricing_reasoning: currentPricing?.reasoning || null,
+          pricing_calculated_at: new Date().toISOString(),
+          status: 'draft', // Will become pending after listing fee is paid
+        })
+        .select()
+        .single();
 
       if (productError) throw productError;
 
-      toast({
-        title: "Design Submitted!",
-        description: "We'll review your design for manufacturing feasibility and notify you via email/SMS when it's approved.",
-      });
-
-      // Reset form
-      setGeneratedDesign(null);
-      setGeneratedVariations([]);
-      setSelectedVariation(null);
-      setShowSubmissionForm(false);
-      setShowWorkflow(false);
-      setDimensions({ length: "", breadth: "", height: "" });
-      setVariationDimensions({});
-      setVariationSelectedSize({});
-      setSubmissionData({
-        name: "",
-        description: "",
-        category: "chairs",
-        basePrice: 0,
-        designerPrice: 0,
-        termsAccepted: false,
-      });
-      setPrompt("");
-
-      // Redirect to leaderboard after successful submission
-      setTimeout(() => {
-        navigate('/creator-leaderboard');
-      }, 1500);
+      // Store product ID for listing fee payment
+      setPendingProductId(newProduct.id);
+      setShowListingFeeDialog(true);
 
     } catch (error: any) {
       if (error.name === 'ZodError') {
@@ -2127,6 +2127,25 @@ const DesignStudio = () => {
       </main>
 
       <Footer />
+
+      {/* Listing Fee Dialog */}
+      {pendingProductId && (
+        <ListingFeeDialog
+          open={showListingFeeDialog}
+          onOpenChange={setShowListingFeeDialog}
+          productId={pendingProductId}
+          onSuccess={() => {
+            toast({
+              title: "Design Submitted!",
+              description: "We'll review your design and notify you when it's approved.",
+            });
+            setGeneratedDesign(null);
+            setGeneratedVariations([]);
+            setPendingProductId(null);
+            navigate('/creator-dashboard');
+          }}
+        />
+      )}
 
       {/* Designer Guide Dialog */}
       <DesignerGuide
