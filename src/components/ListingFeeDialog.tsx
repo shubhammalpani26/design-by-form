@@ -125,6 +125,10 @@ export const ListingFeeDialog = ({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
+                <span>Access to optional 3D model generation for AR preview</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary mt-0.5">✓</span>
                 <span>Earn on every sale (your markup + 10% commission)</span>
               </li>
               <li className="flex items-start gap-2">
@@ -133,7 +137,7 @@ export const ListingFeeDialog = ({
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Professional product photography & AR preview</span>
+                <span>Professional product photography</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>

@@ -460,68 +460,6 @@ const DesignStudio = () => {
       pricingData.pricePerCubicFoot
     );
     
-    // Generate 3D model for selected variation if not already generated
-    if (!selectedVar.modelUrl && selectedVar.imageUrl) {
-      toast({
-        title: "Generating 3D Model",
-        description: "Creating 3D model for selected design. This may take 2-3 minutes...",
-      });
-      
-      // Generate 3D in background
-      (async () => {
-        try {
-          const response = await supabase.functions.invoke('generate-design', {
-            body: { 
-              prompt: "", // Not needed for 3D only generation
-              imageUrl: selectedVar.imageUrl, // Pass the existing image URL
-              variationNumber: index + 1,
-              generate3D: true
-            }
-          });
-          
-          if (response.error) {
-            throw new Error(response.error.message || 'Failed to generate 3D model');
-          }
-          
-          if (response.data?.modelUrl) {
-            // Update the variation with the 3D model
-            setGeneratedVariations(prev => {
-              const updated = [...prev];
-              updated[index] = { ...updated[index], modelUrl: response.data.modelUrl };
-              return updated;
-            });
-            
-            // Update current view if still on this variation
-            if (selectedVariation === index) {
-              setGenerated3DModel(response.data.modelUrl);
-            }
-            
-            toast({
-              title: "3D Model Ready!",
-              description: "Your 3D model has been generated successfully.",
-            });
-          }
-        } catch (error) {
-          console.error("Error generating 3D model:", error);
-          const errorMsg = error instanceof Error ? error.message : 'Unknown error';
-          
-          if (errorMsg.includes('Insufficient funds') || errorMsg.includes('funds')) {
-            toast({
-              title: "3D Generation Failed",
-              description: "Meshy API credits depleted. Please add funds to your Meshy account or update MESHY_API_KEY secret.",
-              variant: "destructive",
-            });
-          } else {
-            toast({
-              title: "3D Generation Failed",
-              description: errorMsg,
-              variant: "destructive",
-            });
-          }
-        }
-      })();
-    }
-    
     toast({
       title: "Variation Selected",
       description: "Ready to customize dimensions and submit your design.",
@@ -1643,16 +1581,16 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
 
-                      <TabsContent value="3d" className="mt-0 h-full min-h-[600px]" forceMount>
+                      <TabsContent value="3d" className="mt-0 min-h-[500px]">
                         {selectedVariation !== null && generatedVariations[selectedVariation]?.modelUrl ? (
-                          <div className="h-full">
+                          <div className="h-[500px]">
                             <ModelViewer3D 
                               modelUrl={generatedVariations[selectedVariation].modelUrl} 
                               productName="Generated Design"
                             />
                           </div>
                         ) : polling3DStatus[selectedVariation!] ? (
-                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-4">
                               <div className="relative w-24 h-24 mx-auto">
                                 <svg className="w-24 h-24 text-primary/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1665,7 +1603,6 @@ const DesignStudio = () => {
                                 </div>
                               </div>
                               
-                              {/* Progress bar */}
                               <div className="w-full max-w-xs mx-auto">
                                 <div className="h-2 bg-muted rounded-full overflow-hidden">
                                   <div 
@@ -1687,73 +1624,29 @@ const DesignStudio = () => {
                             </div>
                           </div>
                         ) : generatedDesign ? (
-                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <div className="text-center p-8 space-y-4">
+                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                            <div className="text-center p-8 space-y-4 max-w-md">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
                               <div>
-                                <p className="text-muted-foreground text-sm font-medium mb-2">Ready to Create 3D Model</p>
-                                <p className="text-muted-foreground text-xs">Create an interactive 3D model for AR viewing and rotation</p>
+                                <p className="text-foreground text-base font-semibold mb-2">3D Model Optional</p>
+                                <p className="text-muted-foreground text-sm mb-4">
+                                  After submitting and paying the listing fee (₹500), you can generate an interactive 3D model for AR viewing
+                                </p>
                               </div>
-                              <Button 
-                                id="generate-3d-button"
-                                variant="hero" 
-                                size="lg"
-                                onClick={async () => {
-                                  if (selectedVariation === null) return;
-                                  
-                                  const confirmed = window.confirm(
-                                    "Creating a 3D model will take 3-5 minutes and uses AI credits. Do you want to proceed?"
-                                  );
-                                  
-                                  if (!confirmed) return;
-                                  
-                                  try {
-                                    toast({
-                                      title: "Starting 3D Generation",
-                                      description: "This may take 3-5 minutes. You can continue working while we generate the model.",
-                                    });
-                                    
-                                    const variation = generatedVariations[selectedVariation];
-                                    const response = await supabase.functions.invoke('generate-design', {
-                                      body: { 
-                                        imageUrl: variation.imageUrl,
-                                        generate3D: true
-                                      }
-                                    });
-                                    
-                                    if (response.error) {
-                                      throw new Error(response.error.message || 'Failed to start 3D generation');
-                                    }
-                                    
-                                    if (response.data?.taskId) {
-                                      poll3DStatus(selectedVariation, response.data.taskId);
-                                    } else {
-                                      throw new Error('Failed to start 3D generation');
-                                    }
-                                  } catch (error) {
-                                    console.error('3D generation error:', error);
-                                    toast({
-                                      title: "3D Generation Failed",
-                                      description: error instanceof Error ? error.message : "Please try again.",
-                                      variant: "destructive",
-                                    });
-                                  }
-                                }}
-                              >
-                                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                                </svg>
-                                Create 3D Model
-                              </Button>
-                              <p className="text-xs text-muted-foreground">
-                                💡 Once created, you can rotate and view in AR
-                              </p>
+                              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-left">
+                                <p className="text-xs font-semibold text-primary mb-2">💡 Why wait?</p>
+                                <ul className="text-xs text-muted-foreground space-y-1">
+                                  <li>• 3D generation available after listing fee payment</li>
+                                  <li>• Takes 3-5 minutes to generate</li>
+                                  <li>• Enables AR preview for customers</li>
+                                </ul>
+                              </div>
                             </div>
                           </div>
                         ) : (
-                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
@@ -1764,9 +1657,9 @@ const DesignStudio = () => {
                         )}
                       </TabsContent>
                       
-                       <TabsContent value="ar" className="mt-0 h-full min-h-[600px]" forceMount>
+                       <TabsContent value="ar" className="mt-0 min-h-[500px]" id="ar-tab">
                         {generatedDesign ? (
-                          <div className="h-full rounded-xl overflow-auto bg-accent p-4">
+                          <div className="h-[500px] rounded-xl overflow-auto bg-accent/5 border border-border">
                             <ARViewer 
                               productName="Generated Design" 
                               imageUrl={generatedDesign}
@@ -1774,14 +1667,14 @@ const DesignStudio = () => {
                               roomImage={roomImage}
                               onStartAR={() => {
                                 toast({
-                                  title: "AR Mode",
-                                  description: "Live AR is coming soon! For now, use the preview above to visualize your design.",
+                                  title: "AR Preview Available",
+                                  description: "View your design in your space. 3D model enhances AR experience!",
                                 });
                               }}
                             />
                           </div>
                         ) : (
-                          <div className="h-full rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
+                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-3">
                               <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
                                 <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
