@@ -812,25 +812,6 @@ const DesignStudio = () => {
         if (createError) throw createError;
       }
 
-      // Check for plagiarism
-      const { data: plagiarismData, error: plagiarismError } = await supabase.functions.invoke(
-        'check-plagiarism',
-        { body: { imageUrl: generatedDesign } }
-      );
-
-      if (plagiarismError) {
-        console.error('Plagiarism check error:', plagiarismError);
-      }
-
-      if (plagiarismData?.isPlagiarized) {
-        toast({
-          title: "Similar Design Detected",
-          description: `This design appears similar to ${plagiarismData.similarCount} existing design(s). Please ensure your design is original.`,
-          variant: "destructive",
-        });
-        return;
-      }
-
       // Create product with dimensions and pricing analytics
       const { data: newProduct, error: productError } = await supabase.from("designer_products")
         .insert({
@@ -870,6 +851,17 @@ const DesignStudio = () => {
         });
 
       if (listingError) throw listingError;
+
+      // Run plagiarism check in background (non-blocking)
+      supabase.functions.invoke('check-plagiarism', {
+        body: { imageUrl: generatedDesign, productId: newProduct.id }
+      }).then(({ data, error }) => {
+        if (error) {
+          console.error('Background plagiarism check error:', error);
+        } else if (data?.isPlagiarized) {
+          console.warn(`Design similarity detected: ${data.similarCount} similar design(s)`);
+        }
+      });
 
       // Store product ID for listing fee payment
       setPendingProductId(newProduct.id);
