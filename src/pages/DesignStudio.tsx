@@ -2105,7 +2105,7 @@ const DesignStudio = () => {
             setGeneratedDesign(null);
             setGeneratedVariations([]);
             setPendingProductId(null);
-            navigate('/creator-dashboard');
+            navigate('/creator/dashboard');
           }}
         />
       )}
