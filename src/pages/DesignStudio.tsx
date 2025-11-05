@@ -924,6 +924,45 @@ const DesignStudio = () => {
         {/* Design Interface */}
         <section className="container py-12">
           <div className="max-w-6xl mx-auto">
+            {/* Mode Switcher */}
+            {userIntent && (
+              <div className="mb-6 flex justify-center">
+                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-lg bg-card border border-border shadow-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-muted-foreground">Current Mode:</span>
+                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                      userIntent === 'designer' 
+                        ? 'bg-primary/10 text-primary border border-primary/20' 
+                        : 'bg-secondary/10 text-secondary border border-secondary/20'
+                    }`}>
+                      {userIntent === 'designer' ? (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                          </svg>
+                          <span className="font-semibold text-sm">Create to Sell</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          <span className="font-semibold text-sm">Personal Use</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowIntentDialog(true)}
+                    className="text-xs"
+                  >
+                    Change Mode
+                  </Button>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Input Side */}
               <div className="space-y-6">
@@ -2126,18 +2165,37 @@ const DesignStudio = () => {
       <IntentSelectionDialog
         isOpen={showIntentDialog}
         onSelect={(intent) => {
+          if (!intent) {
+            // User closed dialog without selecting
+            setShowIntentDialog(false);
+            return;
+          }
+          
+          const previousIntent = userIntent;
           setUserIntent(intent);
           setShowIntentDialog(false);
-          if (intent === 'designer') {
+          
+          if (previousIntent && previousIntent !== intent) {
+            // Switching modes
             toast({
-              title: "Designer Mode Selected",
-              description: "You'll need to complete designer onboarding before listing your design.",
+              title: "Mode Changed",
+              description: intent === 'designer' 
+                ? "Switched to Designer Mode. You can now list your designs for sale."
+                : "Switched to Personal Mode. Your designs will be private and for personal use only.",
             });
-          } else {
-            toast({
-              title: "Personal Mode Selected",
-              description: "Your design will be private and manufactured for your personal use only.",
-            });
+          } else if (!previousIntent) {
+            // First time selection
+            if (intent === 'designer') {
+              toast({
+                title: "Designer Mode Selected",
+                description: "You'll need to complete designer onboarding before listing your design.",
+              });
+            } else {
+              toast({
+                title: "Personal Mode Selected",
+                description: "Your design will be private and manufactured for your personal use only.",
+              });
+            }
           }
         }}
       />

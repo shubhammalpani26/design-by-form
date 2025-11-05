@@ -9,8 +9,8 @@ interface IntentSelectionDialogProps {
 
 export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialogProps) => {
   return (
-    <Dialog open={isOpen}>
-      <DialogContent className="sm:max-w-[600px] [&>button]:hidden">
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onSelect && onSelect(null as any)}>
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle className="text-2xl text-center">What brings you here today?</DialogTitle>
           <DialogDescription className="text-center text-base">
