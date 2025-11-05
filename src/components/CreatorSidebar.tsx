@@ -1,4 +1,4 @@
-import { Home, Package, TrendingUp, User, Settings, PlusCircle } from "lucide-react";
+import { Home, Package, TrendingUp, User, Settings, PlusCircle, Sparkles } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import {
   Sidebar,
@@ -16,6 +16,7 @@ const menuItems = [
   { title: "Dashboard", url: "/creator/dashboard", icon: Home },
   { title: "My Designs", url: "/creator/designs", icon: Package },
   { title: "Create New", url: "/design-studio", icon: PlusCircle },
+  { title: "Success Kit", url: "/creator/success-kit", icon: Sparkles },
   { title: "Earnings", url: "/creator/earnings", icon: TrendingUp },
   { title: "Profile", url: "/creator/profile", icon: User },
   { title: "Settings", url: "/creator/settings", icon: Settings },
