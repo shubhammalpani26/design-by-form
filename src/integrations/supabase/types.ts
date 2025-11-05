@@ -183,6 +183,9 @@ export type Database = {
           listing_fee_amount: number | null
           listing_fee_paid: boolean
           product_id: string
+          three_d_fee_amount: number | null
+          three_d_fee_paid: boolean
+          three_d_generated_at: string | null
           updated_at: string
         }
         Insert: {
@@ -194,6 +197,9 @@ export type Database = {
           listing_fee_amount?: number | null
           listing_fee_paid?: boolean
           product_id: string
+          three_d_fee_amount?: number | null
+          three_d_fee_paid?: boolean
+          three_d_generated_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -205,6 +211,9 @@ export type Database = {
           listing_fee_amount?: number | null
           listing_fee_paid?: boolean
           product_id?: string
+          three_d_fee_amount?: number | null
+          three_d_fee_paid?: boolean
+          three_d_generated_at?: string | null
           updated_at?: string
         }
         Relationships: [

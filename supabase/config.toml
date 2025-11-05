@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.pay-listing-fee]
 verify_jwt = true
+
+[functions.pay-3d-generation-fee]
+verify_jwt = true

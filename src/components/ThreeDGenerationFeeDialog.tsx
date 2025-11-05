@@ -7,37 +7,36 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { CreditCard, DollarSign } from "lucide-react";
+import { Sparkles, DollarSign } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
-interface ListingFeeDialogProps {
+interface ThreeDGenerationFeeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   productId: string;
   onSuccess: () => void;
 }
 
-export const ListingFeeDialog = ({
+export const ThreeDGenerationFeeDialog = ({
   open,
   onOpenChange,
   productId,
   onSuccess,
-}: ListingFeeDialogProps) => {
+}: ThreeDGenerationFeeDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [country, setCountry] = useState("IN");
   const { toast } = useToast();
 
   const isInternational = country !== "IN";
-  const fee = isInternational ? 10 : 500;
+  const fee = isInternational ? 15 : 750;
   const currency = isInternational ? "USD" : "INR";
   const symbol = isInternational ? "$" : "₹";
 
   const handlePayment = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('pay-listing-fee', {
+      const { data, error } = await supabase.functions.invoke('pay-3d-generation-fee', {
         body: {
           productId,
           paymentMethod: 'mock', // In production: stripe/razorpay
@@ -49,7 +48,7 @@ export const ListingFeeDialog = ({
 
       toast({
         title: "Payment Successful!",
-        description: data.message || "Your design is now under review.",
+        description: data.message || "3D generation is now available for your design.",
       });
 
       onSuccess();
@@ -71,11 +70,11 @@ export const ListingFeeDialog = ({
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <CreditCard className="h-5 w-5 text-primary" />
-            Pay Listing Fee
+            <Sparkles className="h-5 w-5 text-primary" />
+            Enable 3D Model Generation
           </DialogTitle>
           <DialogDescription>
-            A one-time fee to list your design on our marketplace
+            Unlock 3D model generation and AR preview for your design
           </DialogDescription>
         </DialogHeader>
 
@@ -102,7 +101,7 @@ export const ListingFeeDialog = ({
           {/* Fee Display */}
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-foreground">Listing Fee</span>
+              <span className="text-sm font-medium text-foreground">3D Generation Fee</span>
               <div className="flex items-center gap-1">
                 <DollarSign className="w-5 h-5 text-primary" />
                 <span className="text-2xl font-bold text-primary">
@@ -111,7 +110,7 @@ export const ListingFeeDialog = ({
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              One-time fee • No monthly charges • Keep 100% of your markup
+              One-time fee per design • High-quality 3D model • AR preview enabled
             </p>
           </div>
 
@@ -121,28 +120,25 @@ export const ListingFeeDialog = ({
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Your design listed on our global marketplace with 2D images</span>
+                <span>Professional 3D model generation via Meshy API</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Earn on every sale (your markup + 10% commission)</span>
+                <span>Interactive AR preview for customers</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Manufacturing quality check & approval</span>
+                <span>360° product visualization</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Professional product photography</span>
+                <span>Higher conversion rates with immersive experience</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-primary mt-0.5">✓</span>
-                <span>Marketing to our customer base</span>
+                <span>Stand out from 2D-only listings</span>
               </li>
             </ul>
-            <div className="mt-3 p-2 bg-accent/20 rounded text-xs text-muted-foreground">
-              <p><strong>Optional:</strong> Add 3D model & AR preview for an additional fee after listing</p>
-            </div>
           </div>
 
           {/* Mock Payment Info */}
@@ -159,7 +155,7 @@ export const ListingFeeDialog = ({
               disabled={loading}
               className="flex-1"
             >
-              Cancel
+              Skip (2D Only)
             </Button>
             <Button
               onClick={handlePayment}

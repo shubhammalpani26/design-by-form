@@ -52,9 +52,9 @@ const guideSteps: GuideStep[] = [
     targetId: "variations-grid",
   },
   {
-    title: "Step 5: 3D Model (Optional - After Payment)",
-    description: "After submitting your design and paying the ₹500 listing fee, you can optionally generate a 3D model for AR preview. This takes 3-5 minutes.",
-    tip: "3D models are optional but help customers visualize and increase sales!",
+    title: "Step 5: 3D Model (Optional Upgrade)",
+    description: "After paying the ₹500 listing fee, you can optionally add 3D generation (₹750 India / $15 international) for AR preview. This is a separate, optional fee.",
+    tip: "3D models help customers visualize in AR and can increase conversion rates!",
     targetId: "generate-3d-button",
   },
   {
