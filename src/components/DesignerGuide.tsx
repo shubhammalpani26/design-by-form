@@ -41,9 +41,27 @@ const guideSteps: GuideStep[] = [
   },
   {
     title: "Step 3: Generate Your Designs",
-    description: "Click this button to generate 3 unique design variations. Each generation uses 1 credit.",
-    tip: "Review all 3 variations and pick your favorite to customize further!",
+    description: "Click this button to generate 3 unique design variations. Each generation uses 1 credit and creates 3 variations.",
+    tip: "You'll get 3 different design options to choose from!",
     targetId: "generate-button",
+  },
+  {
+    title: "Step 4: Choose Your Favorite",
+    description: "After generation, you'll see 3 variations below. Click on any variation card to select it for customization.",
+    tip: "Each variation has unique styling - pick the one that matches your vision best!",
+    targetId: "variations-grid",
+  },
+  {
+    title: "Step 5: Generate 3D Model (Optional)",
+    description: "Want to see your design in 3D? Click 'Generate 3D Model' to create an interactive 3D version. This takes 3-5 minutes.",
+    tip: "3D models let you rotate and inspect every angle of your furniture!",
+    targetId: "generate-3d-button",
+  },
+  {
+    title: "Step 6: Try AR Preview",
+    description: "Switch to AR tab to see how your furniture looks in your actual space! Upload a room photo or use your camera.",
+    tip: "AR preview uses AI to remove backgrounds and place furniture realistically in your room!",
+    targetId: "ar-tab",
   },
 ];
 

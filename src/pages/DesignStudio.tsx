@@ -1409,7 +1409,7 @@ const DesignStudio = () => {
                       <TabsList className="grid w-full grid-cols-3 mb-4">
                         <TabsTrigger value="2d">Image</TabsTrigger>
                         <TabsTrigger value="3d">3D Model</TabsTrigger>
-                        <TabsTrigger value="ar">AR View</TabsTrigger>
+                        <TabsTrigger value="ar" id="ar-tab">AR View</TabsTrigger>
                       </TabsList>
                       
                       <TabsContent value="2d" className="mt-0">
@@ -1437,7 +1437,7 @@ const DesignStudio = () => {
                                 <span className="text-sm font-bold text-primary">{dimensions.length}" × {dimensions.breadth}" × {dimensions.height}"</span>
                               </div>
                             )}
-                            <div id="variations-section" className="grid grid-cols-1 gap-4">
+                            <div id="variations-grid" className="grid grid-cols-1 gap-4">
                               {generatedVariations.map((variation, index) => (
                                  <div key={index} className="space-y-3">
                                    <button
@@ -1697,6 +1697,7 @@ const DesignStudio = () => {
                                 <p className="text-muted-foreground text-xs">Create an interactive 3D model for AR viewing and rotation</p>
                               </div>
                               <Button 
+                                id="generate-3d-button"
                                 variant="hero" 
                                 size="lg"
                                 onClick={async () => {
