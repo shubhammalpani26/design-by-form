@@ -853,7 +853,7 @@ const DesignStudio = () => {
           pricing_per_cubic_foot: currentPricing?.pricePerCubicFoot || null,
           pricing_reasoning: currentPricing?.reasoning || null,
           pricing_calculated_at: new Date().toISOString(),
-          status: userIntent === 'personal' ? 'private' : 'draft', // Will become 'pending' for designers after listing fee is paid
+          status: userIntent === 'personal' ? 'approved' : 'pending', // Personal use auto-approved, designer mode pending review
         })
         .select()
         .single();
