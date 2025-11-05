@@ -28,6 +28,7 @@ import ShopperFAQ from "./pages/ShopperFAQ";
 import CreatorFAQ from "./pages/CreatorFAQ";
 import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
+import ProductSuccessKit from "./pages/ProductSuccessKit";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -57,6 +58,7 @@ const App = () => (
             <Route path="/creator/profile" element={<CreatorProfile />} />
             <Route path="/creator/settings" element={<CreatorProfile />} />
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
+            <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
             
             <Route path="/admin" element={<AdminDashboard />} />

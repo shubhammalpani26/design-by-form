@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 
 interface Product {
   id: string;
@@ -212,9 +213,17 @@ const DesignerDashboard = () => {
                         Rejection Reason: {product.rejection_reason}
                       </p>
                     )}
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground mb-3">
                       Created: {new Date(product.created_at).toLocaleDateString()}
                     </p>
+                    {product.status === 'approved' && (
+                      <Link to={`/creator/success-kit/${product.id}`}>
+                        <Button size="sm" variant="outline" className="w-full">
+                          <Sparkles className="w-3 h-3 mr-2" />
+                          Success Kit
+                        </Button>
+                      </Link>
+                    )}
                   </CardContent>
                 </Card>
               ))}
