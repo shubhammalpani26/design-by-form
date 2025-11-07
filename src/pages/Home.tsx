@@ -1,53 +1,67 @@
 import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 import chairHero from "@/assets/chair-hero.jpg";
-import tableFlow from "@/assets/table-flow.jpg";
-import vaseCurvy from "@/assets/vase-curvy.jpg";
-import benchCurvy from "@/assets/bench-curvy.jpg";
 
-const featuredProducts = [
-  {
-    id: "1",
-    name: "Luna Chair",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 32999,
-    weight: 3.2,
-    image: chairHero,
-  },
-  {
-    id: "2",
-    name: "Flow Table",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 54999,
-    weight: 5.8,
-    image: tableFlow,
-  },
-  {
-    id: "3",
-    name: "Wave Vase",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 12999,
-    weight: 1.1,
-    image: vaseCurvy,
-  },
-  {
-    id: "4",
-    name: "Curve Bench",
-    designer: "Priya Sharma",
-    designerId: "priya",
-    price: 45999,
-    weight: 4.9,
-    image: benchCurvy,
-  },
-];
+interface Product {
+  id: string;
+  name: string;
+  designer: string;
+  designerId: string;
+  price: number;
+  weight: number;
+  image: string;
+}
 
 const Home = () => {
+  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchFeaturedProducts();
+  }, []);
+
+  const fetchFeaturedProducts = async () => {
+    try {
+      const { data: productsData, error } = await supabase
+        .from('designer_products')
+        .select(`
+          id,
+          name,
+          designer_price,
+          weight,
+          image_url,
+          designer_id,
+          designer_profiles!inner(name)
+        `)
+        .eq('status', 'approved')
+        .order('created_at', { ascending: false })
+        .limit(4);
+
+      if (error) throw error;
+
+      const formatted: Product[] = (productsData || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        designer: p.designer_profiles?.name || 'Unknown Designer',
+        designerId: p.designer_id,
+        price: Number(p.designer_price),
+        weight: Number(p.weight || 5),
+        image: p.image_url || ''
+      }));
+
+      setFeaturedProducts(formatted);
+    } catch (error) {
+      console.error('Error fetching featured products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -143,11 +157,27 @@ const Home = () => {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product.id} {...product} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-4">
+                  <Skeleton className="aspect-square w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                </div>
+              ))}
+            </div>
+          ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {featuredProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No featured products available yet.</p>
+            </div>
+          )}
 
           <div className="text-center mt-12">
             <Link to="/browse">

@@ -3,158 +3,30 @@ import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
-import chairHero from "@/assets/chair-hero.jpg";
-import chairCurvy from "@/assets/chair-curvy.jpg";
-import chairSpiral from "@/assets/chair-spiral.jpg";
-import tableFlow from "@/assets/table-flow.jpg";
-import tableDining from "@/assets/table-dining.jpg";
-import vaseCurvy from "@/assets/vase-curvy.jpg";
-import vaseSculptural from "@/assets/vase-sculptural.jpg";
-import benchCurvy from "@/assets/bench-curvy.jpg";
-import benchFluid from "@/assets/bench-fluid.jpg";
-import installation1 from "@/assets/installation-1.jpg";
-import installation2 from "@/assets/installation-2.jpg";
-import decorShelf from "@/assets/decor-shelf.jpg";
-import decorBowl from "@/assets/decor-bowl.jpg";
-import decorPlanter from "@/assets/decor-planter.jpg";
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
-const products = [
-  {
-    id: "1",
-    name: "Luna Chair",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 32999,
-    weight: 11.2,
-    image: chairHero,
-    category: "chairs",
-  },
-  {
-    id: "2",
-    name: "Flow Coffee Table",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 54999,
-    weight: 20.3,
-    image: tableFlow,
-    category: "coffee-tables",
-  },
-  {
-    id: "3",
-    name: "Wave Vase",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 12999,
-    weight: 3.9,
-    image: vaseCurvy,
-    category: "vases",
-  },
-  {
-    id: "4",
-    name: "Curve Bench",
-    designer: "Priya Sharma",
-    designerId: "priya",
-    price: 45999,
-    weight: 17.2,
-    image: benchCurvy,
-    category: "benches",
-  },
-  {
-    id: "5",
-    name: "Organic Dining Table",
-    designer: "James Park",
-    designerId: "james",
-    price: 65999,
-    weight: 28.7,
-    image: tableDining,
-    category: "dining-tables",
-  },
-  {
-    id: "6",
-    name: "Spiral Chair",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 27999,
-    weight: 12.3,
-    image: chairSpiral,
-    category: "chairs",
-  },
-  {
-    id: "7",
-    name: "Fluid Bench",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 42999,
-    weight: 18.2,
-    image: benchFluid,
-    category: "benches",
-  },
-  {
-    id: "8",
-    name: "Sculptural Vase",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 11999,
-    weight: 4.9,
-    image: vaseSculptural,
-    category: "vases",
-  },
-  {
-    id: "9",
-    name: "Abstract Flow Installation",
-    designer: "James Park",
-    designerId: "james",
-    price: 125999,
-    weight: 64.8,
-    image: installation1,
-    category: "installations",
-  },
-  {
-    id: "10",
-    name: "Wave Sculpture",
-    designer: "Priya Sharma",
-    designerId: "priya",
-    price: 89999,
-    weight: 43.1,
-    image: installation2,
-    category: "installations",
-  },
-  {
-    id: "11",
-    name: "Organic Wall Shelf",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 15999,
-    weight: 7.4,
-    image: decorShelf,
-    category: "home-decor",
-  },
-  {
-    id: "12",
-    name: "Sculptural Bowl",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 6999,
-    weight: 2.8,
-    image: decorBowl,
-    category: "home-decor",
-  },
-  {
-    id: "13",
-    name: "Geometric Planter",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 8499,
-    weight: 4.2,
-    image: decorPlanter,
-    category: "home-decor",
-  },
-];
+interface Product {
+  id: string;
+  name: string;
+  designer: string;
+  designerId: string;
+  price: number;
+  weight: number;
+  image: string;
+  category: string;
+}
 
 const Browse = () => {
   const [searchParams] = useSearchParams();
-  const [filteredProducts, setFilteredProducts] = useState(products);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const category = searchParams.get('category');
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   useEffect(() => {
     if (category) {
@@ -162,7 +34,45 @@ const Browse = () => {
     } else {
       setFilteredProducts(products);
     }
-  }, [category]);
+  }, [category, products]);
+
+  const fetchProducts = async () => {
+    try {
+      const { data: productsData, error } = await supabase
+        .from('designer_products')
+        .select(`
+          id,
+          name,
+          designer_price,
+          weight,
+          image_url,
+          category,
+          designer_id,
+          designer_profiles!inner(name)
+        `)
+        .eq('status', 'approved');
+
+      if (error) throw error;
+
+      const formattedProducts: Product[] = (productsData || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        designer: p.designer_profiles?.name || 'Unknown Designer',
+        designerId: p.designer_id,
+        price: Number(p.designer_price),
+        weight: Number(p.weight || 5),
+        image: p.image_url || '',
+        category: p.category || 'other'
+      }));
+
+      setProducts(formattedProducts);
+      setFilteredProducts(formattedProducts);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getCategoryTitle = () => {
     if (!category) return "Browse Products";
@@ -187,16 +97,30 @@ const Browse = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
-            <ProductCard key={product.id} {...product} />
-          ))}
-        </div>
-
-        {filteredProducts.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No products found in this category yet.</p>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="space-y-4">
+                <Skeleton className="aspect-square w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+              </div>
+            ))}
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              {filteredProducts.map((product) => (
+                <ProductCard key={product.id} {...product} />
+              ))}
+            </div>
+
+            {filteredProducts.length === 0 && (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground text-lg">No products found in this category yet.</p>
+              </div>
+            )}
+          </>
         )}
       </main>
       

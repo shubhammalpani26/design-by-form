@@ -1,5 +1,5 @@
 import { useParams, Link } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -9,188 +9,61 @@ import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
-import chairHero from "@/assets/chair-hero.jpg";
-import chairSpiral from "@/assets/chair-spiral.jpg";
-import tableFlow from "@/assets/table-flow.jpg";
-import tableDining from "@/assets/table-dining.jpg";
-import vaseCurvy from "@/assets/vase-curvy.jpg";
-import vaseSculptural from "@/assets/vase-sculptural.jpg";
-import benchCurvy from "@/assets/bench-curvy.jpg";
-import benchFluid from "@/assets/bench-fluid.jpg";
-import installation1 from "@/assets/installation-1.jpg";
-import installation2 from "@/assets/installation-2.jpg";
-import decorShelf from "@/assets/decor-shelf.jpg";
-import decorBowl from "@/assets/decor-bowl.jpg";
-import decorPlanter from "@/assets/decor-planter.jpg";
-
-const productData: Record<string, any> = {
-  "1": {
-    name: "Luna Chair",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 32999,
-    weight: 11.2,
-    image: chairHero,
-    description: "The Luna Chair combines organic curves with minimalist design philosophy. Expertly crafted using advanced 3D printing and meticulously hand-finished for perfection. Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content. Weather-resistant and outdoor-friendly, perfect for modern living spaces that value both comfort and sustainable luxury.",
-    dimensions: "32\"W × 30\"D × 34\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
-  },
-  "2": {
-    name: "Flow Coffee Table",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 54999,
-    weight: 20.3,
-    image: tableFlow,
-    description: "A sculptural coffee table featuring flowing organic lines and curves. Precision-crafted through 3D printing with expert hand-finishing. Made from luxury-grade Fibre-Reinforced Polymer with 75% recycled content. Built for both indoor elegance and outdoor durability, this piece serves as functional furniture and modern art.",
-    dimensions: "48\"W × 28\"D × 18\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
-  },
-  "3": {
-    name: "Wave Vase",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 12999,
-    weight: 3.9,
-    image: vaseCurvy,
-    description: "An elegant vase with undulating curves inspired by ocean waves. 3D printed with precision and artisan hand-finished. Crafted from premium Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant design perfect for displaying fresh flowers indoors or outdoors.",
-    dimensions: "8\"W × 8\"D × 12\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
-  },
-  "4": {
-    name: "Curve Bench",
-    designer: "Priya Sharma",
-    designerId: "priya",
-    price: 45999,
-    weight: 17.2,
-    image: benchCurvy,
-    description: "A beautifully curved bench combining comfort with artistic form. Expertly 3D printed and hand-finished with exceptional attention to detail. Made from premium Fibre-Reinforced Polymer with 75% recycled content. Outdoor-friendly construction ideal for entryways, patios, or as statement seating.",
-    dimensions: "52\"W × 18\"D × 18\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Priya creates innovative furniture designs that push the boundaries of 3D printing technology.",
-  },
-  "5": {
-    name: "Organic Dining Table",
-    designer: "James Park",
-    designerId: "james",
-    price: 65999,
-    weight: 28.7,
-    image: tableDining,
-    description: "A large dining table featuring organic edges and sculptural base. Advanced 3D printing with meticulous hand-finishing creates perfection. Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant for outdoor dining, seats 6-8 people comfortably.",
-    dimensions: "72\"W × 36\"D × 30\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "James specializes in creating statement furniture pieces that merge architectural principles with sustainable manufacturing.",
-  },
-  "6": {
-    name: "Spiral Chair",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 27999,
-    weight: 12.3,
-    image: chairSpiral,
-    description: "A striking chair with twisted spiral form that defies convention. Precision 3D printed and expertly hand-finished. Made from premium Fibre-Reinforced Polymer with 75% recycled content. Outdoor-ready sculptural seating that combines comfort with contemporary aesthetics.",
-    dimensions: "28\"W × 30\"D × 36\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
-  },
-  "7": {
-    name: "Fluid Bench",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 42999,
-    weight: 18.2,
-    image: benchFluid,
-    description: "A flowing bench design with wave-like curves throughout. Advanced 3D printing with artisan hand-finishing. Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant construction perfect for creating unique statements in any indoor or outdoor space.",
-    dimensions: "56\"W × 20\"D × 18\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
-  },
-  "8": {
-    name: "Sculptural Vase",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 11999,
-    weight: 4.9,
-    image: vaseSculptural,
-    description: "A contemporary vase with organic twisted form. Precision 3D printed and hand-finished to perfection. Made from premium Fibre-Reinforced Polymer with 75% recycled content. Outdoor-friendly design adds elegance and artistic flair to any surface.",
-    dimensions: "10\"W × 10\"D × 14\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
-  },
-  "9": {
-    name: "Abstract Flow Installation",
-    designer: "James Park",
-    designerId: "james",
-    price: 125999,
-    weight: 64.8,
-    image: installation1,
-    description: "A large-scale sculptural installation featuring abstract flowing forms. Expertly 3D printed in sections with meticulous hand-finishing. Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant construction perfect for creating dramatic focal points in residential or commercial spaces, indoors or outdoors.",
-    dimensions: "96\"W × 48\"D × 72\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "James specializes in creating statement furniture pieces that merge architectural principles with sustainable manufacturing.",
-  },
-  "10": {
-    name: "Wave Sculpture",
-    designer: "Priya Sharma",
-    designerId: "priya",
-    price: 89999,
-    weight: 43.1,
-    image: installation2,
-    description: "A dramatic wave-like sculptural installation bringing movement and energy to spaces. Advanced 3D printing with expert hand-finishing. Made from premium Fibre-Reinforced Polymer with 75% recycled content. Outdoor-friendly design ideal for lobbies, living rooms, patios, or galleries.",
-    dimensions: "80\"W × 40\"D × 60\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Priya creates innovative furniture designs that push the boundaries of 3D printing technology.",
-  },
-  "11": {
-    name: "Organic Wall Shelf",
-    designer: "Marcus Chen",
-    designerId: "marcus",
-    price: 15999,
-    weight: 7.4,
-    image: decorShelf,
-    description: "A floating wall shelf with organic curves and sculptural form. Precision 3D printed and hand-finished with care. Crafted from premium Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant, perfect for displaying books, plants, or decorative objects indoors or on covered patios.",
-    dimensions: "36\"W × 10\"D × 8\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Marcus is a Vancouver-based designer who explores the intersection of function and sculpture through sustainable 3D printing.",
-  },
-  "12": {
-    name: "Sculptural Bowl",
-    designer: "Tejal Agawane",
-    designerId: "tejal",
-    price: 6999,
-    weight: 2.8,
-    image: decorBowl,
-    description: "An elegant decorative bowl with flowing organic design. 3D printed and artisan hand-finished. Made from luxury-grade Fibre-Reinforced Polymer with 75% recycled content. Outdoor-friendly construction perfect as a centerpiece or for holding small items.",
-    dimensions: "12\"W × 12\"D × 6\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Tejal is a furniture creator based in Mumbai, India. Her work focuses on merging innovation with sustainability through cutting-edge 3D printing technology.",
-  },
-  "13": {
-    name: "Geometric Planter",
-    designer: "Sarah Williams",
-    designerId: "sarah",
-    price: 8499,
-    weight: 4.2,
-    image: decorPlanter,
-    description: "A modern geometric planter with abstract design. Precision 3D printed and hand-finished. Crafted from premium Fibre-Reinforced Polymer with 75% recycled content. Weather-resistant design perfect for showcasing plants with contemporary style, indoors or outdoors.",
-    dimensions: "10\"W × 10\"D × 12\"H",
-    materials: "Premium FRP (Fibre-Reinforced Polymer) with 75% PCR",
-    designerBio: "Sarah is a contemporary designer creating elegant home accessories that blend art with sustainability.",
-  },
-};
+import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const ProductDetail = () => {
   const { id } = useParams();
-  const product = productData[id || "1"] || productData["1"];
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [isSaved, setIsSaved] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (id) {
+      fetchProduct();
+    }
+  }, [id]);
+
+  const fetchProduct = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('designer_products')
+        .select(`
+          *,
+          designer_profiles!inner(name, email)
+        `)
+        .eq('id', id)
+        .eq('status', 'approved')
+        .single();
+
+      if (error) throw error;
+
+      const dims = data.dimensions as any;
+      setProduct({
+        id: data.id,
+        name: data.name,
+        designer: data.designer_profiles?.name || 'Unknown Designer',
+        designerId: data.designer_id,
+        price: Number(data.designer_price),
+        weight: Number(data.weight || 5),
+        image: data.image_url || '',
+        description: data.description || 'Beautiful piece crafted with sustainable materials.',
+        dimensions: dims && typeof dims === 'object' ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H` : '32"W × 30"D × 34"H',
+        materials: data.materials_description || 'Premium FRP (Fibre-Reinforced Polymer) with 75% PCR',
+        designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
+        model_url: data.model_url
+      });
+    } catch (error) {
+      console.error('Error fetching product:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddToCart = async () => {
     try {
@@ -211,6 +84,46 @@ const ProductDetail = () => {
       description: isSaved ? "Product removed from your saved items" : "Product saved for later",
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-12">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+            <div className="space-y-4">
+              <Skeleton className="aspect-square w-full rounded-2xl" />
+            </div>
+            <div className="space-y-6">
+              <Skeleton className="h-12 w-3/4" />
+              <Skeleton className="h-6 w-1/2" />
+              <Skeleton className="h-8 w-1/4" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
+
+  if (!product) {
+    return (
+      <div className="min-h-screen flex flex-col">
+        <Header />
+        <main className="flex-1 container py-12">
+          <div className="text-center py-16">
+            <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
+            <p className="text-muted-foreground mb-8">This product may have been removed or doesn't exist.</p>
+            <Link to="/browse">
+              <Button>Browse Products</Button>
+            </Link>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
