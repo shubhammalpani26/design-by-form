@@ -235,13 +235,13 @@ const ProductDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-          <div className="space-y-4">
+      <main className="flex-1 container py-6 lg:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+          <div className="space-y-3">
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="image">Image</TabsTrigger>
-                <TabsTrigger value="ar">AR Preview</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 mb-3">
+                <TabsTrigger value="image" className="text-sm">Images</TabsTrigger>
+                <TabsTrigger value="ar" className="text-sm">AR Preview</TabsTrigger>
               </TabsList>
               
               <TabsContent value="image" className="mt-0">
@@ -290,9 +290,9 @@ const ProductDetail = () => {
             </Tabs>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4 lg:space-y-5">
             <div>
-              <h1 className="text-4xl md:text-5xl font-bold mb-2 text-foreground">{product.name}</h1>
+              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">{product.name}</h1>
               <Link
                 to={`/designer/${product.designerId}`}
                 className="text-lg text-muted-foreground hover:text-primary transition-colors"
@@ -301,15 +301,15 @@ const ProductDetail = () => {
               </Link>
             </div>
 
-            <p className="text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
+            <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
 
-            <p className="text-muted-foreground leading-relaxed">
+            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
               {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}
             </p>
 
             {/* Quick Customization */}
             <Card className="bg-accent/50 border-primary/20">
-              <CardContent className="p-4 space-y-4">
+              <CardContent className="p-3 lg:p-4 space-y-3">
                 <div>
                   <label className="text-sm font-semibold text-foreground mb-2 block">Finish</label>
                   <div className="flex flex-wrap gap-2">
@@ -354,8 +354,8 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-secondary/10 border-secondary/20 mb-6">
-              <CardContent className="p-4">
+            <Card className="bg-secondary/10 border-secondary/20">
+              <CardContent className="p-3 lg:p-4">
                 <div className="flex items-start gap-3">
                   <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
                     <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -370,8 +370,8 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
-            <Card className="bg-accent border-border mb-6">
-              <CardContent className="p-6">
+            <Card className="bg-accent border-border">
+              <CardContent className="p-4 lg:p-5">
                 <h3 className="font-semibold text-lg mb-4">Customization Options</h3>
                 <p className="text-sm text-muted-foreground mb-4">
                   Work with our design team to customize this piece in different colors, finishes, and sizes to match your vision perfectly.
@@ -479,7 +479,7 @@ const ProductDetail = () => {
             </div>
 
             <Card className="bg-accent border-border">
-              <CardContent className="p-6">
+              <CardContent className="p-4 lg:p-5">
                 <h3 className="font-semibold text-lg mb-2">About the Designer</h3>
                 <p className="text-muted-foreground mb-4">{product.designerBio}</p>
                 <Link to={`/designer/${product.designerId}`}>
