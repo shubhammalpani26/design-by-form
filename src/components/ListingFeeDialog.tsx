@@ -32,7 +32,7 @@ export const ListingFeeDialog = ({
   const { toast } = useToast();
 
   const isInternational = country !== "IN";
-  const fee = isInternational ? 10 : 500;
+  const fee = isInternational ? 10 : 1000;
   const currency = isInternational ? "USD" : "INR";
   const symbol = isInternational ? "$" : "₹";
 

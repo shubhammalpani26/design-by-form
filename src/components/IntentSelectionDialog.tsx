@@ -11,8 +11,8 @@ interface IntentSelectionDialogProps {
 export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialogProps) => {
   const { formatPrice, currency } = useCurrency();
   
-  // Listing fee: ₹500 for India, $10 USD equivalent for international
-  const feeInINR = currency === 'INR' ? 500 : 10 / 0.012; // $10 USD = ~833 INR
+  // Listing fee: ₹1,000 for India, $10 USD equivalent for international
+  const feeInINR = currency === 'INR' ? 1000 : 10 / 0.012; // $10 USD = ~833 INR
   const displayFee = formatPrice(feeInINR);
 
   return (
