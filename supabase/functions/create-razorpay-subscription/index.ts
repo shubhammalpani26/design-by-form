@@ -30,15 +30,15 @@ serve(async (req) => {
 
     const { planType, billingCycle } = await req.json();
 
-    // Define plan pricing and limits
+    // Define plan pricing and limits (amounts in paise, 1 INR = 100 paise)
     const planConfig = {
       creator: {
-        monthly: { amount: 29900, listings: 5, models: 3 }, // $299/month
-        yearly: { amount: 299900, listings: 5, models: 3 }  // $2999/year
+        monthly: { amount: 299900, listings: 5, models: 5 }, // ₹2,999/month
+        yearly: { amount: 2999000, listings: 5, models: 5 }  // ₹29,990/year
       },
       pro: {
-        monthly: { amount: 99900, listings: 20, models: 15 }, // $999/month
-        yearly: { amount: 999900, listings: 20, models: 15 }  // $9999/year
+        monthly: { amount: 999900, listings: 20, models: 20 }, // ₹9,999/month
+        yearly: { amount: 9999000, listings: 20, models: 20 }  // ₹99,990/year
       }
     };
 

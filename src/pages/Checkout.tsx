@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 declare global {
   interface Window {
@@ -17,6 +18,7 @@ declare global {
 const Checkout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { formatPrice } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [planDetails, setPlanDetails] = useState<any>(null);
 
@@ -37,16 +39,17 @@ const Checkout = () => {
 
   useEffect(() => {
     if (planType) {
+      // Prices in INR to match Plans page
       const plans: any = {
         creator: {
           name: "Creator",
-          monthly: { price: 299, listings: 5, models: 3 },
-          yearly: { price: 2999, listings: 5, models: 3 }
+          monthly: { price: 2999, listings: 5, models: 5 },
+          yearly: { price: 29990, listings: 5, models: 5 }
         },
         pro: {
           name: "Pro Studio",
-          monthly: { price: 999, listings: 20, models: 15 },
-          yearly: { price: 9999, listings: 20, models: 15 }
+          monthly: { price: 9999, listings: 20, models: 20 },
+          yearly: { price: 99990, listings: 20, models: 20 }
         }
       };
 
@@ -161,7 +164,7 @@ const Checkout = () => {
                 <div className="border-t pt-4 mt-4">
                   <div className="flex justify-between items-center text-lg font-bold">
                     <span>Total:</span>
-                    <span>${planDetails.price}/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
+                    <span>{formatPrice(planDetails.price)}/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
                   </div>
                 </div>
               </div>
