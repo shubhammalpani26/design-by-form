@@ -36,6 +36,7 @@ import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
 import Cart from "./pages/Cart";
 import ProductComparison from "./pages/ProductComparison";
+import Checkout from "./pages/Checkout";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -87,6 +88,7 @@ const App = () => (
             <Route path="/shopper-faq" element={<ShopperFAQ />} />
             <Route path="/creator-faq" element={<CreatorFAQ />} />
             <Route path="/plans" element={<Plans />} />
+            <Route path="/checkout" element={<Checkout />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>

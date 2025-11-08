@@ -206,8 +206,9 @@ const Plans = () => {
                       if (plan.name === "Free") {
                         navigate("/auth");
                       } else {
-                        // Navigate to designer dashboard to manage subscription
-                        navigate("/designer-dashboard");
+                        // Navigate to checkout with plan and billing cycle
+                        const planType = plan.name === "Creator" ? "creator" : "pro";
+                        navigate(`/checkout?plan=${planType}&cycle=${billingCycle}`);
                       }
                     }}
                   >

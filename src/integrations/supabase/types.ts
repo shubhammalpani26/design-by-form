@@ -703,40 +703,105 @@ export type Database = {
           },
         ]
       }
+      subscription_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          razorpay_signature: string | null
+          status: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          razorpay_signature?: string | null
+          status?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_transactions_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       subscriptions: {
         Row: {
+          billing_cycle: string | null
           cancel_at_period_end: boolean
           created_at: string
           current_period_end: string
           current_period_start: string
           id: string
+          listings_limit: number | null
+          listings_used: number | null
           plan_type: string
+          razorpay_subscription_id: string | null
           status: string
           stripe_subscription_id: string | null
+          three_d_models_limit: number | null
+          three_d_models_used: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          billing_cycle?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
           current_period_end: string
           current_period_start: string
           id?: string
+          listings_limit?: number | null
+          listings_used?: number | null
           plan_type: string
+          razorpay_subscription_id?: string | null
           status: string
           stripe_subscription_id?: string | null
+          three_d_models_limit?: number | null
+          three_d_models_used?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          billing_cycle?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
           current_period_end?: string
           current_period_start?: string
           id?: string
+          listings_limit?: number | null
+          listings_used?: number | null
           plan_type?: string
+          razorpay_subscription_id?: string | null
           status?: string
           stripe_subscription_id?: string | null
+          three_d_models_limit?: number | null
+          three_d_models_used?: number | null
           updated_at?: string
           user_id?: string
         }
@@ -839,6 +904,7 @@ export type Database = {
       }
       reduce_stale_product_prices: { Args: never; Returns: undefined }
       reset_monthly_credits: { Args: never; Returns: undefined }
+      reset_monthly_subscription_usage: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "designer" | "customer"
