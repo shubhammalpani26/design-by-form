@@ -44,26 +44,48 @@ const CreatorEarningsDashboard = () => {
         .eq('user_id', user.id)
         .single();
 
-      // For now, using placeholder data - would need to aggregate from orders table
-      const sales = 0;
+      if (!profile) throw new Error('Designer profile not found');
+
+      // Fetch sales data
+      const { data: salesData } = await supabase
+        .from('product_sales')
+        .select('designer_earnings, sale_price, sale_date')
+        .eq('designer_id', profile.id);
+
+      // Calculate totals
+      const totalEarnings = salesData?.reduce((sum, sale) => sum + Number(sale.designer_earnings), 0) || 0;
+      const totalSalesVolume = salesData?.reduce((sum, sale) => sum + Number(sale.sale_price), 0) || 0;
+      
+      // Calculate this month's earnings
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const thisMonthEarnings = salesData?.reduce((sum, sale) => {
+        const saleDate = new Date(sale.sale_date || new Date());
+        if (saleDate.getMonth() === currentMonth && saleDate.getFullYear() === currentYear) {
+          return sum + Number(sale.designer_earnings);
+        }
+        return sum;
+      }, 0) || 0;
+
+      // Determine commission tier based on total sales volume
       let tier = 'Standard';
       let rate = 10;
 
-      if (sales >= 1245000) {
+      if (totalSalesVolume >= 1245000) {
         tier = 'Elite';
         rate = 15;
-      } else if (sales >= 415000) {
+      } else if (totalSalesVolume >= 415000) {
         tier = 'Premium';
         rate = 12;
       }
 
       setEarnings({
-        totalEarnings: sales,
-        totalSales: sales,
+        totalEarnings,
+        totalSales: totalSalesVolume,
         commissionTier: tier,
         commissionRate: rate,
-        pendingPayout: 0,
-        thisMonthEarnings: 0,
+        pendingPayout: totalEarnings, // All earnings pending until paid
+        thisMonthEarnings,
       });
     } catch (error) {
       console.error('Error fetching earnings:', error);
