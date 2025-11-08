@@ -67,8 +67,9 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
-        <Link to="/" className="flex items-center space-x-2 shrink-0">
-          <span className="text-2xl font-bold text-primary">Forma</span>
+        <Link to="/" className="flex flex-col shrink-0">
+          <span className="text-2xl font-bold text-primary leading-tight">Forma</span>
+          <span className="text-[10px] text-muted-foreground -mt-1">Powered by Cyanique</span>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-6">
