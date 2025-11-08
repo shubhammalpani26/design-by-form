@@ -109,10 +109,7 @@ const Creators = () => {
             </div>
           ) : creators.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No creators found yet. Be the first!</p>
-              <Link to="/designer-signup">
-                <Button className="mt-4">Become a Creator</Button>
-              </Link>
+              <p className="text-muted-foreground text-lg">No creators found yet.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -167,22 +164,6 @@ const Creators = () => {
           )}
         </section>
 
-        {/* CTA */}
-        <section className="container py-16">
-          <div className="bg-primary rounded-3xl p-12 text-center text-primary-foreground">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Become a Creator
-            </h2>
-            <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              Join our community of talented designers and start earning from your creations
-            </p>
-            <Link to="/designer-signup">
-              <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">
-                Start Creating
-              </Button>
-            </Link>
-          </div>
-        </section>
       </main>
       
       <Footer />
