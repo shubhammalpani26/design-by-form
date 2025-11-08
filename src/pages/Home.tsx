@@ -56,34 +56,44 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      const { data: productsData, error } = await supabase
-        .from('designer_products')
-        .select(`
-          id,
-          name,
-          designer_price,
-          weight,
-          image_url,
-          designer_id,
-          designer_profiles!inner(name)
-        `)
-        .eq('status', 'approved')
-        .order('created_at', { ascending: false })
-        .limit(4);
+      // Fetch one product from each category
+      const categories = ['chairs', 'tables', 'benches', 'installations', 'vases', 'home-decor'];
+      const allProducts: Product[] = [];
 
-      if (error) throw error;
+      for (const category of categories) {
+        const { data: categoryData, error } = await supabase
+          .from('designer_products')
+          .select(`
+            id,
+            name,
+            designer_price,
+            weight,
+            image_url,
+            designer_id,
+            category,
+            designer_profiles!inner(name)
+          `)
+          .eq('status', 'approved')
+          .eq('category', category)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
 
-      const formatted: Product[] = (productsData || []).map(p => ({
-        id: p.id,
-        name: p.name,
-        designer: p.designer_profiles?.name || 'Unknown Designer',
-        designerId: p.designer_id,
-        price: Number(p.designer_price),
-        weight: Number(p.weight || 5),
-        image: p.image_url || ''
-      }));
+        if (!error && categoryData) {
+          allProducts.push({
+            id: categoryData.id,
+            name: categoryData.name,
+            designer: categoryData.designer_profiles?.name || 'Unknown Designer',
+            designerId: categoryData.designer_id,
+            price: Number(categoryData.designer_price),
+            weight: Number(categoryData.weight || 5),
+            image: categoryData.image_url || ''
+          });
+        }
+      }
 
-      setFeaturedProducts(formatted);
+      // Take first 5 products (one from each main category)
+      setFeaturedProducts(allProducts.slice(0, 5));
     } catch (error) {
       console.error('Error fetching featured products:', error);
     } finally {
@@ -188,8 +198,8 @@ const Home = () => {
           </div>
           
           {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[...Array(4)].map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
+              {[...Array(5)].map((_, i) => (
                 <div key={i} className="space-y-4">
                   <Skeleton className="aspect-square w-full rounded-xl" />
                   <Skeleton className="h-4 w-3/4" />
@@ -198,7 +208,7 @@ const Home = () => {
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard key={product.id} {...product} />
               ))}
