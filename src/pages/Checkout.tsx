@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, Check } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCurrency } from "@/contexts/CurrencyContext";
@@ -39,24 +39,90 @@ const Checkout = () => {
 
   useEffect(() => {
     if (planType) {
-      // Prices in INR to match Plans page
+      // Prices and features in INR to match Plans page exactly
       const plans: any = {
         creator: {
           name: "Creator",
-          monthly: { price: 2999, listings: 5, models: 5 },
-          yearly: { price: 29990, listings: 5, models: 5 }
+          icon: "⚡",
+          description: "For serious furniture designers",
+          monthly: { 
+            price: 2999,
+            features: [
+              "Unlimited AI designs",
+              "5 free listings per month",
+              "Additional listings at ₹500 each",
+              "5 free 3D models per month",
+              "Additional models at ₹300 each",
+              "Advanced AI design tools",
+              "Premium product photography",
+              "Priority 3-day review",
+              "Creator badge",
+              "Analytics dashboard",
+              "Email support"
+            ]
+          },
+          yearly: { 
+            price: 29990,
+            features: [
+              "Unlimited AI designs",
+              "5 free listings per month",
+              "Additional listings at ₹500 each",
+              "5 free 3D models per month",
+              "Additional models at ₹300 each",
+              "Advanced AI design tools",
+              "Premium product photography",
+              "Priority 3-day review",
+              "Creator badge",
+              "Analytics dashboard",
+              "Email support"
+            ]
+          }
         },
         pro: {
           name: "Pro Studio",
-          monthly: { price: 9999, listings: 20, models: 20 },
-          yearly: { price: 99990, listings: 20, models: 20 }
+          icon: "👑",
+          description: "For design studios & agencies",
+          monthly: { 
+            price: 9999,
+            features: [
+              "Everything in Creator",
+              "Unlimited listings included",
+              "20 free 3D models per month",
+              "Additional models at ₹200 each",
+              "Unlimited team members",
+              "White-label options",
+              "Custom branding",
+              "Same-day priority review",
+              "Dedicated account manager",
+              "Phone & priority support",
+              "Quarterly business reviews"
+            ]
+          },
+          yearly: { 
+            price: 99990,
+            features: [
+              "Everything in Creator",
+              "Unlimited listings included",
+              "20 free 3D models per month",
+              "Additional models at ₹200 each",
+              "Unlimited team members",
+              "White-label options",
+              "Custom branding",
+              "Same-day priority review",
+              "Dedicated account manager",
+              "Phone & priority support",
+              "Quarterly business reviews"
+            ]
+          }
         }
       };
 
       const plan = plans[planType];
       if (plan) {
         setPlanDetails({
-          ...plan,
+          name: plan.name,
+          icon: plan.icon,
+          description: plan.description,
           ...(plan[billingCycle as keyof typeof plan.monthly] as object)
         });
       }
@@ -144,29 +210,45 @@ const Checkout = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div className="bg-muted/50 p-6 rounded-lg space-y-4">
+              {/* Plan Header */}
+              <div className="flex items-center gap-3 pb-4 border-b">
+                <span className="text-3xl">{planDetails.icon}</span>
+                <div>
+                  <h3 className="text-xl font-bold">{planDetails.name}</h3>
+                  <p className="text-sm text-muted-foreground">{planDetails.description}</p>
+                </div>
+              </div>
+
+              {/* Billing Info */}
+              <div className="bg-primary/5 p-4 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="font-semibold">Plan:</span>
-                  <span>{planDetails.name}</span>
+                  <span className="text-sm text-muted-foreground">Billing Cycle</span>
+                  <span className="font-semibold capitalize">{billingCycle}</span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">Billing Cycle:</span>
-                  <span className="capitalize">{billingCycle}</span>
+                <div className="flex justify-between items-center mt-2 pt-2 border-t border-border/50">
+                  <span className="text-lg font-semibold">Total</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {formatPrice(planDetails.price)}
+                    <span className="text-sm font-normal text-muted-foreground">
+                      /{billingCycle === 'monthly' ? 'month' : 'year'}
+                    </span>
+                  </span>
                 </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">Design Listings:</span>
-                  <span>{planDetails.listings}/month</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold">3D Models:</span>
-                  <span>{planDetails.models}/month</span>
-                </div>
-                <div className="border-t pt-4 mt-4">
-                  <div className="flex justify-between items-center text-lg font-bold">
-                    <span>Total:</span>
-                    <span>{formatPrice(planDetails.price)}/{billingCycle === 'monthly' ? 'month' : 'year'}</span>
-                  </div>
-                </div>
+              </div>
+
+              {/* Features List */}
+              <div>
+                <h4 className="font-semibold mb-3 text-sm text-muted-foreground uppercase tracking-wide">
+                  What's Included
+                </h4>
+                <ul className="space-y-2">
+                  {planDetails.features?.map((feature: string, index: number) => (
+                    <li key={index} className="flex items-start gap-2 text-sm">
+                      <Check className="h-5 w-5 text-primary shrink-0 mt-0.5" />
+                      <span>{feature}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
               <Button 
