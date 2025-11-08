@@ -77,7 +77,7 @@ const Plans = () => {
         "Phone & priority support",
         "Quarterly business reviews",
       ],
-      cta: "Contact Sales",
+      cta: "Get Pro Studio",
       popular: false,
       color: "text-accent",
     },
@@ -119,20 +119,17 @@ const Plans = () => {
             <span className={billingCycle === "monthly" ? "font-semibold" : "text-muted-foreground"}>
               Monthly
             </span>
-            <Button
-              variant="outline"
-              size="sm"
+            <button
               onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
-              className="relative"
+              className="relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              style={{ backgroundColor: billingCycle === "yearly" ? "hsl(var(--primary))" : "hsl(var(--muted))" }}
             >
-              <div className={`w-12 h-6 rounded-full transition-colors ${
-                billingCycle === "yearly" ? "bg-primary" : "bg-muted"
-              }`}>
-                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
                   billingCycle === "yearly" ? "translate-x-7" : "translate-x-1"
-                }`} />
-              </div>
-            </Button>
+                }`}
+              />
+            </button>
             <span className={billingCycle === "yearly" ? "font-semibold" : "text-muted-foreground"}>
               Yearly
               {billingCycle === "yearly" && (
@@ -208,10 +205,9 @@ const Plans = () => {
                     onClick={() => {
                       if (plan.name === "Free") {
                         navigate("/auth");
-                      } else if (plan.name === "Pro Studio") {
-                        navigate("/contact");
                       } else {
-                        // Navigate to checkout/subscription page (to be implemented)
+                        // For Creator and Pro Studio, navigate to checkout
+                        // TODO: Implement Stripe checkout
                         navigate("/auth");
                       }
                     }}
