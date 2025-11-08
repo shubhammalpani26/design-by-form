@@ -32,11 +32,11 @@ const ProductSuccessKit = () => {
   const [copiedText, setCopiedText] = useState('');
   const [angleShots, setAngleShots] = useState<AngleShot[]>([
     { angle: 'Front View', url: '', loading: false },
-    { angle: '45° Angle', url: '', loading: false },
-    { angle: 'Side Profile', url: '', loading: false },
+    { angle: 'Left View', url: '', loading: false },
+    { angle: 'Right View', url: '', loading: false },
+    { angle: 'Rear View', url: '', loading: false },
     { angle: 'Top View', url: '', loading: false },
-    { angle: 'Close-up Detail', url: '', loading: false },
-    { angle: 'Lifestyle Context', url: '', loading: false },
+    { angle: 'Bottom View', url: '', loading: false },
   ]);
 
   const productUrl = `${window.location.origin}/product/${productId}`;
