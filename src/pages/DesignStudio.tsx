@@ -1139,7 +1139,7 @@ const DesignStudio = () => {
                     <div className="border-t pt-3">
                       <div className="grid grid-cols-3 gap-3">
                         <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Length</label>
+                          <label className="text-xs text-muted-foreground mb-1 block">Length (in inches)</label>
                           <Input
                             type="number"
                             placeholder={
@@ -1171,7 +1171,7 @@ const DesignStudio = () => {
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Breadth</label>
+                          <label className="text-xs text-muted-foreground mb-1 block">Breadth (in inches)</label>
                           <Input
                             type="number"
                             placeholder={
@@ -1203,7 +1203,7 @@ const DesignStudio = () => {
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Height</label>
+                          <label className="text-xs text-muted-foreground mb-1 block">Height (in inches)</label>
                           <Input
                             type="number"
                             placeholder={
