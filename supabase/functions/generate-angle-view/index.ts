@@ -20,6 +20,17 @@ serve(async (req) => {
       );
     }
 
+    // Convert relative URLs to absolute URLs
+    let absoluteImageUrl = imageUrl;
+    if (imageUrl.startsWith('/')) {
+      // For relative paths, we need to get the full URL
+      // These are public assets, so we'll use the origin from the request
+      const origin = req.headers.get('origin') || 'https://7728ba6f-7c17-4bf3-91a9-5fbb21536aa3.lovableproject.com';
+      absoluteImageUrl = `${origin}${imageUrl}`;
+    }
+    
+    console.log('Image URL conversion:', { original: imageUrl, absolute: absoluteImageUrl });
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
@@ -46,7 +57,7 @@ serve(async (req) => {
             role: 'user',
             content: [
               { type: 'text', text: prompt },
-              { type: 'image_url', image_url: { url: imageUrl } }
+              { type: 'image_url', image_url: { url: absoluteImageUrl } }
             ]
           }
         ],
