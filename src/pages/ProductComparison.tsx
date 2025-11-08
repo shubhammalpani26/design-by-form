@@ -160,7 +160,7 @@ export default function ProductComparison() {
               <Card key={product.id} className="p-4 relative max-w-sm">
                 <button
                   onClick={() => removeFromComparison(product.id)}
-                  className="absolute top-2 right-2 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  className="absolute top-2 right-2 z-10 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-md"
                 >
                   <X className="h-4 w-4" />
                 </button>
