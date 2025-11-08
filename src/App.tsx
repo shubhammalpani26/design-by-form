@@ -4,6 +4,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
+import { ComparisonProvider } from "@/contexts/ComparisonContext";
+import { ComparisonBar } from "@/components/ComparisonBar";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
 import ProductDetail from "./pages/ProductDetail";
@@ -31,6 +33,7 @@ import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
 import Cart from "./pages/Cart";
+import ProductComparison from "./pages/ProductComparison";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,11 +41,13 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <CartProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
+      <ComparisonProvider>
+        <CartProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <ComparisonBar />
+            <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/browse" element={<Browse />} />
             <Route path="/product/:id" element={<ProductDetail />} />
@@ -63,6 +68,7 @@ const App = () => (
             <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
             <Route path="/cart" element={<Cart />} />
+            <Route path="/compare" element={<ProductComparison />} />
             
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
@@ -78,9 +84,10 @@ const App = () => (
             <Route path="/creator-faq" element={<CreatorFAQ />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </CartProvider>
+            </Routes>
+          </BrowserRouter>
+        </CartProvider>
+      </ComparisonProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
+import { AngleRotator } from "@/components/AngleRotator";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,12 +17,11 @@ const ProductDetail = () => {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"image" | "ar">("image");
+  const [viewMode, setViewMode] = useState<"image" | "360" | "ar">("image");
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [isSaved, setIsSaved] = useState(false);
-  const [angleViews, setAngleViews] = useState<string[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [mainImage, setMainImage] = useState<string>("");
   const [isSharing, setIsSharing] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -88,10 +88,11 @@ const ProductDetail = () => {
       
       // Add angle views from database if available
       if (data.angle_views && Array.isArray(data.angle_views)) {
-        views.push(...data.angle_views);
+        const angleUrls = data.angle_views.map((v: any) => v.url || v);
+        views.push(...angleUrls);
       }
 
-      setAngleViews(views);
+      setMainImage(data.image_url || '');
 
       const dimensionsStr = dims && typeof dims === 'object' && dims.width && dims.depth && dims.height
         ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H`
@@ -105,11 +106,13 @@ const ProductDetail = () => {
         price: Number(data.designer_price),
         weight: productWeight,
         image: data.image_url || '',
+        image_url: data.image_url || '',
         description: data.description || 'Beautiful piece crafted with sustainable materials.',
         dimensions: dimensionsStr,
         materials: 'Crafted from premium FRP (Fibre-Reinforced Polymer) with 75% post-consumer recycled content. This sustainable, high-performance material offers exceptional durability and weather resistance while maintaining an elegant, refined finish.',
         designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
-        model_url: data.model_url
+        model_url: data.model_url,
+        angle_views: data.angle_views || []
       });
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -244,76 +247,88 @@ const ProductDetail = () => {
       <Header />
       
       <main className="flex-1 container py-4 lg:py-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
-          <div className="space-y-3">
-            <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
-              <TabsList className="grid w-full grid-cols-2 mb-3">
-                <TabsTrigger value="image" className="text-sm">Images</TabsTrigger>
-                <TabsTrigger value="ar" className="text-sm">AR Preview</TabsTrigger>
+        <div className="grid md:grid-cols-2 gap-3 lg:gap-4">
+          {/* Left Column - Image and AR Viewer */}
+          <div className="space-y-2">
+            <Tabs defaultValue="image" value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
+              <TabsList className="grid w-full grid-cols-3 h-9">
+                <TabsTrigger value="image" className="text-xs">Gallery</TabsTrigger>
+                <TabsTrigger value="360" className="text-xs">360° View</TabsTrigger>
+                <TabsTrigger value="ar" className="text-xs">AR Preview</TabsTrigger>
               </TabsList>
-              
-              <TabsContent value="image" className="mt-0">
-                <div className="space-y-3">
-                  <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
-                    <img
-                      src={angleViews[currentImageIndex]}
-                      alt={`${product.name} - View ${currentImageIndex + 1}`}
-                      className="w-full h-full object-cover"
+
+              <TabsContent value="image" className="mt-2">
+                <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                  <img
+                    src={mainImage}
+                    alt={product.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                {product.angle_views && product.angle_views.length > 0 && (
+                  <div className="mt-2 flex gap-2 overflow-x-auto">
+                    {product.angle_views.map((view: any, idx: number) => (
+                      <button
+                        key={idx}
+                        onClick={() => setMainImage(view.url)}
+                        className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-colors"
+                      >
+                        <img
+                          src={view.url}
+                          alt={view.angle}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="360" className="mt-2">
+                {product.model_url ? (
+                  <div className="h-[500px]">
+                    <ModelViewer3D
+                      modelUrl={product.model_url}
+                      productName={product.name}
                     />
                   </div>
-                  
-                  {angleViews.length > 1 && (
-                    <div className="flex gap-2 justify-center">
-                      {angleViews.map((view, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentImageIndex(index)}
-                          className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
-                            currentImageIndex === index
-                              ? 'border-primary scale-105'
-                              : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <img
-                            src={view}
-                            alt={`View ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
+                ) : product.angle_views && product.angle_views.length > 1 ? (
+                  <AngleRotator images={product.angle_views} />
+                ) : (
+                  <div className="aspect-square rounded-xl bg-accent flex items-center justify-center">
+                    <div className="text-center p-8">
+                      <p className="text-muted-foreground">360° view not available</p>
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Designer needs to generate angle views
+                      </p>
                     </div>
-                  )}
-
-                  {(selectedFinish !== "Natural" || selectedSize !== "Standard") && (
-                    <p className="text-xs text-center text-muted-foreground bg-secondary/10 py-2 px-3 rounded-lg border border-secondary/20">
-                      Preview shows default finish - your final product will be customized with <strong>{selectedFinish}</strong> finish in <strong>{selectedSize}</strong> size
-                    </p>
-                  )}
-                </div>
+                  </div>
+                )}
               </TabsContent>
-              
-              <TabsContent value="ar" className="mt-0">
+
+              <TabsContent value="ar" className="mt-2">
                 <ARViewer 
                   productName={product.name}
-                  imageUrl={product.image}
+                  imageUrl={product.image_url}
                   modelUrl={product.model_url}
                 />
               </TabsContent>
             </Tabs>
           </div>
 
-          <div className="space-y-3 lg:space-y-4">
+          {/* Right Column - Product Details */}
+          <div className="space-y-3">
             <div>
-              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 text-foreground leading-tight">{product.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground mb-1">{product.name}</h1>
               <Link
                 to={`/designer/${product.designerId}`}
-                className="text-sm md:text-base text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Designed by {product.designer}
               </Link>
             </div>
 
-            <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
 
             <p className="text-sm text-muted-foreground leading-relaxed">
               {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}

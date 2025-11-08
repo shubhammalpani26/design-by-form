@@ -15,6 +15,7 @@ interface Product {
   name: string;
   image_url: string;
   base_price: number;
+  angle_views?: Array<{ angle: string; url: string }>;
 }
 
 interface AngleShot {
@@ -44,19 +45,42 @@ const ProductSuccessKit = () => {
     fetchProduct();
   }, [productId]);
 
+  // Load existing angle views from database into state
+  useEffect(() => {
+    if (product?.angle_views && Array.isArray(product.angle_views)) {
+      const loadedShots = angleShots.map(shot => {
+        const existingView = product.angle_views.find((v: any) => v.angle === shot.angle);
+        return existingView ? { ...shot, url: existingView.url, loading: false } : shot;
+      });
+      setAngleShots(loadedShots);
+    }
+  }, [product]);
+
   const fetchProduct = async () => {
     try {
       const { data, error } = await supabase
         .from('designer_products')
-        .select('id, name, image_url, base_price')
+        .select('id, name, image_url, base_price, angle_views')
         .eq('id', productId)
         .single();
 
       if (error) throw error;
-      setProduct(data);
+      
+      // Type the angle_views properly
+      const typedData: Product = {
+        ...data,
+        angle_views: Array.isArray(data.angle_views) 
+          ? data.angle_views
+              .filter((v): v is { angle: string; url: string } => 
+                typeof v === 'object' && v !== null && 'angle' in v && 'url' in v
+              )
+          : undefined
+      };
+      
+      setProduct(typedData);
       
       // Set the original image as front view
-      setAngleShots(prev => prev.map((shot, idx) => 
+      setAngleShots(prev => prev.map((shot, idx) =>
         idx === 0 ? { ...shot, url: data.image_url } : shot
       ));
     } catch (error) {

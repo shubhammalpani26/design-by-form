@@ -230,7 +230,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
 
           <div 
             ref={containerRef}
-            className="w-full h-[400px] max-h-[50vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
             style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}

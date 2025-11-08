@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { ARViewer } from "@/components/ARViewer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
+import { useComparison } from "@/contexts/ComparisonContext";
+import { Check } from "lucide-react";
 
 interface ProductCardProps {
   id: string;
@@ -17,6 +19,18 @@ interface ProductCardProps {
 
 export const ProductCard = ({ id, name, designer, designerId, price, weight, image }: ProductCardProps) => {
   const [showAR, setShowAR] = useState(false);
+  const { addToComparison, removeFromComparison, isInComparison } = useComparison();
+  const inComparison = isInComparison(id);
+
+  const toggleComparison = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (inComparison) {
+      removeFromComparison(id);
+    } else {
+      addToComparison(id);
+    }
+  };
 
   return (
     <>
@@ -46,8 +60,24 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             </CardContent>
           </Link>
           
-          {/* AR View Button */}
-          <div className="absolute top-2 right-2 z-10">
+          {/* Action Buttons */}
+          <div className="absolute top-2 right-2 z-10 flex gap-2">
+            <Button
+              size="icon"
+              variant={inComparison ? "default" : "secondary"}
+              className="backdrop-blur-sm shadow-lg h-9 w-9"
+              onClick={toggleComparison}
+              title={inComparison ? "Remove from comparison" : "Add to comparison"}
+            >
+              {inComparison ? (
+                <Check className="h-4 w-4" />
+              ) : (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+              )}
+            </Button>
+            
             <Button
               size="sm"
               variant="secondary"
