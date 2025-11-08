@@ -48,10 +48,13 @@ const ProductDetail = () => {
 
       const dims = data.dimensions as any;
       
-      // Calculate weight using AI if we have dimensions
+      // Calculate weight using AI if we have dimensions and weight is not realistic
       let productWeight = Number(data.weight || 15);
-      if (dims && typeof dims === 'object' && dims.width && dims.depth && dims.height) {
+      const needsWeightCalculation = !data.weight || data.weight < 10; // Recalculate if weight is missing or too low
+      
+      if (dims && typeof dims === 'object' && dims.width && dims.depth && dims.height && needsWeightCalculation) {
         try {
+          console.log('Calculating weight for product:', data.name);
           const { data: weightData, error: weightError } = await supabase.functions.invoke('calculate-weight', {
             body: {
               dimensions: dims,
@@ -60,14 +63,19 @@ const ProductDetail = () => {
             }
           });
           
+          console.log('Weight calculation result:', weightData, weightError);
+          
           if (!weightError && weightData?.weight) {
             productWeight = weightData.weight;
+            console.log('Updating product weight to:', productWeight);
             
             // Update the product in database with calculated weight
             await supabase
               .from('designer_products')
               .update({ weight: productWeight })
               .eq('id', id);
+          } else {
+            console.error('Weight calculation error:', weightError);
           }
         } catch (error) {
           console.error('Error calculating weight:', error);
@@ -235,8 +243,8 @@ const ProductDetail = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-6 lg:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+      <main className="flex-1 container py-4 lg:py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
           <div className="space-y-3">
             <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-3">
@@ -285,17 +293,21 @@ const ProductDetail = () => {
               </TabsContent>
               
               <TabsContent value="ar" className="mt-0">
-                <ARViewer productName={product.name} />
+                <ARViewer 
+                  productName={product.name}
+                  imageUrl={product.image}
+                  modelUrl={product.model_url}
+                />
               </TabsContent>
             </Tabs>
           </div>
 
-          <div className="space-y-4 lg:space-y-5">
+          <div className="space-y-3 lg:space-y-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">{product.name}</h1>
+              <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-1.5 text-foreground leading-tight">{product.name}</h1>
               <Link
                 to={`/designer/${product.designerId}`}
-                className="text-lg text-muted-foreground hover:text-primary transition-colors"
+                className="text-sm md:text-base text-muted-foreground hover:text-primary transition-colors"
               >
                 Designed by {product.designer}
               </Link>
@@ -303,7 +315,7 @@ const ProductDetail = () => {
 
             <p className="text-2xl md:text-3xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
 
-            <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}
             </p>
 
@@ -311,15 +323,15 @@ const ProductDetail = () => {
             <Card className="bg-accent/50 border-primary/20">
               <CardContent className="p-3 lg:p-4 space-y-3">
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Finish</label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Finish</label>
+                  <div className="flex flex-wrap gap-1.5">
                     {['Natural', 'Matte Black', 'Glossy White', 'Walnut', 'Concrete'].map((finish) => (
                       <button
                         key={finish}
                         onClick={() => setSelectedFinish(finish)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                           selectedFinish === finish
-                            ? 'bg-primary text-primary-foreground shadow-md'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
                             : 'bg-background border border-border hover:border-primary'
                         }`}
                       >
@@ -330,15 +342,15 @@ const ProductDetail = () => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-semibold text-foreground mb-2 block">Size</label>
-                  <div className="flex flex-wrap gap-2">
+                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Size</label>
+                  <div className="flex flex-wrap gap-1.5">
                     {['Standard', 'Large', 'Extra Large'].map((size) => (
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
                           selectedSize === size
-                            ? 'bg-primary text-primary-foreground shadow-md'
+                            ? 'bg-primary text-primary-foreground shadow-sm'
                             : 'bg-background border border-border hover:border-primary'
                         }`}
                       >
@@ -348,7 +360,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full" size="sm" onClick={handleRequestCustomization}>
+                <Button variant="outline" className="w-full text-xs h-8" onClick={handleRequestCustomization}>
                   Request More Customizations
                 </Button>
               </CardContent>
@@ -416,25 +428,25 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
-            <div className="space-y-3">
+            <div className="space-y-2 text-sm">
               <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[120px]">Weight:</span>
-                <span className="text-muted-foreground">{product.weight} kg</span>
+                <span className="font-semibold min-w-[100px]">Weight:</span>
+                <span className="text-muted-foreground">{Math.round(product.weight * 10) / 10} kg</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[120px]">Dimensions:</span>
+                <span className="font-semibold min-w-[100px]">Dimensions:</span>
                 <span className="text-muted-foreground">{product.dimensions}</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[120px]">Materials:</span>
+                <span className="font-semibold min-w-[100px]">Materials:</span>
                 <span className="text-muted-foreground">{product.materials}</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[120px]">Production:</span>
+                <span className="font-semibold min-w-[100px]">Production:</span>
                 <span className="text-muted-foreground">3D printed on-demand with expert hand-finishing, 2-3 weeks</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[120px]">Outdoor Use:</span>
+                <span className="font-semibold min-w-[100px]">Outdoor Use:</span>
                 <span className="text-muted-foreground">Weather-resistant and UV-stable</span>
               </div>
             </div>
