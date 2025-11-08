@@ -23,9 +23,6 @@ const ProductDetail = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [mainImage, setMainImage] = useState<string>("");
   const [isSharing, setIsSharing] = useState(false);
-  const [customWidth, setCustomWidth] = useState<number>(120);
-  const [customHeight, setCustomHeight] = useState<number>(120);
-  const [adjustedPrice, setAdjustedPrice] = useState<number>(0);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -120,12 +117,6 @@ const ProductDetail = () => {
         angle_views: data.angle_views || []
       });
 
-      // Initialize custom dimensions for installations
-      if (data.category === 'installations' && dims && typeof dims === 'object') {
-        setCustomWidth(dims.width || 120);
-        setCustomHeight(dims.height || 120);
-        setAdjustedPrice(Number(data.designer_price));
-      }
     } catch (error) {
       console.error('Error fetching product:', error);
     } finally {
@@ -141,15 +132,6 @@ const ProductDetail = () => {
         finish: selectedFinish,
         size: selectedSize
       };
-      
-      // Add installation-specific customizations
-      if (product?.category === 'installations' && product.dimensionsObj) {
-        customizations.customDimensions = {
-          width: customWidth,
-          height: customHeight
-        };
-        customizations.adjustedPrice = adjustedPrice;
-      }
       
       await addToCart(id, customizations);
     } catch (error) {
@@ -360,66 +342,6 @@ const ProductDetail = () => {
             {/* Quick Customization */}
             <Card className="bg-accent/50 border-primary/20">
               <CardContent className="p-3 lg:p-4 space-y-3">
-                {product.category === 'installations' && product.dimensionsObj && (
-                  <div className="space-y-3 pb-3 border-b border-border">
-                    <div>
-                      <label className="text-xs font-semibold text-foreground mb-1.5 block">
-                        Wall Dimensions (inches)
-                      </label>
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Width</label>
-                          <input
-                            type="number"
-                            min="60"
-                            max="300"
-                            value={customWidth}
-                            onChange={(e) => {
-                              const newWidth = Number(e.target.value);
-                              setCustomWidth(newWidth);
-                              const baseDims = product.dimensionsObj;
-                              const baseArea = baseDims.width * baseDims.height;
-                              const newArea = newWidth * customHeight;
-                              const scaleFactor = newArea / baseArea;
-                              setAdjustedPrice(Math.round(product.price * scaleFactor));
-                            }}
-                            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground text-sm"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground mb-1 block">Height</label>
-                          <input
-                            type="number"
-                            min="60"
-                            max="300"
-                            value={customHeight}
-                            onChange={(e) => {
-                              const newHeight = Number(e.target.value);
-                              setCustomHeight(newHeight);
-                              const baseDims = product.dimensionsObj;
-                              const baseArea = baseDims.width * baseDims.height;
-                              const newArea = customWidth * newHeight;
-                              const scaleFactor = newArea / baseArea;
-                              setAdjustedPrice(Math.round(product.price * scaleFactor));
-                            }}
-                            className="w-full px-3 py-2 rounded-md border border-border bg-background text-foreground text-sm"
-                          />
-                        </div>
-                      </div>
-                      {adjustedPrice !== product.price && (
-                        <div className="mt-2 p-2 bg-primary/10 rounded-md">
-                          <p className="text-xs text-primary font-semibold">
-                            Adjusted Price: ₹{adjustedPrice.toLocaleString()}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-0.5">
-                            Based on {customWidth}" × {customHeight}" wall area
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
                 <div>
                   <label className="text-xs font-semibold text-foreground mb-1.5 block">Finish</label>
                   <div className="flex flex-wrap gap-1.5">
