@@ -21,10 +21,38 @@ interface Product {
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [heroProduct, setHeroProduct] = useState<{ designer: string; sales: number } | null>(null);
 
   useEffect(() => {
     fetchFeaturedProducts();
+    fetchHeroProduct();
   }, []);
+
+  const fetchHeroProduct = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('designer_products')
+        .select(`
+          total_sales,
+          designer_profiles!inner(name)
+        `)
+        .eq('status', 'approved')
+        .order('total_sales', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setHeroProduct({
+          designer: data.designer_profiles?.name || 'Unknown Designer',
+          sales: data.total_sales || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching hero product:', error);
+    }
+  };
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -138,7 +166,9 @@ const Home = () => {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-foreground">Generated from: "Modern chair with organic curves"</p>
-                        <p className="text-xs text-muted-foreground mt-1">AI-designed furniture • Featured on homepage</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {heroProduct ? `Designed by ${heroProduct.designer} • ${heroProduct.sales} sales` : 'Loading...'}
+                        </p>
                       </div>
                     </div>
                   </div>
