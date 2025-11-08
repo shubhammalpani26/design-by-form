@@ -30,6 +30,7 @@ import Contact from "./pages/Contact";
 import Auth from "./pages/Auth";
 import ShopperFAQ from "./pages/ShopperFAQ";
 import CreatorFAQ from "./pages/CreatorFAQ";
+import Plans from "./pages/Plans";
 import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
@@ -85,6 +86,7 @@ const App = () => (
             <Route path="/designer-onboarding" element={<DesignerOnboarding />} />
             <Route path="/shopper-faq" element={<ShopperFAQ />} />
             <Route path="/creator-faq" element={<CreatorFAQ />} />
+            <Route path="/plans" element={<Plans />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
             </Routes>
