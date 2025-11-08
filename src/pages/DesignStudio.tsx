@@ -760,11 +760,13 @@ const DesignStudio = () => {
       }
 
       // Get designer profile (or create for personal mode)
-      const { data: profile, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("designer_profiles")
         .select("id, status, terms_accepted")
         .eq("user_id", user.id)
         .single();
+      
+      let profile = profileData;
 
       // For personal mode, skip designer onboarding requirement
       if (userIntent === 'designer') {
@@ -810,6 +812,9 @@ const DesignStudio = () => {
           .single();
 
         if (createError) throw createError;
+        
+        // Reassign profile to use newProfile for product creation
+        profile = newProfile;
       }
 
       // Create product with dimensions and pricing analytics
