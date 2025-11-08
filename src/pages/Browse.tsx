@@ -30,7 +30,10 @@ const Browse = () => {
 
   useEffect(() => {
     if (category) {
-      setFilteredProducts(products.filter(p => p.category === category));
+      const filtered = products.filter(p => p.category === category);
+      console.log(`Filtering by category "${category}":`, filtered.length, 'products found');
+      console.log('Filtered products:', filtered);
+      setFilteredProducts(filtered);
     } else {
       setFilteredProducts(products);
     }
@@ -64,6 +67,12 @@ const Browse = () => {
         image: p.image_url || '',
         category: p.category || 'other'
       }));
+
+      console.log('Fetched products:', formattedProducts);
+      console.log('Products by category:', formattedProducts.reduce((acc: any, p) => {
+        acc[p.category] = (acc[p.category] || 0) + 1;
+        return acc;
+      }, {}));
 
       setProducts(formattedProducts);
       setFilteredProducts(formattedProducts);
