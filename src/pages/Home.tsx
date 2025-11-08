@@ -138,7 +138,7 @@ const Home = () => {
                       </div>
                       <div>
                         <p className="text-sm font-semibold text-foreground">Generated from: "Modern chair with organic curves"</p>
-                        <p className="text-xs text-muted-foreground mt-1">Designed by Tejal A. • 127 sales</p>
+                        <p className="text-xs text-muted-foreground mt-1">AI-designed furniture • Featured on homepage</p>
                       </div>
                     </div>
                   </div>
