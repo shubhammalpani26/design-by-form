@@ -30,6 +30,7 @@ import CreatorFAQ from "./pages/CreatorFAQ";
 import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
+import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ const App = () => (
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
             <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
+            <Route path="/cart" element={<Cart />} />
             
             <Route path="/admin" element={<AdminDashboard />} />
             <Route path="/how-it-works" element={<HowItWorks />} />

@@ -22,6 +22,7 @@ const ProductDetail = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [angleViews, setAngleViews] = useState<string[]>([]);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isSharing, setIsSharing] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -51,15 +52,22 @@ const ProductDetail = () => {
       let productWeight = Number(data.weight || 15);
       if (dims && typeof dims === 'object' && dims.width && dims.depth && dims.height) {
         try {
-          const { data: weightData } = await supabase.functions.invoke('calculate-weight', {
+          const { data: weightData, error: weightError } = await supabase.functions.invoke('calculate-weight', {
             body: {
               dimensions: dims,
               category: data.category,
               productName: data.name
             }
           });
-          if (weightData?.weight) {
+          
+          if (!weightError && weightData?.weight) {
             productWeight = weightData.weight;
+            
+            // Update the product in database with calculated weight
+            await supabase
+              .from('designer_products')
+              .update({ weight: productWeight })
+              .eq('id', id);
           }
         } catch (error) {
           console.error('Error calculating weight:', error);
@@ -98,9 +106,10 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
+    if (!id) return;
+    
     try {
-      // Note: Using mock ID - in production, fetch from database
-      await addToCart(id || "1", {
+      await addToCart(id, {
         finish: selectedFinish,
         size: selectedSize
       });
@@ -129,6 +138,52 @@ const ProductDetail = () => {
       title: "Custom Design Request",
       description: "Our design team will reach out to you soon to create a personalized design.",
     });
+  };
+
+  const handleShare = async () => {
+    setIsSharing(true);
+    const shareUrl = window.location.href;
+    const shareTitle = product?.name || 'Check out this product';
+    const shareText = `${shareTitle} on Forma`;
+
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: shareTitle,
+          text: shareText,
+          url: shareUrl,
+        });
+        toast({
+          title: "Shared successfully!",
+          description: "Product shared successfully",
+        });
+      } else {
+        // Fallback: copy to clipboard
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copied!",
+          description: "Product link copied to clipboard",
+        });
+      }
+    } catch (error) {
+      console.error('Share error:', error);
+      // Try clipboard fallback
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: "Link copied!",
+          description: "Product link copied to clipboard",
+        });
+      } catch (clipboardError) {
+        toast({
+          title: "Unable to share",
+          description: "Please copy the URL manually",
+          variant: "destructive",
+        });
+      }
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   if (loading) {
@@ -404,6 +459,17 @@ const ProductDetail = () => {
                     Save
                   </>
                 )}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="lg"
+                onClick={handleShare}
+                disabled={isSharing}
+              >
+                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                Share
               </Button>
             </div>
 
