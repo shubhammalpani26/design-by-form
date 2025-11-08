@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
 import { CreditBalance } from "@/components/CreditBalance";
+import { GlobalSearch } from "@/components/GlobalSearch";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -102,6 +103,7 @@ export const Header = () => {
         </nav>
 
         <div className="flex items-center space-x-4">
+          <GlobalSearch />
           {user && <CreditBalance />}
           {user ? (
             <DropdownMenu>

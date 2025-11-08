@@ -20,6 +20,8 @@ const ProductDetail = () => {
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [isSaved, setIsSaved] = useState(false);
+  const [angleViews, setAngleViews] = useState<string[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { addToCart } = useCart();
   const { toast } = useToast();
 
@@ -44,17 +46,53 @@ const ProductDetail = () => {
       if (error) throw error;
 
       const dims = data.dimensions as any;
+      
+      // Calculate weight using AI if we have dimensions
+      let productWeight = Number(data.weight || 15);
+      if (dims && typeof dims === 'object' && dims.width && dims.depth && dims.height) {
+        try {
+          const { data: weightData } = await supabase.functions.invoke('calculate-weight', {
+            body: {
+              dimensions: dims,
+              category: data.category,
+              productName: data.name
+            }
+          });
+          if (weightData?.weight) {
+            productWeight = weightData.weight;
+          }
+        } catch (error) {
+          console.error('Error calculating weight:', error);
+        }
+      }
+
+      // Parse angle views if available
+      const views = [];
+      if (data.image_url) views.push(data.image_url);
+      
+      // Check for angle view URLs stored in metadata
+      const metadata = data.metadata as any;
+      if (metadata?.angle_views && Array.isArray(metadata.angle_views)) {
+        views.push(...metadata.angle_views);
+      }
+
+      setAngleViews(views);
+
+      const dimensionsStr = dims && typeof dims === 'object' && dims.width && dims.depth && dims.height
+        ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H`
+        : 'Dimensions available upon request';
+
       setProduct({
         id: data.id,
         name: data.name,
         designer: data.designer_profiles?.name || 'Unknown Designer',
         designerId: data.designer_id,
         price: Number(data.designer_price),
-        weight: Number(data.weight || 5),
+        weight: productWeight,
         image: data.image_url || '',
         description: data.description || 'Beautiful piece crafted with sustainable materials.',
-        dimensions: dims && typeof dims === 'object' ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H` : '32"W × 30"D × 34"H',
-        materials: data.materials_description || 'Premium FRP (Fibre-Reinforced Polymer) with 75% PCR',
+        dimensions: dimensionsStr,
+        materials: 'Crafted from premium FRP (Fibre-Reinforced Polymer) with 75% post-consumer recycled content. This sustainable, high-performance material offers exceptional durability and weather resistance while maintaining an elegant, refined finish.',
         designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
         model_url: data.model_url
       });
@@ -82,6 +120,20 @@ const ProductDetail = () => {
     toast({
       title: isSaved ? "Removed from Saved" : "Saved!",
       description: isSaved ? "Product removed from your saved items" : "Product saved for later",
+    });
+  };
+
+  const handleRequestCustomization = () => {
+    toast({
+      title: "Customization Request",
+      description: "Our design team will contact you within 24 hours to discuss your customization options.",
+    });
+  };
+
+  const handleRequestCustomDesign = () => {
+    toast({
+      title: "Custom Design Request",
+      description: "Our design team will reach out to you soon to create a personalized design.",
     });
   };
 
@@ -142,11 +194,34 @@ const ProductDetail = () => {
                 <div className="space-y-3">
                   <div className="aspect-square rounded-2xl overflow-hidden bg-accent shadow-medium">
                     <img
-                      src={product.image}
-                      alt={product.name}
+                      src={angleViews[currentImageIndex]}
+                      alt={`${product.name} - View ${currentImageIndex + 1}`}
                       className="w-full h-full object-cover"
                     />
                   </div>
+                  
+                  {angleViews.length > 1 && (
+                    <div className="flex gap-2 justify-center">
+                      {angleViews.map((view, index) => (
+                        <button
+                          key={index}
+                          onClick={() => setCurrentImageIndex(index)}
+                          className={`w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            currentImageIndex === index
+                              ? 'border-primary scale-105'
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <img
+                            src={view}
+                            alt={`View ${index + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   {(selectedFinish !== "Natural" || selectedSize !== "Standard") && (
                     <p className="text-xs text-center text-muted-foreground bg-secondary/10 py-2 px-3 rounded-lg border border-secondary/20">
                       Preview shows default finish - your final product will be customized with <strong>{selectedFinish}</strong> finish in <strong>{selectedSize}</strong> size
@@ -219,7 +294,7 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                <Button variant="outline" className="w-full" size="sm">
+                <Button variant="outline" className="w-full" size="sm" onClick={handleRequestCustomization}>
                   Request More Customizations
                 </Button>
               </CardContent>
@@ -281,7 +356,7 @@ const ProductDetail = () => {
                     <span className="text-muted-foreground ml-2">Iridescent, Pearlescent, Glow-in-the-dark, Custom Designer Artwork</span>
                   </div>
                 </div>
-                <Button variant="outline" className="w-full mt-4">
+                <Button variant="outline" className="w-full mt-4" onClick={handleRequestCustomDesign}>
                   Request Custom Design
                 </Button>
               </CardContent>
