@@ -46,13 +46,15 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             </div>
             <CardContent className="p-4">
               <h3 className="font-semibold text-lg text-foreground mb-1">{name}</h3>
-              <Link
-                to={`/designer/${designerId}`}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                by {designer}
-              </Link>
+              <p className="text-sm text-muted-foreground">
+                by <Link
+                  to={`/designer/${designerId}`}
+                  className="hover:text-primary transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {designer}
+                </Link>
+              </p>
               <div className="flex items-center justify-between mt-2">
                 <p className="text-primary font-semibold">₹{price.toLocaleString()}</p>
                 <p className="text-xs text-muted-foreground">{weight} kg</p>

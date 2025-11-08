@@ -121,12 +121,28 @@ const ProductSuccessKit = () => {
       }
 
       if (data?.imageUrl) {
-        setAngleShots(prev => prev.map((shot, idx) => 
+        const updatedShots = angleShots.map((shot, idx) => 
           idx === index ? { ...shot, url: data.imageUrl, loading: false } : shot
-        ));
+        );
+        setAngleShots(updatedShots);
+        
+        // Save to database
+        const angleViewsToSave = updatedShots
+          .filter(s => s.url)
+          .map(s => ({ angle: s.angle, url: s.url }));
+        
+        const { error: updateError } = await supabase
+          .from('designer_products')
+          .update({ angle_views: angleViewsToSave })
+          .eq('id', productId);
+        
+        if (updateError) {
+          console.error('Error saving angle view:', updateError);
+        }
+        
         toast({
           title: 'Success',
-          description: `${angle} generated successfully!`,
+          description: `${angle} generated and saved successfully!`,
         });
       } else {
         throw new Error('No image URL returned');
