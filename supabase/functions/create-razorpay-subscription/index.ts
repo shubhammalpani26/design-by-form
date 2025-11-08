@@ -48,20 +48,19 @@ serve(async (req) => {
       throw new Error('Invalid plan configuration');
     }
 
-    // Create Razorpay subscription
+    // Create Razorpay order (for one-time payment)
     const auth = btoa(`${razorpayKeyId}:${razorpayKeySecret}`);
     
-    const subscriptionResponse = await fetch('https://api.razorpay.com/v1/subscriptions', {
+    const orderResponse = await fetch('https://api.razorpay.com/v1/orders', {
       method: 'POST',
       headers: {
         'Authorization': `Basic ${auth}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        plan_id: `${planType}_${billingCycle}`,
-        customer_notify: 1,
-        quantity: 1,
-        total_count: billingCycle === 'monthly' ? 12 : 1,
+        amount: config.amount,
+        currency: 'INR',
+        receipt: `receipt_${planType}_${Date.now()}`,
         notes: {
           user_id: user.id,
           plan_type: planType,
@@ -70,13 +69,13 @@ serve(async (req) => {
       }),
     });
 
-    if (!subscriptionResponse.ok) {
-      const error = await subscriptionResponse.text();
+    if (!orderResponse.ok) {
+      const error = await orderResponse.text();
       console.error('Razorpay error:', error);
-      throw new Error('Failed to create Razorpay subscription');
+      throw new Error('Failed to create Razorpay order');
     }
 
-    const razorpaySubscription = await subscriptionResponse.json();
+    const razorpayOrder = await orderResponse.json();
 
     // Calculate period dates
     const currentPeriodStart = new Date();
@@ -94,7 +93,7 @@ serve(async (req) => {
         user_id: user.id,
         plan_type: planType,
         status: 'pending',
-        razorpay_subscription_id: razorpaySubscription.id,
+        razorpay_subscription_id: razorpayOrder.id,
         billing_cycle: billingCycle,
         current_period_start: currentPeriodStart.toISOString(),
         current_period_end: currentPeriodEnd.toISOString(),
@@ -120,12 +119,12 @@ serve(async (req) => {
         amount: config.amount / 100,
         currency: 'INR',
         status: 'pending',
-        razorpay_order_id: razorpaySubscription.id,
+        razorpay_order_id: razorpayOrder.id,
       });
 
     return new Response(
       JSON.stringify({
-        subscriptionId: razorpaySubscription.id,
+        orderId: razorpayOrder.id,
         razorpayKeyId,
         amount: config.amount,
         currency: 'INR',

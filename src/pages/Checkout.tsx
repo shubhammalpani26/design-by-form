@@ -149,7 +149,9 @@ const Checkout = () => {
 
       const options = {
         key: data.razorpayKeyId,
-        subscription_id: data.subscriptionId,
+        amount: data.amount,
+        currency: data.currency,
+        order_id: data.orderId,
         name: "Fractal Furniture",
         description: `${planDetails?.name} Plan - ${billingCycle}`,
         handler: async function (response: any) {
@@ -158,7 +160,7 @@ const Checkout = () => {
             const { error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
               body: {
                 razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_subscription_id: response.razorpay_subscription_id,
+                razorpay_order_id: response.razorpay_order_id,
                 razorpay_signature: response.razorpay_signature,
               }
             });

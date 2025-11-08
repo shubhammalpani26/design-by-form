@@ -28,11 +28,11 @@ serve(async (req) => {
       throw new Error('Unauthorized');
     }
 
-    const { razorpay_payment_id, razorpay_subscription_id, razorpay_signature } = await req.json();
+    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } = await req.json();
 
     // Verify signature
     const expectedSignature = createHmac('sha256', razorpayKeySecret)
-      .update(`${razorpay_payment_id}|${razorpay_subscription_id}`)
+      .update(`${razorpay_order_id}|${razorpay_payment_id}`)
       .digest('hex');
 
     if (expectedSignature !== razorpay_signature) {
@@ -43,7 +43,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('subscriptions')
       .update({ status: 'active' })
-      .eq('razorpay_subscription_id', razorpay_subscription_id)
+      .eq('razorpay_subscription_id', razorpay_order_id)
       .eq('user_id', user.id);
 
     if (updateError) {
@@ -59,7 +59,7 @@ serve(async (req) => {
         razorpay_payment_id,
         razorpay_signature,
       })
-      .eq('razorpay_order_id', razorpay_subscription_id)
+      .eq('razorpay_order_id', razorpay_order_id)
       .eq('user_id', user.id);
 
     return new Response(
