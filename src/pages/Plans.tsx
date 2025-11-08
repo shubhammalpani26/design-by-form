@@ -23,7 +23,7 @@ const Plans = () => {
       priceYearly: 0,
       description: "Perfect for trying out the platform",
       features: [
-        "Create up to 3 designs",
+        "10 AI designs included",
         "Basic AI design tools",
         "Standard product photos",
         "Pay ₹500 per 3D model",
