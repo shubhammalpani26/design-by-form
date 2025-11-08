@@ -59,6 +59,7 @@ const App = () => (
             <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
             
             {/* Creator Dashboard Routes */}
+            <Route path="/creator-dashboard" element={<CreatorDashboard />} />
             <Route path="/creator/dashboard" element={<CreatorDashboard />} />
             <Route path="/creator/designs" element={<DesignerDashboard />} />
             <Route path="/creator/earnings" element={<CreatorEarningsDashboard />} />
