@@ -155,9 +155,9 @@ export default function ProductComparison() {
         </div>
 
         <div className="overflow-x-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 min-w-max">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {products.map((product) => (
-              <Card key={product.id} className="p-4 relative">
+              <Card key={product.id} className="p-4 relative max-w-sm">
                 <button
                   onClick={() => removeFromComparison(product.id)}
                   className="absolute top-2 right-2 p-1 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
@@ -166,11 +166,11 @@ export default function ProductComparison() {
                 </button>
 
                 <div className="space-y-4">
-                  <div className="aspect-square rounded-lg overflow-hidden bg-accent">
+                  <div className="aspect-square rounded-lg overflow-hidden bg-accent relative">
                     <img
                       src={product.image_url}
                       alt={product.name}
-                      className="w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover"
                     />
                   </div>
 
