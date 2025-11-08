@@ -74,9 +74,14 @@ const ProductDetail = () => {
         }
       }
 
-      // Parse angle views if available - for now just use main image
+      // Parse angle views - use all available images
       const views = [];
       if (data.image_url) views.push(data.image_url);
+      
+      // Add angle views from database if available
+      if (data.angle_views && Array.isArray(data.angle_views)) {
+        views.push(...data.angle_views);
+      }
 
       setAngleViews(views);
 
