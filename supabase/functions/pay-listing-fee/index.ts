@@ -49,7 +49,7 @@ serve(async (req) => {
 
     // Determine listing fee based on country
     const isInternational = country && country !== 'IN';
-    const listingFee = isInternational ? 10 : 1000; // $10 USD or Rs. 1,000
+    const listingFee = isInternational ? 15 : 1000; // $15 USD or Rs. 1,000
     const currency = isInternational ? 'USD' : 'INR';
 
     // In a real implementation, you would:

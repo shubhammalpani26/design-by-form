@@ -1873,9 +1873,9 @@ const DesignStudio = () => {
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
                           <p className="text-sm font-bold text-foreground">
-                            Monthly Income: ₹{(submissionData.designerPrice > 0 
+                            Monthly Income: ₹{(submissionData.designerPrice > submissionData.basePrice
                               ? ((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)) * 10 
-                              : estimatedCost * 6).toLocaleString()}
+                              : 0).toLocaleString()}
                           </p>
                         </div>
 
@@ -1970,7 +1970,7 @@ const DesignStudio = () => {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm font-medium mb-2 block text-foreground">Dimensions (L × B × H) *</label>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Dimensions (L × B × H in inches) *</label>
                         <div className="grid grid-cols-3 gap-2">
                           <Input 
                             type="number"

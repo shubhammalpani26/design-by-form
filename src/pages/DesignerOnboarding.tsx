@@ -78,7 +78,8 @@ export default function DesignerOnboarding() {
         throw new Error("Not authenticated");
       }
 
-      const { error } = await supabase
+      // Auto-approve designers and assign designer role
+      const { data: newProfile, error } = await supabase
         .from('designer_profiles')
         .insert({
           user_id: user.id,
@@ -90,17 +91,27 @@ export default function DesignerOnboarding() {
           furniture_interests: formData.furnitureInterests,
           terms_accepted: true,
           terms_accepted_at: new Date().toISOString(),
-          status: 'pending'
-        });
+          status: 'approved' // Auto-approve designers
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
+      // Assign designer role
+      if (newProfile) {
+        await supabase.from('user_roles').insert({
+          user_id: user.id,
+          role: 'designer'
+        });
+      }
+
       toast({
-        title: "Application Submitted!",
-        description: "We'll review your application within 2-3 business days",
+        title: "Welcome to the Designer Program!",
+        description: "Your designer account is now active. Start creating designs!",
       });
 
-      navigate("/creator-dashboard");
+      navigate("/design-studio");
     } catch (error) {
       console.error('Onboarding error:', error);
       toast({
@@ -217,15 +228,16 @@ export default function DesignerOnboarding() {
               <div>
                 <label className="flex items-center gap-2 text-sm font-medium mb-2">
                   <Phone className="w-4 h-4" />
-                  Phone Number *
+                  Phone Number with Country Code *
                 </label>
                 <Input
                   type="tel"
                   value={formData.phoneNumber}
                   onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                  placeholder="+91 98765 43210"
+                  placeholder="+91 98765 43210 (include country code)"
                   required
                 />
+                <p className="text-xs text-muted-foreground mt-1">Include country code (e.g., +91 for India, +1 for US)</p>
               </div>
 
               <div>
@@ -300,7 +312,7 @@ export default function DesignerOnboarding() {
                     />
                     <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
                       I accept the <a href="/terms" className="text-primary hover:underline">Designer Terms & Conditions</a>, 
-                      including the Rs. 500 listing fee per design (international designers: $10 USD) and 
+                      including the ₹1,000 listing fee per design (international designers: $15 USD) and 
                       commission structure (10% on production costs + my markup)
                     </label>
                   </div>
