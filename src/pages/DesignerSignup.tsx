@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -15,6 +15,7 @@ const DesignerSignup = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -24,6 +25,32 @@ const DesignerSignup = () => {
     interests: "",
     termsAccepted: false,
   });
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setIsAuthenticated(!!user);
+      
+      // If user is logged in and already has a designer profile, redirect to dashboard
+      if (user) {
+        const { data: profile } = await supabase
+          .from("designer_profiles")
+          .select("id")
+          .eq("user_id", user.id)
+          .single();
+        
+        if (profile) {
+          toast({
+            title: "Already a Creator",
+            description: "You're already registered as a creator!",
+          });
+          navigate("/creator-dashboard");
+        }
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -243,9 +270,11 @@ const DesignerSignup = () => {
               </CardContent>
             </Card>
 
-            <div className="mt-8 text-center text-sm text-muted-foreground">
-              Already have an account? <Link to="/auth" className="text-primary hover:underline">Sign in</Link>
-            </div>
+            {!isAuthenticated && (
+              <div className="mt-8 text-center text-sm text-muted-foreground">
+                Already have an account? <Link to="/auth" className="text-primary hover:underline">Sign in</Link>
+              </div>
+            )}
           </div>
         </section>
       </main>
