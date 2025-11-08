@@ -66,7 +66,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between gap-4">
+      <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
         <Link to="/" className="flex items-center space-x-2 shrink-0">
           <span className="text-2xl font-bold text-primary">Forma</span>
         </Link>
@@ -108,21 +108,12 @@ export const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="flex items-center gap-2">
           {/* Search */}
           <GlobalSearch />
           
-          {/* Credits and CTA - for logged in users */}
-          {user && (
-            <>
-              <CreditBalance />
-              <Link to="/plans">
-                <Button variant="default" size="sm" className="hidden md:flex">
-                  Get More
-                </Button>
-              </Link>
-            </>
-          )}
+          {/* Credits - already has "Get More" button inside when low */}
+          {user && <CreditBalance />}
           
           {/* Cart */}
           {user && (
@@ -141,9 +132,9 @@ export const Header = () => {
           )}
           
           {/* Visual separator */}
-          <div className="h-6 w-px bg-border/60 hidden md:block mx-1" />
+          <div className="h-6 w-px bg-border/60 hidden lg:block mx-1" />
           
-          {/* Currency - moved near corner */}
+          {/* Currency - near corner */}
           <CurrencySelector />
           
           {/* User menu - at the corner */}
