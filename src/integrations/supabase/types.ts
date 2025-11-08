@@ -292,6 +292,7 @@ export type Database = {
       }
       designer_products: {
         Row: {
+          angle_views: Json | null
           auto_pricing_enabled: boolean | null
           available_finishes: Json | null
           available_sizes: Json | null
@@ -322,6 +323,7 @@ export type Database = {
           weight: number | null
         }
         Insert: {
+          angle_views?: Json | null
           auto_pricing_enabled?: boolean | null
           available_finishes?: Json | null
           available_sizes?: Json | null
@@ -352,6 +354,7 @@ export type Database = {
           weight?: number | null
         }
         Update: {
+          angle_views?: Json | null
           auto_pricing_enabled?: boolean | null
           available_finishes?: Json | null
           available_sizes?: Json | null
