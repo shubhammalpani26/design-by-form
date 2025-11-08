@@ -206,9 +206,8 @@ const Plans = () => {
                       if (plan.name === "Free") {
                         navigate("/auth");
                       } else {
-                        // For Creator and Pro Studio, navigate to checkout
-                        // TODO: Implement Stripe checkout
-                        navigate("/auth");
+                        // Navigate to designer dashboard to manage subscription
+                        navigate("/designer-dashboard");
                       }
                     }}
                   >
