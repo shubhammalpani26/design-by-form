@@ -50,7 +50,6 @@ Example: {"weight": 18.5, "reasoning": "Based on FRP density and structural need
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [{ role: 'user', content: prompt }],
-        temperature: 0.3,
       }),
     });
 

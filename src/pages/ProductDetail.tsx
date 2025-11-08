@@ -66,15 +66,9 @@ const ProductDetail = () => {
         }
       }
 
-      // Parse angle views if available
+      // Parse angle views if available - for now just use main image
       const views = [];
       if (data.image_url) views.push(data.image_url);
-      
-      // Check for angle view URLs stored in metadata
-      const metadata = data.metadata as any;
-      if (metadata?.angle_views && Array.isArray(metadata.angle_views)) {
-        views.push(...metadata.angle_views);
-      }
 
       setAngleViews(views);
 
