@@ -12,6 +12,7 @@ import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -25,6 +26,7 @@ const ProductDetail = () => {
   const [isSharing, setIsSharing] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     if (id) {
@@ -333,7 +335,7 @@ const ProductDetail = () => {
               </Link>
             </div>
 
-            <p className="text-2xl font-bold text-primary">₹{product.price.toLocaleString()}</p>
+            <p className="text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
 
             <p className="text-sm text-muted-foreground leading-relaxed">
               {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}

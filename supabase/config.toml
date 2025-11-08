@@ -32,3 +32,9 @@ verify_jwt = false
 
 [functions.recalculate-pricing]
 verify_jwt = false
+
+[functions.get-exchange-rates]
+verify_jwt = false
+
+[functions.detect-location]
+verify_jwt = false

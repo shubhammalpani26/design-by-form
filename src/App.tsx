@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
+import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ComparisonBar } from "@/components/ComparisonBar";
 import Home from "./pages/Home";
 import Browse from "./pages/Browse";
@@ -41,12 +42,13 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <ComparisonProvider>
-        <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <ComparisonBar />
+      <CurrencyProvider>
+        <ComparisonProvider>
+          <CartProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <ComparisonBar />
             <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/browse" element={<Browse />} />
@@ -89,8 +91,9 @@ const App = () => (
           </BrowserRouter>
         </CartProvider>
       </ComparisonProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+    </CurrencyProvider>
+  </TooltipProvider>
+</QueryClientProvider>
 );
 
 export default App;

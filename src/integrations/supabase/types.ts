@@ -144,6 +144,33 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_rates: {
+        Row: {
+          base_currency: string
+          created_at: string
+          id: string
+          last_updated: string
+          rate: number
+          target_currency: string
+        }
+        Insert: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          rate: number
+          target_currency: string
+        }
+        Update: {
+          base_currency?: string
+          created_at?: string
+          id?: string
+          last_updated?: string
+          rate?: number
+          target_currency?: string
+        }
+        Relationships: []
+      }
       design_hashes: {
         Row: {
           created_at: string

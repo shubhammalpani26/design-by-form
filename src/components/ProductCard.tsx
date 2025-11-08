@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useState } from "react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { Check } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface ProductCardProps {
   id: string;
@@ -20,6 +21,7 @@ interface ProductCardProps {
 export const ProductCard = ({ id, name, designer, designerId, price, weight, image }: ProductCardProps) => {
   const [showAR, setShowAR] = useState(false);
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
+  const { formatPrice } = useCurrency();
   const inComparison = isInComparison(id);
 
   const toggleComparison = (e: React.MouseEvent) => {
@@ -56,7 +58,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
                 </Link>
               </p>
               <div className="flex items-center justify-between mt-2">
-                <p className="text-primary font-semibold">₹{price.toLocaleString()}</p>
+                <p className="text-primary font-semibold">{formatPrice(price)}</p>
                 <p className="text-xs text-muted-foreground">{weight} kg</p>
               </div>
             </CardContent>

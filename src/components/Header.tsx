@@ -14,6 +14,7 @@ import type { User } from "@supabase/supabase-js";
 import { CreditBalance } from "@/components/CreditBalance";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
+import { CurrencySelector } from "@/components/CurrencySelector";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -106,6 +107,9 @@ export const Header = () => {
 
         <div className="flex items-center space-x-4">
           <GlobalSearch />
+          
+          <CurrencySelector />
+          
           {user && <CreditBalance />}
           {user && (
             <Link to="/cart" className="relative">

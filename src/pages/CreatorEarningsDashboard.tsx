@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { DollarSign, TrendingUp, Package, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface EarningsData {
   totalEarnings: number;
@@ -18,6 +19,7 @@ interface EarningsData {
 
 const CreatorEarningsDashboard = () => {
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
   const [loading, setLoading] = useState(true);
   const [earnings, setEarnings] = useState<EarningsData>({
     totalEarnings: 0,
@@ -139,7 +141,7 @@ const CreatorEarningsDashboard = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{earnings.totalEarnings.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatPrice(earnings.totalEarnings)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Lifetime earnings
                 </p>
@@ -154,7 +156,7 @@ const CreatorEarningsDashboard = () => {
                 <Calendar className="h-4 w-4 text-secondary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{earnings.pendingPayout.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatPrice(earnings.pendingPayout)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   Next payout: 1st of next month
                 </p>
@@ -184,7 +186,7 @@ const CreatorEarningsDashboard = () => {
                 <Package className="h-4 w-4 text-primary" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">₹{earnings.totalSales.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{formatPrice(earnings.totalSales)}</div>
                 <p className="text-xs text-muted-foreground mt-1">
                   All-time sales volume
                 </p>

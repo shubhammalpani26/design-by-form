@@ -5,9 +5,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading } = useCart();
+  const { formatPrice } = useCurrency();
 
   if (isLoading) {
     return (
@@ -55,7 +57,7 @@ const Cart = () => {
                       <div className="flex-1">
                         <h3 className="text-xl font-semibold mb-2">{item.product.name}</h3>
                         <p className="text-lg text-primary font-semibold mb-4">
-                          ₹{item.product.designer_price.toLocaleString()}
+                          {formatPrice(item.product.designer_price)}
                         </p>
                         
                         {item.customizations && Object.keys(item.customizations).length > 0 && (
@@ -106,7 +108,7 @@ const Cart = () => {
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between">
                       <span>Items ({cartCount})</span>
-                      <span>₹{cartTotal.toLocaleString()}</span>
+                      <span>{formatPrice(cartTotal)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span>Shipping</span>
@@ -114,7 +116,7 @@ const Cart = () => {
                     </div>
                     <div className="border-t pt-3 flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span>₹{cartTotal.toLocaleString()}</span>
+                      <span>{formatPrice(cartTotal)}</span>
                     </div>
                   </div>
 

@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Sparkles } from 'lucide-react';
+import { useCurrency } from '@/contexts/CurrencyContext';
 
 interface Product {
   id: string;
@@ -39,6 +40,7 @@ const DesignerDashboard = () => {
   const [earnings, setEarnings] = useState({ total: 0, pending: 0, paid: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const { formatPrice } = useCurrency();
 
   useEffect(() => {
     fetchDashboardData();
@@ -148,7 +150,7 @@ const DesignerDashboard = () => {
               <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-primary">₹{earnings.total.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-primary">{formatPrice(earnings.total)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -156,7 +158,7 @@ const DesignerDashboard = () => {
               <CardTitle className="text-sm font-medium">Pending</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-yellow-600">₹{earnings.pending.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-yellow-600">{formatPrice(earnings.pending)}</p>
             </CardContent>
           </Card>
           <Card>
@@ -164,7 +166,7 @@ const DesignerDashboard = () => {
               <CardTitle className="text-sm font-medium">Paid Out</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold text-green-600">₹{earnings.paid.toLocaleString()}</p>
+              <p className="text-3xl font-bold text-green-600">{formatPrice(earnings.paid)}</p>
             </CardContent>
           </Card>
         </div>
@@ -203,7 +205,7 @@ const DesignerDashboard = () => {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
-                      Base: ₹{product.base_price.toLocaleString()} | Your Price: ₹{product.designer_price.toLocaleString()}
+                      Base: {formatPrice(product.base_price)} | Your Price: {formatPrice(product.designer_price)}
                     </p>
                     <p className="text-sm text-muted-foreground mb-2">
                       Total Sales: {product.total_sales}
@@ -257,10 +259,10 @@ const DesignerDashboard = () => {
                       </div>
                       <div className="text-right">
                         <p className="font-semibold text-green-600">
-                          +₹{sale.designer_earnings.toLocaleString()}
+                          +{formatPrice(sale.designer_earnings)}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          Sale: ₹{sale.sale_price.toLocaleString()}
+                          Sale: {formatPrice(sale.sale_price)}
                         </p>
                       </div>
                     </div>
