@@ -81,7 +81,7 @@ export const Header = () => {
                 </svg>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56 bg-background">
+            <DropdownMenuContent align="start" className="w-56 bg-background border border-border shadow-lg z-50">
               {categories.map((category) => (
                 <DropdownMenuItem key={category.path} asChild>
                   <Link 
@@ -108,12 +108,23 @@ export const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center gap-3">
+          {/* Search - leftmost utility */}
           <GlobalSearch />
           
-          <CurrencySelector />
+          {/* Credits and Get More - only for logged in users */}
+          {user && (
+            <>
+              <CreditBalance />
+              <Link to="/plans">
+                <Button variant="default" size="sm" className="hidden md:flex">
+                  Get More
+                </Button>
+              </Link>
+            </>
+          )}
           
-          {user && <CreditBalance />}
+          {/* Cart - only for logged in users */}
           {user && (
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="sm" className="relative">
@@ -128,6 +139,14 @@ export const Header = () => {
               </Button>
             </Link>
           )}
+          
+          {/* Divider */}
+          <div className="h-6 w-px bg-border hidden md:block" />
+          
+          {/* Currency - near the corner */}
+          <CurrencySelector />
+          
+          {/* User account or auth buttons - at the corner */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -135,12 +154,12 @@ export const Header = () => {
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  {user.email?.split('@')[0]}
+                  <span className="hidden md:inline">{user.email?.split('@')[0]}</span>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
                 <DropdownMenuItem asChild>
-                  <Link to="/creator/dashboard" className="cursor-pointer">
+                  <Link to="/creator/dashboard" className="cursor-pointer hover:bg-accent">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
@@ -148,7 +167,7 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/design-studio" className="cursor-pointer">
+                  <Link to="/design-studio" className="cursor-pointer hover:bg-accent">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
@@ -156,7 +175,7 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/designer-signup" className="cursor-pointer">
+                  <Link to="/designer-signup" className="cursor-pointer hover:bg-accent">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -164,7 +183,7 @@ export const Header = () => {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive">
+                <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer text-destructive hover:bg-destructive/10">
                   <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                   </svg>
@@ -178,7 +197,7 @@ export const Header = () => {
                 <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
               <Link to="/design-studio">
-                <Button variant="default" size="sm">Create with AI</Button>
+                <Button variant="default" size="sm" className="hidden md:inline-flex">Create with AI</Button>
               </Link>
             </>
           )}
