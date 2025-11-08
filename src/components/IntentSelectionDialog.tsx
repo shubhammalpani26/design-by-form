@@ -1,6 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Store, User } from "lucide-react";
+import { useCurrency } from "@/contexts/CurrencyContext";
 
 interface IntentSelectionDialogProps {
   isOpen: boolean;
@@ -8,6 +9,12 @@ interface IntentSelectionDialogProps {
 }
 
 export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialogProps) => {
+  const { formatPrice, currency } = useCurrency();
+  
+  // Listing fee: ₹500 for India, $10 USD equivalent for international
+  const feeInINR = currency === 'INR' ? 500 : 10 / 0.012; // $10 USD = ~833 INR
+  const displayFee = formatPrice(feeInINR);
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onSelect && onSelect(null as any)}>
       <DialogContent className="sm:max-w-[600px]">
@@ -34,7 +41,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Become a verified designer</li>
-                  <li>• Pay listing fee (₹1,000)</li>
+                  <li>• Pay listing fee ({displayFee})</li>
                   <li>• Keep 100% of your markup above manufacturing cost</li>
                   <li>• Earn up to 15%* platform commission</li>
                   <li>• Public marketplace listing</li>
@@ -58,7 +65,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Skip designer onboarding</li>
-                  <li>• Professional feasibility review (₹1,000)</li>
+                  <li>• Professional feasibility review ({displayFee})</li>
                   <li>• Expert manufacturing assessment</li>
                   <li>• Private design, not listed publicly</li>
                   <li>• Direct to production after approval</li>
