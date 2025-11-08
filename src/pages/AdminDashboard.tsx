@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -28,27 +30,18 @@ interface PendingProduct {
   designer: {
     name: string;
     email: string;
+    phone_number: string;
   };
-}
-
-interface PendingDesigner {
-  id: string;
-  name: string;
-  email: string;
-  portfolio_url: string;
-  design_background: string;
-  furniture_interests: string;
-  created_at: string;
 }
 
 const AdminDashboard = () => {
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
-  const [pendingDesigners, setPendingDesigners] = useState<PendingDesigner[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<PendingProduct | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [editingPrice, setEditingPrice] = useState<{ [key: string]: number }>({});
   const { toast } = useToast();
 
   useEffect(() => {
@@ -85,23 +78,44 @@ const AdminDashboard = () => {
         .from('designer_products')
         .select(`
           *,
-          designer:designer_profiles(name, email)
+          designer:designer_profiles(name, email, phone_number)
         `)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
       setPendingProducts(products || []);
-
-      // Fetch pending designers
-      const { data: designers } = await supabase
-        .from('designer_profiles')
-        .select('*')
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false });
-
-      setPendingDesigners(designers || []);
+      
+      // Initialize editing prices
+      const priceMap: { [key: string]: number } = {};
+      products?.forEach(p => {
+        priceMap[p.id] = p.base_price;
+      });
+      setEditingPrice(priceMap);
     } catch (error) {
       console.error('Error fetching pending items:', error);
+    }
+  };
+  
+  const updateBasePrice = async (productId: string, newPrice: number) => {
+    try {
+      const { error } = await supabase
+        .from('designer_products')
+        .update({ base_price: newPrice })
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Price updated',
+        description: 'Manufacturing price has been updated successfully',
+      });
+    } catch (error) {
+      console.error('Error updating price:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to update price',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -165,43 +179,6 @@ const AdminDashboard = () => {
     }
   };
 
-  const approveDesigner = async (designerId: string) => {
-    try {
-      const { error } = await supabase
-        .from('designer_profiles')
-        .update({ status: 'approved' })
-        .eq('id', designerId);
-
-      if (error) throw error;
-
-      // Assign designer role
-      const { data: profile } = await supabase
-        .from('designer_profiles')
-        .select('user_id')
-        .eq('id', designerId)
-        .single();
-
-      if (profile) {
-        await supabase.from('user_roles').insert({
-          user_id: profile.user_id,
-          role: 'designer'
-        });
-      }
-
-      toast({
-        title: 'Designer approved',
-        description: 'The designer can now start creating products',
-      });
-      fetchPendingItems();
-    } catch (error) {
-      console.error('Error approving designer:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to approve designer',
-        variant: 'destructive',
-      });
-    }
-  };
 
   if (isLoading) {
     return (
@@ -239,20 +216,10 @@ const AdminDashboard = () => {
       <main className="flex-1 container py-12">
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Review and approve products and designers</p>
+          <p className="text-muted-foreground">Review and approve pending products</p>
         </div>
 
-        <Tabs defaultValue="products" className="w-full">
-          <TabsList>
-            <TabsTrigger value="products">
-              Pending Products ({pendingProducts.length})
-            </TabsTrigger>
-            <TabsTrigger value="designers">
-              Pending Designers ({pendingDesigners.length})
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="products" className="mt-6">
+        <div className="mt-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {pendingProducts.map((product) => (
                 <Card key={product.id}>
@@ -267,14 +234,34 @@ const AdminDashboard = () => {
                   </div>
                   <CardContent className="p-6">
                     <h3 className="font-semibold text-xl mb-2">{product.name}</h3>
-                    <p className="text-sm text-muted-foreground mb-4">
-                      by {product.designer.name} ({product.designer.email})
+                    <p className="text-sm text-muted-foreground mb-2">
+                      by {product.designer.name}
                     </p>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Email: {product.designer.email}
+                    </p>
+                    {product.designer.phone_number && (
+                      <p className="text-sm text-muted-foreground mb-4">
+                        Phone: {product.designer.phone_number}
+                      </p>
+                    )}
                     <p className="text-sm mb-4">{product.description}</p>
-                    <div className="flex gap-4 mb-4">
+                    <div className="space-y-4 mb-4">
                       <div>
-                        <p className="text-xs text-muted-foreground">Base Price</p>
-                        <p className="font-semibold">₹{product.base_price.toLocaleString()}</p>
+                        <Label htmlFor={`base-price-${product.id}`}>Manufacturing Price (₹)</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            id={`base-price-${product.id}`}
+                            type="number"
+                            value={editingPrice[product.id] || product.base_price}
+                            onChange={(e) => setEditingPrice({
+                              ...editingPrice,
+                              [product.id]: parseFloat(e.target.value) || 0
+                            })}
+                            onBlur={() => updateBasePrice(product.id, editingPrice[product.id])}
+                            className="flex-1"
+                          />
+                        </div>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground">Designer Price</p>
@@ -311,59 +298,7 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             )}
-          </TabsContent>
-
-          <TabsContent value="designers" className="mt-6">
-            <div className="space-y-4">
-              {pendingDesigners.map((designer) => (
-                <Card key={designer.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start mb-4">
-                      <div>
-                        <h3 className="font-semibold text-xl">{designer.name}</h3>
-                        <p className="text-sm text-muted-foreground">{designer.email}</p>
-                      </div>
-                      <Badge>Pending</Badge>
-                    </div>
-                    {designer.portfolio_url && (
-                      <p className="text-sm mb-2">
-                        <span className="font-semibold">Portfolio:</span>{' '}
-                        <a
-                          href={designer.portfolio_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:underline"
-                        >
-                          {designer.portfolio_url}
-                        </a>
-                      </p>
-                    )}
-                    <p className="text-sm mb-2">
-                      <span className="font-semibold">Background:</span> {designer.design_background}
-                    </p>
-                    <p className="text-sm mb-4">
-                      <span className="font-semibold">Interests:</span> {designer.furniture_interests}
-                    </p>
-                    <p className="text-xs text-muted-foreground mb-4">
-                      Applied: {new Date(designer.created_at).toLocaleDateString()}
-                    </p>
-                    <Button onClick={() => approveDesigner(designer.id)}>
-                      Approve Designer
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {pendingDesigners.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground">No pending designer applications</p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-        </Tabs>
+          </div>
       </main>
 
       <Dialog open={showRejectDialog} onOpenChange={setShowRejectDialog}>
