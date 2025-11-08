@@ -66,8 +66,8 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center space-x-2">
+      <div className="container flex h-16 items-center justify-between gap-4">
+        <Link to="/" className="flex items-center space-x-2 shrink-0">
           <span className="text-2xl font-bold text-primary">Forma</span>
         </Link>
         
@@ -108,11 +108,11 @@ export const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-3">
-          {/* Search - leftmost utility */}
+        <div className="flex items-center gap-2 md:gap-3">
+          {/* Search */}
           <GlobalSearch />
           
-          {/* Credits and Get More - only for logged in users */}
+          {/* Credits and CTA - for logged in users */}
           {user && (
             <>
               <CreditBalance />
@@ -124,7 +124,7 @@ export const Header = () => {
             </>
           )}
           
-          {/* Cart - only for logged in users */}
+          {/* Cart */}
           {user && (
             <Link to="/cart" className="relative">
               <Button variant="ghost" size="sm" className="relative">
@@ -140,13 +140,13 @@ export const Header = () => {
             </Link>
           )}
           
-          {/* Divider */}
-          <div className="h-6 w-px bg-border hidden md:block" />
+          {/* Visual separator */}
+          <div className="h-6 w-px bg-border/60 hidden md:block mx-1" />
           
-          {/* Currency - near the corner */}
+          {/* Currency - moved near corner */}
           <CurrencySelector />
           
-          {/* User account or auth buttons - at the corner */}
+          {/* User menu - at the corner */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
