@@ -3,13 +3,52 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useState } from "react";
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading } = useCart();
+  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
   const { formatPrice } = useCurrency();
+  const navigate = useNavigate();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+
+  const handleCheckout = async () => {
+    setIsCheckingOut(true);
+    
+    try {
+      // For demo purposes, using placeholder shipping details
+      // In production, you'd collect this from a checkout form
+      const { data, error } = await supabase.functions.invoke("create-order", {
+        body: {
+          shippingAddress: {
+            name: "Customer Name",
+            address: "123 Main Street",
+            city: "Mumbai",
+            state: "Maharashtra",
+            zipCode: "400001",
+            phone: "+91 9876543210"
+          },
+          paymentMethod: "razorpay",
+          paymentId: `pay_${Date.now()}`
+        }
+      });
+
+      if (error) throw error;
+
+      toast.success("Order placed successfully! Designers have been notified.");
+      await clearCart();
+      navigate("/");
+    } catch (error: any) {
+      console.error("Checkout error:", error);
+      toast.error(error.message || "Failed to place order");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -120,8 +159,13 @@ const Cart = () => {
                     </div>
                   </div>
 
-                  <Button className="w-full" size="lg">
-                    Proceed to Checkout
+                  <Button 
+                    className="w-full" 
+                    size="lg"
+                    onClick={handleCheckout}
+                    disabled={isCheckingOut}
+                  >
+                    {isCheckingOut ? "Processing..." : "Proceed to Checkout"}
                   </Button>
                   
                   <Link to="/browse" className="block mt-4">
