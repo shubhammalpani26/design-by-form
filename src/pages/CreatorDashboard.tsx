@@ -6,6 +6,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { OnboardingChecklist } from '@/components/OnboardingChecklist';
+import { ExternalLink } from 'lucide-react';
 
 interface DashboardStats {
   totalProducts: number;
@@ -13,6 +15,12 @@ interface DashboardStats {
   pendingProducts: number;
   totalEarnings: number;
   totalSales: number;
+}
+
+interface DesignerProfile {
+  id: string;
+  bank_account_holder_name: string | null;
+  bank_account_number: string | null;
 }
 
 const CreatorDashboard = () => {
@@ -23,6 +31,7 @@ const CreatorDashboard = () => {
     totalEarnings: 0,
     totalSales: 0,
   });
+  const [profile, setProfile] = useState<DesignerProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -35,13 +44,13 @@ const CreatorDashboard = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data: profile } = await supabase
+      const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('id')
+        .select('id, bank_account_holder_name, bank_account_number')
         .eq('user_id', user.id)
         .single();
 
-      if (!profile) {
+      if (!profileData) {
         toast({
           title: 'Profile Not Found',
           description: 'Please complete your creator onboarding',
@@ -50,15 +59,17 @@ const CreatorDashboard = () => {
         return;
       }
 
+      setProfile(profileData);
+
       const { data: products } = await supabase
         .from('designer_products')
         .select('*')
-        .eq('designer_id', profile.id);
+        .eq('designer_id', profileData.id);
 
       const { data: salesData } = await supabase
         .from('product_sales')
         .select('designer_earnings')
-        .eq('designer_id', profile.id);
+        .eq('designer_id', profileData.id);
 
       const totalEarnings = salesData?.reduce((sum, sale) => sum + Number(sale.designer_earnings), 0) || 0;
 
@@ -151,6 +162,68 @@ const CreatorDashboard = () => {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Onboarding Checklist */}
+            <div className="mb-8">
+              <OnboardingChecklist
+                steps={[
+                  {
+                    id: 'bank-details',
+                    title: 'Add Bank Details',
+                    description: 'Set up your payment information to receive earnings from your designs',
+                    completed: !!(profile?.bank_account_holder_name && profile?.bank_account_number),
+                    actionLabel: 'Add Bank Details',
+                    actionLink: '/designer-bank-details',
+                  },
+                  {
+                    id: 'first-design',
+                    title: 'Submit Your First Design',
+                    description: 'Upload your first furniture design to start your creative journey',
+                    completed: stats.totalProducts > 0,
+                    actionLabel: 'Upload Design',
+                    actionLink: '/design-studio',
+                  },
+                  {
+                    id: 'approved-product',
+                    title: 'Get Your First Product Approved',
+                    description: 'Wait for admin approval to make your designs available for shoppers',
+                    completed: stats.approvedProducts > 0,
+                    actionLabel: 'Track Status',
+                    actionLink: '/product-status',
+                  },
+                  {
+                    id: 'first-sale',
+                    title: 'Make Your First Sale',
+                    description: 'Share your designer profile and start earning from your designs',
+                    completed: stats.totalSales > 0,
+                    actionLabel: 'View Earnings',
+                    actionLink: '/creator/earnings',
+                  },
+                ]}
+              />
+            </div>
+
+            {/* Preview Public Profile */}
+            {profile && stats.approvedProducts > 0 && (
+              <Card className="mb-8 bg-gradient-to-br from-primary/5 to-secondary/5 border-primary/20">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-semibold mb-1">Your Designer Shop Page</h3>
+                      <p className="text-sm text-muted-foreground">
+                        See how shoppers view your profile and products
+                      </p>
+                    </div>
+                    <Button asChild variant="outline">
+                      <Link to={`/designer/${profile.id}`} target="_blank">
+                        Preview Shop
+                        <ExternalLink className="ml-2 h-4 w-4" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Quick Actions */}
             <Card className="mb-8">
