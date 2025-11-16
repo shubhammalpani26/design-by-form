@@ -128,9 +128,14 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
+      // Send approval notification
+      await supabase.functions.invoke('notify-product-status', {
+        body: { productId, status: 'approved' }
+      });
+
       toast({
         title: 'Product approved',
-        description: 'The product is now live on the marketplace',
+        description: 'The product has been approved and designer notified',
       });
       fetchPendingItems();
     } catch (error) {
@@ -161,9 +166,14 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
+      // Send rejection notification
+      await supabase.functions.invoke('notify-product-status', {
+        body: { productId: selectedProduct.id, status: 'rejected', rejectionReason: validatedReason }
+      });
+
       toast({
         title: 'Product rejected',
-        description: 'The designer has been notified',
+        description: 'The product has been rejected and designer notified',
       });
       setShowRejectDialog(false);
       setRejectionReason('');
