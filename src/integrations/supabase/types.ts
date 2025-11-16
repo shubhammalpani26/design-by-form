@@ -253,6 +253,56 @@ export type Database = {
           },
         ]
       }
+      designer_bank_details: {
+        Row: {
+          bank_account_holder_name: string | null
+          bank_account_number: string | null
+          bank_country: string | null
+          bank_details_verified: boolean | null
+          bank_iban: string | null
+          bank_ifsc_code: string | null
+          bank_swift_code: string | null
+          created_at: string
+          designer_id: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          bank_account_holder_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_details_verified?: boolean | null
+          bank_iban?: string | null
+          bank_ifsc_code?: string | null
+          bank_swift_code?: string | null
+          created_at?: string
+          designer_id: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          bank_account_holder_name?: string | null
+          bank_account_number?: string | null
+          bank_country?: string | null
+          bank_details_verified?: boolean | null
+          bank_iban?: string | null
+          bank_ifsc_code?: string | null
+          bank_swift_code?: string | null
+          created_at?: string
+          designer_id?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designer_bank_details_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: true
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       designer_earnings: {
         Row: {
           commission_amount: number
@@ -423,13 +473,6 @@ export type Database = {
       }
       designer_profiles: {
         Row: {
-          bank_account_holder_name: string | null
-          bank_account_number: string | null
-          bank_country: string | null
-          bank_details_verified: boolean | null
-          bank_iban: string | null
-          bank_ifsc_code: string | null
-          bank_swift_code: string | null
           created_at: string
           design_background: string | null
           email: string
@@ -446,13 +489,6 @@ export type Database = {
           user_id: string
         }
         Insert: {
-          bank_account_holder_name?: string | null
-          bank_account_number?: string | null
-          bank_country?: string | null
-          bank_details_verified?: boolean | null
-          bank_iban?: string | null
-          bank_ifsc_code?: string | null
-          bank_swift_code?: string | null
           created_at?: string
           design_background?: string | null
           email: string
@@ -469,13 +505,6 @@ export type Database = {
           user_id: string
         }
         Update: {
-          bank_account_holder_name?: string | null
-          bank_account_number?: string | null
-          bank_country?: string | null
-          bank_details_verified?: boolean | null
-          bank_iban?: string | null
-          bank_ifsc_code?: string | null
-          bank_swift_code?: string | null
           created_at?: string
           design_background?: string | null
           email?: string

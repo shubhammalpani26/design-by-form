@@ -28,7 +28,7 @@ const CreatorLeaderboard = () => {
     try {
       const { data: profiles } = await supabase
         .from('designer_profiles')
-        .select('*')
+        .select('id, name, email, design_background, furniture_interests, portfolio_url, profile_picture_url')
         .eq('status', 'approved');
 
       if (!profiles) return;

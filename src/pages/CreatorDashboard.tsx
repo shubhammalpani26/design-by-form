@@ -19,6 +19,9 @@ interface DashboardStats {
 
 interface DesignerProfile {
   id: string;
+}
+
+interface BankDetails {
   bank_account_holder_name: string | null;
   bank_account_number: string | null;
 }
@@ -32,6 +35,7 @@ const CreatorDashboard = () => {
     totalSales: 0,
   });
   const [profile, setProfile] = useState<DesignerProfile | null>(null);
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -46,7 +50,7 @@ const CreatorDashboard = () => {
 
       const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('id, bank_account_holder_name, bank_account_number')
+        .select('id')
         .eq('user_id', user.id)
         .single();
 
@@ -60,6 +64,15 @@ const CreatorDashboard = () => {
       }
 
       setProfile(profileData);
+
+      // Fetch bank details from separate table
+      const { data: bankData } = await supabase
+        .from('designer_bank_details')
+        .select('bank_account_holder_name, bank_account_number')
+        .eq('designer_id', profileData.id)
+        .single();
+
+      setBankDetails(bankData);
 
       const { data: products } = await supabase
         .from('designer_products')
@@ -171,7 +184,7 @@ const CreatorDashboard = () => {
                     id: 'bank-details',
                     title: 'Add Bank Details',
                     description: 'Set up your payment information to receive earnings from your designs',
-                    completed: !!(profile?.bank_account_holder_name && profile?.bank_account_number),
+                    completed: !!(bankDetails?.bank_account_holder_name && bankDetails?.bank_account_number),
                     actionLabel: 'Add Bank Details',
                     actionLink: '/designer-bank-details',
                   },

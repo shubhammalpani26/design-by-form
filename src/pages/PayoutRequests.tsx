@@ -34,6 +34,9 @@ interface PayoutRequest {
 
 interface DesignerProfile {
   id: string;
+}
+
+interface BankDetails {
   bank_account_holder_name: string | null;
   bank_account_number: string | null;
   bank_ifsc_code: string | null;
@@ -43,6 +46,7 @@ interface DesignerProfile {
 const PayoutRequests = () => {
   const [requests, setRequests] = useState<PayoutRequest[]>([]);
   const [profile, setProfile] = useState<DesignerProfile | null>(null);
+  const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
   const [availableBalance, setAvailableBalance] = useState(0);
   const [requestAmount, setRequestAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -65,7 +69,7 @@ const PayoutRequests = () => {
       // Fetch designer profile
       const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('*')
+        .select('id')
         .eq('user_id', user.id)
         .single();
 
@@ -79,6 +83,15 @@ const PayoutRequests = () => {
       }
 
       setProfile(profileData);
+
+      // Fetch bank details from separate table
+      const { data: bankData } = await supabase
+        .from('designer_bank_details')
+        .select('bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_details_verified')
+        .eq('designer_id', profileData.id)
+        .single();
+
+      setBankDetails(bankData);
 
       // Fetch payout requests
       const { data: requestsData } = await supabase
@@ -117,7 +130,7 @@ const PayoutRequests = () => {
   };
 
   const handleRequestPayout = async () => {
-    if (!profile) return;
+    if (!profile || !bankDetails) return;
 
     const amount = parseFloat(requestAmount);
 
@@ -139,7 +152,7 @@ const PayoutRequests = () => {
       return;
     }
 
-    if (!profile.bank_account_holder_name || !profile.bank_account_number) {
+    if (!bankDetails || !bankDetails.bank_account_holder_name || !bankDetails.bank_account_number) {
       toast({
         title: 'Bank details required',
         description: 'Please add your bank details in your profile',
@@ -155,9 +168,9 @@ const PayoutRequests = () => {
         .insert({
           designer_id: profile.id,
           amount,
-          bank_account_holder_name: profile.bank_account_holder_name,
-          bank_account_number: profile.bank_account_number,
-          bank_ifsc_code: profile.bank_ifsc_code || '',
+          bank_account_holder_name: bankDetails.bank_account_holder_name || '',
+          bank_account_number: bankDetails.bank_account_number || '',
+          bank_ifsc_code: bankDetails.bank_ifsc_code || '',
         });
 
       if (error) throw error;
@@ -306,13 +319,13 @@ const PayoutRequests = () => {
                     onChange={(e) => setRequestAmount(e.target.value)}
                   />
                 </div>
-                {profile && (
+                {bankDetails && (
                   <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                     <p className="text-sm font-semibold">Bank Details</p>
-                    <p className="text-sm">Account Holder: {profile.bank_account_holder_name}</p>
-                    <p className="text-sm">Account Number: {profile.bank_account_number}</p>
-                    {profile.bank_ifsc_code && (
-                      <p className="text-sm">IFSC Code: {profile.bank_ifsc_code}</p>
+                    <p className="text-sm">Account Holder: {bankDetails.bank_account_holder_name}</p>
+                    <p className="text-sm">Account Number: {bankDetails.bank_account_number}</p>
+                    {bankDetails.bank_ifsc_code && (
+                      <p className="text-sm">IFSC Code: {bankDetails.bank_ifsc_code}</p>
                     )}
                   </div>
                 )}
