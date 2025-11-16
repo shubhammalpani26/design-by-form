@@ -6,6 +6,8 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent } from "@/components/ui/card";
+import { Shield, Lock, Award, CheckCircle, Star, TrendingUp } from "lucide-react";
 import chairHero from "@/assets/chair-hero.jpg";
 
 interface Product {
@@ -23,10 +25,13 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [heroProducts, setHeroProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [designerCount, setDesignerCount] = useState(0);
+  const [totalEarnings, setTotalEarnings] = useState(0);
 
   useEffect(() => {
     fetchFeaturedProducts();
     fetchHeroProducts();
+    fetchDesignerStats();
   }, []);
 
   useEffect(() => {
@@ -76,6 +81,34 @@ const Home = () => {
     }
   };
 
+
+  const fetchDesignerStats = async () => {
+    try {
+      // Fetch total approved designers
+      const { data: designers, error: designerError } = await supabase
+        .from('designer_profiles')
+        .select('id', { count: 'exact' })
+        .eq('status', 'approved');
+
+      if (!designerError) {
+        setDesignerCount(designers?.length || 0);
+      }
+
+      // Fetch total earnings
+      const { data: earnings, error: earningsError } = await supabase
+        .from('designer_earnings')
+        .select('royalty_amount, commission_amount');
+
+      if (!earningsError && earnings) {
+        const total = earnings.reduce((sum, e) => 
+          sum + Number(e.royalty_amount || 0) + Number(e.commission_amount || 0), 0
+        );
+        setTotalEarnings(total);
+      }
+    } catch (error) {
+      console.error('Error fetching designer stats:', error);
+    }
+  };
 
   const fetchFeaturedProducts = async () => {
     try {
