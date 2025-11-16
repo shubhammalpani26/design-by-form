@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { Sparkles, Edit, Trash2 } from 'lucide-react';
+import { Sparkles, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -39,6 +39,7 @@ const DesignerDashboard = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [earnings, setEarnings] = useState({ total: 0, pending: 0, paid: 0 });
+  const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
@@ -67,6 +68,8 @@ const DesignerDashboard = () => {
         });
         return;
       }
+
+      setDesignerProfileId(profile.id);
 
       // Fetch products
       const { data: productsData } = await supabase
@@ -163,9 +166,19 @@ const DesignerDashboard = () => {
       <Header />
       
       <main className="flex-1 container py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Designer Dashboard</h1>
-          <p className="text-muted-foreground">Manage your products and track your earnings</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Designer Dashboard</h1>
+            <p className="text-muted-foreground">Manage your products and track your earnings</p>
+          </div>
+          {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
+            <Button asChild variant="outline">
+              <Link to={`/designer/${designerProfileId}`} target="_blank">
+                <ExternalLink className="mr-2 h-4 w-4" />
+                Preview Shop
+              </Link>
+            </Button>
+          )}
         </div>
 
         {/* Earnings Overview */}
