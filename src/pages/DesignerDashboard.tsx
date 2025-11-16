@@ -196,6 +196,18 @@ const DesignerDashboard = () => {
           </Card>
         </div>
 
+        <div className="flex gap-3 mb-6">
+          <Button asChild>
+            <Link to="/payout-requests">Manage Payouts</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/product-status">Track Products</Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/order-history">Order History</Link>
+          </Button>
+        </div>
+
         <Tabs defaultValue="products" className="w-full">
           <TabsList>
             <TabsTrigger value="products">My Products ({products.length})</TabsTrigger>

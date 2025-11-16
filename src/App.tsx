@@ -40,6 +40,7 @@ import ProductComparison from "./pages/ProductComparison";
 import Checkout from "./pages/Checkout";
 import PayoutRequests from "./pages/PayoutRequests";
 import AdminPayouts from "./pages/AdminPayouts";
+import ProductStatusTracker from "./pages/ProductStatusTracker";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import OrderHistory from "./pages/OrderHistory";
 import NotFound from "./pages/NotFound";
@@ -79,6 +80,7 @@ const App = () => (
             <Route path="/product-edit/:id" element={<ProductEdit />} />
             <Route path="/order-history" element={<OrderHistory />} />
             <Route path="/payout-requests" element={<PayoutRequests />} />
+            <Route path="/product-status" element={<ProductStatusTracker />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/compare" element={<ProductComparison />} />
