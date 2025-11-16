@@ -99,10 +99,9 @@ const AdminDashboard = () => {
   
   const updateBasePrice = async (productId: string, newPrice: number) => {
     try {
-      const { error } = await supabase
-        .from('designer_products')
-        .update({ base_price: newPrice })
-        .eq('id', productId);
+      const { data, error } = await supabase.functions.invoke('admin-update-price', {
+        body: { productId, basePrice: newPrice }
+      });
 
       if (error) throw error;
 
@@ -122,17 +121,11 @@ const AdminDashboard = () => {
 
   const approveProduct = async (productId: string) => {
     try {
-      const { error } = await supabase
-        .from('designer_products')
-        .update({ status: 'approved' })
-        .eq('id', productId);
+      const { data, error } = await supabase.functions.invoke('admin-approve-product', {
+        body: { productId }
+      });
 
       if (error) throw error;
-
-      // Send approval notification
-      await supabase.functions.invoke('notify-product-status', {
-        body: { productId, status: 'approved' }
-      });
 
       toast({
         title: 'Product approved',
@@ -153,24 +146,14 @@ const AdminDashboard = () => {
     if (!selectedProduct) return;
 
     try {
-      // Validate rejection reason
-      const { rejectionReasonSchema } = await import('@/lib/validations');
-      const validatedReason = rejectionReasonSchema.parse(rejectionReason);
-
-      const { error } = await supabase
-        .from('designer_products')
-        .update({ 
-          status: 'rejected',
-          rejection_reason: validatedReason
-        })
-        .eq('id', selectedProduct.id);
+      const { data, error } = await supabase.functions.invoke('admin-reject-product', {
+        body: { 
+          productId: selectedProduct.id, 
+          rejectionReason: rejectionReason 
+        }
+      });
 
       if (error) throw error;
-
-      // Send rejection notification
-      await supabase.functions.invoke('notify-product-status', {
-        body: { productId: selectedProduct.id, status: 'rejected', rejectionReason: validatedReason }
-      });
 
       toast({
         title: 'Product rejected',
