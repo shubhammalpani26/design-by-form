@@ -110,17 +110,26 @@ export const ListingFeeDialog = ({
           <div className="bg-primary/5 border border-primary/20 rounded-lg p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium text-foreground">
-                {isPersonalMode ? 'Assessment Fee' : 'Listing Fee'}
+                {isPersonalMode ? "Assessment Fee" : "Listing Fee"}
               </span>
               <div className="flex items-center gap-1">
-                <DollarSign className="w-5 h-5 text-primary" />
-                <span className="text-2xl font-bold text-primary">
+                <DollarSign className="w-5 h-5 text-muted-foreground line-through" />
+                <span className="text-xl text-muted-foreground line-through mr-2">
                   {symbol}{fee}
+                </span>
+                <span className="text-2xl font-bold text-primary">
+                  {symbol}0
                 </span>
               </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              One-time fee • No monthly charges{!isPersonalMode && ' • Keep 100% of your markup'}
+            <div className="flex items-center justify-between text-xs mb-2">
+              <span className="text-muted-foreground">
+                One-time fee • No monthly charges{!isPersonalMode && ' • Keep 100% of your markup'}
+              </span>
+              <span className="text-green-600 font-semibold">100% OFF</span>
+            </div>
+            <p className="text-xs text-primary font-medium">
+              🎉 Free for all creators during our launch phase!
             </p>
           </div>
 

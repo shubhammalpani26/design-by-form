@@ -171,6 +171,10 @@ const CreatorEarnings = () => {
                         <span className="text-muted-foreground">Commission per sale:</span>
                         <span className="font-medium">₹2,500</span>
                       </div>
+                      <div className="flex justify-between text-muted-foreground/60">
+                        <span>Platform Fee (0%):</span>
+                        <span>₹0</span>
+                      </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Total per sale:</span>
                         <span className="font-medium text-primary">₹27,500</span>
@@ -263,6 +267,12 @@ const CreatorEarnings = () => {
                     <h4 className="font-semibold mb-2 text-foreground">What if my design doesn't sell?</h4>
                     <p className="text-sm text-muted-foreground">
                       There's no cost to list designs. If a design underperforms, you can work with our team to refine it or create new designs at no additional cost.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold mb-2 text-foreground">Are there any platform fees?</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Currently, we charge 0% platform fees during our launch phase. You keep 100% of your markup plus commission. This allows us to grow together and build a strong creator community.
                     </p>
                   </div>
                 </div>
