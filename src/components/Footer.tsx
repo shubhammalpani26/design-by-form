@@ -59,7 +59,7 @@ export const Footer = () => {
         <div className="mt-12 pt-8 border-t border-border text-center text-sm text-muted-foreground">
           <div className="flex justify-center gap-6 mb-4">
             <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>
-            <button onClick={() => handleNavigation("/contact")} className="hover:text-primary transition-colors">Privacy Policy</button>
+            <button onClick={() => handleNavigation("/privacy-policy")} className="hover:text-primary transition-colors">Privacy Policy</button>
           </div>
           <p>&copy; 2025 Forma. All rights reserved.</p>
         </div>

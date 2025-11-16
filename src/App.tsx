@@ -38,6 +38,8 @@ import ProductEdit from "./pages/ProductEdit";
 import Cart from "./pages/Cart";
 import ProductComparison from "./pages/ProductComparison";
 import Checkout from "./pages/Checkout";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import OrderHistory from "./pages/OrderHistory";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -73,6 +75,7 @@ const App = () => (
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
             <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
             <Route path="/product-edit/:id" element={<ProductEdit />} />
+            <Route path="/order-history" element={<OrderHistory />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/compare" element={<ProductComparison />} />
@@ -82,6 +85,7 @@ const App = () => (
             <Route path="/creator-earnings" element={<CreatorEarnings />} />
             <Route path="/commissions" element={<CreatorEarnings />} /> {/* Redirect old URL */}
             <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/about" element={<About />} />
             <Route path="/sustainability" element={<Sustainability />} />
             <Route path="/contact" element={<Contact />} />

@@ -205,9 +205,14 @@ const DesignerDashboard = () => {
           <TabsContent value="products" className="mt-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold">Your Products</h2>
-              <Link to="/design-studio">
-                <Button>Create New Design</Button>
-              </Link>
+              <div className="flex gap-2">
+                <Link to="/order-history">
+                  <Button variant="outline">Order History</Button>
+                </Link>
+                <Link to="/design-studio">
+                  <Button>Create New Design</Button>
+                </Link>
+              </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
