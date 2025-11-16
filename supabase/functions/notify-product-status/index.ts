@@ -48,10 +48,23 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Designer not found");
     }
 
+    // Get designer's user_id for notification
+    const { data: designerProfile } = await supabase
+      .from("designer_profiles")
+      .select("user_id")
+      .eq("id", product.designer_id)
+      .single();
+
     let emailSubject = "";
     let emailHtml = "";
+    let notificationTitle = "";
+    let notificationMessage = "";
+    let notificationType = "";
 
     if (status === "approved") {
+      notificationTitle = "Product Approved! 🎉";
+      notificationMessage = `Your product "${product.name}" has been approved and is now live on the marketplace!`;
+      notificationType = "product_approval";
       emailSubject = `🎉 Your Product "${product.name}" Has Been Approved!`;
       emailHtml = `
         <!DOCTYPE html>
@@ -143,6 +156,9 @@ const handler = async (req: Request): Promise<Response> => {
         </html>
       `;
     } else {
+      notificationTitle = "Product Requires Revision";
+      notificationMessage = `Your product "${product.name}" needs some changes before approval. Please review the feedback.`;
+      notificationType = "product_rejection";
       emailSubject = `Product "${product.name}" Requires Revision`;
       emailHtml = `
         <!DOCTYPE html>
@@ -241,6 +257,19 @@ const handler = async (req: Request): Promise<Response> => {
           </body>
         </html>
       `;
+    }
+
+    // Send in-app notification
+    if (designerProfile?.user_id) {
+      await supabase
+        .from("notifications")
+        .insert({
+          user_id: designerProfile.user_id,
+          title: notificationTitle,
+          message: notificationMessage,
+          type: notificationType,
+          link: status === "rejected" ? `/product-edit/${productId}` : `/designer-dashboard`,
+        });
     }
 
     // Send email

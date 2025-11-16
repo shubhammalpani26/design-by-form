@@ -15,6 +15,7 @@ import { CreditBalance } from "@/components/CreditBalance";
 import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
+import { NotificationBell } from "@/components/NotificationBell";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -131,6 +132,9 @@ export const Header = () => {
               </Button>
             </Link>
           )}
+          
+          {/* Notifications */}
+          {user && <NotificationBell />}
           
           {/* Visual separator */}
           <div className="h-6 w-px bg-border/60 hidden lg:block mx-1" />

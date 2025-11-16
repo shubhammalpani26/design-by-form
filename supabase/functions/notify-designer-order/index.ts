@@ -79,6 +79,13 @@ const handler = async (req: Request): Promise<Response> => {
       // Calculate total earnings for this designer
       const totalEarnings = items.reduce((sum, item) => sum + Number(item.designer_earnings), 0);
 
+      // Get designer's user_id for notification
+      const { data: designerProfile } = await supabase
+        .from("designer_profiles")
+        .select("user_id")
+        .eq("id", designerId)
+        .single();
+
       // Build items list HTML
       const itemsHtml = items.map(item => `
         <tr>
@@ -96,6 +103,21 @@ const handler = async (req: Request): Promise<Response> => {
 
       // Send email
       try {
+        // Send in-app notification
+        if (designerProfile?.user_id) {
+          await supabase
+            .from("notifications")
+            .insert({
+              user_id: designerProfile.user_id,
+              title: "New Sale! 💰",
+              message: `You have a new order! Earnings: ₹${Number(totalEarnings).toLocaleString('en-IN')}`,
+              type: "sale",
+              link: "/order-history",
+              metadata: { orderId, itemCount: items.length, earnings: totalEarnings },
+            });
+        }
+
+        // Send email
         const emailResponse = await resend.emails.send({
           from: "Parametric Furniture <orders@resend.dev>",
           to: [designer.email],

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -224,9 +225,14 @@ const AdminDashboard = () => {
       <Header />
       
       <main className="flex-1 container py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Review and approve pending products</p>
+        <div className="mb-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">Admin Dashboard</h1>
+            <p className="text-muted-foreground">Review and approve pending products</p>
+          </div>
+          <Link to="/admin/payouts">
+            <Button variant="outline">Manage Payouts</Button>
+          </Link>
         </div>
 
         <div className="mt-6">
