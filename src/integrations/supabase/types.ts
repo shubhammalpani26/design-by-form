@@ -490,6 +490,42 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          link: string | null
+          message: string
+          metadata: Json | null
+          read: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          read?: boolean
+          title: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          read?: boolean
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           commission_amount: number
@@ -589,6 +625,62 @@ export type Database = {
           user_id?: string | null
         }
         Relationships: []
+      }
+      payout_requests: {
+        Row: {
+          amount: number
+          bank_account_holder_name: string
+          bank_account_number: string
+          bank_ifsc_code: string | null
+          created_at: string
+          designer_id: string
+          id: string
+          processed_at: string | null
+          processed_by: string | null
+          rejection_reason: string | null
+          requested_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          bank_account_holder_name: string
+          bank_account_number: string
+          bank_ifsc_code?: string | null
+          created_at?: string
+          designer_id: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_holder_name?: string
+          bank_account_number?: string
+          bank_ifsc_code?: string | null
+          created_at?: string
+          designer_id?: string
+          id?: string
+          processed_at?: string | null
+          processed_by?: string | null
+          rejection_reason?: string | null
+          requested_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payout_requests_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pricing_config: {
         Row: {

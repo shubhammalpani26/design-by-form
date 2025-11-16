@@ -209,6 +209,9 @@ const DesignerDashboard = () => {
                 <Link to="/order-history">
                   <Button variant="outline">Order History</Button>
                 </Link>
+                <Link to="/payout-requests">
+                  <Button variant="outline">Payouts</Button>
+                </Link>
                 <Link to="/design-studio">
                   <Button>Create New Design</Button>
                 </Link>
