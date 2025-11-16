@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import chairHero from "@/assets/chair-hero.jpg";
 
 const testimonials = [
@@ -114,6 +115,18 @@ const Home = () => {
     }
   };
 
+
+  const nextProduct = () => {
+    if (heroProducts.length > 0) {
+      setCurrentProductIndex((prev) => (prev + 1) % heroProducts.length);
+    }
+  };
+
+  const prevProduct = () => {
+    if (heroProducts.length > 0) {
+      setCurrentProductIndex((prev) => (prev - 1 + heroProducts.length) % heroProducts.length);
+    }
+  };
 
   const fetchCreatorStats = async () => {
     try {
@@ -256,6 +269,41 @@ const Home = () => {
                     alt="AI-generated furniture design"
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                   />
+                  
+                  {heroProducts.length > 1 && (
+                    <>
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={prevProduct}
+                      >
+                        <ChevronLeft className="h-6 w-6" />
+                      </Button>
+
+                      <Button
+                        variant="secondary"
+                        size="icon"
+                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={nextProduct}
+                      >
+                        <ChevronRight className="h-6 w-6" />
+                      </Button>
+
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 bg-background/80 backdrop-blur-sm px-3 py-2 rounded-full">
+                        {heroProducts.map((_, idx) => (
+                          <button
+                            key={idx}
+                            onClick={() => setCurrentProductIndex(idx)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              idx === currentProductIndex ? 'bg-primary w-8' : 'bg-muted-foreground/50'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/95 to-transparent p-6">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
