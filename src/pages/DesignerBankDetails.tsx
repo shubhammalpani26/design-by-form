@@ -13,6 +13,7 @@ const DesignerBankDetails = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [designerId, setDesignerId] = useState<string | null>(null);
   const [bankCountry, setBankCountry] = useState<"India" | "International">("India");
   const [formData, setFormData] = useState({
     accountHolderName: "",
@@ -31,22 +32,33 @@ const DesignerBankDetails = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+      // Get designer profile first
       const { data: profile } = await supabase
         .from("designer_profiles")
-        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_country")
+        .select("id")
         .eq("user_id", user.id)
         .single();
 
-      if (profile) {
+      if (!profile) return;
+      setDesignerId(profile.id);
+
+      // Get bank details from separate table
+      const { data: bankDetails } = await supabase
+        .from("designer_bank_details")
+        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_country")
+        .eq("designer_id", profile.id)
+        .single();
+
+      if (bankDetails) {
         setFormData({
-          accountHolderName: profile.bank_account_holder_name || "",
-          accountNumber: profile.bank_account_number || "",
-          ifscCode: profile.bank_ifsc_code || "",
-          swiftCode: profile.bank_swift_code || "",
-          iban: profile.bank_iban || "",
+          accountHolderName: bankDetails.bank_account_holder_name || "",
+          accountNumber: bankDetails.bank_account_number || "",
+          ifscCode: bankDetails.bank_ifsc_code || "",
+          swiftCode: bankDetails.bank_swift_code || "",
+          iban: bankDetails.bank_iban || "",
         });
-        if (profile.bank_country) {
-          setBankCountry(profile.bank_country as "India" | "International");
+        if (bankDetails.bank_country) {
+          setBankCountry(bankDetails.bank_country as "India" | "International");
         }
       }
     } catch (error) {
@@ -60,7 +72,7 @@ const DesignerBankDetails = () => {
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      if (!user || !designerId) {
         toast({
           title: "Authentication Required",
           description: "Please sign in to update your bank details.",
@@ -70,6 +82,7 @@ const DesignerBankDetails = () => {
       }
 
       const updateData: any = {
+        designer_id: designerId,
         bank_account_holder_name: formData.accountHolderName,
         bank_account_number: formData.accountNumber,
         bank_country: bankCountry,
@@ -86,9 +99,8 @@ const DesignerBankDetails = () => {
       }
 
       const { error } = await supabase
-        .from("designer_profiles")
-        .update(updateData)
-        .eq("user_id", user.id);
+        .from("designer_bank_details")
+        .upsert(updateData, { onConflict: 'designer_id' });
 
       if (error) throw error;
 
