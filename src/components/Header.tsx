@@ -8,6 +8,13 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User } from "@supabase/supabase-js";
@@ -16,9 +23,11 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
+import { Menu, ShoppingCart, User as UserIcon, Sparkles, LayoutDashboard, LogOut } from "lucide-react";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { cartCount } = useCart();
@@ -68,6 +77,140 @@ export const Header = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
+        {/* Mobile Menu */}
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetTrigger asChild className="md:hidden">
+            <Button variant="ghost" size="icon" className="shrink-0">
+              <Menu className="h-5 w-5" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="w-[300px] sm:w-[350px]">
+            <SheetHeader>
+              <SheetTitle className="text-left">
+                <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
+                  <span className="text-2xl font-bold text-primary leading-tight">Forma</span>
+                  <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+                </Link>
+              </SheetTitle>
+            </SheetHeader>
+            
+            <div className="mt-8 flex flex-col space-y-6">
+              {/* Shop Categories */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shop</h3>
+                {categories.map((category) => (
+                  <Link
+                    key={category.path}
+                    to={category.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                  >
+                    {category.name}
+                  </Link>
+                ))}
+              </div>
+
+              {/* Main Navigation */}
+              <div className="space-y-3">
+                <Link
+                  to="/creators"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  Creators
+                </Link>
+                <Link
+                  to="/creator-leaderboard"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  Leaderboard
+                </Link>
+                <Link
+                  to="/plans"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  Pricing
+                </Link>
+                <Link
+                  to="/about"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  About
+                </Link>
+              </div>
+
+              {/* User Actions */}
+              {user ? (
+                <div className="space-y-3 pt-4 border-t border-border">
+                  <Link
+                    to="/design-studio"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                  >
+                    <Sparkles className="h-5 w-5" />
+                    Create with AI
+                  </Link>
+                  <Link
+                    to="/creator-dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                  >
+                    <LayoutDashboard className="h-5 w-5" />
+                    Creator Dashboard
+                  </Link>
+                  <Link
+                    to="/cart"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                  >
+                    <ShoppingCart className="h-5 w-5" />
+                    Cart {cartCount > 0 && `(${cartCount})`}
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      handleSignOut();
+                    }}
+                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2 w-full text-left"
+                  >
+                    <LogOut className="h-5 w-5" />
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3 pt-4 border-t border-border">
+                  <Link
+                    to="/auth"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="outline" className="w-full justify-start">
+                      <UserIcon className="h-5 w-5 mr-2" />
+                      Sign In
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/design-studio"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button className="w-full justify-start">
+                      <Sparkles className="h-5 w-5 mr-2" />
+                      Create with AI
+                    </Button>
+                  </Link>
+                </div>
+              )}
+
+              {/* Currency Selector */}
+              <div className="pt-4 border-t border-border">
+                <CurrencySelector />
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <Link to="/" className="flex flex-col shrink-0">
           <span className="text-2xl font-bold text-primary leading-tight">Forma</span>
           <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
@@ -114,12 +257,36 @@ export const Header = () => {
           {/* Search */}
           <GlobalSearch />
           
+          {/* Mobile Icons - Cart and Notifications (visible on mobile) */}
+          <div className="flex items-center gap-1 md:hidden">
+            {user && (
+              <>
+                <Link to="/cart" className="relative">
+                  <Button variant="ghost" size="icon" className="h-9 w-9 relative">
+                    <ShoppingCart className="h-5 w-5" />
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
+                        {cartCount}
+                      </span>
+                    )}
+                  </Button>
+                </Link>
+                <NotificationBell />
+              </>
+            )}
+          </div>
+          
+          {/* Desktop Elements */}
           {/* Credits - already has "Get More" button inside when low */}
-          {user && <CreditBalance />}
+          {user && (
+            <div className="hidden md:block">
+              <CreditBalance />
+            </div>
+          )}
           
           {/* Cart */}
           {user && (
-            <Link to="/cart" className="relative">
+            <Link to="/cart" className="relative hidden md:block">
               <Button variant="ghost" size="sm" className="relative">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -134,13 +301,15 @@ export const Header = () => {
           )}
           
           {/* Notifications */}
-          {user && <NotificationBell />}
+          {user && <div className="hidden md:block"><NotificationBell /></div>}
           
           {/* Visual separator */}
           <div className="h-6 w-px bg-border/60 hidden lg:block mx-1" />
           
           {/* Currency - near corner */}
-          <CurrencySelector />
+          <div className="hidden md:block">
+            <CurrencySelector />
+          </div>
           
           {/* User menu - at the corner */}
           {user ? (
