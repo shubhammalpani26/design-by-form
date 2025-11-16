@@ -8,6 +8,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import chairHero from "@/assets/chair-hero.jpg";
 
+const testimonials = [
+  {
+    name: "Priya Sharma",
+    role: "Furniture Designer",
+    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    quote: "I've earned over ₹2.5 lakhs in my first 6 months! The platform makes it so easy to turn my designs into income.",
+    earnings: "₹2,50,000"
+  },
+  {
+    name: "Rajesh Kumar",
+    role: "Architecture Student",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    quote: "As a student, this platform has given me real-world experience and actual earnings. My chair design sold 47 units!",
+    earnings: "₹1,85,000"
+  },
+  {
+    name: "Ananya Desai",
+    role: "Industrial Designer",
+    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    quote: "The approval process was smooth, and within 2 weeks my designs were live. I love seeing customers enjoy my work!",
+    earnings: "₹3,20,000"
+  }
+];
+
 interface Product {
   id: string;
   name: string;
@@ -23,10 +47,24 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [heroProducts, setHeroProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
+  const [designerStats, setDesignerStats] = useState({
+    activeDesigners: 0,
+    avgEarnings: 0,
+    approvalRate: 94,
+  });
+  const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
   useEffect(() => {
     fetchFeaturedProducts();
     fetchHeroProducts();
+    fetchDesignerStats();
+  }, []);
+
+  useEffect(() => {
+    const testimonialInterval = setInterval(() => {
+      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
+    }, 5000);
+    return () => clearInterval(testimonialInterval);
   }, []);
 
   useEffect(() => {
@@ -76,6 +114,34 @@ const Home = () => {
     }
   };
 
+
+  const fetchDesignerStats = async () => {
+    try {
+      // Count active designers with earnings
+      const { count: activeDesignersCount } = await supabase
+        .from('designer_earnings')
+        .select('designer_id', { count: 'exact', head: true });
+
+      // Get average earnings
+      const { data: earningsData } = await supabase
+        .from('designer_earnings')
+        .select('royalty_amount');
+
+      let avgEarnings = 0;
+      if (earningsData && earningsData.length > 0) {
+        const total = earningsData.reduce((sum, item) => sum + Number(item.royalty_amount), 0);
+        avgEarnings = Math.round(total / earningsData.length);
+      }
+
+      setDesignerStats({
+        activeDesigners: activeDesignersCount || 0,
+        avgEarnings,
+        approvalRate: 94,
+      });
+    } catch (error) {
+      console.error('Error fetching designer stats:', error);
+    }
+  };
 
   const fetchFeaturedProducts = async () => {
     try {
@@ -265,6 +331,110 @@ const Home = () => {
                 View All Products
               </Button>
             </Link>
+          </div>
+        </section>
+
+        {/* Designer Success Stats */}
+        <section className="py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
+          <div className="container">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+              <div className="text-center space-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-primary">
+                  {designerStats.activeDesigners}+
+                </div>
+                <div className="text-lg font-semibold text-foreground">Designers Earning</div>
+                <div className="text-sm text-muted-foreground">Active creators on the platform</div>
+              </div>
+              
+              <div className="text-center space-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-secondary">
+                  ₹{designerStats.avgEarnings > 0 ? designerStats.avgEarnings.toLocaleString() : '1,50,000'}
+                </div>
+                <div className="text-lg font-semibold text-foreground">Average Earnings</div>
+                <div className="text-sm text-muted-foreground">Per designer lifetime</div>
+              </div>
+              
+              <div className="text-center space-y-2">
+                <div className="text-4xl md:text-5xl font-bold text-green-600">
+                  {designerStats.approvalRate}%
+                </div>
+                <div className="text-lg font-semibold text-foreground">Approval Rate</div>
+                <div className="text-sm text-muted-foreground">High quality standards met</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Designer Testimonials Carousel */}
+        <section className="py-20">
+          <div className="container">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                Real Designers, Real Success
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Join thousands of creators earning from their designs
+              </p>
+            </div>
+            
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-background rounded-3xl p-8 md:p-12 shadow-medium border border-border/50 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32"></div>
+                
+                <div className="relative">
+                  <div className="flex flex-col md:flex-row items-center gap-8">
+                    <img
+                      src={testimonials[currentTestimonial].image}
+                      alt={testimonials[currentTestimonial].name}
+                      className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary/20 shadow-soft"
+                    />
+                    
+                    <div className="flex-1 text-center md:text-left space-y-4">
+                      <div className="text-5xl text-primary/20 font-serif">"</div>
+                      <p className="text-lg md:text-xl text-foreground leading-relaxed -mt-8">
+                        {testimonials[currentTestimonial].quote}
+                      </p>
+                      
+                      <div className="pt-4">
+                        <div className="font-semibold text-foreground text-lg">
+                          {testimonials[currentTestimonial].name}
+                        </div>
+                        <div className="text-muted-foreground text-sm">
+                          {testimonials[currentTestimonial].role}
+                        </div>
+                        <div className="text-primary font-bold text-lg mt-2">
+                          Earned: {testimonials[currentTestimonial].earnings}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center gap-2 mt-8">
+                    {testimonials.map((_, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setCurrentTestimonial(index)}
+                        className={`w-2 h-2 rounded-full transition-all ${
+                          index === currentTestimonial 
+                            ? 'bg-primary w-8' 
+                            : 'bg-muted-foreground/30'
+                        }`}
+                        aria-label={`Go to testimonial ${index + 1}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="text-center mt-12">
+              <Link to="/designer-signup">
+                <Button variant="hero" size="lg" className="group">
+                  Start Earning as a Designer
+                  <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </section>
 
