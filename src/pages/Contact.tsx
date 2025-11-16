@@ -34,12 +34,28 @@ const Contact = () => {
       return;
     }
 
-    // Simulate sending message (in production, you'd call an edge function)
-    setTimeout(() => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-contact-email`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify(formData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to send message");
+      }
+
       toast({
         title: "Message Sent!",
         description: "We'll get back to you within 24 hours.",
       });
+      
       setFormData({
         firstName: "",
         lastName: "",
@@ -47,8 +63,15 @@ const Contact = () => {
         subject: "",
         message: "",
       });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
