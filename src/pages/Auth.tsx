@@ -26,12 +26,10 @@ const Auth = () => {
   useEffect(() => {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('Auth page - existing session:', session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        console.log('Auth page - redirecting to home');
         navigate("/");
       }
     });
@@ -40,13 +38,11 @@ const Auth = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
       setSession(session);
       setUser(session?.user ?? null);
       
       // Only redirect on SIGNED_IN event, not on initial load
       if (event === 'SIGNED_IN' && session?.user) {
-        console.log('Signed in, redirecting to home');
         navigate("/");
       }
     });
@@ -59,25 +55,19 @@ const Auth = () => {
     setLoading(true);
 
     try {
-      console.log('Attempting login for:', loginData.email);
       const { data, error } = await supabase.auth.signInWithPassword({
         email: loginData.email,
         password: loginData.password,
       });
 
-      if (error) {
-        console.error('Login error:', error);
-        throw error;
-      }
+      if (error) throw error;
 
-      console.log('Login successful:', data.user?.email);
       toast({
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
       // Navigation will happen via onAuthStateChange
     } catch (error: any) {
-      console.error('Login error:', error);
       toast({
         title: "Login failed",
         description: error.message || "Invalid email or password.",
