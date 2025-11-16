@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
 
 interface SearchResult {
-  type: 'product' | 'designer' | 'page';
+  type: 'product' | 'creator' | 'page';
   id?: string;
   title: string;
   subtitle?: string;
@@ -68,21 +68,21 @@ export const GlobalSearch = () => {
           });
         }
 
-        // Search designers
-        const { data: designers } = await supabase
+        // Search creators
+        const { data: creators } = await supabase
           .from('designer_profiles')
           .select('id, name, email, design_background')
           .or(`name.ilike.%${searchQuery}%,design_background.ilike.%${searchQuery}%`)
           .limit(3);
 
-        if (designers) {
-          designers.forEach(designer => {
+        if (creators) {
+          creators.forEach(creator => {
             allResults.push({
-              type: 'designer',
-              id: designer.id,
-              title: designer.name,
-              subtitle: designer.email,
-              path: `/designer/${designer.id}`
+              type: 'creator',
+              id: creator.id,
+              title: creator.name,
+              subtitle: creator.email,
+              path: `/designer/${creator.id}`
             });
           });
         }
@@ -92,8 +92,8 @@ export const GlobalSearch = () => {
           { title: 'About Us', path: '/about', keywords: ['about', 'company', 'story'] },
           { title: 'How It Works', path: '/how-it-works', keywords: ['how', 'works', 'process'] },
           { title: 'Browse Products', path: '/browse', keywords: ['browse', 'shop', 'products', 'catalog'] },
-          { title: 'Creators', path: '/creators', keywords: ['creators', 'designers', 'artists'] },
-          { title: 'Become a Creator', path: '/designer-signup', keywords: ['become', 'join', 'creator', 'designer', 'signup'] },
+          { title: 'Creators', path: '/creators', keywords: ['creators', 'artists'] },
+          { title: 'Become a Creator', path: '/designer-signup', keywords: ['become', 'join', 'creator', 'signup'] },
           { title: 'Creator Dashboard', path: '/creator/dashboard', keywords: ['dashboard', 'portal'] },
           { title: 'Design Studio', path: '/design-studio', keywords: ['studio', 'create', 'ai', 'generate'] },
           { title: 'Sustainability', path: '/sustainability', keywords: ['sustainability', 'eco', 'green', 'environment'] },
@@ -151,7 +151,7 @@ export const GlobalSearch = () => {
           </DialogHeader>
           <div className="space-y-4">
             <Input
-              placeholder="Search products, designers, or pages..."
+              placeholder="Search products, creators, or pages..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               autoFocus
@@ -205,7 +205,7 @@ export const GlobalSearch = () => {
 
             {!query && (
               <div className="text-center text-sm text-muted-foreground py-8">
-                Start typing to search products, designers, or pages
+                Start typing to search products, creators, or pages
               </div>
             )}
           </div>

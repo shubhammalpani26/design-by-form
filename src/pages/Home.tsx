@@ -11,7 +11,7 @@ import chairHero from "@/assets/chair-hero.jpg";
 const testimonials = [
   {
     name: "Priya Sharma",
-    role: "Furniture Designer",
+    role: "Furniture Creator",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
     quote: "I've earned over ₹2.5 lakhs in my first 6 months! The platform makes it so easy to turn my designs into income.",
     earnings: "₹2,50,000"
@@ -25,7 +25,7 @@ const testimonials = [
   },
   {
     name: "Ananya Desai",
-    role: "Industrial Designer",
+    role: "Industrial Creator",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
     quote: "The approval process was smooth, and within 2 weeks my designs were live. I love seeing customers enjoy my work!",
     earnings: "₹3,20,000"
@@ -47,8 +47,8 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [heroProducts, setHeroProducts] = useState<Product[]>([]);
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
-  const [designerStats, setDesignerStats] = useState({
-    activeDesigners: 0,
+  const [creatorStats, setCreatorStats] = useState({
+    activeCreators: 0,
     avgEarnings: 0,
     approvalRate: 94,
   });
@@ -57,7 +57,7 @@ const Home = () => {
   useEffect(() => {
     fetchFeaturedProducts();
     fetchHeroProducts();
-    fetchDesignerStats();
+    fetchCreatorStats();
   }, []);
 
   useEffect(() => {
@@ -115,10 +115,10 @@ const Home = () => {
   };
 
 
-  const fetchDesignerStats = async () => {
+  const fetchCreatorStats = async () => {
     try {
-      // Count active designers with earnings
-      const { count: activeDesignersCount } = await supabase
+      // Count active creators with earnings
+      const { count: activeCreatorsCount } = await supabase
         .from('designer_earnings')
         .select('designer_id', { count: 'exact', head: true });
 
@@ -133,13 +133,13 @@ const Home = () => {
         avgEarnings = Math.round(total / earningsData.length);
       }
 
-      setDesignerStats({
-        activeDesigners: activeDesignersCount || 0,
+      setCreatorStats({
+        activeCreators: activeCreatorsCount || 0,
         avgEarnings,
         approvalRate: 94,
       });
     } catch (error) {
-      console.error('Error fetching designer stats:', error);
+      console.error('Error fetching creator stats:', error);
     }
   };
 
@@ -340,23 +340,23 @@ const Home = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="text-center space-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-primary">
-                  {designerStats.activeDesigners}+
+                  {creatorStats.activeCreators}+
                 </div>
-                <div className="text-lg font-semibold text-foreground">Designers Earning</div>
+                <div className="text-lg font-semibold text-foreground">Creators Earning</div>
                 <div className="text-sm text-muted-foreground">Active creators on the platform</div>
               </div>
               
               <div className="text-center space-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-secondary">
-                  ₹{designerStats.avgEarnings > 0 ? designerStats.avgEarnings.toLocaleString() : '1,50,000'}
+                  ₹{creatorStats.avgEarnings > 0 ? creatorStats.avgEarnings.toLocaleString() : '1,50,000'}
                 </div>
                 <div className="text-lg font-semibold text-foreground">Average Earnings</div>
-                <div className="text-sm text-muted-foreground">Per designer lifetime</div>
+                <div className="text-sm text-muted-foreground">Per creator lifetime</div>
               </div>
               
               <div className="text-center space-y-2">
                 <div className="text-4xl md:text-5xl font-bold text-green-600">
-                  {designerStats.approvalRate}%
+                  {creatorStats.approvalRate}%
                 </div>
                 <div className="text-lg font-semibold text-foreground">Approval Rate</div>
                 <div className="text-sm text-muted-foreground">High quality standards met</div>

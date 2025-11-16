@@ -25,6 +25,8 @@ const DesignerSignup = () => {
     interests: "",
     termsAccepted: false,
   });
+  const [profilePicture, setProfilePicture] = useState<File | null>(null);
+  const [profilePicturePreview, setProfilePicturePreview] = useState<string | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -52,6 +54,18 @@ const DesignerSignup = () => {
     checkAuth();
   }, [navigate, toast]);
 
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePicture(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -71,6 +85,29 @@ const DesignerSignup = () => {
         return;
       }
 
+      let profilePictureUrl = null;
+
+      // Upload profile picture if provided
+      if (profilePicture) {
+        const fileExt = profilePicture.name.split('.').pop();
+        const fileName = `${user.id}/profile.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('creator-profiles')
+          .upload(fileName, profilePicture, {
+            upsert: true,
+            contentType: profilePicture.type
+          });
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('creator-profiles')
+          .getPublicUrl(fileName);
+        
+        profilePictureUrl = publicUrl;
+      }
+
       const { error } = await supabase.from("designer_profiles").insert({
         user_id: user.id,
         name: validatedData.name,
@@ -81,6 +118,7 @@ const DesignerSignup = () => {
         furniture_interests: validatedData.interests,
         terms_accepted: validatedData.termsAccepted,
         terms_accepted_at: new Date().toISOString(),
+        profile_picture_url: profilePictureUrl,
       });
 
       if (error) throw error;
@@ -218,6 +256,28 @@ const DesignerSignup = () => {
                       value={formData.portfolio}
                       onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
                     />
+                  </div>
+
+                  <div>
+                    <label className="text-sm font-medium mb-2 block text-foreground">Profile Picture (optional)</label>
+                    <Input 
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className="cursor-pointer"
+                    />
+                    {profilePicturePreview && (
+                      <div className="mt-3">
+                        <img 
+                          src={profilePicturePreview} 
+                          alt="Profile preview" 
+                          className="w-24 h-24 rounded-full object-cover border-2 border-border"
+                        />
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Upload a professional photo (recommended: square image, at least 400x400px)
+                    </p>
                   </div>
 
                   <div>

@@ -18,6 +18,7 @@ interface Designer {
   design_background: string;
   furniture_interests: string;
   portfolio_url: string;
+  profile_picture_url: string | null;
   location?: string;
   joined?: string;
   totalSales: number;
@@ -68,6 +69,7 @@ const DesignerProfile = () => {
         design_background: profile.design_background || '',
         furniture_interests: profile.furniture_interests || '',
         portfolio_url: profile.portfolio_url || '',
+        profile_picture_url: profile.profile_picture_url || null,
         totalSales,
         totalProducts: products?.length || 0,
         products: products?.map(p => ({
@@ -106,7 +108,7 @@ const DesignerProfile = () => {
         <main className="flex-1 container py-12">
           <Card>
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">Designer not found</p>
+              <p className="text-muted-foreground">Creator not found</p>
             </CardContent>
           </Card>
         </main>
@@ -118,13 +120,13 @@ const DesignerProfile = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
-        title={`${designer.name} - Designer Profile`}
+        title={`${designer.name} - Creator Profile`}
         description={`Explore ${designer.name}'s unique furniture designs. ${designer.totalProducts} products with ${designer.totalSales} sales. ${designer.design_background || 'Creative furniture designer'}`}
         image={designer.products[0]?.image_url || `${window.location.origin}/og-default.png`}
         url={window.location.href}
         type="profile"
         author={designer.name}
-        keywords={['furniture designer', designer.name, 'custom furniture', designer.furniture_interests || 'furniture']}
+        keywords={['furniture creator', designer.name, 'custom furniture', designer.furniture_interests || 'furniture']}
       />
       <Header />
       
@@ -134,9 +136,17 @@ const DesignerProfile = () => {
           <div className="container">
             <div className="max-w-4xl">
               <div className="flex items-start gap-6 mb-8">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white flex-shrink-0">
-                  {designer.name.charAt(0)}
-                </div>
+                {designer.profile_picture_url ? (
+                  <img 
+                    src={designer.profile_picture_url} 
+                    alt={designer.name}
+                    className="w-24 h-24 rounded-full object-cover border-4 border-primary/20 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white flex-shrink-0">
+                    {designer.name.charAt(0)}
+                  </div>
+                )}
                 <div className="flex-1">
                   <h1 className="text-4xl md:text-5xl font-bold mb-3 text-foreground">{designer.name}</h1>
                   <p className="text-lg text-muted-foreground mb-4">{designer.email}</p>
