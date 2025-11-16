@@ -34,6 +34,7 @@ import Plans from "./pages/Plans";
 import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
+import ProductEdit from "./pages/ProductEdit";
 import Cart from "./pages/Cart";
 import ProductComparison from "./pages/ProductComparison";
 import Checkout from "./pages/Checkout";
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/creator/settings" element={<CreatorProfile />} />
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
             <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
+            <Route path="/product-edit/:id" element={<ProductEdit />} />
             <Route path="/creator-leaderboard" element={<CreatorLeaderboard />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/compare" element={<ProductComparison />} />

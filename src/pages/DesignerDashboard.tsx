@@ -8,8 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Edit, Trash2 } from 'lucide-react';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface Product {
   id: string;
@@ -108,6 +109,30 @@ const DesignerDashboard = () => {
     }
   };
 
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      const { error } = await supabase
+        .from('designer_products')
+        .delete()
+        .eq('id', productId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Product deleted successfully',
+      });
+      fetchDashboardData();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete product',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'approved':
@@ -200,9 +225,11 @@ const DesignerDashboard = () => {
                   <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
                       <h3 className="font-semibold text-lg">{product.name}</h3>
-                      <Badge className={getStatusColor(product.status)}>
-                        {product.status}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge className={getStatusColor(product.status)}>
+                          {product.status}
+                        </Badge>
+                      </div>
                     </div>
                     <p className="text-sm text-muted-foreground mb-2">
                       Base: {formatPrice(product.base_price)} | Your Price: {formatPrice(product.designer_price)}
@@ -218,14 +245,43 @@ const DesignerDashboard = () => {
                     <p className="text-xs text-muted-foreground mb-3">
                       Created: {new Date(product.created_at).toLocaleDateString()}
                     </p>
-                    {product.status === 'approved' && (
-                      <Link to={`/creator/success-kit/${product.id}`}>
+                    <div className="flex gap-2">
+                      {product.status === 'approved' && (
+                        <Link to={`/creator/success-kit/${product.id}`} className="flex-1">
+                          <Button size="sm" variant="outline" className="w-full">
+                            <Sparkles className="w-3 h-3 mr-2" />
+                            Success Kit
+                          </Button>
+                        </Link>
+                      )}
+                      <Link to={`/product-edit/${product.id}`} className={product.status === 'approved' ? '' : 'flex-1'}>
                         <Button size="sm" variant="outline" className="w-full">
-                          <Sparkles className="w-3 h-3 mr-2" />
-                          Success Kit
+                          <Edit className="w-3 h-3 mr-2" />
+                          Edit
                         </Button>
                       </Link>
-                    )}
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button size="sm" variant="outline">
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action cannot be undone. This will permanently delete your product.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
+                              Delete
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
                   </CardContent>
                 </Card>
               ))}
