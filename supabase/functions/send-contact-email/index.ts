@@ -70,7 +70,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send confirmation email to the user with escaped HTML
     const userEmailResponse = await resend.emails.send({
-      from: "Forma <onboarding@resend.dev>",
+      from: "Formo <onboarding@resend.dev>",
       to: [email],
       subject: "We received your message!",
       html: `
@@ -83,14 +83,14 @@ const handler = async (req: Request): Promise<Response> => {
           ${escapeHtml(message)}
         </blockquote>
         <br/>
-        <p>Best regards,<br>The Forma Team</p>
+        <p>Best regards,<br>The Formo Team</p>
       `,
     });
 
     // Send notification to admin/support team with escaped HTML
     const adminEmailResponse = await resend.emails.send({
-      from: "Forma <onboarding@resend.dev>",
-      to: ["support@forma.com"], // Replace with your actual support email
+      from: "Formo <onboarding@resend.dev>",
+      to: ["support@formo.com"], // Replace with your actual support email
       subject: `New Contact Form: ${escapeHtml(subject)}`,
       html: `
         <h2>New Contact Form Submission</h2>

@@ -44,7 +44,7 @@ export const ProductShareCard = ({
           </div>
           <ShareButton
             url={shareUrl}
-            title={`${productName} on Forma`}
+            title={`${productName} on Formo`}
             description={`Check out ${productName} by ${designerName}. Premium sustainable furniture design.`}
           />
         </div>

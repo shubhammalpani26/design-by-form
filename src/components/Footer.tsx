@@ -14,7 +14,7 @@ export const Footer = () => {
       <div className="container py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4 text-primary">Forma</h3>
+            <h3 className="font-bold text-lg mb-4 text-primary">Formo</h3>
             <p className="text-sm text-muted-foreground">
               Empowering creators to design the future of sustainable furniture.
             </p>
@@ -85,7 +85,7 @@ export const Footer = () => {
               <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>
               <button onClick={() => handleNavigation("/privacy-policy")} className="hover:text-primary transition-colors">Privacy Policy</button>
             </div>
-            <p>&copy; 2025 Forma. All rights reserved.</p>
+            <p>&copy; 2025 Formo. All rights reserved.</p>
           </div>
         </div>
       </div>
