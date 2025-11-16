@@ -52,7 +52,7 @@ export const SEOHead = ({
     setMetaTag('og:image', image);
     setMetaTag('og:url', url);
     setMetaTag('og:type', type);
-    setMetaTag('og:site_name', 'Forma');
+    setMetaTag('og:site_name', 'Formo');
 
     // Twitter Card meta tags
     setMetaTag('twitter:card', 'summary_large_image', true);

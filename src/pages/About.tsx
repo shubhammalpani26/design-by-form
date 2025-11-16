@@ -28,7 +28,7 @@ const About = () => {
             <h2 className="text-3xl font-bold mb-6 text-foreground">Our Mission</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
               We believe everyone has the potential to create beautiful, functional furniture. 
-              Forma democratizes furniture design by combining AI technology with sustainable manufacturing, 
+              Formo democratizes furniture design by combining AI technology with sustainable manufacturing, 
               enabling creators worldwide to bring their visions to life without the traditional barriers 
               of capital, expertise, or manufacturing connections.
             </p>
@@ -151,7 +151,7 @@ const About = () => {
               {/* Parent Company */}
               <div className="mt-8 pt-8 border-t border-border/50">
                 <p className="text-sm text-muted-foreground mb-4">
-                  Forma is a product of <span className="font-semibold text-foreground">Cyanique</span>, 
+                  Formo is a product of <span className="font-semibold text-foreground">Cyanique</span>, 
                   a design and technology company creating innovative solutions for the creative industry.
                 </p>
                 <div className="flex justify-center items-center gap-6 text-sm">

@@ -88,7 +88,7 @@ export const Header = () => {
             <SheetHeader>
               <SheetTitle className="text-left">
                 <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
-                  <span className="text-2xl font-bold text-primary leading-tight">Forma</span>
+                  <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
                   <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
                 </Link>
               </SheetTitle>
@@ -212,7 +212,7 @@ export const Header = () => {
         </Sheet>
 
         <Link to="/" className="flex flex-col shrink-0">
-          <span className="text-2xl font-bold text-primary leading-tight">Forma</span>
+          <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
           <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
         </Link>
         

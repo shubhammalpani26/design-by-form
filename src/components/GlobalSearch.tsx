@@ -147,7 +147,7 @@ export const GlobalSearch = () => {
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Search Forma</DialogTitle>
+            <DialogTitle>Search Formo</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <Input
