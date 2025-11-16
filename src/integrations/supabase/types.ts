@@ -438,6 +438,7 @@ export type Database = {
           name: string
           phone_number: string | null
           portfolio_url: string | null
+          profile_picture_url: string | null
           status: string
           terms_accepted: boolean
           terms_accepted_at: string | null
@@ -460,6 +461,7 @@ export type Database = {
           name: string
           phone_number?: string | null
           portfolio_url?: string | null
+          profile_picture_url?: string | null
           status?: string
           terms_accepted?: boolean
           terms_accepted_at?: string | null
@@ -482,6 +484,7 @@ export type Database = {
           name?: string
           phone_number?: string | null
           portfolio_url?: string | null
+          profile_picture_url?: string | null
           status?: string
           terms_accepted?: boolean
           terms_accepted_at?: string | null

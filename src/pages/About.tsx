@@ -60,7 +60,7 @@ const About = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Creator-Centric</h3>
                 <p className="text-muted-foreground">
-                  Designers deserve ongoing recognition. Our perpetual commission model ensures 
+                  Creators deserve ongoing recognition. Our perpetual commission model ensures 
                   creators earn from every sale, forever.
                 </p>
               </CardContent>
@@ -89,8 +89,8 @@ const About = () => {
             <div className="max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold mb-6 text-foreground">The Story</h2>
               <div className="space-y-4 text-muted-foreground">
-                <p>
-                  Forma was born from a simple frustration: talented designers were creating 
+              <p>
+                  Forma was born from a simple frustration: talented creators were creating 
                   beautiful furniture concepts that never made it to production. The barriers 
                   were too high—manufacturing minimums, upfront capital, complex logistics.
                 </p>
@@ -105,8 +105,8 @@ const About = () => {
                   furniture and earn from it, while customers get unique, sustainably-made pieces 
                   at accessible prices.
                 </p>
-                <p className="font-semibold text-foreground">
-                  Today, hundreds of designers from 30+ countries have listed designs on Forma, 
+              <p className="font-semibold text-foreground">
+                  Today, hundreds of creators from 30+ countries have listed designs on Forma, 
                   earning commissions while bringing fresh creativity to the furniture industry.
                 </p>
               </div>
@@ -120,7 +120,7 @@ const About = () => {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">500+</div>
-              <div className="text-sm text-muted-foreground">Active Designers</div>
+              <div className="text-sm text-muted-foreground">Active Creators</div>
             </div>
             <div className="text-center">
               <div className="text-4xl md:text-5xl font-bold text-primary mb-2">2.3K</div>
@@ -144,7 +144,7 @@ const About = () => {
               <h2 className="text-3xl font-bold mb-6 text-foreground">Built by Creators, for Creators</h2>
               <p className="text-lg text-muted-foreground mb-8">
                 Our team combines expertise in furniture design, sustainable manufacturing, 
-                AI technology, and marketplace economics. We're designers, engineers, and 
+                AI technology, and marketplace economics. We're creators, engineers, and 
                 furniture enthusiasts building the platform we wish existed.
               </p>
               <Link to="/contact">
@@ -162,7 +162,7 @@ const About = () => {
             <CardContent className="p-12 text-center">
               <h2 className="text-3xl font-bold mb-4">Join the Movement</h2>
               <p className="text-lg mb-6 opacity-90">
-                Whether you're a designer or a shopper, be part of furniture's sustainable future
+                Whether you're a creator or a shopper, be part of furniture's sustainable future
               </p>
               <div className="flex gap-4 justify-center flex-wrap">
                 <Link to="/design-studio">
