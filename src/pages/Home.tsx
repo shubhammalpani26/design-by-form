@@ -18,15 +18,61 @@ interface Product {
   image: string;
 }
 
+const DESIGN_PROMPTS = [
+  "curved bench with flowing organic lines",
+  "modern chair with sculptural curves",
+  "minimalist table with geometric patterns",
+  "artistic vase with spiral design",
+  "ergonomic lounge chair with wave-like form",
+  "contemporary shelf with asymmetric design"
+];
+
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [heroProduct, setHeroProduct] = useState<{ designer: string; sales: number } | null>(null);
+  const [currentPromptIndex, setCurrentPromptIndex] = useState(0);
+  const [heroImage, setHeroImage] = useState(chairHero);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     fetchFeaturedProducts();
     fetchHeroProduct();
+    generateHeroImage();
   }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentPromptIndex((prev) => (prev + 1) % DESIGN_PROMPTS.length);
+    }, 8000); // Change every 8 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    generateHeroImage();
+  }, [currentPromptIndex]);
+
+  const generateHeroImage = async () => {
+    setIsGenerating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-design', {
+        body: { 
+          prompt: DESIGN_PROMPTS[currentPromptIndex],
+          category: 'furniture'
+        }
+      });
+
+      if (error) throw error;
+      if (data?.imageUrl) {
+        setHeroImage(data.imageUrl);
+      }
+    } catch (error) {
+      console.error('Error generating hero image:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const fetchHeroProduct = async () => {
     try {
@@ -161,12 +207,23 @@ const Home = () => {
               
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
-                <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10">
-                  <img
-                    src={chairHero}
-                    alt="AI-generated furniture design"
-                    className="w-full h-full object-cover"
-                  />
+                <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
+                  <div className="relative h-full">
+                    <img
+                      src={heroImage}
+                      alt="AI-generated furniture design"
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                      style={{ opacity: isGenerating ? 0.7 : 1 }}
+                    />
+                    {isGenerating && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/20 backdrop-blur-sm">
+                        <div className="flex flex-col items-center gap-2">
+                          <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                          <p className="text-sm text-foreground font-medium">Generating...</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/95 to-transparent p-6">
                     <div className="flex items-start gap-3">
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
@@ -174,10 +231,12 @@ const Home = () => {
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                         </svg>
                       </div>
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">Generated from: "Modern chair with organic curves"</p>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold text-foreground transition-all duration-500">
+                          Generated from: "{DESIGN_PROMPTS[currentPromptIndex]}"
+                        </p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {heroProduct ? `Designed by ${heroProduct.designer} • ${heroProduct.sales} sales` : 'Loading...'}
+                          Live AI generation • Refreshing every 8 seconds
                         </p>
                       </div>
                     </div>
