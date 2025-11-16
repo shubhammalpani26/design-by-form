@@ -7,6 +7,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ShareButton } from "@/components/ShareButton";
+import { SEOHead } from "@/components/SEOHead";
+import { ExternalLink } from "lucide-react";
 
 interface Designer {
   id: string;
@@ -114,6 +117,15 @@ const DesignerProfile = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={`${designer.name} - Designer Profile`}
+        description={`Explore ${designer.name}'s unique furniture designs. ${designer.totalProducts} products with ${designer.totalSales} sales. ${designer.design_background || 'Creative furniture designer'}`}
+        image={designer.products[0]?.image_url || `${window.location.origin}/og-default.png`}
+        url={window.location.href}
+        type="profile"
+        author={designer.name}
+        keywords={['furniture designer', designer.name, 'custom furniture', designer.furniture_interests || 'furniture']}
+      />
       <Header />
       
       <main className="flex-1">
@@ -134,12 +146,20 @@ const DesignerProfile = () => {
                         href={designer.portfolio_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="text-primary hover:underline"
+                        className="inline-flex items-center gap-2 text-primary hover:underline"
                       >
-                        View Portfolio →
+                        <ExternalLink className="h-4 w-4" />
+                        View Portfolio
                       </a>
                     </div>
                   )}
+                  <div className="mt-4">
+                    <ShareButton
+                      url={window.location.href}
+                      title={`Check out ${designer.name}'s designs on Forma`}
+                      description={`Browse ${designer.totalProducts} unique furniture designs by ${designer.name}`}
+                    />
+                  </div>
                 </div>
               </div>
             </div>

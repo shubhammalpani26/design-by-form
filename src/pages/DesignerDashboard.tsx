@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
 import { Sparkles, Edit, Trash2, ExternalLink } from 'lucide-react';
+import { ShareButton } from '@/components/ShareButton';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
@@ -210,16 +211,23 @@ const DesignerDashboard = () => {
         </div>
 
         <div className="flex gap-3 mb-6">
-          <Button asChild>
-            <Link to="/payout-requests">Manage Payouts</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/product-status">Track Products</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link to="/order-history">Order History</Link>
-          </Button>
-        </div>
+              <Button asChild>
+                <Link to="/payout-requests">Manage Payouts</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/product-status">Track Products</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link to="/order-history">Order History</Link>
+              </Button>
+              {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
+                <ShareButton
+                  url={`${window.location.origin}/designer/${designerProfileId}`}
+                  title="Check out my designer shop on Forma"
+                  description={`Browse my unique furniture designs. ${products.filter(p => p.status === 'approved').length} products available.`}
+                />
+              )}
+            </div>
 
         <Tabs defaultValue="products" className="w-full">
           <TabsList>

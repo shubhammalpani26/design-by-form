@@ -13,6 +13,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { ShareButton } from "@/components/ShareButton";
+import { SEOHead } from "@/components/SEOHead";
 
 const ProductDetail = () => {
   const { id } = useParams();
@@ -232,9 +234,20 @@ const ProductDetail = () => {
   }
 
   if (!product) {
-    return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
+  return (
+    <div className="min-h-screen flex flex-col">
+      {product && (
+        <SEOHead
+          title={product.name}
+          description={product.description || `${product.name} by ${product.designer}. ${product.materials}`}
+          image={product.image_url}
+          url={window.location.href}
+          type="product"
+          author={product.designer}
+          keywords={[product.name, product.designer, product.category, 'furniture', 'sustainable furniture']}
+        />
+      )}
+      <Header />
         <main className="flex-1 container py-12">
           <div className="text-center py-16">
             <h1 className="text-2xl font-bold text-foreground mb-4">Product Not Found</h1>
@@ -251,6 +264,17 @@ const ProductDetail = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      {product && (
+        <SEOHead
+          title={product.name}
+          description={product.description || `${product.name} by ${product.designer}. Premium furniture with sustainable materials.`}
+          image={product.image_url}
+          url={window.location.href}
+          type="product"
+          author={product.designer}
+          keywords={[product.name, product.designer, product.category, 'furniture', 'sustainable furniture', 'custom furniture']}
+        />
+      )}
       <Header />
       
       <main className="flex-1 container py-4 lg:py-6">
@@ -499,17 +523,13 @@ const ProductDetail = () => {
                   </>
                 )}
               </Button>
-              <Button 
-                variant="outline" 
+              <ShareButton
+                url={window.location.href}
+                title={product.name}
+                description={`${product.description} - Designed by ${product.designer}`}
+                variant="outline"
                 size="lg"
-                onClick={handleShare}
-                disabled={isSharing}
-              >
-                <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                </svg>
-                Share
-              </Button>
+              />
             </div>
 
             <Card className="bg-accent border-border">
