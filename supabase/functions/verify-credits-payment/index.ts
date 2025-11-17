@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createHmac } from "https://deno.land/std@0.177.0/node/crypto.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -34,7 +35,23 @@ serve(async (req) => {
       );
     }
 
-    const { packageType } = await req.json();
+    const { razorpay_order_id, razorpay_payment_id, razorpay_signature, packageType, credits } = await req.json();
+
+    // Verify signature
+    const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET')!;
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    
+    const expectedSignature = createHmac("sha256", razorpayKeySecret)
+      .update(body)
+      .digest("hex");
+
+    if (expectedSignature !== razorpay_signature) {
+      console.error('Signature verification failed');
+      return new Response(
+        JSON.stringify({ error: 'Payment verification failed' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Get pricing config
     const { data: pricingData } = await supabase
@@ -43,15 +60,8 @@ serve(async (req) => {
       .eq('config_key', 'credit_packages')
       .single();
 
-    if (!pricingData) {
-      return new Response(
-        JSON.stringify({ error: 'Pricing configuration not found' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const packages = pricingData.config_value as any;
-    const selectedPackage = packages[packageType];
+    const packages = pricingData?.config_value as any;
+    const selectedPackage = packages?.[packageType];
 
     if (!selectedPackage) {
       return new Response(
@@ -60,52 +70,51 @@ serve(async (req) => {
       );
     }
 
-    // Create Razorpay order
-    const razorpayKeyId = Deno.env.get('RAZORPAY_KEY_ID')!;
-    const razorpayKeySecret = Deno.env.get('RAZORPAY_KEY_SECRET')!;
+    // Add credits to user account
+    const { data: userCredits } = await supabase
+      .from('user_credits')
+      .select('balance')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    const amountInPaise = Math.round(selectedPackage.price * 100);
-
-    const orderResponse = await fetch('https://api.razorpay.com/v1/orders', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Basic ${btoa(`${razorpayKeyId}:${razorpayKeySecret}`)}`,
-      },
-      body: JSON.stringify({
-        amount: amountInPaise,
-        currency: 'INR',
-        receipt: `credit_${user.id}_${Date.now()}`,
-        notes: {
-          user_id: user.id,
-          package_type: packageType,
-          credits: selectedPackage.credits,
-        },
-      }),
-    });
-
-    if (!orderResponse.ok) {
-      const errorText = await orderResponse.text();
-      console.error('Razorpay order creation failed:', errorText);
-      throw new Error('Failed to create payment order');
+    if (!userCredits) {
+      await supabase.from('user_credits').insert({
+        user_id: user.id,
+        balance: selectedPackage.credits,
+        free_credits_reset_at: new Date(new Date().setMonth(new Date().getMonth() + 1))
+      });
+    } else {
+      await supabase
+        .from('user_credits')
+        .update({ balance: userCredits.balance + selectedPackage.credits })
+        .eq('user_id', user.id);
     }
 
-    const order = await orderResponse.json();
+    // Log transaction
+    await supabase.from('credit_transactions').insert({
+      user_id: user.id,
+      amount: selectedPackage.credits,
+      type: 'purchase',
+      description: `Purchased ${packageType} package`,
+      metadata: { 
+        package: packageType, 
+        price: selectedPackage.price,
+        razorpay_order_id,
+        razorpay_payment_id,
+      }
+    });
 
     return new Response(
       JSON.stringify({ 
-        orderId: order.id,
-        amount: amountInPaise,
-        currency: 'INR',
-        keyId: razorpayKeyId,
-        packageType,
+        success: true,
         credits: selectedPackage.credits,
+        newBalance: (userCredits?.balance || 0) + selectedPackage.credits
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
-    console.error('Error in purchase-credits function:', error);
+    console.error('Error in verify-credits-payment function:', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

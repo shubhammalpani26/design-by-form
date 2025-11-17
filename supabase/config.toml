@@ -15,6 +15,9 @@ verify_jwt = true
 [functions.purchase-credits]
 verify_jwt = true
 
+[functions.verify-credits-payment]
+verify_jwt = true
+
 [functions.check-plagiarism]
 verify_jwt = false
 
