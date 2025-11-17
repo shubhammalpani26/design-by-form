@@ -30,6 +30,27 @@ const testimonials = [
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
     quote: "From digital concept to physical furniture - the platform handles manufacturing and shipping while I keep earning from every piece sold. It's like having my own furniture factory!",
     earnings: "₹3,20,000"
+  },
+  {
+    name: "Arjun Mehta",
+    role: "Interior Designer",
+    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    quote: "Every table I design gets manufactured and delivered to actual customers. I earn royalties on every physical piece sold. No inventory, no manufacturing headaches!",
+    earnings: "₹4,10,000"
+  },
+  {
+    name: "Meera Patel",
+    role: "3D Artist",
+    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+    quote: "Watching my designs transform into real products that people use in their homes is surreal. The manufacturing quality is excellent and I earn from every sale!",
+    earnings: "₹2,95,000"
+  },
+  {
+    name: "Karan Singh",
+    role: "Industrial Designer",
+    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop",
+    quote: "I focus on creating innovative designs while Formo handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
+    earnings: "₹3,75,000"
   }
 ];
 
