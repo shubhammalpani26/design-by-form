@@ -43,6 +43,19 @@ interface Product {
   image: string;
 }
 
+const examplePrompts = [
+  "Modern organic chair with flowing curves",
+  "Minimalist dining table with sculptural legs",
+  "Ergonomic curved bench design",
+  "Contemporary spiral column sculpture",
+  "Fluid wave coffee table",
+  "Sculptural decorative vase",
+  "Abstract geometric wall shelf",
+  "Parametric furniture with natural forms",
+  "Avant-garde seating with organic shapes",
+  "Biomorphic side table design"
+];
+
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -273,6 +286,25 @@ const Home = () => {
                       alt="AI-generated furniture design"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                     />
+                    
+                    {/* AI Prompt Badge */}
+                    <div className="absolute bottom-6 left-6 right-6 bg-background/95 backdrop-blur-sm rounded-xl p-4 border border-primary/20 shadow-lg animate-fade-in">
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Created with AI prompt:</p>
+                          <p className="text-sm font-medium text-foreground leading-snug">
+                            "{examplePrompts[currentProductIndex % examplePrompts.length]}"
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </Link>
                   
                   {heroProducts.length > 1 && (
