@@ -12,23 +12,23 @@ import chairHero from "@/assets/chair-hero.jpg";
 const testimonials = [
   {
     name: "Priya Sharma",
-    role: "Furniture Creator",
+    role: "Furniture Designer",
     image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
-    quote: "I've earned over ₹2.5 lakhs in my first 6 months! The platform makes it so easy to turn my designs into income.",
+    quote: "My virtual designs became real furniture in customers' homes! The perpetual commission from each physical sale is amazing. I earned ₹2.5 lakhs in my first 6 months.",
     earnings: "₹2,50,000"
   },
   {
     name: "Rajesh Kumar",
     role: "Architecture Student",
     image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
-    quote: "As a student, this platform has given me real-world experience and actual earnings. My chair design sold 47 units!",
+    quote: "I design, Formo manufactures and ships actual products. Seeing my chair design manufactured and sold to 47 customers is incredible!",
     earnings: "₹1,85,000"
   },
   {
     name: "Ananya Desai",
-    role: "Industrial Creator",
+    role: "Product Designer",
     image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
-    quote: "The approval process was smooth, and within 2 weeks my designs were live. I love seeing customers enjoy my work!",
+    quote: "From digital concept to physical furniture - the platform handles manufacturing and shipping while I keep earning from every piece sold. It's like having my own furniture factory!",
     earnings: "₹3,20,000"
   }
 ];
@@ -491,7 +491,7 @@ const Home = () => {
                 Real Designers, Real Success
               </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto">
-                Join thousands of creators earning from their designs
+                Join thousands of designers earning from physical product sales
               </p>
             </div>
             
