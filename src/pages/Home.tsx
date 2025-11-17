@@ -43,18 +43,50 @@ interface Product {
   image: string;
 }
 
-const examplePrompts = [
-  "Modern organic chair with flowing curves",
-  "Minimalist dining table with sculptural legs",
-  "Ergonomic curved bench design",
-  "Contemporary spiral column sculpture",
-  "Fluid wave coffee table",
-  "Sculptural decorative vase",
-  "Abstract geometric wall shelf",
-  "Parametric furniture with natural forms",
-  "Avant-garde seating with organic shapes",
-  "Biomorphic side table design"
-];
+// Generate matching prompts based on product names
+const generatePromptFromName = (name: string): string => {
+  const nameLower = name.toLowerCase();
+  
+  if (nameLower.includes('chair')) {
+    if (nameLower.includes('organic') || nameLower.includes('flow')) return "Create an organic lounge chair with flowing curved lines";
+    if (nameLower.includes('spiral')) return "Design a modern chair with spiral sculptural elements";
+    return "Design a contemporary chair with ergonomic curves";
+  }
+  
+  if (nameLower.includes('table')) {
+    if (nameLower.includes('coffee')) return "Create a coffee table with abstract geometric base";
+    if (nameLower.includes('wave') || nameLower.includes('flow')) return "Design a dining table with fluid wave-like legs";
+    if (nameLower.includes('ripple') || nameLower.includes('curv')) return "Create a table with rippling curved surfaces";
+    return "Design a modern table with sculptural form";
+  }
+  
+  if (nameLower.includes('bench')) {
+    if (nameLower.includes('curv')) return "Create a curved bench with flowing organic lines";
+    return "Design an ergonomic bench with smooth curves";
+  }
+  
+  if (nameLower.includes('vase')) {
+    return "Create a sculptural vase with organic flowing form";
+  }
+  
+  if (nameLower.includes('bowl')) {
+    return "Design an organic bowl with natural flowing curves";
+  }
+  
+  if (nameLower.includes('shelf')) {
+    return "Create a floating wall shelf with geometric design";
+  }
+  
+  if (nameLower.includes('spiral') || nameLower.includes('column') || nameLower.includes('sculpture')) {
+    if (nameLower.includes('hexagon')) return "Design a hexagonal tessellation sculpture installation";
+    if (nameLower.includes('fractal')) return "Create a fractal-inspired sculptural installation";
+    if (nameLower.includes('voronoi')) return "Design a voronoi pattern architectural sculpture";
+    return "Create a large spiral column sculpture installation";
+  }
+  
+  // Default
+  return "Design a contemporary furniture piece with organic curves";
+};
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
@@ -287,24 +319,46 @@ const Home = () => {
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                     />
                     
-                    {/* AI Prompt Badge */}
-                    <div className="absolute bottom-6 left-6 right-6 bg-background/95 backdrop-blur-sm rounded-xl p-4 border border-primary/20 shadow-lg animate-fade-in">
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                            <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                    {/* AI Prompt & Designer Badge */}
+                    {heroProducts.length > 0 && (
+                      <div className="absolute bottom-6 left-6 right-6 bg-background/95 backdrop-blur-sm rounded-xl border border-primary/20 shadow-lg overflow-hidden">
+                        <div className="p-4 space-y-3">
+                          {/* AI Prompt Section */}
+                          <div className="flex items-start gap-3">
+                            <div className="flex-shrink-0 mt-0.5">
+                              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                              </div>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-muted-foreground mb-1">Created with AI prompt:</p>
+                              <p className="text-sm font-medium text-foreground leading-snug">
+                                "{generatePromptFromName(heroProducts[currentProductIndex].name)}"
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {/* Divider */}
+                          <div className="border-t border-border/50"></div>
+                          
+                          {/* Designer Info Section */}
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                              </svg>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-muted-foreground">
+                                Designed by <span className="font-medium text-foreground">{heroProducts[currentProductIndex].designer}</span>
+                              </p>
+                            </div>
                           </div>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium text-muted-foreground mb-1">Created with AI prompt:</p>
-                          <p className="text-sm font-medium text-foreground leading-snug">
-                            "{examplePrompts[currentProductIndex % examplePrompts.length]}"
-                          </p>
-                        </div>
                       </div>
-                    </div>
+                    )}
                   </Link>
                   
                   {heroProducts.length > 1 && (
