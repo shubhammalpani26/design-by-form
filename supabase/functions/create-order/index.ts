@@ -17,6 +17,8 @@ interface CreateOrderRequest {
   };
   paymentMethod: string;
   paymentId?: string;
+  customerGSTIN?: string;
+  customerState: string;
 }
 
 const handler = async (req: Request): Promise<Response> => {
@@ -42,8 +44,20 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Unauthorized");
     }
 
-    const { shippingAddress, paymentMethod, paymentId }: CreateOrderRequest = await req.json();
+    const { shippingAddress, paymentMethod, paymentId, customerGSTIN, customerState }: CreateOrderRequest = await req.json();
     console.log(`Processing order for user: ${user.id}`);
+
+    // Fetch company config for GST calculation
+    const { data: companyConfig, error: configError } = await supabase
+      .from('company_config')
+      .select('*')
+      .limit(1)
+      .single();
+
+    if (configError) {
+      console.error('Company config error:', configError);
+      throw new Error('Company configuration not found');
+    }
 
     // Fetch user's cart
     const { data: cartItems, error: cartError } = await supabase
@@ -65,14 +79,14 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Cart is empty");
     }
 
-    // Calculate totals and commission
-    let totalAmount = 0;
+    // Calculate subtotal (before GST) and commission
+    let subtotal = 0;
     const orderItemsData = [];
 
     for (const item of cartItems) {
       const product = item.designer_products;
       const itemTotal = Number(product.designer_price) * item.quantity;
-      totalAmount += itemTotal;
+      subtotal += itemTotal;
 
       // Calculate commission (7% of sale)
       const commissionRate = 0.07;
@@ -92,12 +106,40 @@ const handler = async (req: Request): Promise<Response> => {
       });
     }
 
+    // Calculate GST
+    const GST_RATE = 18; // 18% GST for furniture
+    const isIGST = customerState !== companyConfig.state;
+    
+    let cgstAmount = 0;
+    let sgstAmount = 0;
+    let igstAmount = 0;
+
+    if (isIGST) {
+      // Inter-state: IGST
+      igstAmount = (subtotal * GST_RATE) / 100;
+    } else {
+      // Intra-state: CGST + SGST
+      cgstAmount = (subtotal * GST_RATE / 2) / 100;
+      sgstAmount = (subtotal * GST_RATE / 2) / 100;
+    }
+
+    const totalAmount = subtotal + cgstAmount + sgstAmount + igstAmount;
+
+    console.log('GST Calculation:', { subtotal, cgstAmount, sgstAmount, igstAmount, totalAmount, isIGST });
+
     // Create the order
     const { data: order, error: orderError } = await supabase
       .from("orders")
       .insert({
         user_id: user.id,
         total_amount: totalAmount,
+        subtotal: subtotal,
+        cgst_amount: cgstAmount,
+        sgst_amount: sgstAmount,
+        igst_amount: igstAmount,
+        gst_rate: GST_RATE,
+        customer_gstin: customerGSTIN,
+        customer_state: customerState,
         shipping_address: shippingAddress,
         payment_details: {
           method: paymentMethod,

@@ -9,39 +9,71 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
+  
+  // Checkout form state
+  const [checkoutForm, setCheckoutForm] = useState({
+    name: "",
+    address: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    phone: "",
+    gstin: ""
+  });
+
+  const indianStates = [
+    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
+    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
+    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
+    "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
+    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
+  ];
 
   const handleCheckout = async () => {
+    // Validate form
+    if (!checkoutForm.name || !checkoutForm.address || !checkoutForm.city || 
+        !checkoutForm.state || !checkoutForm.zipCode || !checkoutForm.phone) {
+      toast.error("Please fill in all required fields");
+      return;
+    }
+
     setIsCheckingOut(true);
     
     try {
-      // For demo purposes, using placeholder shipping details
-      // In production, you'd collect this from a checkout form
       const { data, error } = await supabase.functions.invoke("create-order", {
         body: {
           shippingAddress: {
-            name: "Customer Name",
-            address: "123 Main Street",
-            city: "Mumbai",
-            state: "Maharashtra",
-            zipCode: "400001",
-            phone: "+91 9876543210"
+            name: checkoutForm.name,
+            address: checkoutForm.address,
+            city: checkoutForm.city,
+            state: checkoutForm.state,
+            zipCode: checkoutForm.zipCode,
+            phone: checkoutForm.phone
           },
           paymentMethod: "razorpay",
-          paymentId: `pay_${Date.now()}`
+          paymentId: `pay_${Date.now()}`,
+          customerGSTIN: checkoutForm.gstin || undefined,
+          customerState: checkoutForm.state
         }
       });
 
       if (error) throw error;
 
-      toast.success("Order placed successfully! Designers have been notified.");
+      toast.success("Order placed successfully! You can download your invoice from order history.");
       await clearCart();
-      navigate("/");
+      setShowCheckoutDialog(false);
+      navigate("/order-history");
     } catch (error: any) {
       console.error("Checkout error:", error);
       toast.error(error.message || "Failed to place order");
@@ -159,14 +191,130 @@ const Cart = () => {
                     </div>
                   </div>
 
-                  <Button 
-                    className="w-full" 
-                    size="lg"
-                    onClick={handleCheckout}
-                    disabled={isCheckingOut}
-                  >
-                    {isCheckingOut ? "Processing..." : "Proceed to Checkout"}
-                  </Button>
+                  <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
+                    <DialogTrigger asChild>
+                      <Button className="w-full" size="lg">
+                        Proceed to Checkout
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                      <DialogHeader>
+                        <DialogTitle>Checkout - Shipping Details</DialogTitle>
+                      </DialogHeader>
+                      
+                      <div className="space-y-4 py-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="name">Full Name *</Label>
+                            <Input
+                              id="name"
+                              value={checkoutForm.name}
+                              onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })}
+                              placeholder="John Doe"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="phone">Phone Number *</Label>
+                            <Input
+                              id="phone"
+                              value={checkoutForm.phone}
+                              onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
+                              placeholder="+91 9876543210"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="address">Address *</Label>
+                          <Input
+                            id="address"
+                            value={checkoutForm.address}
+                            onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
+                            placeholder="123 Main Street, Apartment 4B"
+                          />
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="city">City *</Label>
+                            <Input
+                              id="city"
+                              value={checkoutForm.city}
+                              onChange={(e) => setCheckoutForm({ ...checkoutForm, city: e.target.value })}
+                              placeholder="Mumbai"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="zipCode">Pin Code *</Label>
+                            <Input
+                              id="zipCode"
+                              value={checkoutForm.zipCode}
+                              onChange={(e) => setCheckoutForm({ ...checkoutForm, zipCode: e.target.value })}
+                              placeholder="400001"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="state">State *</Label>
+                          <Select
+                            value={checkoutForm.state}
+                            onValueChange={(value) => setCheckoutForm({ ...checkoutForm, state: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select State" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {indianStates.map((state) => (
+                                <SelectItem key={state} value={state}>
+                                  {state}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="gstin">GSTIN (Optional - for businesses)</Label>
+                          <Input
+                            id="gstin"
+                            value={checkoutForm.gstin}
+                            onChange={(e) => setCheckoutForm({ ...checkoutForm, gstin: e.target.value })}
+                            placeholder="22AAAAA0000A1Z5"
+                          />
+                          <p className="text-sm text-muted-foreground">
+                            Enter your GSTIN if you need a GST invoice for business purposes
+                          </p>
+                        </div>
+
+                        <div className="border-t pt-4 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span>Subtotal</span>
+                            <span>{formatPrice(cartTotal)}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>GST @ 18%</span>
+                            <span>{formatPrice(cartTotal * 0.18)}</span>
+                          </div>
+                          <div className="flex justify-between font-bold text-lg">
+                            <span>Total (incl. GST)</span>
+                            <span>{formatPrice(cartTotal * 1.18)}</span>
+                          </div>
+                        </div>
+
+                        <Button 
+                          className="w-full" 
+                          size="lg"
+                          onClick={handleCheckout}
+                          disabled={isCheckingOut}
+                        >
+                          {isCheckingOut ? "Processing..." : "Place Order"}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
                   
                   <Link to="/browse" className="block mt-4">
                     <Button variant="outline" className="w-full">
