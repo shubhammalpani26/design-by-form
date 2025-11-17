@@ -297,6 +297,18 @@ const Home = () => {
                   Just imagine, and we bring it to life. From concept to creation, transform your vision into tangible masterpieces.
                 </p>
                 
+                <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 rounded-2xl p-6 max-w-xl backdrop-blur-sm shadow-lg">
+                  <p className="text-lg font-semibold text-foreground mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                    For Creators: Design Effortlessly, Earn Perpetually
+                  </p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    <span className="font-medium text-foreground">Zero Investment</span> • <span className="font-medium text-foreground">Zero Inventory</span> • <span className="font-medium text-foreground">Zero Manufacturing</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Create stunning furniture designs with AI and earn royalties on every physical product sold worldwide.
+                  </p>
+                </div>
+                
                 <div className="flex flex-wrap gap-4">
                   <Link to="/design-studio">
                     <Button variant="hero" size="lg" className="group">
