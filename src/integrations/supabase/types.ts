@@ -114,6 +114,54 @@ export type Database = {
         }
         Relationships: []
       }
+      company_config: {
+        Row: {
+          address: string
+          city: string
+          created_at: string
+          email: string
+          gstin: string
+          id: string
+          legal_name: string
+          logo_url: string | null
+          phone: string
+          pincode: string
+          state: string
+          trade_name: string | null
+          updated_at: string
+        }
+        Insert: {
+          address: string
+          city: string
+          created_at?: string
+          email: string
+          gstin: string
+          id?: string
+          legal_name: string
+          logo_url?: string | null
+          phone: string
+          pincode: string
+          state: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string
+          city?: string
+          created_at?: string
+          email?: string
+          gstin?: string
+          id?: string
+          legal_name?: string
+          logo_url?: string | null
+          phone?: string
+          pincode?: string
+          state?: string
+          trade_name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -627,31 +675,58 @@ export type Database = {
       }
       orders: {
         Row: {
+          cgst_amount: number | null
           created_at: string
+          customer_gstin: string | null
+          customer_state: string | null
+          gst_rate: number | null
           id: string
+          igst_amount: number | null
+          invoice_date: string | null
+          invoice_number: string | null
           payment_details: Json | null
+          sgst_amount: number | null
           shipping_address: Json | null
           status: string
+          subtotal: number | null
           total_amount: number
           updated_at: string
           user_id: string | null
         }
         Insert: {
+          cgst_amount?: number | null
           created_at?: string
+          customer_gstin?: string | null
+          customer_state?: string | null
+          gst_rate?: number | null
           id?: string
+          igst_amount?: number | null
+          invoice_date?: string | null
+          invoice_number?: string | null
           payment_details?: Json | null
+          sgst_amount?: number | null
           shipping_address?: Json | null
           status?: string
+          subtotal?: number | null
           total_amount: number
           updated_at?: string
           user_id?: string | null
         }
         Update: {
+          cgst_amount?: number | null
           created_at?: string
+          customer_gstin?: string | null
+          customer_state?: string | null
+          gst_rate?: number | null
           id?: string
+          igst_amount?: number | null
+          invoice_date?: string | null
+          invoice_number?: string | null
           payment_details?: Json | null
+          sgst_amount?: number | null
           shipping_address?: Json | null
           status?: string
+          subtotal?: number | null
           total_amount?: number
           updated_at?: string
           user_id?: string | null
@@ -1019,6 +1094,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_invoice_number: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
