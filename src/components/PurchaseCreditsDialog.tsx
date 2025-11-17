@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Dialog,
@@ -10,6 +10,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 interface Package {
   id: string;
@@ -39,6 +45,16 @@ export const PurchaseCreditsDialog = ({
   const [loading, setLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    document.body.appendChild(script);
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const handlePurchase = async (packageType: string) => {
     setLoading(packageType);
     try {
@@ -48,21 +64,65 @@ export const PurchaseCreditsDialog = ({
 
       if (error) throw error;
 
-      toast({
-        title: "Credits Purchased!",
-        description: `Successfully added ${data.credits} credits to your account.`,
-      });
+      const options = {
+        key: data.keyId,
+        amount: data.amount,
+        currency: data.currency,
+        name: 'AI Credits',
+        description: `${data.credits} AI generation credits`,
+        order_id: data.orderId,
+        handler: async function (response: any) {
+          try {
+            const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
+              'verify-credits-payment',
+              {
+                body: {
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  packageType: data.packageType,
+                  credits: data.credits,
+                },
+              }
+            );
 
-      onSuccess();
-      onOpenChange(false);
+            if (verifyError) throw verifyError;
+
+            toast({
+              title: "Credits Purchased!",
+              description: `Successfully added ${verifyData.credits} credits to your account.`,
+            });
+
+            onSuccess();
+            onOpenChange(false);
+          } catch (error) {
+            console.error('Verification error:', error);
+            toast({
+              title: "Verification Failed",
+              description: error instanceof Error ? error.message : "Failed to verify payment",
+              variant: "destructive",
+            });
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(null);
+          },
+        },
+        theme: {
+          color: '#8B5CF6',
+        },
+      };
+
+      const razorpay = new window.Razorpay(options);
+      razorpay.open();
     } catch (error) {
       console.error('Purchase error:', error);
       toast({
         title: "Purchase Failed",
-        description: error instanceof Error ? error.message : "Failed to purchase credits",
+        description: error instanceof Error ? error.message : "Failed to initiate payment",
         variant: "destructive",
       });
-    } finally {
       setLoading(null);
     }
   };
