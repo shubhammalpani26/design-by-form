@@ -217,7 +217,7 @@ export default function ProductComparison() {
 
                     <div>
                       <span className="text-muted-foreground">Materials:</span>
-                      <p className="text-xs mt-1">{product.materials_description}</p>
+                      <p className="text-xs mt-1">Glass Fibre Reinforced Resin + premium finishing as per customized option selected</p>
                     </div>
 
                     <div>

@@ -151,11 +151,46 @@ const ProductDetail = () => {
     });
   };
 
-  const handleRequestCustomization = () => {
-    toast({
-      title: "Customization Request",
-      description: "Our design team will contact you within 24 hours to discuss your customization options.",
-    });
+  const handleRequestCustomization = async () => {
+    try {
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Login Required",
+          description: "Please log in to request customization options.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Send customization request to admin
+      const { error } = await supabase.functions.invoke('send-customization-request', {
+        body: {
+          productId: product.id,
+          productName: product.name,
+          customizationDetails: {
+            selectedFinish,
+            selectedSize,
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request Sent",
+        description: "Our design team will contact you within 24 hours to discuss your customization options.",
+      });
+    } catch (error) {
+      console.error('Error sending customization request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send customization request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleRequestCustomDesign = () => {

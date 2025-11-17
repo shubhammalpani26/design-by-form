@@ -24,6 +24,7 @@ import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Menu, ShoppingCart, User as UserIcon, Sparkles, LayoutDashboard, LogOut } from "lucide-react";
+import logo from "@/assets/logo.png";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -211,9 +212,22 @@ export const Header = () => {
           </SheetContent>
         </Sheet>
 
-        <Link to="/" className="flex flex-col shrink-0">
-          <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-          <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+        {/* Logo - Desktop */}
+        <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
+          <img src={logo} alt="Formo Logo" className="h-8 w-8" />
+          <div className="flex flex-col">
+            <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
+            <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+          </div>
+        </Link>
+        
+        {/* Logo - Mobile (Center) */}
+        <Link to="/" className="md:hidden flex items-center gap-1.5 absolute left-1/2 -translate-x-1/2">
+          <img src={logo} alt="Formo Logo" className="h-6 w-6" />
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-primary leading-tight">Formo</span>
+            <span className="text-[9px] text-muted-foreground -mt-0.5">By Cyanique</span>
+          </div>
         </Link>
         
         <nav className="hidden md:flex items-center space-x-6">
