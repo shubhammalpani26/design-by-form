@@ -308,7 +308,7 @@ const Home = () => {
               
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
-                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
+                <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   <Link 
                     to={heroProducts.length > 0 ? `/product/${heroProducts[currentProductIndex].id}` : "/browse"}
                     className="block w-full h-full cursor-pointer"
@@ -321,20 +321,20 @@ const Home = () => {
                     
                     {/* AI Prompt & Designer Badge */}
                     {heroProducts.length > 0 && (
-                      <div className="absolute bottom-6 left-6 right-6 bg-background/95 backdrop-blur-sm rounded-xl border border-primary/20 shadow-lg overflow-hidden">
-                        <div className="p-4 space-y-3">
+                      <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
+                        <div className="p-3 space-y-2">
                           {/* AI Prompt Section */}
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2">
                             <div className="flex-shrink-0 mt-0.5">
-                              <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                                <svg className="w-4 h-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                                <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs font-medium text-muted-foreground mb-1">Created with AI prompt:</p>
-                              <p className="text-sm font-medium text-foreground leading-snug">
+                              <p className="text-[10px] font-medium text-muted-foreground mb-0.5">AI prompt:</p>
+                              <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
                                 "{generatePromptFromName(heroProducts[currentProductIndex].name)}"
                               </p>
                             </div>
@@ -345,14 +345,14 @@ const Home = () => {
                           
                           {/* Designer Info Section */}
                           <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-secondary/20 flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center">
+                              <svg className="w-3 h-3 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                               </svg>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-xs text-muted-foreground">
-                                Designed by <span className="font-medium text-foreground">{heroProducts[currentProductIndex].designer}</span>
+                              <p className="text-[10px] text-muted-foreground">
+                                by <span className="font-medium text-foreground">{heroProducts[currentProductIndex].designer}</span>
                               </p>
                             </div>
                           </div>
