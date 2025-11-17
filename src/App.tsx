@@ -44,6 +44,7 @@ import ProductStatusTracker from "./pages/ProductStatusTracker";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import OrderHistory from "./pages/OrderHistory";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
+import CreatorSettings from "./pages/CreatorSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -76,7 +77,7 @@ const App = () => (
             <Route path="/creator/earnings" element={<CreatorEarningsDashboard />} />
             <Route path="/creator/analytics" element={<AnalyticsDashboard />} />
             <Route path="/creator/profile" element={<CreatorProfile />} />
-            <Route path="/creator/settings" element={<CreatorProfile />} />
+            <Route path="/creator/settings" element={<CreatorSettings />} />
             <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
             <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
             <Route path="/product-edit/:id" element={<ProductEdit />} />
