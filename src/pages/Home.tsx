@@ -352,26 +352,6 @@ const Home = () => {
                       </div>
                     </>
                   )}
-                  
-                  <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-background/95 to-transparent p-6">
-                    <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
-                      </div>
-                      {heroProducts.length > 0 && (
-                        <div className="flex-1">
-                          <p className="text-sm font-semibold text-foreground transition-all duration-500">
-                            {heroProducts[currentProductIndex].name}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Designed by {heroProducts[currentProductIndex].designer}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
