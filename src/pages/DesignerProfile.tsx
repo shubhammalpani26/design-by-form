@@ -28,6 +28,7 @@ interface Designer {
     name: string;
     designer_price: number;
     image_url: string;
+    weight: number;
   }>;
 }
 
@@ -76,7 +77,8 @@ const DesignerProfile = () => {
           id: p.id,
           name: p.name,
           designer_price: p.designer_price,
-          image_url: p.image_url
+          image_url: p.image_url,
+          weight: p.weight
         })) || []
       });
     } catch (error) {
@@ -234,7 +236,7 @@ const DesignerProfile = () => {
                   designerId={designer.id}
                   price={product.designer_price}
                   image={product.image_url}
-                  weight={5}
+                  weight={product.weight || 15}
                 />
               ))}
             </div>
