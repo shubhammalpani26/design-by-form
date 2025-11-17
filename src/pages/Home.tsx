@@ -264,19 +264,28 @@ const Home = () => {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
-                  <img
-                    src={heroProducts.length > 0 ? heroProducts[currentProductIndex].image : chairHero}
-                    alt="AI-generated furniture design"
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                  />
+                  <Link 
+                    to={heroProducts.length > 0 ? `/product/${heroProducts[currentProductIndex].id}` : "/browse"}
+                    className="block w-full h-full cursor-pointer"
+                  >
+                    <img
+                      src={heroProducts.length > 0 ? heroProducts[currentProductIndex].image : chairHero}
+                      alt="AI-generated furniture design"
+                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                    />
+                  </Link>
                   
                   {heroProducts.length > 1 && (
                     <>
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={prevProduct}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          prevProduct();
+                        }}
                       >
                         <ChevronLeft className="h-6 w-6" />
                       </Button>
@@ -284,17 +293,25 @@ const Home = () => {
                       <Button
                         variant="secondary"
                         size="icon"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={nextProduct}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          nextProduct();
+                        }}
                       >
                         <ChevronRight className="h-6 w-6" />
                       </Button>
 
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 bg-background/80 backdrop-blur-sm px-3 py-2 rounded-full">
+                      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 bg-background/80 backdrop-blur-sm px-3 py-2 rounded-full z-10">
                         {heroProducts.map((_, idx) => (
                           <button
                             key={idx}
-                            onClick={() => setCurrentProductIndex(idx)}
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              setCurrentProductIndex(idx);
+                            }}
                             className={`w-2 h-2 rounded-full transition-all ${
                               idx === currentProductIndex ? 'bg-primary w-8' : 'bg-muted-foreground/50'
                             }`}
