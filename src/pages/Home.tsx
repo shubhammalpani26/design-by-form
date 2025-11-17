@@ -308,7 +308,7 @@ const Home = () => {
               
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
-                <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
+                <div className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   <Link 
                     to={heroProducts.length > 0 ? `/product/${heroProducts[currentProductIndex].id}` : "/browse"}
                     className="block w-full h-full cursor-pointer"
