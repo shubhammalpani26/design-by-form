@@ -48,6 +48,7 @@ import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import CreatorSettings from "./pages/CreatorSettings";
 import NotFound from "./pages/NotFound";
 import { CreatorLayout } from "./layouts/CreatorLayout";
+import AdminPanel from "./pages/AdminPanel";
 
 const queryClient = new QueryClient();
 
@@ -94,8 +95,9 @@ const App = () => (
             <Route path="/cart" element={<Cart />} />
             <Route path="/compare" element={<ProductComparison />} />
             
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin" element={<AdminPanel />} />
             <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin/panel" element={<AdminPanel />} />
             <Route path="/admin/payouts" element={<AdminPayouts />} />
             <Route path="/admin/products/:id/edit" element={<AdminProductEdit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
