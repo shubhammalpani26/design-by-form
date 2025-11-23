@@ -1,7 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -219,34 +217,23 @@ const ProductSuccessKit = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-64 mb-8" />
-          <Skeleton className="h-96 w-full" />
-        </main>
-        <Footer />
+      <div className="container mx-auto px-4 py-8">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <Skeleton className="h-96 w-full" />
       </div>
     );
   }
 
   if (!product) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 container mx-auto px-4 py-8">
-          <p className="text-center text-muted-foreground">Product not found</p>
-        </main>
-        <Footer />
+      <div className="container mx-auto px-4 py-8">
+        <p className="text-center text-muted-foreground">Product not found</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8">
         <Link to="/creator/dashboard">
           <Button variant="ghost" className="mb-4">
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -401,9 +388,6 @@ const ProductSuccessKit = () => {
             </Card>
           </TabsContent>
         </Tabs>
-      </main>
-
-      <Footer />
     </div>
   );
 };

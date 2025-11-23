@@ -1,6 +1,4 @@
 import { useState } from "react";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -90,10 +88,7 @@ const CreatorSuccessKit = () => {
   ];
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1">
+    <div>
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-12">
           <div className="container">
@@ -500,9 +495,6 @@ const CreatorSuccessKit = () => {
             </TabsContent>
           </Tabs>
         </section>
-      </main>
-      
-      <Footer />
     </div>
   );
 };
