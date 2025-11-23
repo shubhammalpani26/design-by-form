@@ -162,7 +162,7 @@ const CreatorEarningsDashboard = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{earnings.commissionTier}</div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {earnings.commissionRate}% commission rate
+                  {earnings.commissionRate}% on base manufacturing price
                 </p>
               </CardContent>
             </Card>
@@ -260,7 +260,7 @@ const CreatorEarningsDashboard = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>{earnings.commissionRate}% commission on base cost</span>
+                      <span>{earnings.commissionRate}% commission on base manufacturing price</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>

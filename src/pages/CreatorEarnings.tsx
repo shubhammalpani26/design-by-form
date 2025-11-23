@@ -174,7 +174,7 @@ const CreatorEarnings = () => {
                         <span className="font-medium">₹25,000</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Commission per sale:</span>
+                        <span className="text-muted-foreground">Commission per sale (5% of base):</span>
                         <span className="font-medium">₹2,500</span>
                       </div>
                       <div className="flex justify-between text-muted-foreground/60">
