@@ -49,8 +49,8 @@ const CreatorSuccessKit = () => {
     {
       category: "Educational",
       templates: [
-        "Did you know? [Product Name] is made from 75% recycled materials 🌱 Sustainable design doesn't mean compromising on style. Learn more → #SustainableDesign #EcoFriendly",
-        "Material matters: Why I chose FRP for [Product Name] 🔬 Swipe for a deep dive into the science behind beautiful, durable furniture #MaterialScience #DesignEducation",
+        "Did you know? [Product Name] is crafted using high-grade resin reinforced with glass fibre 🌱 Advanced materials meet artistic craftsmanship. Learn more → #InnovativeDesign #ArtisanCraft",
+        "Material matters: Why I chose advanced composite materials for [Product Name] 🔬 Swipe for a deep dive into the science behind beautiful, durable furniture #MaterialScience #DesignEducation",
         "Furniture 101: How AI is revolutionizing design 🤖 My [Product Name] started as a simple prompt. Here's the full story → #AIDesign #FutureTech"
       ]
     }

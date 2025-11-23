@@ -115,7 +115,7 @@ const ProductDetail = () => {
         dimensions: dimensionsStr,
         dimensionsObj: dims,
         category: data.category,
-        materials: 'Crafted from premium FRP (Fibre-Reinforced Polymer) with 75% post-consumer recycled content. This sustainable, high-performance material offers exceptional durability and weather resistance while maintaining an elegant, refined finish.',
+        materials: 'Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Material selection and ratios may vary based on the design\'s intended form and structural needs.',
         designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
         model_url: data.model_url,
         angle_views: data.angle_views || []
@@ -457,7 +457,7 @@ const ProductDetail = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold text-foreground mb-1">Premium Outdoor-Friendly Material</h4>
-                    <p className="text-sm text-muted-foreground">Crafted from luxury-grade Fibre-Reinforced Polymer with 75% post-consumer recycled content. Weather-resistant, UV-stable, and built to withstand the elements while maintaining elegance.</p>
+                    <p className="text-sm text-muted-foreground">Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Weather-resistant and built to withstand the elements while maintaining elegance.</p>
                   </div>
                 </div>
               </CardContent>
@@ -524,7 +524,7 @@ const ProductDetail = () => {
               </div>
               <div className="flex justify-between items-start py-1.5 border-b border-border/50">
                 <span className="font-semibold text-foreground">Production:</span>
-                <span className="text-muted-foreground text-right max-w-[65%]">3D printed on-demand with expert hand-finishing, 2-3 weeks</span>
+                <span className="text-muted-foreground text-right max-w-[65%]">Each piece is created through a blend of innovative fabrication and unique artistic techniques, finished with meticulous hand-finishing. This approach unites modern precision with artisan craftsmanship, giving every piece its own expressive identity.</span>
               </div>
               <div className="flex justify-between items-center py-1.5">
                 <span className="font-semibold text-foreground">Outdoor Use:</span>

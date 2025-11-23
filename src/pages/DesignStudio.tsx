@@ -835,7 +835,7 @@ const DesignStudio = () => {
             body: {
               productName: validatedData.name,
               category: validatedData.category,
-              materials: "Premium FRP (Fiberglass Reinforced Plastic) with hand-finished details",
+              materials: "High-grade resin reinforced with glass fibre, with hand-finished details",
               dimensions: {
                 width: parseFloat(dimensions.length),
                 depth: parseFloat(dimensions.breadth),
@@ -2200,7 +2200,7 @@ const DesignStudio = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
                   { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for manufacturing feasibility" },
-                  { step: 2, title: "Manufacturing", desc: "Your piece is manufactured using premium FRP and hand-finished" },
+                  { step: 2, title: "Manufacturing", desc: "Your piece is created through innovative fabrication and hand-finished by artisans" },
                   { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
                   { step: 4, title: "You Earn", desc: "You'll receive notifications when orders are placed and earn income automatically" }
                 ].map((item) => (
