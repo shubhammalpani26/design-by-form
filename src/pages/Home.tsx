@@ -500,7 +500,7 @@ const Home = () => {
                   {creatorStats.activeCreators}+
                 </div>
                 <div className="text-lg font-semibold text-foreground">Creators Earning</div>
-                <div className="text-sm text-muted-foreground">Active creators on the platform</div>
+                <div className="text-sm text-muted-foreground">Lifetime creators earning</div>
               </div>
               
               <div className="text-center space-y-2">

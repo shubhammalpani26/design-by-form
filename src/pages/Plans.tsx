@@ -26,7 +26,7 @@ const Plans = () => {
         "10 AI designs included",
         "Basic AI design tools",
         "Standard product photos",
-        "Pay ₹1,000 per listing",
+        "Listing fee: ₹1,000 per listing*",
         "Pay ₹500 per 3D model",
         "Community support",
         "7-day design review",
@@ -43,10 +43,10 @@ const Plans = () => {
       description: "For serious furniture designers",
       features: [
         "Unlimited designs",
-        "5 free listings per month",
+        "5 free listings per month*",
         "Additional listings at ₹500 each",
         "5 free 3D models per month",
-        "Additional models at ₹300 each",
+        "Additional 3D models at ₹300 each",
         "Advanced AI design tools",
         "Premium product photography",
         "Priority 3-day review",
@@ -148,11 +148,7 @@ const Plans = () => {
             return (
               <Card
                 key={plan.name}
-                className={`relative transition-all hover:shadow-xl ${
-                  plan.popular 
-                    ? "border-primary shadow-lg scale-105 md:scale-110" 
-                    : "border-border"
-                }`}
+                className={`relative transition-all hover:shadow-xl border-border`}
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 {plan.popular && (
@@ -230,25 +226,28 @@ const Plans = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid md:grid-cols-3 gap-6">
-                <div className="text-center p-6 rounded-lg bg-muted">
+              <div className="flex flex-col md:flex-row md:items-end gap-6 justify-center">
+                <div className="text-center p-6 rounded-lg bg-muted flex-1 max-w-xs mx-auto">
                   <p className="text-sm text-muted-foreground mb-2">Free Plan</p>
                   <p className="text-3xl font-bold mb-1">{formatPrice(500)}</p>
                   <p className="text-sm text-muted-foreground">per 3D model</p>
                 </div>
-                <div className="text-center p-6 rounded-lg bg-primary/10 border-2 border-primary">
+                <div className="text-center p-6 rounded-lg bg-primary/10 border-2 border-primary flex-1 max-w-xs mx-auto">
                   <p className="text-sm text-primary mb-2">Creator Plan</p>
                   <p className="text-3xl font-bold mb-1">{formatPrice(300)}</p>
-                  <p className="text-sm text-muted-foreground">after 5 free/month</p>
+                  <p className="text-sm text-muted-foreground">after 5 free 3D models/month</p>
                   <Badge variant="default" className="mt-2">40% savings</Badge>
                 </div>
-                <div className="text-center p-6 rounded-lg bg-accent/10">
+                <div className="text-center p-6 rounded-lg bg-accent/10 flex-1 max-w-xs mx-auto">
                   <p className="text-sm text-muted-foreground mb-2">Pro Studio</p>
                   <p className="text-3xl font-bold mb-1">{formatPrice(200)}</p>
-                  <p className="text-sm text-muted-foreground">after 20 free/month</p>
+                  <p className="text-sm text-muted-foreground">after 20 free 3D models/month</p>
                   <Badge variant="secondary" className="mt-2">60% savings</Badge>
                 </div>
               </div>
+              <p className="text-xs text-center text-muted-foreground mt-4">
+                *Listing fees currently waived during our initial phase
+              </p>
             </CardContent>
           </Card>
         </div>

@@ -491,8 +491,8 @@ const ProductDetail = () => {
                     </svg>
                   </div>
                   <div>
-                    <h4 className="font-semibold text-foreground mb-1">Premium Outdoor-Friendly Material</h4>
-                    <p className="text-sm text-muted-foreground">Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Weather-resistant and built to withstand the elements while maintaining elegance.</p>
+                    <h4 className="font-semibold text-foreground mb-1">Premium Outdoor-Friendly Material as well</h4>
+                    <p className="text-sm text-muted-foreground">Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Weather-resistant and built to withstand the elements while maintaining elegance - perfect for any space, indoors or outdoors.</p>
                   </div>
                 </div>
               </CardContent>
@@ -563,7 +563,7 @@ const ProductDetail = () => {
               </div>
               <div className="flex justify-between items-center py-1.5">
                 <span className="font-semibold text-foreground">Outdoor Use:</span>
-                <span className="text-muted-foreground">Weather-resistant</span>
+                <span className="text-muted-foreground">Weather-resistant as well</span>
               </div>
             </div>
 

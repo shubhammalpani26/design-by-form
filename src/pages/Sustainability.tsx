@@ -68,23 +68,22 @@ const Sustainability = () => {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-foreground">Responsibly Sourced Materials</h3>
                   <p className="text-muted-foreground mb-4">
-                    We partner exclusively with verified sustainable suppliers. All wood is FSC-certified, 
-                    metals are recycled where possible, and fabrics use eco-friendly dyes.
+                    Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Material selection and ratios may vary based on the design's intended form and structural needs.
                   </p>
                   <Card className="bg-accent border-border">
                     <CardContent className="p-4">
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-start gap-2">
                           <span className="text-primary mt-1">✓</span>
-                          <span><strong>FSC-certified wood:</strong> From responsibly managed forests</span>
+                          <span><strong>High-grade resin composite:</strong> Advanced material engineering</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-primary mt-1">✓</span>
-                          <span><strong>Recycled metals:</strong> Minimum 60% post-consumer content</span>
+                          <span><strong>Glass fibre reinforcement:</strong> Enhanced strength and durability</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-primary mt-1">✓</span>
-                          <span><strong>Low-impact finishes:</strong> Water-based, VOC-free coatings</span>
+                          <span><strong>Weather-resistant:</strong> Built to withstand outdoor elements</span>
                         </li>
                       </ul>
                     </CardContent>
@@ -141,7 +140,7 @@ const Sustainability = () => {
                       <ul className="space-y-2 text-sm">
                         <li className="flex items-start gap-2">
                           <span className="text-primary mt-1">✓</span>
-                          <span><strong>10-year warranty:</strong> We stand behind our quality</span>
+                          <span><strong>2-year warranty:</strong> We stand behind our quality</span>
                         </li>
                         <li className="flex items-start gap-2">
                           <span className="text-primary mt-1">✓</span>
@@ -191,63 +190,6 @@ const Sustainability = () => {
                 </Card>
               </div>
             </div>
-          </div>
-        </section>
-
-        {/* Certifications */}
-        <section className="container py-16">
-          <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-8 text-center text-foreground">
-              Certifications & Partnerships
-            </h2>
-            <Card>
-              <CardContent className="p-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                  <div>
-                    <h4 className="font-semibold mb-3 text-foreground">Certifications</h4>
-                    <ul className="space-y-2">
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>FSC Chain of Custody</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>GREENGUARD Certified</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Climate Neutral Certified</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>B Corporation Pending</span>
-                      </li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="font-semibold mb-3 text-foreground">Partnerships</h4>
-                    <ul className="space-y-2">
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>1% for the Planet</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Sustainable Furnishings Council</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>American Sustainable Business Council</span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Reforestation Partnership</span>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </section>
 
