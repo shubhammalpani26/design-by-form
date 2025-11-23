@@ -142,13 +142,6 @@ export const Header = () => {
                 >
                   Pricing
                 </Link>
-                <Link
-                  to="/about"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  About
-                </Link>
               </div>
 
               {/* User Actions */}
@@ -261,21 +254,20 @@ export const Header = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/design-studio" className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1">
-            <Sparkles className="h-4 w-4" />
-            AI Design Studio
+          <Link to="/design-studio">
+            <Button variant="ghost" size="sm" className="text-sm font-medium flex items-center gap-1.5 whitespace-nowrap">
+              <Sparkles className="h-4 w-4" />
+              AI Design Studio
+            </Button>
           </Link>
-          <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Creators
           </Link>
-          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Leaderboard
           </Link>
-          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
+          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Pricing
-          </Link>
-          <Link to="/about" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
-            About
           </Link>
         </nav>
 
