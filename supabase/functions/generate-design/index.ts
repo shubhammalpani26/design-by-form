@@ -175,7 +175,7 @@ serve(async (req) => {
 
 ${prompt || 'Improve and refine this design'}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
 
       messages = [{
         role: 'user',
@@ -190,7 +190,7 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
 
 ${prompt}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
 
       messages = [{
         role: 'user',
@@ -205,7 +205,7 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
 
 ${prompt}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant, manufacturable, and suitable for 3D printing.`;
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }
