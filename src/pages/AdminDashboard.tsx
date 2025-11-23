@@ -266,6 +266,13 @@ const AdminDashboard = () => {
                         <p className="text-xs text-muted-foreground">Designer Price</p>
                         <p className="font-semibold">₹{product.designer_price.toLocaleString()}</p>
                       </div>
+                      <div>
+                        <Link to={`/admin/products/${product.id}/edit`}>
+                          <Button variant="outline" size="sm" className="w-full">
+                            Edit Product Details
+                          </Button>
+                        </Link>
+                      </div>
                     </div>
                     <p className="text-xs text-muted-foreground mb-4">
                       Submitted: {new Date(product.created_at).toLocaleDateString()}

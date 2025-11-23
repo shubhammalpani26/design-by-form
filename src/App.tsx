@@ -35,6 +35,7 @@ import DesignerOnboarding from "./pages/DesignerOnboarding";
 import CreatorSuccessKit from "./pages/CreatorSuccessKit";
 import ProductSuccessKit from "./pages/ProductSuccessKit";
 import ProductEdit from "./pages/ProductEdit";
+import AdminProductEdit from "./pages/AdminProductEdit";
 import Cart from "./pages/Cart";
 import ProductComparison from "./pages/ProductComparison";
 import Checkout from "./pages/Checkout";
@@ -89,7 +90,9 @@ const App = () => (
             <Route path="/compare" element={<ProductComparison />} />
             
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminDashboard />} />
             <Route path="/admin/payouts" element={<AdminPayouts />} />
+            <Route path="/admin/products/:id/edit" element={<AdminProductEdit />} />
             <Route path="/how-it-works" element={<HowItWorks />} />
             <Route path="/creator-earnings" element={<CreatorEarnings />} />
             <Route path="/commissions" element={<CreatorEarnings />} /> {/* Redirect old URL */}
