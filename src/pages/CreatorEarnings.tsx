@@ -17,7 +17,10 @@ const CreatorEarnings = () => {
               How You Earn as a Creator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Set your price, keep 100% of markup, plus earn commission on every sale
+              Set your price, keep 100% of markup*, plus earn commission on every sale
+            </p>
+            <p className="text-xs text-muted-foreground max-w-2xl mx-auto mt-2">
+              *Platform fees currently waived during our initial phase
             </p>
           </div>
         </section>
@@ -34,9 +37,12 @@ const CreatorEarnings = () => {
                     </svg>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-foreground">Your Price Markup</h3>
-                  <p className="text-4xl font-bold text-primary mb-4">100%</p>
+                  <p className="text-4xl font-bold text-primary mb-4">100%*</p>
                   <p className="text-muted-foreground text-sm">
-                    Set your price above our base manufacturing cost. <strong className="text-foreground">You keep 100% of the difference.</strong> This is your primary income source and you have full control.
+                    Set your price above our base manufacturing cost. <strong className="text-foreground">You keep 100% of the difference.*</strong> This is your primary income source and you have full control.
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    *Platform fees currently waived during our initial phase
                   </p>
                 </CardContent>
               </Card>
@@ -49,9 +55,9 @@ const CreatorEarnings = () => {
                     </svg>
                   </div>
                   <h3 className="text-2xl font-bold mb-3 text-foreground">Commission Bonus</h3>
-                  <p className="text-4xl font-bold text-secondary mb-4">Up to 20%</p>
+                  <p className="text-4xl font-bold text-secondary mb-4">Up to 10%</p>
                   <p className="text-muted-foreground text-sm">
-                    <strong className="text-foreground">Plus</strong> earn 5-20% commission on the base manufacturing cost based on your total sales volume. This rewards your success and grows with you.
+                    <strong className="text-foreground">Plus</strong> earn 5-10% commission on the base manufacturing cost based on your total sales volume. This rewards your success and grows with you.
                   </p>
                 </CardContent>
               </Card>
@@ -64,7 +70,7 @@ const CreatorEarnings = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
               <Card className="border-border">
                 <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold text-primary mb-2">10%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">5%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Standard</h3>
                   <p className="text-sm text-muted-foreground mb-4">For all creators</p>
                   <ul className="space-y-2 text-sm text-left">
@@ -89,13 +95,13 @@ const CreatorEarnings = () => {
                   <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold mb-2">
                     MOST POPULAR
                   </div>
-                  <div className="text-4xl font-bold text-primary mb-2">12%</div>
+                  <div className="text-4xl font-bold text-primary mb-2">8%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Premium</h3>
                   <p className="text-sm text-muted-foreground mb-4">₹4,15,000+ in sales</p>
                   <ul className="space-y-2 text-sm text-left">
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">✓</span>
-                      <span>12% on all designs</span>
+                      <span>8% on all designs</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary mt-1">✓</span>
@@ -111,13 +117,13 @@ const CreatorEarnings = () => {
 
               <Card className="border-secondary/20">
                 <CardContent className="p-6 text-center">
-                  <div className="text-4xl font-bold text-secondary mb-2">15%</div>
+                  <div className="text-4xl font-bold text-secondary mb-2">10%</div>
                   <h3 className="text-xl font-semibold mb-2 text-foreground">Elite</h3>
                   <p className="text-sm text-muted-foreground mb-4">₹12,45,000+ in sales</p>
                   <ul className="space-y-2 text-sm text-left">
                     <li className="flex items-start gap-2">
                       <span className="text-secondary mt-1">✓</span>
-                      <span>15% on all designs</span>
+                      <span>10% on all designs</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-secondary mt-1">✓</span>

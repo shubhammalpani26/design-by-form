@@ -42,8 +42,8 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Become a verified designer</li>
                   <li>• Pay listing fee ({displayFee})</li>
-                  <li>• Keep 100% of your markup above manufacturing cost</li>
-                  <li>• Earn up to 15%* platform commission</li>
+                  <li>• Keep 100% of your markup above manufacturing cost*</li>
+                  <li>• Earn up to 10%* platform commission</li>
                   <li>• Public marketplace listing</li>
                 </ul>
               </div>
@@ -77,7 +77,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
 
         <div className="mt-4 space-y-1">
           <p className="text-xs text-center text-muted-foreground">
-            * Commission rate increases with sales performance (7% - 15%)
+            * Commission rate increases with sales performance (5% - 10%). Listing fees and platform fees currently waived.
           </p>
           <p className="text-xs text-center text-muted-foreground">
             You can always become a designer later if you choose personal use

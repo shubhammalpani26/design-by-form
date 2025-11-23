@@ -157,7 +157,7 @@ export const ListingFeeDialog = ({
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-0.5">✓</span>
-                    <span>Earn on every sale (your markup + 10% commission)</span>
+                    <span>Earn on every sale (your markup + 5% commission)*</span>
                   </li>
                 </>
               )}

@@ -406,7 +406,7 @@ const CreatorSuccessKit = () => {
                     <Card className="bg-secondary/5 border-secondary/20">
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">7% - 15% Commission</h4>
+                        <h4 className="font-semibold text-foreground mb-1">5% - 10% Commission</h4>
                         <p className="text-xs text-muted-foreground">
                           Based on sales performance
                         </p>
@@ -428,31 +428,24 @@ const CreatorSuccessKit = () => {
                     <div className="space-y-2">
                       <div className="flex items-center justify-between p-3 border border-border rounded-lg">
                         <div>
-                          <p className="font-medium">Bronze Tier</p>
-                          <p className="text-sm text-muted-foreground">0-25 sales</p>
+                          <p className="font-medium">Standard Tier</p>
+                          <p className="text-sm text-muted-foreground">All creators</p>
                         </div>
-                        <span className="text-lg font-bold text-primary">7%</span>
+                        <span className="text-lg font-bold text-primary">5%</span>
                       </div>
                       <div className="flex items-center justify-between p-3 border border-border rounded-lg">
                         <div>
-                          <p className="font-medium">Silver Tier</p>
-                          <p className="text-sm text-muted-foreground">26-100 sales</p>
+                          <p className="font-medium">Premium Tier</p>
+                          <p className="text-sm text-muted-foreground">₹4,15,000+ in sales</p>
                         </div>
-                        <span className="text-lg font-bold text-primary">10%</span>
-                      </div>
-                      <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                        <div>
-                          <p className="font-medium">Gold Tier</p>
-                          <p className="text-sm text-muted-foreground">101-250 sales</p>
-                        </div>
-                        <span className="text-lg font-bold text-primary">12%</span>
+                        <span className="text-lg font-bold text-primary">8%</span>
                       </div>
                       <div className="flex items-center justify-between p-3 border border-primary bg-primary/5 rounded-lg">
                         <div>
-                          <p className="font-medium">Platinum Tier</p>
-                          <p className="text-sm text-muted-foreground">251+ sales</p>
+                          <p className="font-medium">Elite Tier</p>
+                          <p className="text-sm text-muted-foreground">₹12,45,000+ in sales</p>
                         </div>
-                        <span className="text-lg font-bold text-primary">15%</span>
+                        <span className="text-lg font-bold text-primary">10%</span>
                       </div>
                     </div>
                   </div>
@@ -496,9 +489,10 @@ const CreatorSuccessKit = () => {
                     <div className="text-sm text-muted-foreground space-y-2">
                       <p className="font-medium text-foreground">Product: Chair priced at ₹35,000</p>
                       <p>• Manufacturing base cost: ₹18,000</p>
-                      <p>• Your markup: ₹17,000 (100% yours)</p>
-                      <p>• Platform commission (10%): ₹3,500</p>
-                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹13,500</p>
+                      <p>• Your markup*: ₹17,000 (100% yours)</p>
+                      <p>• Platform commission (5%): ₹900</p>
+                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹17,900</p>
+                      <p className="text-xs mt-2">*Platform fees currently waived</p>
                     </div>
                   </div>
                 </CardContent>

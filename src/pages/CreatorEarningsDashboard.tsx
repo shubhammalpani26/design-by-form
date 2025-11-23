@@ -23,7 +23,7 @@ const CreatorEarningsDashboard = () => {
     totalEarnings: 0,
     totalSales: 0,
     commissionTier: 'Standard',
-    commissionRate: 10,
+    commissionRate: 5,
     pendingPayout: 0,
     thisMonthEarnings: 0,
   });
@@ -69,14 +69,14 @@ const CreatorEarningsDashboard = () => {
 
       // Determine commission tier based on total sales volume
       let tier = 'Standard';
-      let rate = 10;
+      let rate = 5;
 
       if (totalSalesVolume >= 1245000) {
         tier = 'Elite';
-        rate = 15;
+        rate = 10;
       } else if (totalSalesVolume >= 415000) {
         tier = 'Premium';
-        rate = 12;
+        rate = 8;
       }
 
       setEarnings({
@@ -196,7 +196,7 @@ const CreatorEarningsDashboard = () => {
                 <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Standard' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold">Standard</h3>
-                    <span className="text-2xl font-bold text-primary">10%</span>
+                    <span className="text-2xl font-bold text-primary">5%</span>
                   </div>
                   <p className="text-sm text-muted-foreground">All creators start here</p>
                 </div>
@@ -204,7 +204,7 @@ const CreatorEarningsDashboard = () => {
                 <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Premium' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold">Premium</h3>
-                    <span className="text-2xl font-bold text-primary">12%</span>
+                    <span className="text-2xl font-bold text-primary">8%</span>
                   </div>
                   <p className="text-sm text-muted-foreground">₹4,15,000+ in sales</p>
                 </div>
@@ -212,7 +212,7 @@ const CreatorEarningsDashboard = () => {
                 <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Elite' ? 'border-primary bg-primary/5' : 'border-border'}`}>
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold">Elite</h3>
-                    <span className="text-2xl font-bold text-primary">15%</span>
+                    <span className="text-2xl font-bold text-primary">10%</span>
                   </div>
                   <p className="text-sm text-muted-foreground">₹12,45,000+ in sales</p>
                 </div>
@@ -252,7 +252,11 @@ const CreatorEarningsDashboard = () => {
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>100% of your price markup</span>
+                      <span>100% of your price markup*</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-primary">•</span>
+                      <span className="text-xs">*Platform fees currently waived</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>

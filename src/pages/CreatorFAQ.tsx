@@ -51,7 +51,7 @@ const CreatorFAQ = () => {
                 How much can I earn as a creator?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You earn in two ways: (1) 100% of the markup you set above our base manufacturing cost, and (2) 5-20% commission on the base cost based on your sales volume. For example, if the base cost is ₹50,000 and you price it at ₹75,000, you earn ₹25,000 markup + ₹2,500-10,000 commission per sale. This gives you full control over your earnings!
+                You earn in two ways: (1) 100% of the markup you set above our base manufacturing cost*, and (2) 5-10% commission on the base cost based on your sales volume. For example, if the base cost is ₹50,000 and you price it at ₹75,000, you earn ₹25,000 markup + ₹2,500-5,000 commission per sale. This gives you full control over your earnings! (*Platform fees currently waived)
               </AccordionContent>
             </AccordionItem>
 
@@ -60,7 +60,7 @@ const CreatorFAQ = () => {
                 Can I set my own prices?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! While we calculate a base manufacturing cost, you can price your designs higher. All the differential between your price and our base cost comes to you (100%), plus you earn your commission tier percentage on the base cost. This gives you full control over your earnings potential.
+                Yes! While we calculate a base manufacturing cost, you can price your designs higher. All the differential between your price and our base cost comes to you (100%*), plus you earn your commission tier percentage on the base cost. This gives you full control over your earnings potential. (*Platform fees currently waived)
               </AccordionContent>
             </AccordionItem>
 
