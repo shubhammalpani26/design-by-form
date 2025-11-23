@@ -33,7 +33,7 @@ const ShopperFAQ = () => {
                 What makes Forma furniture unique?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Every piece on Forma is designed by independent creators and manufactured using advanced 3D printing technology with 75% recycled materials. Each piece is unique, sustainable, and directly supports creative talent worldwide.
+                Every piece on Forma is designed by independent creators and crafted using high-grade resin reinforced with glass fibre. Each piece is created through a blend of innovative fabrication and unique artistic techniques. Each piece is unique and directly supports creative talent worldwide.
               </AccordionContent>
             </AccordionItem>
 
@@ -42,7 +42,7 @@ const ShopperFAQ = () => {
                 How is Forma furniture manufactured?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                We use industrial-grade 3D printing with premium Fibre-Reinforced Polymer (FRP) containing 75% post-consumer recycled content. Each piece is precision-printed and hand-finished by artisans for a perfect finish.
+                Each piece is created through a blend of innovative fabrication and unique artistic techniques, finished with meticulous hand-finishing. This approach unites modern precision with artisan craftsmanship, giving every piece its own expressive identity.
               </AccordionContent>
             </AccordionItem>
 
@@ -51,7 +51,7 @@ const ShopperFAQ = () => {
                 Is Forma furniture durable and weather-resistant?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! All our pieces are made from high-strength FRP that's UV-stable and weather-resistant. They're designed for both indoor and outdoor use, withstanding rain, sun, and temperature variations while maintaining their beauty.
+                Yes! All our pieces are made from high-strength composite materials that are UV-stable and weather-resistant. They're designed for both indoor and outdoor use, withstanding rain, sun, and temperature variations while maintaining their beauty.
               </AccordionContent>
             </AccordionItem>
 
@@ -105,7 +105,7 @@ const ShopperFAQ = () => {
                 How do I care for my Forma furniture?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                FRP furniture is very low-maintenance. Simply wipe with a damp cloth and mild soap for cleaning. Avoid abrasive cleaners or harsh chemicals. While weather-resistant, storing outdoor pieces indoors during extreme weather extends their lifespan. Detailed care instructions come with each piece.
+                Forma furniture is very low-maintenance. Simply wipe with a damp cloth and mild soap for cleaning. Avoid abrasive cleaners or harsh chemicals. While weather-resistant, storing outdoor pieces indoors during extreme weather extends their lifespan. Detailed care instructions come with each piece.
               </AccordionContent>
             </AccordionItem>
 
@@ -114,7 +114,7 @@ const ShopperFAQ = () => {
                 Are the materials eco-friendly?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! Our FRP contains 75% post-consumer recycled content. 3D printing generates minimal waste compared to traditional manufacturing. Each piece's lightweight design also reduces shipping emissions. Plus, the durability means less frequent replacement.
+                Yes! Our advanced composite material is crafted using high-grade resin reinforced with glass fibre, offering lasting durability and a refined artistic finish. Our innovative fabrication process generates minimal waste, and each piece's durability means less frequent replacement.
               </AccordionContent>
             </AccordionItem>
 
