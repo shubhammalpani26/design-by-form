@@ -259,6 +259,15 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
           {/* Navigation */}
           <div className="flex items-center justify-between pt-2">
             <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkip}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Skip Tutorial
+            </Button>
+
+            <Button
               variant="outline"
               size="sm"
               onClick={handlePrevious}
@@ -266,22 +275,6 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
             >
               Back
             </Button>
-
-            {/* Step indicators */}
-            <div className="flex gap-1.5">
-              {guideSteps.map((_, index) => (
-                <div
-                  key={index}
-                  className={`h-1.5 rounded-full transition-all ${
-                    index === currentStep
-                      ? "bg-primary w-6"
-                      : index < currentStep
-                      ? "bg-primary/50 w-1.5"
-                      : "bg-muted w-1.5"
-                  }`}
-                />
-              ))}
-            </div>
 
             <Button size="sm" onClick={handleNext} className="min-w-[80px]">
               {currentStep === guideSteps.length - 1 ? (

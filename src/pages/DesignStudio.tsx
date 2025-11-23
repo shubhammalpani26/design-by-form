@@ -92,16 +92,18 @@ const DesignStudio = () => {
   const [threeDFeePaid, setThreeDFeePaid] = useState(false);
   const [showIntentDialog, setShowIntentDialog] = useState(true);
   const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
+  const [intentDialogHandled, setIntentDialogHandled] = useState(false);
   const { toast } = useToast();
 
-  // Check if user has seen the guide
+  // Check if user has seen the guide - only show after intent dialog is handled
   useEffect(() => {
     const hasSeenGuide = localStorage.getItem("designer-guide-completed");
-    if (!hasSeenGuide && user) {
+    // Only show guide if: user is authenticated, intent dialog has been handled, and hasn't seen guide before
+    if (!hasSeenGuide && user && intentDialogHandled && !showIntentDialog) {
       // Show guide after a brief delay for better UX
       setTimeout(() => setShowGuide(true), 1000);
     }
-  }, [user]);
+  }, [user, intentDialogHandled, showIntentDialog]);
 
   // Clear AR mode from session when component unmounts
   useEffect(() => {
@@ -2182,12 +2184,14 @@ const DesignStudio = () => {
           if (!intent) {
             // User closed dialog without selecting
             setShowIntentDialog(false);
+            setIntentDialogHandled(true);
             return;
           }
           
           const previousIntent = userIntent;
           setUserIntent(intent);
           setShowIntentDialog(false);
+          setIntentDialogHandled(true);
           
           if (previousIntent && previousIntent !== intent) {
             // Switching modes
