@@ -1912,6 +1912,15 @@ const DesignStudio = () => {
           </div>
         </section>
 
+        {/* Selling Locations - Where to Sell */}
+        {showSubmissionForm && submissionData.category && (
+          <section className="py-12 bg-gradient-to-br from-primary/5 to-secondary/5">
+            <div className="container max-w-4xl mx-auto">
+              <SellingLocations category={submissionData.category} />
+            </div>
+          </section>
+        )}
+
         {/* Design Submission Form */}
         {showSubmissionForm && (
           <section id="submit-section" className="bg-accent/20 py-16">
@@ -1985,13 +1994,6 @@ const DesignStudio = () => {
                         <option value="lighting">Lighting</option>
                       </select>
                     </div>
-
-                    {/* Selling Locations - Prominent Position */}
-                    {submissionData.category && (
-                      <div className="my-6">
-                        <SellingLocations category={submissionData.category} />
-                      </div>
-                    )}
 
                     <div className="grid grid-cols-2 gap-4">
                       <div>
