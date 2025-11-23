@@ -193,11 +193,46 @@ const ProductDetail = () => {
     }
   };
 
-  const handleRequestCustomDesign = () => {
-    toast({
-      title: "Custom Design Request",
-      description: "Our design team will reach out to you soon to create a personalized design.",
-    });
+  const handleRequestCustomDesign = async () => {
+    try {
+      // Check if user is logged in
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        toast({
+          title: "Login Required",
+          description: "Please log in to request a custom design.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Send custom design request to admin
+      const { error } = await supabase.functions.invoke('send-customization-request', {
+        body: {
+          productId: product.id,
+          productName: product.name,
+          customizationDetails: {
+            type: 'custom_design_request',
+            message: 'User requested a completely custom design based on this product'
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Custom Design Request Sent",
+        description: "Our design team will reach out to you soon to create a personalized design.",
+      });
+    } catch (error) {
+      console.error('Error sending custom design request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to send custom design request. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleShare = async () => {
