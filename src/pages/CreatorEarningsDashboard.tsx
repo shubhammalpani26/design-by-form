@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { CreatorSidebar } from '@/components/CreatorSidebar';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -103,45 +101,28 @@ const CreatorEarningsDashboard = () => {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <CreatorSidebar />
-          <main className="flex-1 p-8">
-            <Skeleton className="h-8 w-64 mb-8" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-32" />
-              ))}
-            </div>
-          </main>
+      <div className="text-center py-12">
+        <Skeleton className="h-8 w-64 mb-8 mx-auto" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b bg-background sticky top-0 z-10">
-            <div className="flex items-center gap-4 p-4">
-              <SidebarTrigger />
-              <h1 className="text-2xl font-bold">Earnings Dashboard</h1>
-            </div>
-          </header>
-          
-          <main className="flex-1 p-8">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold mb-2">Earnings Dashboard</h1>
-            <p className="text-muted-foreground">
-              Track your sales performance and commission earnings
-            </p>
-          </div>
+    <>
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold mb-2">Earnings Dashboard</h1>
+        <p className="text-muted-foreground">
+          Track your sales performance and commission earnings
+        </p>
+      </div>
 
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -281,15 +262,12 @@ const CreatorEarningsDashboard = () => {
                       <span className="text-primary">•</span>
                       <span>Perpetual earnings on all sales</span>
                     </li>
-                  </ul>
-                </div>
+                </ul>
               </div>
-            </CardContent>
-          </Card>
-        </main>
-        </div>
-      </div>
-    </SidebarProvider>
+            </div>
+          </CardContent>
+        </Card>
+    </>
   );
 };
 

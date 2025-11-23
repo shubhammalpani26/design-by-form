@@ -47,6 +47,7 @@ import OrderHistory from "./pages/OrderHistory";
 import AnalyticsDashboard from "./pages/AnalyticsDashboard";
 import CreatorSettings from "./pages/CreatorSettings";
 import NotFound from "./pages/NotFound";
+import { CreatorLayout } from "./layouts/CreatorLayout";
 
 const queryClient = new QueryClient();
 
@@ -71,16 +72,20 @@ const App = () => (
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
             <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
             
-            {/* Creator Dashboard Routes */}
-            <Route path="/creator-dashboard" element={<CreatorDashboard />} />
-            <Route path="/creator/dashboard" element={<CreatorDashboard />} />
-            <Route path="/creator/designs" element={<DesignerDashboard />} />
-            <Route path="/creator/earnings" element={<CreatorEarningsDashboard />} />
-            <Route path="/creator/analytics" element={<AnalyticsDashboard />} />
-            <Route path="/creator/profile" element={<CreatorProfile />} />
-            <Route path="/creator/settings" element={<CreatorSettings />} />
-            <Route path="/creator/success-kit" element={<CreatorSuccessKit />} />
-            <Route path="/creator/success-kit/:productId" element={<ProductSuccessKit />} />
+            {/* Creator Dashboard Routes - Wrapped in CreatorLayout */}
+            <Route path="/creator-dashboard" element={<CreatorLayout />}>
+              <Route index element={<CreatorDashboard />} />
+            </Route>
+            <Route path="/creator" element={<CreatorLayout />}>
+              <Route path="dashboard" element={<CreatorDashboard />} />
+              <Route path="designs" element={<DesignerDashboard />} />
+              <Route path="earnings" element={<CreatorEarningsDashboard />} />
+              <Route path="analytics" element={<AnalyticsDashboard />} />
+              <Route path="profile" element={<CreatorProfile />} />
+              <Route path="settings" element={<CreatorSettings />} />
+              <Route path="success-kit" element={<CreatorSuccessKit />} />
+              <Route path="success-kit/:productId" element={<ProductSuccessKit />} />
+            </Route>
             <Route path="/product-edit/:id" element={<ProductEdit />} />
             <Route path="/order-history" element={<OrderHistory />} />
             <Route path="/payout-requests" element={<PayoutRequests />} />

@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { CreatorSidebar } from '@/components/CreatorSidebar';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -267,19 +265,14 @@ const AnalyticsDashboard = () => {
 
   if (loading) {
     return (
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full">
-          <CreatorSidebar />
-          <main className="flex-1 p-8">
-            <Skeleton className="h-8 w-64 mb-8" />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-32" />
-              ))}
-            </div>
-          </main>
+      <div className="text-center py-12">
+        <Skeleton className="h-8 w-64 mb-8 mx-auto" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-32" />
+          ))}
         </div>
-      </SidebarProvider>
+      </div>
     );
   }
 
@@ -303,28 +296,16 @@ const AnalyticsDashboard = () => {
   };
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b bg-background sticky top-0 z-10">
-            <div className="flex items-center gap-4 p-4">
-              <SidebarTrigger />
-              <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
-            </div>
-          </header>
-          
-          <main className="flex-1 p-8 bg-background">
-          <div className="max-w-7xl mx-auto space-y-8">
-            {/* Header */}
-            <div>
-              <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h1>
-              <p className="text-muted-foreground">Comprehensive insights into your sales and performance</p>
-            </div>
+    <>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-3xl font-bold text-foreground mb-2">Analytics Dashboard</h1>
+          <p className="text-muted-foreground">Comprehensive insights into your sales and performance</p>
+        </div>
 
-            {/* Key Metrics */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -618,11 +599,8 @@ const AnalyticsDashboard = () => {
                 </div>
               </TabsContent>
             </Tabs>
-          </div>
-        </main>
         </div>
-      </div>
-    </SidebarProvider>
+    </>
   );
 };
 
