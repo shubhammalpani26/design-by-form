@@ -1,6 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Header } from '@/components/Header';
-import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -152,234 +150,224 @@ const DesignerDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Header />
-        <main className="flex-1 container py-12">
-          <p className="text-center text-muted-foreground">Loading dashboard...</p>
-        </main>
-        <Footer />
+      <div className="container py-12">
+        <p className="text-center text-muted-foreground">Loading dashboard...</p>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      
-      <main className="flex-1 container py-12">
-        <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold mb-2">Designer Dashboard</h1>
-            <p className="text-muted-foreground">Manage your products and track your earnings</p>
-          </div>
-          {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
-            <Button asChild variant="outline">
-              <Link to={`/designer/${designerProfileId}`} target="_blank">
-                <ExternalLink className="mr-2 h-4 w-4" />
-                Preview Shop
+    <div className="container py-12">
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-4xl font-bold mb-2">Designer Dashboard</h1>
+          <p className="text-muted-foreground">Manage your products and track your earnings</p>
+        </div>
+        {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
+          <Button asChild variant="outline">
+            <Link to={`/designer/${designerProfileId}`} target="_blank">
+              <ExternalLink className="mr-2 h-4 w-4" />
+              Preview Shop
+            </Link>
+          </Button>
+        )}
+      </div>
+
+      {/* Earnings Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-primary">{formatPrice(earnings.total)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Pending</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-yellow-600">{formatPrice(earnings.pending)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm font-medium">Paid Out</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold text-green-600">{formatPrice(earnings.paid)}</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex gap-3 mb-6">
+        <Button asChild>
+          <Link to="/payout-requests">Manage Payouts</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link to="/product-status">Track Products</Link>
+        </Button>
+        <Button variant="outline" asChild>
+          <Link to="/order-history">Order History</Link>
+        </Button>
+        {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
+          <ShareButton
+            url={`${window.location.origin}/designer/${designerProfileId}`}
+            title="Check out my designer shop on Forma"
+            description={`Browse my unique furniture designs. ${products.filter(p => p.status === 'approved').length} products available.`}
+          />
+        )}
+      </div>
+
+      <Tabs defaultValue="products" className="w-full">
+        <TabsList>
+          <TabsTrigger value="products">My Products ({products.length})</TabsTrigger>
+          <TabsTrigger value="sales">Recent Sales ({sales.length})</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="products" className="mt-6">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Your Products</h2>
+            <div className="flex gap-2">
+              <Link to="/order-history">
+                <Button variant="outline">Order History</Button>
               </Link>
-            </Button>
-          )}
-        </div>
-
-        {/* Earnings Overview */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Total Earnings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-primary">{formatPrice(earnings.total)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Pending</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-yellow-600">{formatPrice(earnings.pending)}</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-sm font-medium">Paid Out</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-green-600">{formatPrice(earnings.paid)}</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="flex gap-3 mb-6">
-              <Button asChild>
-                <Link to="/payout-requests">Manage Payouts</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/product-status">Track Products</Link>
-              </Button>
-              <Button variant="outline" asChild>
-                <Link to="/order-history">Order History</Link>
-              </Button>
-              {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
-                <ShareButton
-                  url={`${window.location.origin}/designer/${designerProfileId}`}
-                  title="Check out my designer shop on Forma"
-                  description={`Browse my unique furniture designs. ${products.filter(p => p.status === 'approved').length} products available.`}
-                />
-              )}
+              <Link to="/payout-requests">
+                <Button variant="outline">Payouts</Button>
+              </Link>
+              <Link to="/design-studio">
+                <Button>Create New Design</Button>
+              </Link>
             </div>
+          </div>
 
-        <Tabs defaultValue="products" className="w-full">
-          <TabsList>
-            <TabsTrigger value="products">My Products ({products.length})</TabsTrigger>
-            <TabsTrigger value="sales">Recent Sales ({sales.length})</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="products" className="mt-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold">Your Products</h2>
-              <div className="flex gap-2">
-                <Link to="/order-history">
-                  <Button variant="outline">Order History</Button>
-                </Link>
-                <Link to="/payout-requests">
-                  <Button variant="outline">Payouts</Button>
-                </Link>
-                <Link to="/design-studio">
-                  <Button>Create New Design</Button>
-                </Link>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {products.map((product) => (
-                <Card key={product.id}>
-                  <div className="aspect-square overflow-hidden rounded-t-lg bg-accent">
-                    {product.image_url && (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-                  </div>
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-semibold text-lg">{product.name}</h3>
-                      <div className="flex items-center gap-2">
-                        <Badge className={getStatusColor(product.status)}>
-                          {product.status}
-                        </Badge>
-                      </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {products.map((product) => (
+              <Card key={product.id}>
+                <div className="aspect-square overflow-hidden rounded-t-lg bg-accent">
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg">{product.name}</h3>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getStatusColor(product.status)}>
+                        {product.status}
+                      </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Base: {formatPrice(product.base_price)} | Your Price: {formatPrice(product.designer_price)}
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Base: {formatPrice(product.base_price)} | Your Price: {formatPrice(product.designer_price)}
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Total Sales: {product.total_sales}
+                  </p>
+                  {product.rejection_reason && (
+                    <p className="text-sm text-red-600 mt-2">
+                      Rejection Reason: {product.rejection_reason}
                     </p>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Total Sales: {product.total_sales}
-                    </p>
-                    {product.rejection_reason && (
-                      <p className="text-sm text-red-600 mt-2">
-                        Rejection Reason: {product.rejection_reason}
-                      </p>
-                    )}
-                    <p className="text-xs text-muted-foreground mb-3">
-                      Created: {new Date(product.created_at).toLocaleDateString()}
-                    </p>
-                    <div className="flex gap-2">
-                      {product.status === 'approved' && (
-                        <Link to={`/creator/success-kit/${product.id}`} className="flex-1">
-                          <Button size="sm" variant="outline" className="w-full">
-                            <Sparkles className="w-3 h-3 mr-2" />
-                            Success Kit
-                          </Button>
-                        </Link>
-                      )}
-                      <Link to={`/product-edit/${product.id}`} className={product.status === 'approved' ? '' : 'flex-1'}>
+                  )}
+                  <p className="text-xs text-muted-foreground mb-3">
+                    Created: {new Date(product.created_at).toLocaleDateString()}
+                  </p>
+                  <div className="flex gap-2">
+                    {product.status === 'approved' && (
+                      <Link to={`/creator/success-kit/${product.id}`} className="flex-1">
                         <Button size="sm" variant="outline" className="w-full">
-                          <Edit className="w-3 h-3 mr-2" />
-                          Edit
+                          <Sparkles className="w-3 h-3 mr-2" />
+                          Success Kit
                         </Button>
                       </Link>
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button size="sm" variant="outline">
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Delete Product?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action cannot be undone. This will permanently delete your product.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
-                              Delete
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {products.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground mb-4">You haven't created any products yet</p>
-                  <Link to="/design-studio">
-                    <Button>Create Your First Design</Button>
-                  </Link>
+                    )}
+                    <Link to={`/product-edit/${product.id}`} className={product.status === 'approved' ? '' : 'flex-1'}>
+                      <Button size="sm" variant="outline" className="w-full">
+                        <Edit className="w-3 h-3 mr-2" />
+                        Edit
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your product.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
+            ))}
+          </div>
 
-          <TabsContent value="sales" className="mt-6">
-            <h2 className="text-2xl font-bold mb-6">Recent Sales</h2>
-            
-            <div className="space-y-4">
-              {sales.map((sale) => (
-                <Card key={sale.id}>
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold">{sale.product.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {new Date(sale.sale_date).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-green-600">
-                          +{formatPrice(sale.designer_earnings)}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Sale: {formatPrice(sale.sale_price)}
-                        </p>
-                      </div>
+          {products.length === 0 && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground mb-4">You haven't created any products yet</p>
+                <Link to="/design-studio">
+                  <Button>Create Your First Design</Button>
+                </Link>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="sales" className="mt-6">
+          <h2 className="text-2xl font-bold mb-6">Recent Sales</h2>
+          
+          <div className="space-y-4">
+            {sales.map((sale) => (
+              <Card key={sale.id}>
+                <CardContent className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="font-semibold">{sale.product.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(sale.sale_date).toLocaleDateString()}
+                      </p>
                     </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {sales.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <p className="text-muted-foreground">No sales yet</p>
+                    <div className="text-right">
+                      <p className="font-semibold text-green-600">
+                        +{formatPrice(sale.designer_earnings)}
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Sale: {formatPrice(sale.sale_price)}
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
-            )}
-          </TabsContent>
-        </Tabs>
-      </main>
-      
-      <Footer />
+            ))}
+          </div>
+
+          {sales.length === 0 && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">No sales yet</p>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
