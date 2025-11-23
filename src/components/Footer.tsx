@@ -10,9 +10,9 @@ export const Footer = () => {
   };
 
   return (
-    <footer className="border-t border-border bg-card mt-20">
-      <div className="container py-12">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+    <footer className="border-t border-border bg-card mt-12 sm:mt-20">
+      <div className="container py-8 sm:py-12 px-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <h3 className="font-bold text-lg mb-4 text-primary">Formo</h3>
             <p className="text-sm text-muted-foreground">
