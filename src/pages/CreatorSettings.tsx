@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { CreatorSidebar } from "@/components/CreatorSidebar";
-import { SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
 export default function CreatorSettings() {
@@ -84,7 +84,16 @@ export default function CreatorSettings() {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <CreatorSidebar />
-        <main className="flex-1 p-8">
+        
+        <div className="flex-1 flex flex-col">
+          <header className="border-b bg-background sticky top-0 z-10">
+            <div className="flex items-center gap-4 p-4">
+              <SidebarTrigger />
+              <h1 className="text-2xl font-bold">Creator Settings</h1>
+            </div>
+          </header>
+          
+          <main className="flex-1 p-8">
           <div className="max-w-4xl mx-auto space-y-6">
             <div>
               <h1 className="text-3xl font-bold">Settings</h1>
@@ -172,6 +181,7 @@ export default function CreatorSettings() {
           </div>
         </main>
       </div>
-    </SidebarProvider>
+    </div>
+  </SidebarProvider>
   );
 }
