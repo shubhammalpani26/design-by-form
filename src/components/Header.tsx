@@ -114,6 +114,14 @@ export const Header = () => {
               {/* Main Navigation */}
               <div className="space-y-3">
                 <Link
+                  to="/design-studio"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-2 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  <Sparkles className="h-5 w-5" />
+                  AI Design Studio
+                </Link>
+                <Link
                   to="/creators"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
@@ -253,6 +261,10 @@ export const Header = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
+          <Link to="/design-studio" className="text-sm font-medium text-foreground hover:text-primary transition-colors flex items-center gap-1">
+            <Sparkles className="h-4 w-4" />
+            AI Design Studio
+          </Link>
           <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
             Creators
           </Link>

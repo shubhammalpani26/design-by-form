@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,11 +21,56 @@ serve(async (req) => {
       );
     }
 
+    // Get user from auth header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Initialize Supabase client
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // Get user from token
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token);
+    
+    if (userError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if user has enough credits (1 credit per angle)
+    const { data: creditData, error: creditError } = await supabase
+      .from('user_credits')
+      .select('balance')
+      .eq('user_id', user.id)
+      .single();
+
+    if (creditError) {
+      console.error('Credit check error:', creditError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to check credits' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (!creditData || creditData.balance < 1) {
+      return new Response(
+        JSON.stringify({ error: 'Insufficient credits. Each angle generation costs 1 credit.' }),
+        { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Convert relative URLs to absolute URLs
     let absoluteImageUrl = imageUrl;
     if (imageUrl.startsWith('/')) {
-      // For relative paths, we need to get the full URL
-      // These are public assets, so we'll use the origin from the request
       const origin = req.headers.get('origin') || 'https://7728ba6f-7c17-4bf3-91a9-5fbb21536aa3.lovableproject.com';
       absoluteImageUrl = `${origin}${imageUrl}`;
     }
@@ -100,7 +146,32 @@ serve(async (req) => {
       );
     }
 
-    console.log('Successfully generated angle view');
+    // Deduct 1 credit after successful generation
+    const { error: deductError } = await supabase
+      .from('user_credits')
+      .update({ 
+        balance: creditData.balance - 1,
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+
+    if (deductError) {
+      console.error('Failed to deduct credit:', deductError);
+      // Don't fail the request, just log the error
+    }
+
+    // Log the transaction
+    await supabase
+      .from('credit_transactions')
+      .insert({
+        user_id: user.id,
+        type: 'debit',
+        amount: 1,
+        description: `Generated ${angle} angle view`,
+        metadata: { angle, productName }
+      });
+
+    console.log('Successfully generated angle view and deducted 1 credit');
 
     return new Response(
       JSON.stringify({ imageUrl: generatedImageUrl }),

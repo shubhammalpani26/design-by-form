@@ -184,8 +184,8 @@ const Contact = () => {
                       <Phone className="h-5 w-5 text-primary mt-0.5" />
                       <div>
                         <div className="font-medium text-foreground mb-1">Phone</div>
-                        <a href="tel:+919619383240" className="text-primary hover:underline block">
-                          +91 96193 83240 (Shubham Malpani)
+                        <a href="tel:+919082582002" className="text-primary hover:underline block">
+                          +91 90825 82002 (Shubham Malpani)
                         </a>
                         <a href="tel:+918779518787" className="text-primary hover:underline block">
                           +91 87795 18787 (Tejal Agawane)

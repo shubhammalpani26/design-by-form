@@ -53,7 +53,7 @@ const guideSteps: GuideStep[] = [
   },
   {
     title: "Step 5: 3D Model (Optional Upgrade)",
-    description: "After paying the ₹500 listing fee, you can optionally add 3D generation (₹750 India / $15 international) for AR preview. This is a separate, optional fee.",
+    description: "The ₹500 listing fee has been waived off! You can now optionally add 3D generation (₹750 India / $15 international) for AR preview.",
     tip: "3D models help customers visualize in AR and can increase conversion rates!",
     targetId: "generate-3d-button",
   },
@@ -257,7 +257,7 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
           </div>
 
           {/* Navigation */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-2 gap-2">
             <Button
               variant="ghost"
               size="sm"
@@ -267,26 +267,28 @@ export const DesignerGuide = ({ onComplete, isOpen, onClose }: DesignerGuideProp
               Skip Tutorial
             </Button>
 
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePrevious}
-              disabled={currentStep === 0}
-            >
-              Back
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePrevious}
+                disabled={currentStep === 0}
+              >
+                Back
+              </Button>
 
-            <Button size="sm" onClick={handleNext} className="min-w-[80px]">
-              {currentStep === guideSteps.length - 1 ? (
-                <>
-                  Done <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
-                </>
-              ) : (
-                <>
-                  Next <ArrowRight className="w-3.5 h-3.5 ml-1" />
-                </>
-              )}
-            </Button>
+              <Button size="sm" onClick={handleNext} className="min-w-[80px]">
+                {currentStep === guideSteps.length - 1 ? (
+                  <>
+                    Done <CheckCircle2 className="w-3.5 h-3.5 ml-1" />
+                  </>
+                ) : (
+                  <>
+                    Next <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       </Card>
