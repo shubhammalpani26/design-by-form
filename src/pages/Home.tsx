@@ -8,47 +8,53 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import chairHero from "@/assets/chair-hero.jpg";
+import testimonialPriya from "@/assets/testimonial-priya.jpg";
+import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
+import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
+import testimonialArjun from "@/assets/testimonial-arjun.jpg";
+import testimonialMeera from "@/assets/testimonial-meera.jpg";
+import testimonialKaran from "@/assets/testimonial-karan.jpg";
 
 const testimonials = [
   {
     name: "Priya Sharma",
     role: "Furniture Designer",
-    image: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop",
+    image: testimonialPriya,
     quote: "My virtual designs became real furniture in customers' homes! The perpetual commission from each physical sale is amazing. I earned ₹2.5 lakhs in my first 6 months.",
     earnings: "₹2,50,000"
   },
   {
     name: "Rajesh Kumar",
     role: "Architecture Student",
-    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop",
+    image: testimonialRajesh,
     quote: "I design, Formo manufactures and ships actual products. Seeing my chair design manufactured and sold to 47 customers is incredible!",
     earnings: "₹1,85,000"
   },
   {
     name: "Ananya Desai",
     role: "Product Designer",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop",
+    image: testimonialAnanya,
     quote: "From digital concept to physical furniture - the platform handles manufacturing and shipping while I keep earning from every piece sold. It's like having my own furniture factory!",
     earnings: "₹3,20,000"
   },
   {
     name: "Arjun Mehta",
     role: "Interior Designer",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop",
+    image: testimonialArjun,
     quote: "Every table I design gets manufactured and delivered to actual customers. I earn royalties on every physical piece sold. No inventory, no manufacturing headaches!",
     earnings: "₹4,10,000"
   },
   {
     name: "Meera Patel",
     role: "3D Artist",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop",
+    image: testimonialMeera,
     quote: "Watching my designs transform into real products that people use in their homes is surreal. The manufacturing quality is excellent and I earn from every sale!",
     earnings: "₹2,95,000"
   },
   {
     name: "Karan Singh",
     role: "Industrial Designer",
-    image: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=150&h=150&fit=crop",
+    image: testimonialKaran,
     quote: "I focus on creating innovative designs while Formo handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
     earnings: "₹3,75,000"
   }
@@ -130,7 +136,7 @@ const Home = () => {
   useEffect(() => {
     const testimonialInterval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 5000);
+    }, 10000); // 10 seconds for easier reading
     return () => clearInterval(testimonialInterval);
   }, []);
 
