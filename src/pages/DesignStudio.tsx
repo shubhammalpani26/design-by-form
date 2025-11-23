@@ -1986,6 +1986,13 @@ const DesignStudio = () => {
                       </select>
                     </div>
 
+                    {/* Selling Locations - Prominent Position */}
+                    {submissionData.category && (
+                      <div className="my-6">
+                        <SellingLocations category={submissionData.category} />
+                      </div>
+                    )}
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm font-medium mb-2 block text-foreground">Dimensions (L × B × H in inches) *</label>
@@ -2078,13 +2085,7 @@ const DesignStudio = () => {
                           Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
                         </p>
                       </div>
-                     )}
-
-                    {selectedVariation !== null && submissionData.category && (
-                      <div className="mt-6">
-                        <SellingLocations category={submissionData.category} />
-                      </div>
-                    )}
+                      )}
 
                     <div className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-start space-x-3">
