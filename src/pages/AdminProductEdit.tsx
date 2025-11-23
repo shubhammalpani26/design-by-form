@@ -10,8 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Trash2, Upload } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ArrowLeft } from 'lucide-react';
 
 interface ProductData {
   name: string;
@@ -21,25 +20,27 @@ interface ProductData {
   base_price: number;
   image_url: string;
   status: string;
-  rejection_reason: string | null;
   weight: number | null;
   dimensions: any;
+  available_finishes: any;
+  available_sizes: any;
+  lead_time_days: number | null;
 }
 
-const ProductEdit = () => {
+const AdminProductEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [product, setProduct] = useState<ProductData | null>(null);
 
   useEffect(() => {
-    fetchProduct();
+    checkAdminAndFetchProduct();
   }, [id]);
 
-  const fetchProduct = async () => {
+  const checkAdminAndFetchProduct = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
@@ -47,36 +48,38 @@ const ProductEdit = () => {
         return;
       }
 
-      const { data: profile } = await supabase
-        .from('designer_profiles')
-        .select('id')
+      const { data: roles } = await supabase
+        .from('user_roles')
+        .select('role')
         .eq('user_id', user.id)
+        .eq('role', 'admin')
         .single();
 
-      if (!profile) {
+      if (!roles) {
         toast({
           title: 'Access denied',
-          description: 'Designer profile not found',
+          description: 'Admin privileges required',
           variant: 'destructive',
         });
-        navigate('/designer-dashboard');
+        navigate('/');
         return;
       }
+
+      setIsAdmin(true);
 
       const { data: productData, error } = await supabase
         .from('designer_products')
         .select('*')
         .eq('id', id)
-        .eq('designer_id', profile.id)
         .single();
 
       if (error || !productData) {
         toast({
           title: 'Error',
-          description: 'Product not found or access denied',
+          description: 'Product not found',
           variant: 'destructive',
         });
-        navigate('/designer-dashboard');
+        navigate('/admin-dashboard');
         return;
       }
 
@@ -105,7 +108,9 @@ const ProductEdit = () => {
           description: product.description,
           category: product.category,
           designer_price: product.designer_price,
+          base_price: product.base_price,
           weight: product.weight,
+          lead_time_days: product.lead_time_days,
         })
         .eq('id', id);
 
@@ -115,7 +120,7 @@ const ProductEdit = () => {
         title: 'Success',
         description: 'Product updated successfully',
       });
-      navigate('/designer-dashboard');
+      navigate('/admin-dashboard');
     } catch (error) {
       console.error('Error updating product:', error);
       toast({
@@ -125,65 +130,6 @@ const ProductEdit = () => {
       });
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleResubmit = async () => {
-    if (!product) return;
-
-    setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from('designer_products')
-        .update({
-          status: 'pending',
-          rejection_reason: null,
-        })
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Product resubmitted for review',
-      });
-      navigate('/designer-dashboard');
-    } catch (error) {
-      console.error('Error resubmitting product:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to resubmit product',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setIsDeleting(true);
-    try {
-      const { error } = await supabase
-        .from('designer_products')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-
-      toast({
-        title: 'Success',
-        description: 'Product deleted successfully',
-      });
-      navigate('/designer-dashboard');
-    } catch (error) {
-      console.error('Error deleting product:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to delete product',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsDeleting(false);
     }
   };
 
@@ -199,7 +145,7 @@ const ProductEdit = () => {
     );
   }
 
-  if (!product) {
+  if (!isAdmin || !product) {
     return null;
   }
 
@@ -209,25 +155,18 @@ const ProductEdit = () => {
       <main className="flex-1 container py-12">
         <Button
           variant="ghost"
-          onClick={() => navigate('/designer-dashboard')}
+          onClick={() => navigate('/admin-dashboard')}
           className="mb-6"
         >
           <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to Dashboard
+          Back to Admin Dashboard
         </Button>
 
         <Card>
           <CardHeader>
-            <CardTitle>Edit Product</CardTitle>
+            <CardTitle>Edit Product (Admin)</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
-            {product.status === 'rejected' && product.rejection_reason && (
-              <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
-                <h3 className="font-semibold text-destructive mb-2">Rejection Reason:</h3>
-                <p className="text-sm">{product.rejection_reason}</p>
-              </div>
-            )}
-
             <div className="space-y-4">
               <div>
                 <Label htmlFor="name">Product Name</Label>
@@ -253,7 +192,6 @@ const ProductEdit = () => {
                 <Select
                   value={product.category}
                   onValueChange={(value) => setProduct({ ...product, category: value })}
-                  disabled={product.status === 'approved'}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -268,28 +206,66 @@ const ProductEdit = () => {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="weight">Weight (kg)</Label>
-                <Input
-                  id="weight"
-                  type="number"
-                  step="0.1"
-                  value={product.weight || ''}
-                  onChange={(e) => setProduct({ ...product, weight: parseFloat(e.target.value) || null })}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Input
+                    id="weight"
+                    type="number"
+                    step="0.1"
+                    value={product.weight || ''}
+                    onChange={(e) => setProduct({ ...product, weight: parseFloat(e.target.value) || null })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="lead_time_days">Lead Time (days)</Label>
+                  <Input
+                    id="lead_time_days"
+                    type="number"
+                    value={product.lead_time_days || ''}
+                    onChange={(e) => setProduct({ ...product, lead_time_days: parseInt(e.target.value) || null })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="base_price">Manufacturing Price (₹)</Label>
+                  <Input
+                    id="base_price"
+                    type="number"
+                    value={product.base_price}
+                    onChange={(e) => setProduct({ ...product, base_price: parseFloat(e.target.value) })}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="designer_price">Designer Price (₹)</Label>
+                  <Input
+                    id="designer_price"
+                    type="number"
+                    value={product.designer_price}
+                    onChange={(e) => setProduct({ ...product, designer_price: parseFloat(e.target.value) })}
+                  />
+                </div>
               </div>
 
               <div>
-                <Label htmlFor="designer_price">Your Price (₹)</Label>
-                <Input
-                  id="designer_price"
-                  type="number"
-                  value={product.designer_price}
-                  onChange={(e) => setProduct({ ...product, designer_price: parseFloat(e.target.value) })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Base price: ₹{product.base_price.toLocaleString('en-IN')}
-                </p>
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={product.status}
+                  onValueChange={(value) => setProduct({ ...product, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               {product.image_url && (
@@ -305,44 +281,18 @@ const ProductEdit = () => {
             </div>
 
             <div className="flex gap-4 pt-4">
-              {product.status === 'rejected' && (
-                <Button
-                  onClick={handleResubmit}
-                  disabled={isSaving}
-                >
-                  Resubmit for Review
-                </Button>
-              )}
-
               <Button
                 onClick={handleSave}
                 disabled={isSaving}
               >
                 {isSaving ? 'Saving...' : 'Save Changes'}
               </Button>
-
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="destructive" disabled={isDeleting}>
-                    <Trash2 className="mr-2 h-4 w-4" />
-                    Delete Product
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This action cannot be undone. This will permanently delete your product.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete}>
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <Button
+                variant="outline"
+                onClick={() => navigate('/admin-dashboard')}
+              >
+                Cancel
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -352,4 +302,4 @@ const ProductEdit = () => {
   );
 };
 
-export default ProductEdit;
+export default AdminProductEdit;
