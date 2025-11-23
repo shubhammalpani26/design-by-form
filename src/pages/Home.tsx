@@ -504,8 +504,8 @@ const Home = () => {
                 <div className="text-4xl md:text-5xl font-bold text-primary">
                   {creatorStats.activeCreators}+
                 </div>
-                <div className="text-lg font-semibold text-foreground">Creators Earning</div>
-                <div className="text-sm text-muted-foreground">Lifetime creators earning</div>
+                <div className="text-lg font-semibold text-foreground">Active Creators</div>
+                <div className="text-sm text-muted-foreground">Designers earning worldwide</div>
               </div>
               
               <div className="text-center space-y-2">
