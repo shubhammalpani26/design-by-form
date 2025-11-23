@@ -231,9 +231,6 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
               </svg>
             </div>
             <h3 className="text-lg font-semibold text-foreground">AR Preview</h3>
-            <span className="ml-auto px-2 py-1 bg-secondary/20 text-secondary text-xs font-semibold rounded-full">
-              BETA
-            </span>
           </div>
 
           <div 
