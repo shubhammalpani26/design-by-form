@@ -3,6 +3,9 @@ project_id = "rdcfakdhgndnhgzfkuvw"
 [functions.generate-design]
 verify_jwt = false
 
+[functions.generate-product-description]
+verify_jwt = true
+
 [functions.check-3d-status]
 verify_jwt = false
 

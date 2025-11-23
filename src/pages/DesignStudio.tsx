@@ -821,12 +821,54 @@ const DesignStudio = () => {
         profile = newProfile;
       }
 
+      // Generate AI description for the product
+      let productDescription = validatedData.description;
+      
+      if (userIntent === 'designer') {
+        try {
+          toast({
+            title: "Generating Description",
+            description: "Creating a premium product description...",
+          });
+
+          const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-product-description', {
+            body: {
+              productName: validatedData.name,
+              category: validatedData.category,
+              materials: "Premium FRP (Fiberglass Reinforced Plastic) with hand-finished details",
+              dimensions: {
+                width: parseFloat(dimensions.length),
+                depth: parseFloat(dimensions.breadth),
+                height: parseFloat(dimensions.height)
+              }
+            }
+          });
+
+          if (aiError) {
+            console.error('AI description generation error:', aiError);
+            toast({
+              title: "Using Your Description",
+              description: "Couldn't generate AI description, using your provided text.",
+            });
+          } else if (aiData?.description) {
+            productDescription = aiData.description;
+            toast({
+              title: "AI Description Generated",
+              description: "Added a premium description to your product!",
+            });
+          }
+        } catch (error) {
+          console.error('Failed to generate AI description:', error);
+          // Continue with user's description
+        }
+      }
+
       // Create product with dimensions and pricing analytics
       const { data: newProduct, error: productError } = await supabase.from("designer_products")
         .insert({
           designer_id: profile.id,
           name: validatedData.name,
-          description: validatedData.description,
+          description: productDescription,
           category: validatedData.category,
           base_price: validatedData.basePrice,
           designer_price: validatedData.designerPrice,
