@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { CreatorSidebar } from '@/components/CreatorSidebar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -127,53 +125,35 @@ const CreatorProfile = () => {
 
   if (isLoading) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <CreatorSidebar />
-          <main className="flex-1 p-8">
-            <p className="text-center text-muted-foreground">Loading profile...</p>
-          </main>
-        </div>
-      </SidebarProvider>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Loading profile...</p>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b bg-background sticky top-0 z-10">
-            <div className="flex items-center gap-4 p-4">
-              <SidebarTrigger />
-              <h1 className="text-2xl font-bold">Creator Profile</h1>
-            </div>
-          </header>
-
-          <main className="flex-1 p-8 max-w-4xl">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Profile Information</CardTitle>
-                {!isEditing ? (
-                  <Button onClick={() => setIsEditing(true)} variant="outline">
-                    Edit Profile
-                  </Button>
-                ) : (
-                  <div className="flex gap-2">
-                    <Button onClick={handleSave} disabled={isSaving}>
-                      {isSaving ? 'Saving...' : 'Save Changes'}
-                    </Button>
-                    <Button onClick={() => {
-                      setIsEditing(false);
-                      fetchProfile();
-                    }} variant="outline">
-                      Cancel
-                    </Button>
-                  </div>
-                )}
-              </CardHeader>
-              <CardContent className="space-y-6">
+    <Card className="max-w-4xl">
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle>Profile Information</CardTitle>
+        {!isEditing ? (
+          <Button onClick={() => setIsEditing(true)} variant="outline">
+            Edit Profile
+          </Button>
+        ) : (
+          <div className="flex gap-2">
+            <Button onClick={handleSave} disabled={isSaving}>
+              {isSaving ? 'Saving...' : 'Save Changes'}
+            </Button>
+            <Button onClick={() => {
+              setIsEditing(false);
+              fetchProfile();
+            }} variant="outline">
+              Cancel
+            </Button>
+          </div>
+        )}
+      </CardHeader>
+      <CardContent className="space-y-6">
                 <div>
                   <label className="text-sm font-medium mb-2 block">Full Name</label>
                   {isEditing ? (
@@ -263,10 +243,6 @@ const CreatorProfile = () => {
                 </div>
               </CardContent>
             </Card>
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
   );
 };
 

@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
-import { CreatorSidebar } from '@/components/CreatorSidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Link } from 'react-router-dom';
@@ -110,38 +108,21 @@ const CreatorDashboard = () => {
 
   if (isLoading) {
     return (
-      <SidebarProvider>
-        <div className="min-h-screen flex w-full">
-          <CreatorSidebar />
-          <main className="flex-1 p-8">
-            <p className="text-center text-muted-foreground">Loading dashboard...</p>
-          </main>
-        </div>
-      </SidebarProvider>
+      <div className="text-center py-12">
+        <p className="text-muted-foreground">Loading dashboard...</p>
+      </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen flex w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b bg-background sticky top-0 z-10">
-            <div className="flex items-center gap-4 p-4">
-              <SidebarTrigger />
-              <h1 className="text-2xl font-bold">Creator Dashboard</h1>
-            </div>
-          </header>
+    <>
+      <div className="mb-8">
+        <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
+        <p className="text-muted-foreground">Here's an overview of your creative journey</p>
+      </div>
 
-          <main className="flex-1 p-8">
-            <div className="mb-8">
-              <h2 className="text-3xl font-bold mb-2">Welcome Back!</h2>
-              <p className="text-muted-foreground">Here's an overview of your creative journey</p>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <Card className="border-primary/20">
                 <CardHeader>
                   <CardTitle className="text-sm font-medium text-muted-foreground">Total Designs</CardTitle>
@@ -295,10 +276,7 @@ const CreatorDashboard = () => {
                 </CardContent>
               </Card>
             )}
-          </main>
-        </div>
-      </div>
-    </SidebarProvider>
+    </>
   );
 };
 

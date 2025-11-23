@@ -7,8 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { CreatorSidebar } from "@/components/CreatorSidebar";
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Loader2 } from "lucide-react";
 
 export default function CreatorSettings() {
@@ -74,35 +72,22 @@ export default function CreatorSettings() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex items-center justify-center py-12">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <CreatorSidebar />
-        
-        <div className="flex-1 flex flex-col">
-          <header className="border-b bg-background sticky top-0 z-10">
-            <div className="flex items-center gap-4 p-4">
-              <SidebarTrigger />
-              <h1 className="text-2xl font-bold">Creator Settings</h1>
-            </div>
-          </header>
-          
-          <main className="flex-1 p-8">
-          <div className="max-w-4xl mx-auto space-y-6">
-            <div>
-              <h1 className="text-3xl font-bold">Settings</h1>
-              <p className="text-muted-foreground mt-2">
-                Manage your account settings and preferences
-              </p>
-            </div>
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div>
+        <h1 className="text-3xl font-bold">Settings</h1>
+        <p className="text-muted-foreground mt-2">
+          Manage your account settings and preferences
+        </p>
+      </div>
 
-            <Card>
+      <Card>
               <CardHeader>
                 <CardTitle>Notifications</CardTitle>
                 <CardDescription>
@@ -179,9 +164,5 @@ export default function CreatorSettings() {
               </CardContent>
             </Card>
           </div>
-        </main>
-      </div>
-    </div>
-  </SidebarProvider>
   );
 }
