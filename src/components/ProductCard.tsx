@@ -66,17 +66,18 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
               <Button
                 size="sm"
                 variant="secondary"
-                className="backdrop-blur-sm shadow-lg"
+                className="backdrop-blur-sm shadow-lg text-xs sm:text-sm px-2 sm:px-3"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
                   setShowAR(true);
                 }}
               >
-                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
                 </svg>
-                AR View
+                <span className="hidden sm:inline">AR View</span>
+                <span className="sm:hidden">AR</span>
               </Button>
             </div>
           </div>
