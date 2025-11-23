@@ -65,24 +65,27 @@ const CreatorDashboard = () => {
 
       setProfile(profileData);
 
-      // Fetch bank details from separate table
-      const { data: bankData } = await supabase
-        .from('designer_bank_details')
-        .select('bank_account_holder_name, bank_account_number')
-        .eq('designer_id', profileData.id)
-        .single();
+      // Fetch all data in parallel for better performance
+      const [bankData, products, salesData] = await Promise.all([
+        supabase
+          .from('designer_bank_details')
+          .select('bank_account_holder_name, bank_account_number')
+          .eq('designer_id', profileData.id)
+          .single()
+          .then(res => res.data),
+        supabase
+          .from('designer_products')
+          .select('*')
+          .eq('designer_id', profileData.id)
+          .then(res => res.data),
+        supabase
+          .from('product_sales')
+          .select('designer_earnings')
+          .eq('designer_id', profileData.id)
+          .then(res => res.data)
+      ]);
 
       setBankDetails(bankData);
-
-      const { data: products } = await supabase
-        .from('designer_products')
-        .select('*')
-        .eq('designer_id', profileData.id);
-
-      const { data: salesData } = await supabase
-        .from('product_sales')
-        .select('designer_earnings')
-        .eq('designer_id', profileData.id);
 
       const totalEarnings = salesData?.reduce((sum, sale) => sum + Number(sale.designer_earnings), 0) || 0;
 

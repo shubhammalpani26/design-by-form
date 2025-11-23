@@ -16,6 +16,8 @@ import { DesignerGuide, HelpButton } from "@/components/DesignerGuide";
 import { ListingFeeDialog } from "@/components/ListingFeeDialog";
 import { ThreeDGenerationFeeDialog } from "@/components/ThreeDGenerationFeeDialog";
 import { IntentSelectionDialog } from "@/components/IntentSelectionDialog";
+import { FurnitureTrends } from "@/components/FurnitureTrends";
+import { SellingLocations } from "@/components/SellingLocations";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
@@ -897,6 +899,15 @@ const DesignStudio = () => {
       <Header />
       
       <main className="flex-1">
+        {/* Furniture Trends Section */}
+        {!generatedDesign && !isGenerating && generatedVariations.length === 0 && (
+          <section className="py-8 bg-background">
+            <div className="container max-w-7xl mx-auto">
+              <FurnitureTrends />
+            </div>
+          </section>
+        )}
+
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-8">
           <div className="container text-center">
@@ -2064,6 +2075,12 @@ const DesignStudio = () => {
                           Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
                           Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
                         </p>
+                      </div>
+                     )}
+
+                    {selectedVariation !== null && submissionData.category && (
+                      <div className="mt-6">
+                        <SellingLocations category={submissionData.category} />
                       </div>
                     )}
 

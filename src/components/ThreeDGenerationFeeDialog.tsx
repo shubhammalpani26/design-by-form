@@ -141,12 +141,6 @@ export const ThreeDGenerationFeeDialog = ({
             </ul>
           </div>
 
-          {/* Mock Payment Info */}
-          <div className="bg-muted rounded-lg p-3 text-xs text-muted-foreground">
-            <p className="font-medium mb-1">Demo Mode:</p>
-            <p>This is a mock payment. In production, you'll pay via Stripe (international) or Razorpay (India).</p>
-          </div>
-
           {/* Payment Actions */}
           <div className="flex gap-3">
             <Button
@@ -162,7 +156,7 @@ export const ThreeDGenerationFeeDialog = ({
               disabled={loading}
               className="flex-1"
             >
-              {loading ? "Processing..." : `Pay ${symbol}${fee}`}
+              {loading ? "Processing..." : "Enable 3D Model"}
             </Button>
           </div>
         </div>

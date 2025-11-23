@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { CreatorSidebar } from '@/components/CreatorSidebar';
-import { SidebarProvider } from '@/components/ui/sidebar';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -306,7 +306,16 @@ const AnalyticsDashboard = () => {
     <SidebarProvider>
       <div className="flex min-h-screen w-full">
         <CreatorSidebar />
-        <main className="flex-1 p-8 bg-background">
+        
+        <div className="flex-1 flex flex-col">
+          <header className="border-b bg-background sticky top-0 z-10">
+            <div className="flex items-center gap-4 p-4">
+              <SidebarTrigger />
+              <h1 className="text-2xl font-bold">Analytics Dashboard</h1>
+            </div>
+          </header>
+          
+          <main className="flex-1 p-8 bg-background">
           <div className="max-w-7xl mx-auto space-y-8">
             {/* Header */}
             <div>
@@ -611,6 +620,7 @@ const AnalyticsDashboard = () => {
             </Tabs>
           </div>
         </main>
+        </div>
       </div>
     </SidebarProvider>
   );
