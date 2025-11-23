@@ -232,7 +232,7 @@ const Terms = () => {
               <div className="bg-muted/50 rounded-lg p-6 space-y-3">
                 <div>
                   <p className="font-semibold">Shubham Malpani</p>
-                  <p className="text-sm text-muted-foreground">Phone: +91 96193 83240</p>
+                  <p className="text-sm text-muted-foreground">Phone: +91 90825 82002</p>
                   <p className="text-sm text-muted-foreground">Email: shubham.malpani@cyanique.com</p>
                 </div>
                 <div className="border-t pt-3">

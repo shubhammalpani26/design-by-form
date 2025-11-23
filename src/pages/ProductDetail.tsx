@@ -509,26 +509,26 @@ const ProductDetail = () => {
               </CardContent>
             </Card>
 
-            <div className="space-y-2 text-sm">
-              <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[100px]">Weight:</span>
+            <div className="space-y-3 text-sm">
+              <div className="flex justify-between items-center py-1.5 border-b border-border/50">
+                <span className="font-semibold text-foreground">Weight:</span>
                 <span className="text-muted-foreground">{Math.round(product.weight * 10) / 10} kg</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[100px]">Dimensions:</span>
-                <span className="text-muted-foreground">{product.dimensions}</span>
+              <div className="flex justify-between items-start py-1.5 border-b border-border/50">
+                <span className="font-semibold text-foreground">Dimensions:</span>
+                <span className="text-muted-foreground text-right">{product.dimensions}</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[100px]">Materials:</span>
-                <span className="text-muted-foreground">{product.materials}</span>
+              <div className="flex justify-between items-start py-1.5 border-b border-border/50">
+                <span className="font-semibold text-foreground">Materials:</span>
+                <span className="text-muted-foreground text-right max-w-[65%]">{product.materials}</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[100px]">Production:</span>
-                <span className="text-muted-foreground">3D printed on-demand with expert hand-finishing, 2-3 weeks</span>
+              <div className="flex justify-between items-start py-1.5 border-b border-border/50">
+                <span className="font-semibold text-foreground">Production:</span>
+                <span className="text-muted-foreground text-right max-w-[65%]">3D printed on-demand with expert hand-finishing, 2-3 weeks</span>
               </div>
-              <div className="flex items-start gap-2">
-                <span className="font-semibold min-w-[100px]">Outdoor Use:</span>
-                <span className="text-muted-foreground">Weather-resistant and UV-stable</span>
+              <div className="flex justify-between items-center py-1.5">
+                <span className="font-semibold text-foreground">Outdoor Use:</span>
+                <span className="text-muted-foreground">Weather-resistant</span>
               </div>
             </div>
 

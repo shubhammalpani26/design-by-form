@@ -103,6 +103,12 @@ const ProductSuccessKit = () => {
     ));
 
     try {
+      // Get auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
       const { data, error } = await supabase.functions.invoke('generate-angle-view', {
         body: {
           imageUrl: product.image_url,
@@ -113,10 +119,20 @@ const ProductSuccessKit = () => {
 
       if (error) {
         console.error('Edge function error:', error);
+        
+        // Check if it's a credits error
+        if (error.message?.includes('402') || error.message?.includes('credits')) {
+          throw new Error('Insufficient credits. Each angle generation costs 1 credit. Please add more credits or upload the image manually.');
+        }
+        
         throw new Error(error.message || 'Failed to generate angle view');
       }
 
       if (data?.error) {
+        // Check if it's a credits error
+        if (data.error.includes('402') || data.error.includes('credits')) {
+          throw new Error('Insufficient credits. Each angle generation costs 1 credit. Please add more credits or upload the image manually.');
+        }
         throw new Error(data.error);
       }
 
@@ -142,7 +158,7 @@ const ProductSuccessKit = () => {
         
         toast({
           title: 'Success',
-          description: `${angle} generated and saved successfully!`,
+          description: `${angle} generated and saved successfully! (1 credit used)`,
         });
       } else {
         throw new Error('No image URL returned');
