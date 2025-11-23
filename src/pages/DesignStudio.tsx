@@ -260,7 +260,7 @@ const DesignStudio = () => {
 
       // Build enhanced prompt
       let enhancedPrompt = prompt || "Create a furniture design based on the uploaded sketch";
-      const manufacturingConstraints = "Design must be 3D-printable and manufacturable with CNC milling. Use smooth, organic forms that avoid sharp internal corners or impossible overhangs. All elements should be structurally sound and producible with additive/subtractive manufacturing techniques. Consider material waste, assembly requirements, and structural integrity.";
+      const manufacturingConstraints = "Design should be manufacturable using advanced fabrication techniques with high-grade resin reinforced with glass fibre. Use smooth, organic forms that are structurally sound and suitable for innovative fabrication and artisan finishing. All elements should be practical to produce, considering material properties, assembly requirements, and structural integrity.";
       
       if (roomImage && furnitureType) {
         enhancedPrompt = `Design a ${furnitureType} that fits perfectly in this interior space. The furniture should complement the existing room aesthetic. ${prompt}. ${manufacturingConstraints} Make sure the design harmonizes with the room's style, colors, and overall ambiance while being practical to manufacture.`;

@@ -21,21 +21,21 @@ serve(async (req) => {
     // Calculate volume for reference
     const volume = (dimensions.width * dimensions.depth * dimensions.height) / 1000000; // cubic meters
     
-    const prompt = `You are a luxury furniture pricing expert. Calculate an appropriate designer price for this 3D-printed, single-material, organically-shaped furniture piece.
+    const prompt = `You are a luxury furniture pricing expert. Calculate an appropriate designer price for this artisan-crafted, organically-shaped furniture piece.
 
 Product: ${productName}
 Category: ${category}
 Description: ${description}
 Dimensions: ${dimensions.width}cm W × ${dimensions.depth}cm D × ${dimensions.height}cm H
 Volume: ${volume.toFixed(2)} cubic meters
-Material: 100% PCR (Post-Consumer Recycled) plastic, 3D printed in one piece
+Material: High-grade resin reinforced with glass fibre, crafted through innovative fabrication techniques with meticulous hand-finishing
 
 Pricing considerations:
 - This is a luxury, designer piece with organic flowing forms
-- Single-material 3D printing is high-end manufacturing
-- On-demand, sustainable production
-- Unique parametric designs
-- Small batch/custom production
+- Advanced composite fabrication blending modern precision with artisan craftsmanship
+- On-demand, sustainable production with responsibly sourced materials
+- Unique parametric designs with sculptural freedom
+- Small batch/custom production with refined artistic finish
 
 Return ONLY a JSON object with this structure (no markdown, no explanation):
 {
