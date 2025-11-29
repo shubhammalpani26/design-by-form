@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
+import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -713,6 +714,9 @@ const Home = () => {
             </div>
           </div>
         </section>
+
+        {/* Community Feed Preview */}
+        <CommunityFeedPreview />
 
         {/* CTA Section */}
         <section className="container py-20">

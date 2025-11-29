@@ -570,6 +570,59 @@ export type Database = {
         }
         Relationships: []
       }
+      feed_posts: {
+        Row: {
+          comments_count: number
+          content: string | null
+          created_at: string
+          designer_id: string
+          id: string
+          image_url: string | null
+          likes_count: number
+          metadata: Json | null
+          post_type: string
+          title: string
+          updated_at: string
+          visibility: string
+        }
+        Insert: {
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          designer_id: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          metadata?: Json | null
+          post_type: string
+          title: string
+          updated_at?: string
+          visibility?: string
+        }
+        Update: {
+          comments_count?: number
+          content?: string | null
+          created_at?: string
+          designer_id?: string
+          id?: string
+          image_url?: string | null
+          likes_count?: number
+          metadata?: Json | null
+          post_type?: string
+          title?: string
+          updated_at?: string
+          visibility?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_posts_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -1094,6 +1147,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_sales_milestone_post: {
+        Args: {
+          p_designer_id: string
+          p_milestone: number
+          p_product_name?: string
+        }
+        Returns: undefined
+      }
       generate_invoice_number: { Args: never; Returns: string }
       has_role: {
         Args: {
