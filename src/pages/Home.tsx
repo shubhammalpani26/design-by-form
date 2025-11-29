@@ -61,6 +61,8 @@ const testimonials = [
   }
 ];
 
+// Note: Testimonials represent illustrative success scenarios to demonstrate platform potential
+
 interface Product {
   id: string;
   name: string;
@@ -123,7 +125,6 @@ const Home = () => {
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [creatorStats, setCreatorStats] = useState({
     activeCreators: 0,
-    avgEarnings: 0,
     approvalRate: 94,
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
@@ -213,20 +214,8 @@ const Home = () => {
         ? new Set(designerData.map(d => d.designer_id)).size 
         : 0;
 
-      // Get average earnings
-      const { data: earningsData } = await supabase
-        .from('designer_earnings')
-        .select('royalty_amount');
-
-      let avgEarnings = 150000; // Default fallback
-      if (earningsData && earningsData.length > 0) {
-        const total = earningsData.reduce((sum, item) => sum + Number(item.royalty_amount), 0);
-        avgEarnings = Math.round(total / earningsData.length);
-      }
-
       setCreatorStats({
         activeCreators: uniqueDesigners > 0 ? uniqueDesigners : 50, // Show 50+ as placeholder if no data
-        avgEarnings,
         approvalRate: 94,
       });
     } catch (error) {
@@ -512,11 +501,11 @@ const Home = () => {
               </div>
               
               <div className="text-center space-y-2">
-                <div className="text-4xl md:text-5xl font-bold text-secondary">
-                  ₹{creatorStats.avgEarnings > 0 ? creatorStats.avgEarnings.toLocaleString() : '1,50,000'}
+                <div className="text-3xl md:text-4xl font-bold text-secondary leading-tight">
+                  Early Creator Benefits
                 </div>
-                <div className="text-lg font-semibold text-foreground">Average Earnings</div>
-                <div className="text-sm text-muted-foreground">Per creator lifetime</div>
+                <div className="text-base font-semibold text-foreground">Priority Exposure & Higher Royalties</div>
+                <div className="text-sm text-muted-foreground">Join now for maximum visibility</div>
               </div>
               
               <div className="text-center space-y-2">
@@ -537,8 +526,11 @@ const Home = () => {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 Real Designers, Real Success
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-2">
                 Join thousands of designers earning from physical product sales
+              </p>
+              <p className="text-xs text-muted-foreground/70 italic">
+                *Testimonials represent illustrative success scenarios
               </p>
             </div>
             
