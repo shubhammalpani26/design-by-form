@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Heart, MessageCircle, Sparkles, TrendingUp, Award, UserPlus, UserCheck } from "lucide-react";
+import { Heart, MessageCircle, Sparkles, TrendingUp, Award, UserPlus, UserCheck, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -23,6 +23,10 @@ interface FeedPostProps {
       id: string;
       name: string;
       profile_picture_url?: string;
+      design_background?: string;
+      follower_count?: number;
+      product_count?: number;
+      total_sales?: number;
     };
   };
 }
@@ -168,26 +172,50 @@ export const FeedPost = ({ post }: FeedPostProps) => {
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
             <Link to={`/creator/${post.designer_profiles.id}`}>
-              <Avatar className="h-10 w-10">
+              <Avatar className="h-12 w-12">
                 <AvatarImage src={post.designer_profiles.profile_picture_url} />
                 <AvatarFallback>{post.designer_profiles.name[0]}</AvatarFallback>
               </Avatar>
             </Link>
-            <div>
+            <div className="flex-1 min-w-0">
               <Link
                 to={`/creator/${post.designer_profiles.id}`}
                 className="font-semibold hover:underline"
               >
                 {post.designer_profiles.name}
               </Link>
-              <p className="text-xs text-muted-foreground">
+              
+              {/* Creator metrics */}
+              <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
+                {post.designer_profiles.follower_count !== undefined && (
+                  <span className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    {post.designer_profiles.follower_count} followers
+                  </span>
+                )}
+                {post.designer_profiles.product_count !== undefined && (
+                  <span>• {post.designer_profiles.product_count} designs</span>
+                )}
+                {post.designer_profiles.total_sales !== undefined && post.designer_profiles.total_sales > 0 && (
+                  <span>• {post.designer_profiles.total_sales} sales</span>
+                )}
+              </div>
+
+              {/* Short bio */}
+              {post.designer_profiles.design_background && (
+                <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                  {post.designer_profiles.design_background}
+                </p>
+              )}
+
+              <p className="text-xs text-muted-foreground mt-1">
                 {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Icon className={`h-5 w-5 ${iconColor}`} />
             <Button
               size="sm"
