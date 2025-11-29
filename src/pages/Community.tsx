@@ -22,7 +22,8 @@ const Community = () => {
           designer_profiles (
             id,
             name,
-            profile_picture_url
+            profile_picture_url,
+            design_background
           )
         `)
         .eq("visibility", "public")
@@ -33,9 +34,43 @@ const Community = () => {
         query = query.eq("post_type", filter);
       }
 
-      const { data, error } = await query;
+      const { data: posts, error } = await query;
       if (error) throw error;
-      return data;
+
+      // Fetch additional metrics for each designer
+      const postsWithMetrics = await Promise.all(
+        posts.map(async (post) => {
+          const designerId = post.designer_profiles.id;
+
+          // Get follower count
+          const { count: followerCount } = await supabase
+            .from("designer_follows")
+            .select("*", { count: "exact", head: true })
+            .eq("designer_id", designerId);
+
+          // Get product count and total sales
+          const { data: products } = await supabase
+            .from("designer_products")
+            .select("total_sales")
+            .eq("designer_id", designerId)
+            .eq("status", "approved");
+
+          const productCount = products?.length || 0;
+          const totalSales = products?.reduce((sum, p) => sum + (p.total_sales || 0), 0) || 0;
+
+          return {
+            ...post,
+            designer_profiles: {
+              ...post.designer_profiles,
+              follower_count: followerCount || 0,
+              product_count: productCount,
+              total_sales: totalSales,
+            },
+          };
+        })
+      );
+
+      return postsWithMetrics;
     },
   });
 
