@@ -415,6 +415,35 @@ export type Database = {
           },
         ]
       }
+      designer_follows: {
+        Row: {
+          created_at: string
+          designer_id: string
+          follower_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          designer_id: string
+          follower_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          designer_id?: string
+          follower_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "designer_follows_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       designer_products: {
         Row: {
           angle_views: Json | null
@@ -569,6 +598,35 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      feed_post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       feed_posts: {
         Row: {
