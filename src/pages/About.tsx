@@ -17,7 +17,7 @@ const About = () => {
               Reimagining Furniture Design
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Empowering creators to design the future of sustainable, unique furniture
+              A premium manufacturing partner powering the product journeys of new-age designers
             </p>
           </div>
         </section>
@@ -30,7 +30,9 @@ const About = () => {
               We believe everyone has the potential to create beautiful, functional furniture. 
               Formo democratizes furniture design by combining AI technology with sustainable manufacturing, 
               enabling creators worldwide to bring their visions to life without the traditional barriers 
-              of capital, expertise, or manufacturing connections.
+              of capital, expertise, or manufacturing connections. We carefully curate every design to ensure 
+              quality, craftsmanship, and uniqueness—empowering creators while delighting customers with 
+              exceptional pieces.
             </p>
           </div>
 
@@ -106,36 +108,14 @@ const About = () => {
                   at accessible prices.
                 </p>
               <p className="font-semibold text-foreground">
-                  Today, hundreds of creators from 30+ countries have listed designs on Forma, 
-                  earning perpetual income while bringing fresh creativity to the furniture industry.
+                  Today, we're building a community of talented creators, carefully curating their designs 
+                  and helping them earn perpetual income while bringing fresh creativity to the furniture industry.
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <section className="container py-16">
-          <h2 className="text-3xl font-bold mb-12 text-center text-foreground">Impact by Numbers</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">500+</div>
-              <div className="text-sm text-muted-foreground">Active Creators</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">2.3K</div>
-              <div className="text-sm text-muted-foreground">Unique Designs</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">89%</div>
-              <div className="text-sm text-muted-foreground">Waste Reduction</div>
-            </div>
-            <div className="text-center">
-              <div className="text-4xl md:text-5xl font-bold text-primary mb-2">30+</div>
-              <div className="text-sm text-muted-foreground">Countries</div>
-            </div>
-          </div>
-        </section>
 
         {/* Team & Parent Company */}
         <section className="bg-gradient-to-br from-primary/5 to-secondary/5 py-16">
