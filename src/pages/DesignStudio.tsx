@@ -1981,12 +1981,63 @@ const DesignStudio = () => {
                   <div className="space-y-6">
                     <div>
                       <label className="text-sm font-medium mb-2 block text-foreground">Design Name *</label>
-                      <Input 
-                        placeholder="e.g., Modern Curve Chair"
-                        value={submissionData.name}
-                        onChange={(e) => setSubmissionData({ ...submissionData, name: e.target.value })}
-                        required
-                      />
+                      <div className="flex gap-2">
+                        <Input 
+                          placeholder="e.g., Modern Curve Chair"
+                          value={submissionData.name}
+                          onChange={(e) => setSubmissionData({ ...submissionData, name: e.target.value })}
+                          required
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              toast({
+                                title: "Generating title...",
+                                description: "AI is creating a creative title for your design",
+                              });
+
+                              const { data, error } = await supabase.functions.invoke('generate-product-title', {
+                                body: {
+                                  category: submissionData.category,
+                                  dimensions: {
+                                    width: dimensions.breadth,
+                                    depth: dimensions.length,
+                                    height: dimensions.height,
+                                  },
+                                  prompt: prompt
+                                }
+                              });
+
+                              if (error) throw error;
+
+                              if (data?.title) {
+                                setSubmissionData({ ...submissionData, name: data.title });
+                                toast({
+                                  title: "Title generated!",
+                                  description: "AI has suggested a creative title for your design",
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Error generating title:', error);
+                              toast({
+                                title: "Failed to generate title",
+                                description: "Please try again or enter a title manually",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          className="whitespace-nowrap"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          AI Suggest
+                        </Button>
+                      </div>
                     </div>
 
                     <div>
