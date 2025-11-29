@@ -8,6 +8,39 @@ import { TrendingUp, Users, Sparkles, Award } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export const CommunitySidebar = () => {
+  // Fetch new creators (recently joined)
+  const { data: newCreators } = useQuery({
+    queryKey: ["new-creators"],
+    queryFn: async () => {
+      const { data: profiles } = await supabase
+        .from("designer_profiles")
+        .select("id, name, profile_picture_url, design_background, created_at")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (!profiles) return [];
+
+      // Get product count for each
+      const creatorsWithData = await Promise.all(
+        profiles.map(async (profile) => {
+          const { data: products } = await supabase
+            .from("designer_products")
+            .select("id")
+            .eq("designer_id", profile.id)
+            .eq("status", "approved");
+
+          return {
+            ...profile,
+            product_count: products?.length || 0,
+          };
+        })
+      );
+
+      return creatorsWithData;
+    },
+  });
+
   // Fetch trending creators (most followers)
   const { data: trendingCreators } = useQuery({
     queryKey: ["trending-creators"],
@@ -71,6 +104,42 @@ export const CommunitySidebar = () => {
 
   return (
     <div className="space-y-6">
+      {/* New Creator Spotlight */}
+      <Card className="border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            New Creator Spotlight
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {newCreators?.map((creator) => (
+            <Link
+              key={creator.id}
+              to={`/creator/${creator.id}`}
+              className="flex items-center gap-3 hover:bg-accent/50 p-2 rounded-lg transition-colors"
+            >
+              <Avatar className="h-10 w-10 ring-2 ring-primary/20">
+                <AvatarImage src={creator.profile_picture_url || undefined} />
+                <AvatarFallback>{creator.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm truncate">{creator.name}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Badge variant="secondary" className="text-xs">New</Badge>
+                  {creator.product_count > 0 && (
+                    <span>{creator.product_count} designs</span>
+                  )}
+                </div>
+              </div>
+            </Link>
+          ))}
+          <p className="text-xs text-muted-foreground/70 pt-2 border-t">
+            Early creators get priority homepage exposure and algorithm boost 🚀
+          </p>
+        </CardContent>
+      </Card>
+
       {/* Trending Creators */}
       <Card>
         <CardHeader className="pb-3">

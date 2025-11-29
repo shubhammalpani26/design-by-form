@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CommunitySidebar } from "@/components/community/CommunitySidebar";
 import { CreatePostDialog } from "@/components/community/CreatePostDialog";
+import { WeeklyThemes } from "@/components/community/WeeklyThemes";
 import { Link } from "react-router-dom";
 
 const Community = () => {
@@ -162,7 +163,8 @@ const Community = () => {
             </div>
 
             {/* Sidebar */}
-            <div className="lg:sticky lg:top-24 lg:self-start">
+            <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
+              <WeeklyThemes />
               <CommunitySidebar />
             </div>
           </div>
