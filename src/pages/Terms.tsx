@@ -114,9 +114,16 @@ const Terms = () => {
               </p>
 
               <h3 className="text-xl font-semibold mb-3">3.5 Payments</h3>
-              <p className="text-muted-foreground">
+              <p className="text-muted-foreground mb-4">
                 Designer earnings are calculated after each sale. You must provide valid bank details for payment 
                 processing. Minimum payout threshold applies as specified in your dashboard.
+              </p>
+
+              <h3 className="text-xl font-semibold mb-3">3.6 Product Quality and Listing Management</h3>
+              <p className="text-muted-foreground">
+                Creator acknowledges that Formo has authority to pause listings if product issues cause excessive 
+                support requests or returns. This measure ensures quality standards are maintained across the platform 
+                and protects both customers and the platform's reputation.
               </p>
             </section>
 
