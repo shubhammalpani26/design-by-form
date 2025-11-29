@@ -108,10 +108,9 @@ const Terms = () => {
                 please contact us and we will review and take appropriate action.
               </p>
 
-              <h3 className="text-xl font-semibold mb-3">3.4 Pricing and Commission</h3>
+              <h3 className="text-xl font-semibold mb-3">3.4 Pricing and Earnings</h3>
               <p className="text-muted-foreground mb-4">
-                Designers set their own prices above the calculated base manufacturing cost. Our platform takes a 
-                commission on each sale. Commission rates are displayed in your designer dashboard.
+                Designers set their own selling prices above the Manufacturing Base Price (MBP) calculated by our platform. Designers earn 70% of the markup (difference between their selling price and MBP). The platform retains 30% of the markup to cover operations, customer support, and infrastructure.
               </p>
 
               <h3 className="text-xl font-semibold mb-3">3.5 Payments</h3>

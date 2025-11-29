@@ -149,16 +149,16 @@ const HowItWorks = () => {
                 5
               </div>
               <div className="flex-1">
-                <h3 className="text-2xl font-bold mb-3 text-foreground">Earn Perpetual Commissions</h3>
+                <h3 className="text-2xl font-bold mb-3 text-foreground">Earn Perpetual Income</h3>
                 <p className="text-muted-foreground mb-4">
-                  Every time your design sells, you earn 10-15% commission. Payments are automatic, monthly, and continue forever as long as your design is being manufactured.
+                  Set your own price above our Manufacturing Base Price. You earn 70% of the markup on every sale. Payments are automatic, monthly, and continue forever as long as your design is being manufactured.
                 </p>
                 <Card className="bg-primary/5 border-primary/20">
                   <CardContent className="p-4">
                     <div className="text-sm space-y-2">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Commission Rate:</span>
-                        <span className="font-medium">10-15% per sale</span>
+                        <span className="text-muted-foreground">Your Share:</span>
+                        <span className="font-medium">70% of markup</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Payment Schedule:</span>

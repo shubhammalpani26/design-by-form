@@ -401,46 +401,37 @@ const CreatorSuccessKit = () => {
                     <Card className="bg-secondary/5 border-secondary/20">
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">5% - 10% Commission</h4>
+                        <h4 className="font-semibold text-foreground mb-1">70% Markup Share</h4>
                         <p className="text-xs text-muted-foreground">
-                          Based on sales performance
+                          You earn 70% of your markup
                         </p>
                       </CardContent>
                     </Card>
                     <Card className="bg-primary/5 border-primary/20">
                       <CardContent className="p-4 text-center">
                         <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">100% Markup</h4>
+                        <h4 className="font-semibold text-foreground mb-1">No Platform Fees</h4>
                         <p className="text-xs text-muted-foreground">
-                          Keep all earnings above base cost
+                          Simple & transparent pricing
                         </p>
                       </CardContent>
                     </Card>
                   </div>
 
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Commission Tiers</h3>
+                    <h3 className="text-lg font-semibold">How You Earn</h3>
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                        <div>
-                          <p className="font-medium">Standard Tier</p>
-                          <p className="text-sm text-muted-foreground">All creators</p>
-                        </div>
-                        <span className="text-lg font-bold text-primary">5%</span>
+                      <div className="p-3 border border-border rounded-lg">
+                        <p className="font-medium mb-1">1. We Set MBP</p>
+                        <p className="text-sm text-muted-foreground">Manufacturing Base Price = production cost + our margin</p>
                       </div>
-                      <div className="flex items-center justify-between p-3 border border-border rounded-lg">
-                        <div>
-                          <p className="font-medium">Premium Tier</p>
-                          <p className="text-sm text-muted-foreground">₹4,15,000+ in sales</p>
-                        </div>
-                        <span className="text-lg font-bold text-primary">8%</span>
+                      <div className="p-3 border border-border rounded-lg">
+                        <p className="font-medium mb-1">2. You Set Your Price</p>
+                        <p className="text-sm text-muted-foreground">Price above MBP - the difference is your markup</p>
                       </div>
-                      <div className="flex items-center justify-between p-3 border border-primary bg-primary/5 rounded-lg">
-                        <div>
-                          <p className="font-medium">Elite Tier</p>
-                          <p className="text-sm text-muted-foreground">₹12,45,000+ in sales</p>
-                        </div>
-                        <span className="text-lg font-bold text-primary">10%</span>
+                      <div className="p-3 border border-primary bg-primary/5 rounded-lg">
+                        <p className="font-medium mb-1">3. You Get 70% of Markup</p>
+                        <p className="text-sm text-muted-foreground">We keep 30% to run the platform. Forever!</p>
                       </div>
                     </div>
                   </div>
@@ -483,11 +474,11 @@ const CreatorSuccessKit = () => {
                     <h4 className="font-semibold text-sm mb-2">📊 Example Earnings</h4>
                     <div className="text-sm text-muted-foreground space-y-2">
                       <p className="font-medium text-foreground">Product: Chair priced at ₹35,000</p>
-                      <p>• Manufacturing base cost: ₹18,000</p>
-                      <p>• Your markup*: ₹17,000 (100% yours)</p>
-                      <p>• Platform commission (5%): ₹900</p>
-                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹17,900</p>
-                      <p className="text-xs mt-2">*Platform fees currently waived</p>
+                      <p>• Manufacturing Base Price (MBP): ₹18,000</p>
+                      <p>• Your Markup: ₹17,000</p>
+                      <p>• Your Share (70% of markup): ₹11,900</p>
+                      <p>• Platform Share (30% of markup): ₹5,100</p>
+                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹11,900</p>
                     </div>
                   </div>
                 </CardContent>

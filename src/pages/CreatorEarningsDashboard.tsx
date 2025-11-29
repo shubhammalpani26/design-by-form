@@ -9,8 +9,6 @@ import { useCurrency } from '@/contexts/CurrencyContext';
 interface EarningsData {
   totalEarnings: number;
   totalSales: number;
-  commissionTier: string;
-  commissionRate: number;
   pendingPayout: number;
   thisMonthEarnings: number;
 }
@@ -22,8 +20,6 @@ const CreatorEarningsDashboard = () => {
   const [earnings, setEarnings] = useState<EarningsData>({
     totalEarnings: 0,
     totalSales: 0,
-    commissionTier: 'Standard',
-    commissionRate: 5,
     pendingPayout: 0,
     thisMonthEarnings: 0,
   });
@@ -67,23 +63,9 @@ const CreatorEarningsDashboard = () => {
         return sum;
       }, 0) || 0;
 
-      // Determine commission tier based on total sales volume
-      let tier = 'Standard';
-      let rate = 5;
-
-      if (totalSalesVolume >= 1245000) {
-        tier = 'Elite';
-        rate = 10;
-      } else if (totalSalesVolume >= 415000) {
-        tier = 'Premium';
-        rate = 8;
-      }
-
       setEarnings({
         totalEarnings,
         totalSales: totalSalesVolume,
-        commissionTier: tier,
-        commissionRate: rate,
         pendingPayout: totalEarnings, // All earnings pending until paid
         thisMonthEarnings,
       });
@@ -117,12 +99,12 @@ const CreatorEarningsDashboard = () => {
       <div className="mb-8">
         <h1 className="text-4xl font-bold mb-2">Earnings Dashboard</h1>
         <p className="text-muted-foreground">
-          Track your sales performance and commission earnings
+          Track your sales performance and earnings (70% of your markup)
         </p>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -155,21 +137,6 @@ const CreatorEarningsDashboard = () => {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Commission Tier
-                </CardTitle>
-                <TrendingUp className="h-4 w-4 text-accent" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{earnings.commissionTier}</div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  {earnings.commissionRate}% on base manufacturing price
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
                   Total Sales
                 </CardTitle>
                 <Package className="h-4 w-4 text-primary" />
@@ -183,38 +150,46 @@ const CreatorEarningsDashboard = () => {
             </Card>
           </div>
 
-          {/* Commission Tiers */}
+          {/* How it Works */}
           <Card className="mb-8">
             <CardHeader>
-              <CardTitle>Commission Tiers</CardTitle>
+              <CardTitle>How You Earn</CardTitle>
               <CardDescription>
-                Your commission rate increases as your sales volume grows
+                Simple and transparent - 70% of your markup on every sale
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Standard' ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Standard</h3>
-                    <span className="text-2xl font-bold text-primary">5%</span>
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 rounded-lg border border-border bg-accent/5">
+                    <div className="text-4xl font-bold text-primary mb-2">1</div>
+                    <h4 className="font-semibold mb-1">We Set MBP</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Manufacturing Base Price covers production + our margin
+                    </p>
                   </div>
-                  <p className="text-sm text-muted-foreground">All creators start here</p>
+                  <div className="p-4 rounded-lg border border-border bg-accent/5">
+                    <div className="text-4xl font-bold text-primary mb-2">2</div>
+                    <h4 className="font-semibold mb-1">You Price</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Set your selling price above MBP - the difference is your markup
+                    </p>
+                  </div>
+                  <div className="p-4 rounded-lg border border-primary/30 bg-primary/5">
+                    <div className="text-4xl font-bold text-primary mb-2">3</div>
+                    <h4 className="font-semibold mb-1">You Earn 70%</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Get 70% of your markup, we keep 30% to run the platform
+                    </p>
+                  </div>
                 </div>
 
-                <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Premium' ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Premium</h3>
-                    <span className="text-2xl font-bold text-primary">8%</span>
+                <div className="bg-secondary/5 rounded-lg p-4 border border-secondary/20">
+                  <h4 className="font-semibold text-sm mb-2">Example</h4>
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>MBP: ₹50,000 | Your Price: ₹75,000 | Your Markup: ₹25,000</p>
+                    <p className="text-primary font-semibold">→ You earn: ₹17,500 (70% of ₹25,000)</p>
                   </div>
-                  <p className="text-sm text-muted-foreground">₹4,15,000+ in sales</p>
-                </div>
-
-                <div className={`p-4 rounded-lg border ${earnings.commissionTier === 'Elite' ? 'border-primary bg-primary/5' : 'border-border'}`}>
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold">Elite</h3>
-                    <span className="text-2xl font-bold text-primary">10%</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">₹12,45,000+ in sales</p>
                 </div>
               </div>
             </CardContent>
@@ -252,19 +227,19 @@ const CreatorEarningsDashboard = () => {
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>100% of your price markup*</span>
+                      <span>70% of your markup on every sale</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span className="text-xs">*Platform fees currently waived</span>
+                      <span>No platform fees or hidden charges</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>{earnings.commissionRate}% commission on base manufacturing price</span>
+                      <span>Perpetual earnings on all sales forever</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>Perpetual earnings on all sales</span>
+                      <span>Simple & transparent pricing model</span>
                     </li>
                 </ul>
               </div>

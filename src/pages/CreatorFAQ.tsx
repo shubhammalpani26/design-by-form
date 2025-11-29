@@ -51,7 +51,7 @@ const CreatorFAQ = () => {
                 How much can I earn as a creator?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You earn in two ways: (1) 100% of the markup you set above our base manufacturing cost*, and (2) 5-10% commission on the base cost based on your sales volume. For example, if the base cost is ₹50,000 and you price it at ₹75,000, you earn ₹25,000 markup + ₹2,500-5,000 commission per sale. This gives you full control over your earnings! (*Platform fees currently waived)
+                You earn 70% of the markup you set above our Manufacturing Base Price (MBP). For example, if the MBP is ₹50,000 and you price it at ₹75,000, your markup is ₹25,000 and you earn ₹17,500 per sale (70% of ₹25,000). You have full control over your pricing, and the more you price above MBP, the more you earn. No platform fees, no hidden charges.
               </AccordionContent>
             </AccordionItem>
 
@@ -60,7 +60,7 @@ const CreatorFAQ = () => {
                 Can I set my own prices?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! While we calculate a base manufacturing cost, you can price your designs higher. All the differential between your price and our base cost comes to you (100%*), plus you earn your commission tier percentage on the base cost. This gives you full control over your earnings potential. (*Platform fees currently waived)
+                Absolutely! We calculate the Manufacturing Base Price (MBP), and you decide your selling price. You earn 70% of the difference (markup). The higher you price above MBP, the more you earn per sale. You have complete control over your pricing strategy and earnings potential.
               </AccordionContent>
             </AccordionItem>
 
@@ -75,10 +75,10 @@ const CreatorFAQ = () => {
 
             <AccordionItem value="item-6">
               <AccordionTrigger className="text-left font-semibold">
-                How long do I earn commissions?
+                How long do I earn?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Forever! As long as your design is being manufactured and sold on Forma, you continue earning commissions with no expiration date. This creates a true passive income stream.
+                Forever! As long as your design is being manufactured and sold on Forma, you continue earning 70% of the markup with no expiration date. This creates a true perpetual income stream from your creative work.
               </AccordionContent>
             </AccordionItem>
 
@@ -123,7 +123,7 @@ const CreatorFAQ = () => {
                 Are there any upfront costs or fees?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                No! It's completely free to join as a creator and list your designs. We only earn when you earn through sales commissions. There are no listing fees, subscription costs, or hidden charges.
+                No! It's completely free to join as a creator and list your designs. We only earn our 30% share when you make a sale. There are no listing fees, subscription costs, platform fees, or hidden charges. Simple and transparent.
               </AccordionContent>
             </AccordionItem>
 
