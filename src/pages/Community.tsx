@@ -4,10 +4,13 @@ import { Footer } from "@/components/Footer";
 import { FeedPost } from "@/components/FeedPost";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sparkles, TrendingUp, Award, Users } from "lucide-react";
+import { Sparkles, TrendingUp, Award, Users, Flame } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CommunitySidebar } from "@/components/community/CommunitySidebar";
+import { CreatePostDialog } from "@/components/community/CreatePostDialog";
+import { Link } from "react-router-dom";
 
 const Community = () => {
   const [filter, setFilter] = useState<string>("all");
@@ -80,86 +83,88 @@ const Community = () => {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
-          <div className="container text-center">
-            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4">
-              <Users className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Creator Community</span>
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-12 border-b">
+          <div className="container">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 bg-primary/10 px-3 py-1 rounded-full mb-3">
+                  <Flame className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">What's Happening</span>
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold mb-2 text-foreground">
+                  Creator Community
+                </h1>
+                <p className="text-muted-foreground">
+                  Connect with furniture designers and follow their creative journey
+                </p>
+              </div>
+              <CreatePostDialog />
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Design Stories & Milestones
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Follow the journey of our creators as they launch products, hit milestones,
-              and build their design careers on Forma
-            </p>
           </div>
         </section>
 
-        {/* Feed Section */}
-        <section className="container py-12">
-          <Tabs defaultValue="all" className="space-y-8" onValueChange={setFilter}>
-            <TabsList className="grid w-full max-w-2xl mx-auto grid-cols-4">
-              <TabsTrigger value="all" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                All
-              </TabsTrigger>
-              <TabsTrigger value="product_launch" className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4" />
-                Launches
-              </TabsTrigger>
-              <TabsTrigger value="milestone" className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Milestones
-              </TabsTrigger>
-              <TabsTrigger value="achievement" className="flex items-center gap-2">
-                <Award className="h-4 w-4" />
-                Achievements
-              </TabsTrigger>
-            </TabsList>
+        {/* Feed Section with Sidebar */}
+        <section className="container py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
+            {/* Main Feed */}
+            <div>
+              <Tabs defaultValue="all" className="space-y-6" onValueChange={setFilter}>
+                <TabsList className="grid w-full grid-cols-4 sticky top-20 z-10 bg-background">
+                  <TabsTrigger value="all" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">All</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="product_launch" className="flex items-center gap-2">
+                    <Sparkles className="h-4 w-4" />
+                    <span className="hidden sm:inline">Launches</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="milestone" className="flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="hidden sm:inline">Milestones</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="achievement" className="flex items-center gap-2">
+                    <Award className="h-4 w-4" />
+                    <span className="hidden sm:inline">Achievements</span>
+                  </TabsTrigger>
+                </TabsList>
 
-            <TabsContent value={filter} className="space-y-6">
-              {isLoading ? (
-                <div className="max-w-3xl mx-auto space-y-6">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="border rounded-lg p-6 space-y-4">
-                      <div className="flex items-center gap-3">
-                        <Skeleton className="h-10 w-10 rounded-full" />
-                        <div className="space-y-2">
-                          <Skeleton className="h-4 w-32" />
-                          <Skeleton className="h-3 w-24" />
+                <TabsContent value={filter} className="space-y-6">
+                  {isLoading ? (
+                    <div className="space-y-6">
+                      {[1, 2, 3].map((i) => (
+                        <div key={i} className="border rounded-lg p-6 space-y-4">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="h-12 w-12 rounded-full" />
+                            <div className="space-y-2">
+                              <Skeleton className="h-4 w-32" />
+                              <Skeleton className="h-3 w-24" />
+                            </div>
+                          </div>
+                          <Skeleton className="h-20 w-full" />
+                          <Skeleton className="h-64 w-full" />
                         </div>
-                      </div>
-                      <Skeleton className="h-20 w-full" />
-                      <Skeleton className="h-48 w-full" />
+                      ))}
                     </div>
-                  ))}
-                </div>
-              ) : feedPosts && feedPosts.length > 0 ? (
-                <div className="max-w-3xl mx-auto space-y-6">
-                  {feedPosts.map((post) => (
-                    <FeedPost key={post.id} post={post} />
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-16">
-                  <p className="text-muted-foreground">No posts yet. Be the first to create!</p>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
-        </section>
+                  ) : feedPosts && feedPosts.length > 0 ? (
+                    <div className="space-y-6">
+                      {feedPosts.map((post) => (
+                        <FeedPost key={post.id} post={post} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-16 border rounded-lg">
+                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                      <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+            </div>
 
-        {/* CTA Section */}
-        <section className="bg-gradient-to-br from-primary/5 to-secondary/5 py-16">
-          <div className="container text-center">
-            <h2 className="text-3xl font-bold mb-4">Join Our Creator Community</h2>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-              Start your design journey and share your milestones with a supportive community
-            </p>
-            <Button asChild size="lg" variant="hero">
-              <a href="/designer-signup">Become a Creator</a>
-            </Button>
+            {/* Sidebar */}
+            <div className="lg:sticky lg:top-24 lg:self-start">
+              <CommunitySidebar />
+            </div>
           </div>
         </section>
       </main>
