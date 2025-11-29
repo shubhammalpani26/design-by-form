@@ -18,6 +18,7 @@ import { ThreeDGenerationFeeDialog } from "@/components/ThreeDGenerationFeeDialo
 import { IntentSelectionDialog } from "@/components/IntentSelectionDialog";
 import { FurnitureTrends } from "@/components/FurnitureTrends";
 import { SellingLocations } from "@/components/SellingLocations";
+import { WeeklyThemes } from "@/components/community/WeeklyThemes";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
@@ -1473,6 +1474,9 @@ const DesignStudio = () => {
                     </ul>
                   </CardContent>
                 </Card>
+
+                {/* Weekly Theme */}
+                <WeeklyThemes />
               </div>
 
               {/* Preview Side */}
