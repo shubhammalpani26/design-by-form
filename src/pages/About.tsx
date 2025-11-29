@@ -60,8 +60,8 @@ const About = () => {
                 </div>
                 <h3 className="text-xl font-semibold mb-3 text-foreground">Creator-Centric</h3>
                 <p className="text-muted-foreground">
-                  Creators deserve ongoing recognition. Our perpetual commission model ensures 
-                  creators earn from every sale, forever.
+                  Creators deserve ongoing recognition. Our transparent earnings model ensures 
+                  creators earn 70% of their markup from every sale, forever.
                 </p>
               </CardContent>
             </Card>
@@ -107,7 +107,7 @@ const About = () => {
                 </p>
               <p className="font-semibold text-foreground">
                   Today, hundreds of creators from 30+ countries have listed designs on Forma, 
-                  earning commissions while bringing fresh creativity to the furniture industry.
+                  earning perpetual income while bringing fresh creativity to the furniture industry.
                 </p>
               </div>
             </div>

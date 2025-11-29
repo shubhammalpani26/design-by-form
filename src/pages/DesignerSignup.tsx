@@ -176,7 +176,7 @@ const DesignerSignup = () => {
                   </svg>
                 </div>
                 <h3 className="text-xl font-semibold mb-2 text-foreground">Ongoing Income</h3>
-                <p className="text-muted-foreground">Set your own prices and earn perpetual income from every sale</p>
+                <p className="text-muted-foreground">Set your own prices and earn 70% of your markup on every sale, forever</p>
               </CardContent>
             </Card>
 
