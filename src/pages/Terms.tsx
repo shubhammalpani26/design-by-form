@@ -110,7 +110,7 @@ const Terms = () => {
 
               <h3 className="text-xl font-semibold mb-3">3.4 Pricing and Earnings</h3>
               <p className="text-muted-foreground mb-4">
-                Designers set their own selling prices above the Manufacturing Base Price (MBP) calculated by our platform. Designers earn 70% of the markup (difference between their selling price and MBP). The platform retains 30% of the markup to cover operations, customer support, and infrastructure.
+                Designers set their own selling prices above the Manufacturing Base Price (MBP) calculated by our platform. Designers earn 70% of the markup (difference between their selling price and MBP). The platform retains 30% of the markup to cover operations, customer support, and infrastructure. In cases where dynamic pricing reduces a product to the Manufacturing Base Price due to low sales, designers will earn 5-8% commission on base price sales.
               </p>
 
               <h3 className="text-xl font-semibold mb-3">3.5 Payments</h3>

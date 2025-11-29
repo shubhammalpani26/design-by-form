@@ -114,7 +114,7 @@ const CreatorFAQ = () => {
                 What happens if my design doesn't sell?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                There's no cost to list designs, so there's no risk. If a design underperforms, you can enable smart pricing (auto-pricing), which gradually reduces your price by 10% monthly until sales pick up. This protects against overpricing while you keep trying to find the right market fit. Your price will never go below the base manufacturing cost.
+                There's no cost to list designs, so there's no risk. If a design underperforms, you can enable smart pricing (auto-pricing), which gradually reduces your price by 10% monthly until sales pick up. This protects against overpricing while you keep trying to find the right market fit. Your price will never go below the base manufacturing cost. Note: If dynamic pricing brings your product down to the Manufacturing Base Price, you'll continue to earn 5-8% commission on those base price sales.
               </AccordionContent>
             </AccordionItem>
 
