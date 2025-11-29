@@ -33,7 +33,7 @@ const ShopperFAQ = () => {
                 What makes Forma furniture unique?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Every piece on Forma is designed by independent creators and crafted using high-grade resin reinforced with glass fibre. Each piece is created through a blend of innovative fabrication and unique artistic techniques. Each piece is unique and directly supports creative talent worldwide.
+                Every piece on Forma is designed by independent creators and crafted using high-grade resin reinforced with composite fibre, engineered for lasting strength and a refined finish. Produced through a hybrid fabrication process with meticulous hand-finishing. Each piece is unique and directly supports creative talent worldwide.
               </AccordionContent>
             </AccordionItem>
 
@@ -42,7 +42,7 @@ const ShopperFAQ = () => {
                 How is Forma furniture manufactured?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Each piece is created through a blend of innovative fabrication and unique artistic techniques, finished with meticulous hand-finishing. This approach unites modern precision with artisan craftsmanship, giving every piece its own expressive identity.
+                Produced through a hybrid fabrication process and completed with meticulous hand-finishing, ensuring every piece has its own distinct character.
               </AccordionContent>
             </AccordionItem>
 
@@ -114,7 +114,7 @@ const ShopperFAQ = () => {
                 Are the materials eco-friendly?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes! Our advanced composite material is crafted using high-grade resin reinforced with glass fibre, offering lasting durability and a refined artistic finish. Our innovative fabrication process generates minimal waste, and each piece's durability means less frequent replacement.
+                Yes! Our advanced composite material is crafted using high-grade resin reinforced with composite fibre, engineered for lasting strength and a refined finish. Our hybrid fabrication process generates minimal waste, and each piece's durability means less frequent replacement.
               </AccordionContent>
             </AccordionItem>
 

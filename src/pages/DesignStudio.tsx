@@ -260,7 +260,7 @@ const DesignStudio = () => {
 
       // Build enhanced prompt
       let enhancedPrompt = prompt || "Create a furniture design based on the uploaded sketch";
-      const manufacturingConstraints = "Design should be manufacturable using advanced fabrication techniques with high-grade resin reinforced with glass fibre. Use smooth, organic forms that are structurally sound and suitable for innovative fabrication and artisan finishing. All elements should be practical to produce, considering material properties, assembly requirements, and structural integrity.";
+      const manufacturingConstraints = "Design should be manufacturable using advanced fabrication techniques with high-grade resin reinforced with composite fibre. Use smooth, organic forms that are structurally sound and suitable for hybrid fabrication and artisan finishing. All elements should be practical to produce, considering material properties, assembly requirements, and structural integrity.";
       
       if (roomImage && furnitureType) {
         enhancedPrompt = `Design a ${furnitureType} that fits perfectly in this interior space. The furniture should complement the existing room aesthetic. ${prompt}. ${manufacturingConstraints} Make sure the design harmonizes with the room's style, colors, and overall ambiance while being practical to manufacture.`;
@@ -835,7 +835,7 @@ const DesignStudio = () => {
             body: {
               productName: validatedData.name,
               category: validatedData.category,
-              materials: "High-grade resin reinforced with glass fibre, with hand-finished details",
+              materials: "High-grade resin reinforced with composite fibre, with hand-finished details",
               dimensions: {
                 width: parseFloat(dimensions.length),
                 depth: parseFloat(dimensions.breadth),
@@ -2200,7 +2200,7 @@ const DesignStudio = () => {
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
                   { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for manufacturing feasibility" },
-                  { step: 2, title: "Manufacturing", desc: "Your piece is created through innovative fabrication and hand-finished by artisans" },
+                  { step: 2, title: "Manufacturing", desc: "Your piece is produced through hybrid fabrication and hand-finished by artisans" },
                   { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
                   { step: 4, title: "You Earn", desc: "You'll receive notifications when orders are placed and earn income automatically" }
                 ].map((item) => (
