@@ -213,8 +213,13 @@ const Home = () => {
         ? new Set(designerData.map(d => d.designer_id)).size 
         : 0;
 
+      // Round down to nearest 5 (1-4 shows 1, 5-9 shows 5, 10-14 shows 10, etc.)
+      const roundedCount = uniqueDesigners > 0 
+        ? (uniqueDesigners < 5 ? 1 : Math.floor(uniqueDesigners / 5) * 5)
+        : 1;
+
       setCreatorStats({
-        activeCreators: uniqueDesigners > 0 ? uniqueDesigners : 50, // Show 50+ as placeholder if no data
+        activeCreators: roundedCount,
       });
     } catch (error) {
       console.error('Error fetching creator stats:', error);
@@ -511,7 +516,6 @@ const Home = () => {
                   Curated Quality
                 </div>
                 <div className="text-base font-semibold text-foreground">Vibe-Matched Designs</div>
-                <div className="text-sm text-muted-foreground">Only designs that match our aesthetic make it through</div>
               </div>
             </div>
           </div>
