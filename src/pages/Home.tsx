@@ -325,6 +325,11 @@ const Home = () => {
                       <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
                     </Button>
                   </Link>
+                  <Link to="/community" className="w-full sm:w-auto">
+                    <Button variant="secondary" size="lg" className="w-full sm:w-auto">
+                      Creator Community
+                    </Button>
+                  </Link>
                   <Link to="/browse" className="w-full sm:w-auto">
                     <Button variant="outline" size="lg" className="w-full sm:w-auto">
                       Browse Products
