@@ -1,8 +1,12 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Heart, MessageCircle, Sparkles, TrendingUp, Award } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Heart, MessageCircle, Sparkles, TrendingUp, Award, UserPlus, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
 import { formatDistanceToNow } from "date-fns";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 interface FeedPostProps {
   post: {
@@ -40,6 +44,125 @@ const postTypeColors = {
 export const FeedPost = ({ post }: FeedPostProps) => {
   const Icon = postTypeIcons[post.post_type as keyof typeof postTypeIcons] || Sparkles;
   const iconColor = postTypeColors[post.post_type as keyof typeof postTypeColors] || "text-primary";
+  const { toast } = useToast();
+  
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes_count);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [currentUser, setCurrentUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setCurrentUser(user?.id || null);
+
+      if (user) {
+        // Check if user has liked this post
+        const { data: like } = await supabase
+          .from("feed_post_likes")
+          .select("id")
+          .eq("post_id", post.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        
+        setIsLiked(!!like);
+
+        // Check if user is following this designer
+        const { data: follow } = await supabase
+          .from("designer_follows")
+          .select("id")
+          .eq("follower_id", user.id)
+          .eq("designer_id", post.designer_profiles.id)
+          .maybeSingle();
+        
+        setIsFollowing(!!follow);
+      }
+    };
+
+    checkAuth();
+  }, [post.id, post.designer_profiles.id]);
+
+  const handleLike = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to like posts",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await supabase
+          .from("feed_post_likes")
+          .delete()
+          .eq("post_id", post.id)
+          .eq("user_id", currentUser);
+        
+        setIsLiked(false);
+        setLikesCount(prev => Math.max(0, prev - 1));
+      } else {
+        await supabase
+          .from("feed_post_likes")
+          .insert({ post_id: post.id, user_id: currentUser });
+        
+        setIsLiked(true);
+        setLikesCount(prev => prev + 1);
+      }
+    } catch (error) {
+      console.error("Error toggling like:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update like",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleFollow = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to follow creators",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      if (isFollowing) {
+        await supabase
+          .from("designer_follows")
+          .delete()
+          .eq("follower_id", currentUser)
+          .eq("designer_id", post.designer_profiles.id);
+        
+        setIsFollowing(false);
+        toast({
+          title: "Unfollowed",
+          description: `You unfollowed ${post.designer_profiles.name}`,
+        });
+      } else {
+        await supabase
+          .from("designer_follows")
+          .insert({ follower_id: currentUser, designer_id: post.designer_profiles.id });
+        
+        setIsFollowing(true);
+        toast({
+          title: "Following",
+          description: `You're now following ${post.designer_profiles.name}`,
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling follow:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update follow status",
+        variant: "destructive",
+      });
+    }
+  };
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -64,7 +187,27 @@ export const FeedPost = ({ post }: FeedPostProps) => {
               </p>
             </div>
           </div>
-          <Icon className={`h-5 w-5 ${iconColor}`} />
+          <div className="flex items-center gap-2">
+            <Icon className={`h-5 w-5 ${iconColor}`} />
+            <Button
+              size="sm"
+              variant={isFollowing ? "secondary" : "default"}
+              onClick={handleFollow}
+              className="gap-2"
+            >
+              {isFollowing ? (
+                <>
+                  <UserCheck className="h-4 w-4" />
+                  Following
+                </>
+              ) : (
+                <>
+                  <UserPlus className="h-4 w-4" />
+                  Follow
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </CardHeader>
 
@@ -100,9 +243,14 @@ export const FeedPost = ({ post }: FeedPostProps) => {
         )}
 
         <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground">
-          <button className="flex items-center gap-2 hover:text-primary transition-colors">
-            <Heart className="h-4 w-4" />
-            <span>{post.likes_count}</span>
+          <button 
+            onClick={handleLike}
+            className={`flex items-center gap-2 transition-colors ${
+              isLiked ? 'text-primary' : 'hover:text-primary'
+            }`}
+          >
+            <Heart className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />
+            <span>{likesCount}</span>
           </button>
           <button className="flex items-center gap-2 hover:text-primary transition-colors">
             <MessageCircle className="h-4 w-4" />
