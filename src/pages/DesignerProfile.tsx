@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
+import { DesignerFeedSection } from "@/components/DesignerFeedSection";
 import { ExternalLink } from "lucide-react";
 
 interface Designer {
@@ -219,6 +220,11 @@ const DesignerProfile = () => {
               </div>
             </div>
           )}
+
+          {/* Designer Feed Section */}
+          <div className="mb-16 max-w-4xl">
+            <DesignerFeedSection designerId={designer.id} />
+          </div>
 
           {/* Collection */}
           <div>

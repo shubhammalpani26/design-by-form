@@ -49,6 +49,7 @@ import CreatorSettings from "./pages/CreatorSettings";
 import NotFound from "./pages/NotFound";
 import { CreatorLayout } from "./layouts/CreatorLayout";
 import AdminPanel from "./pages/AdminPanel";
+import Community from "./pages/Community";
 
 const queryClient = new QueryClient();
 
@@ -69,6 +70,7 @@ const App = () => (
             <Route path="/designer/:id" element={<DesignerProfile />} />
             <Route path="/design-studio" element={<DesignStudio />} />
             <Route path="/creators" element={<Creators />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/designer-signup" element={<DesignerSignup />} />
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
             <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
