@@ -68,7 +68,7 @@ const Sustainability = () => {
                 <div className="flex-1">
                   <h3 className="text-2xl font-bold mb-3 text-foreground">Responsibly Sourced Materials</h3>
                   <p className="text-muted-foreground mb-4">
-                    Crafted using high-grade resin reinforced with glass fibre. This advanced composite offers sculptural freedom, lasting durability, and a refined artistic finish. Material selection and ratios may vary based on the design's intended form and structural needs.
+                    Crafted using high-grade resin reinforced with composite fibre, engineered for lasting strength and a refined finish. Material composition may vary to suit each design's form and function.
                   </p>
                   <Card className="bg-accent border-border">
                     <CardContent className="p-4">
