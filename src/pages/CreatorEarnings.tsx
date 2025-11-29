@@ -228,7 +228,7 @@ const CreatorEarnings = () => {
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">What if my design doesn't sell?</h4>
                     <p className="text-sm text-muted-foreground">
-                      There's no cost to list designs. If a design underperforms, you can work with our team to adjust pricing, refine the design, or create new designs at no additional cost.
+                      There's no cost to list designs. If a design underperforms, you can work with our team to adjust pricing, refine the design, or create new designs at no additional cost. In cases where dynamic pricing brings a product down to the Manufacturing Base Price, you'll still earn 5-8% commission on base price sales.
                     </p>
                   </div>
                   <div>
