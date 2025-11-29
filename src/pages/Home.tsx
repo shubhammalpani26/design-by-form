@@ -125,7 +125,6 @@ const Home = () => {
   const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [creatorStats, setCreatorStats] = useState({
     activeCreators: 0,
-    approvalRate: 94,
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
 
@@ -216,7 +215,6 @@ const Home = () => {
 
       setCreatorStats({
         activeCreators: uniqueDesigners > 0 ? uniqueDesigners : 50, // Show 50+ as placeholder if no data
-        approvalRate: 94,
       });
     } catch (error) {
       console.error('Error fetching creator stats:', error);
@@ -509,11 +507,11 @@ const Home = () => {
               </div>
               
               <div className="text-center space-y-2">
-                <div className="text-4xl md:text-5xl font-bold text-green-600">
-                  {creatorStats.approvalRate}%
+                <div className="text-3xl md:text-4xl font-bold text-green-600 leading-tight">
+                  Curated Quality
                 </div>
-                <div className="text-lg font-semibold text-foreground">Approval Rate</div>
-                <div className="text-sm text-muted-foreground">High quality standards met</div>
+                <div className="text-base font-semibold text-foreground">Vibe-Matched Designs</div>
+                <div className="text-sm text-muted-foreground">Only designs that match our aesthetic make it through</div>
               </div>
             </div>
           </div>
