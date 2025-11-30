@@ -43,7 +43,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                   <li>• Become a verified designer</li>
                   <li>• Pay listing fee ({displayFee})*</li>
                   <li>• Earn 70% of your markup on every sale</li>
-                  <li>• No platform fees - simple & transparent</li>
+                  <li>• Platform fees waived initially*</li>
                   <li>• Public marketplace listing</li>
                 </ul>
               </div>
