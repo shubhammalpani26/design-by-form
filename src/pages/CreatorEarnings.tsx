@@ -48,7 +48,7 @@ const CreatorEarnings = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">No platform fees:</strong> We don't charge any additional fees on the final price</span>
+                    <span><strong className="text-foreground">Platform fees waived initially*:</strong> No additional fees on final price right now</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
@@ -68,7 +68,7 @@ const CreatorEarnings = () => {
                   <div className="text-5xl font-bold text-primary mb-4">1</div>
                   <h3 className="text-lg font-semibold mb-2 text-foreground">We Calculate MBP</h3>
                   <p className="text-sm text-muted-foreground">
-                    Our Manufacturing Base Price (MBP) includes production cost + our margin
+                    Our Manufacturing Base Price (MBP) is calculated based on production requirements
                   </p>
                 </CardContent>
               </Card>
@@ -234,7 +234,7 @@ const CreatorEarnings = () => {
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">Are there any platform fees?</h4>
                     <p className="text-sm text-muted-foreground">
-                      No platform fees. Our revenue comes from 30% of your markup. No hidden charges, no additional fees on the final price. Simple and transparent.
+                      Platform fees are waived initially. Our revenue comes from 30% of your markup. No hidden charges, simple and transparent pricing.
                     </p>
                   </div>
                 </div>

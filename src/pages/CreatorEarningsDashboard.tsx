@@ -165,7 +165,7 @@ const CreatorEarningsDashboard = () => {
                     <div className="text-4xl font-bold text-primary mb-2">1</div>
                     <h4 className="font-semibold mb-1">We Set MBP</h4>
                     <p className="text-sm text-muted-foreground">
-                      Manufacturing Base Price covers production + our margin
+                      Manufacturing Base Price is calculated based on production requirements
                     </p>
                   </div>
                   <div className="p-4 rounded-lg border border-border bg-accent/5">
@@ -231,7 +231,7 @@ const CreatorEarningsDashboard = () => {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>
-                      <span>No platform fees or hidden charges</span>
+                      <span>Platform fees waived initially*</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-primary">•</span>

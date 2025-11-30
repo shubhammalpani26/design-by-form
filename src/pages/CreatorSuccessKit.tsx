@@ -410,7 +410,7 @@ const CreatorSuccessKit = () => {
                     <Card className="bg-primary/5 border-primary/20">
                       <CardContent className="p-4 text-center">
                         <DollarSign className="w-8 h-8 text-primary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">No Platform Fees</h4>
+                        <h4 className="font-semibold text-foreground mb-1">Fees Waived Initially*</h4>
                         <p className="text-xs text-muted-foreground">
                           Simple & transparent pricing
                         </p>
@@ -423,7 +423,7 @@ const CreatorSuccessKit = () => {
                     <div className="space-y-2">
                       <div className="p-3 border border-border rounded-lg">
                         <p className="font-medium mb-1">1. We Set MBP</p>
-                        <p className="text-sm text-muted-foreground">Manufacturing Base Price = production cost + our margin</p>
+                        <p className="text-sm text-muted-foreground">Manufacturing Base Price calculated by platform</p>
                       </div>
                       <div className="p-3 border border-border rounded-lg">
                         <p className="font-medium mb-1">2. You Set Your Price</p>

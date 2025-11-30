@@ -51,7 +51,7 @@ const CreatorFAQ = () => {
                 How much can I earn as a creator?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You earn 70% of the markup you set above our Manufacturing Base Price (MBP). For example, if the MBP is ₹50,000 and you price it at ₹75,000, your markup is ₹25,000 and you earn ₹17,500 per sale (70% of ₹25,000). You have full control over your pricing, and the more you price above MBP, the more you earn. No platform fees, no hidden charges.
+                You earn 70% of the markup you set above our Manufacturing Base Price (MBP). For example, if the MBP is ₹50,000 and you price it at ₹75,000, your markup is ₹25,000 and you earn ₹17,500 per sale (70% of ₹25,000). You have full control over your pricing, and the more you price above MBP, the more you earn. Platform fees waived initially.
               </AccordionContent>
             </AccordionItem>
 
