@@ -6,6 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { designerSignupSchema } from '@/lib/validations';
+import { ProfileImageUpload } from '@/components/community/ProfileImageUpload';
 
 interface ProfileData {
   name: string;
@@ -14,6 +15,8 @@ interface ProfileData {
   portfolio_url: string;
   design_background: string;
   furniture_interests: string;
+  profile_picture_url: string | null;
+  cover_image_url: string | null;
 }
 
 const CreatorProfile = () => {
@@ -24,6 +27,8 @@ const CreatorProfile = () => {
     portfolio_url: '',
     design_background: '',
     furniture_interests: '',
+    profile_picture_url: null,
+    cover_image_url: null,
   });
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -55,6 +60,8 @@ const CreatorProfile = () => {
           portfolio_url: data.portfolio_url || '',
           design_background: data.design_background || '',
           furniture_interests: data.furniture_interests || '',
+          profile_picture_url: data.profile_picture_url || null,
+          cover_image_url: data.cover_image_url || null,
         });
       }
     } catch (error) {
@@ -132,117 +139,140 @@ const CreatorProfile = () => {
   }
 
   return (
-    <Card className="max-w-4xl">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle>Profile Information</CardTitle>
-        {!isEditing ? (
-          <Button onClick={() => setIsEditing(true)} variant="outline">
-            Edit Profile
-          </Button>
-        ) : (
-          <div className="flex gap-2">
-            <Button onClick={handleSave} disabled={isSaving}>
-              {isSaving ? 'Saving...' : 'Save Changes'}
+    <div className="max-w-4xl space-y-6">
+      {/* Profile Images Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Profile Photos</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ProfileImageUpload
+            currentImageUrl={profile.profile_picture_url}
+            currentCoverUrl={profile.cover_image_url}
+            name={profile.name}
+            onProfileUpdate={(url) => setProfile({ ...profile, profile_picture_url: url })}
+            onCoverUpdate={(url) => setProfile({ ...profile, cover_image_url: url })}
+            showCover={true}
+          />
+          <p className="text-xs text-muted-foreground mt-4">
+            Your profile picture and cover photo are displayed on your public profile and in the community feed.
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* Profile Information Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Profile Information</CardTitle>
+          {!isEditing ? (
+            <Button onClick={() => setIsEditing(true)} variant="outline">
+              Edit Profile
             </Button>
-            <Button onClick={() => {
-              setIsEditing(false);
-              fetchProfile();
-            }} variant="outline">
-              Cancel
-            </Button>
+          ) : (
+            <div className="flex gap-2">
+              <Button onClick={handleSave} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </Button>
+              <Button onClick={() => {
+                setIsEditing(false);
+                fetchProfile();
+              }} variant="outline">
+                Cancel
+              </Button>
+            </div>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Full Name</label>
+            {isEditing ? (
+              <Input
+                value={profile.name}
+                onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+              />
+            ) : (
+              <p className="text-foreground">{profile.name}</p>
+            )}
           </div>
-        )}
-      </CardHeader>
-      <CardContent className="space-y-6">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Full Name</label>
-                  {isEditing ? (
-                    <Input
-                      value={profile.name}
-                      onChange={(e) => setProfile({ ...profile, name: e.target.value })}
-                    />
-                  ) : (
-                    <p className="text-foreground">{profile.name}</p>
-                  )}
-                </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Email</label>
-                  {isEditing ? (
-                    <Input
-                      type="email"
-                      value={profile.email}
-                      onChange={(e) => setProfile({ ...profile, email: e.target.value })}
-                    />
-                  ) : (
-                    <p className="text-foreground">{profile.email}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    You'll receive order notifications at this email
-                  </p>
-                </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Email</label>
+            {isEditing ? (
+              <Input
+                type="email"
+                value={profile.email}
+                onChange={(e) => setProfile({ ...profile, email: e.target.value })}
+              />
+            ) : (
+              <p className="text-foreground">{profile.email}</p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              You'll receive order notifications at this email
+            </p>
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Phone Number</label>
-                  {isEditing ? (
-                    <Input
-                      type="tel"
-                      value={profile.phone_number}
-                      onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
-                    />
-                  ) : (
-                    <p className="text-foreground">{profile.phone_number}</p>
-                  )}
-                  <p className="text-xs text-muted-foreground mt-1">
-                    You'll receive order notifications via SMS
-                  </p>
-                </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Phone Number</label>
+            {isEditing ? (
+              <Input
+                type="tel"
+                value={profile.phone_number}
+                onChange={(e) => setProfile({ ...profile, phone_number: e.target.value })}
+              />
+            ) : (
+              <p className="text-foreground">{profile.phone_number}</p>
+            )}
+            <p className="text-xs text-muted-foreground mt-1">
+              You'll receive order notifications via SMS
+            </p>
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Portfolio URL</label>
-                  {isEditing ? (
-                    <Input
-                      value={profile.portfolio_url}
-                      onChange={(e) => setProfile({ ...profile, portfolio_url: e.target.value })}
-                    />
-                  ) : (
-                    <p className="text-foreground">{profile.portfolio_url || 'Not provided'}</p>
-                  )}
-                </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Portfolio URL</label>
+            {isEditing ? (
+              <Input
+                value={profile.portfolio_url}
+                onChange={(e) => setProfile({ ...profile, portfolio_url: e.target.value })}
+              />
+            ) : (
+              <p className="text-foreground">{profile.portfolio_url || 'Not provided'}</p>
+            )}
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Design Background</label>
-                  {isEditing ? (
-                    <Textarea
-                      value={profile.design_background}
-                      onChange={(e) => setProfile({ ...profile, design_background: e.target.value })}
-                      className="min-h-[100px]"
-                    />
-                  ) : (
-                    <p className="text-foreground whitespace-pre-wrap">{profile.design_background}</p>
-                  )}
-                </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Design Background</label>
+            {isEditing ? (
+              <Textarea
+                value={profile.design_background}
+                onChange={(e) => setProfile({ ...profile, design_background: e.target.value })}
+                className="min-h-[100px]"
+              />
+            ) : (
+              <p className="text-foreground whitespace-pre-wrap">{profile.design_background}</p>
+            )}
+          </div>
 
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Furniture Interests</label>
-                  {isEditing ? (
-                    <Textarea
-                      value={profile.furniture_interests}
-                      onChange={(e) => setProfile({ ...profile, furniture_interests: e.target.value })}
-                      className="min-h-[80px]"
-                    />
-                  ) : (
-                    <p className="text-foreground whitespace-pre-wrap">{profile.furniture_interests}</p>
-                  )}
-                </div>
+          <div>
+            <label className="text-sm font-medium mb-2 block">Furniture Interests</label>
+            {isEditing ? (
+              <Textarea
+                value={profile.furniture_interests}
+                onChange={(e) => setProfile({ ...profile, furniture_interests: e.target.value })}
+                className="min-h-[80px]"
+              />
+            ) : (
+              <p className="text-foreground whitespace-pre-wrap">{profile.furniture_interests}</p>
+            )}
+          </div>
 
-                <div className="pt-4 border-t">
-                  <p className="text-xs text-muted-foreground">
-                    This information is displayed on the creator leaderboard and your public profile
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+          <div className="pt-4 border-t">
+            <p className="text-xs text-muted-foreground">
+              This information is displayed on the creator leaderboard and your public profile
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
   );
 };
 

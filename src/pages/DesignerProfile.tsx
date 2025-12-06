@@ -20,10 +20,12 @@ interface Designer {
   furniture_interests: string;
   portfolio_url: string;
   profile_picture_url: string | null;
+  cover_image_url: string | null;
   location?: string;
   joined?: string;
   totalSales: number;
   totalProducts: number;
+  followerCount: number;
   products: Array<{
     id: string;
     name: string;
@@ -64,6 +66,12 @@ const DesignerProfile = () => {
       // Calculate stats
       const totalSales = products?.reduce((sum, p) => sum + (p.total_sales || 0), 0) || 0;
 
+      // Get follower count
+      const { count: followerCount } = await supabase
+        .from("designer_follows")
+        .select("*", { count: "exact", head: true })
+        .eq("designer_id", id);
+
       setDesigner({
         id: profile.id,
         name: profile.name,
@@ -72,8 +80,10 @@ const DesignerProfile = () => {
         furniture_interests: profile.furniture_interests || '',
         portfolio_url: profile.portfolio_url || '',
         profile_picture_url: profile.profile_picture_url || null,
+        cover_image_url: profile.cover_image_url || null,
         totalSales,
         totalProducts: products?.length || 0,
+        followerCount: followerCount || 0,
         products: products?.map(p => ({
           id: p.id,
           name: p.name,
@@ -135,15 +145,23 @@ const DesignerProfile = () => {
       
       <main className="flex-1">
         {/* Hero Banner */}
-        <div className="relative bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-20">
-          <div className="container">
+        <div 
+          className="relative py-20"
+          style={
+            designer.cover_image_url
+              ? { backgroundImage: `linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.5)), url(${designer.cover_image_url})`, backgroundSize: "cover", backgroundPosition: "center" }
+              : {}
+          }
+        >
+          <div className={`absolute inset-0 ${!designer.cover_image_url ? 'bg-gradient-to-br from-primary/10 via-secondary/5 to-accent' : ''}`} />
+          <div className="container relative">
             <div className="max-w-4xl">
               <div className="flex items-start gap-6 mb-8">
                 {designer.profile_picture_url ? (
                   <img 
                     src={designer.profile_picture_url} 
                     alt={designer.name}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-primary/20 flex-shrink-0"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-background flex-shrink-0"
                   />
                 ) : (
                   <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl font-bold text-white flex-shrink-0">
@@ -151,15 +169,15 @@ const DesignerProfile = () => {
                   </div>
                 )}
                 <div className="flex-1">
-                  <h1 className="text-4xl md:text-5xl font-bold mb-3 text-foreground">{designer.name}</h1>
-                  <p className="text-lg text-muted-foreground mb-4">{designer.email}</p>
+                  <h1 className={`text-4xl md:text-5xl font-bold mb-3 ${designer.cover_image_url ? 'text-white' : 'text-foreground'}`}>{designer.name}</h1>
+                  <p className={`text-lg mb-2 ${designer.cover_image_url ? 'text-white/80' : 'text-muted-foreground'}`}>{designer.followerCount} followers</p>
                   {designer.portfolio_url && (
                     <div className="mb-4">
                       <a 
                         href={designer.portfolio_url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-primary hover:underline"
+                        className={`inline-flex items-center gap-2 ${designer.cover_image_url ? 'text-white hover:text-white/80' : 'text-primary hover:underline'}`}
                       >
                         <ExternalLink className="h-4 w-4" />
                         View Portfolio
