@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, ImagePlus } from "lucide-react";
+import { PlusCircle, ImagePlus, X, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -16,8 +16,59 @@ export const CreatePostDialog = () => {
   const [content, setContent] = useState("");
   const [postType, setPostType] = useState("behind_scenes");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
+  const uploadImage = async (designerId: string): Promise<string | null> => {
+    if (!imageFile) return null;
+
+    setIsUploadingImage(true);
+    try {
+      const fileExt = imageFile.name.split(".").pop();
+      const fileName = `${designerId}/post-${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("creator-profiles")
+        .upload(fileName, imageFile);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("creator-profiles")
+        .getPublicUrl(fileName);
+
+      return publicUrl;
+    } catch (error) {
+      console.error("Image upload error:", error);
+      throw error;
+    } finally {
+      setIsUploadingImage(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +102,12 @@ export const CreatePostDialog = () => {
         return;
       }
 
+      // Upload image if present
+      let imageUrl: string | null = null;
+      if (imageFile) {
+        imageUrl = await uploadImage(profile.id);
+      }
+
       // Create post
       const { error } = await supabase.from("feed_posts").insert({
         designer_id: profile.id,
@@ -58,6 +115,7 @@ export const CreatePostDialog = () => {
         content,
         post_type: postType,
         visibility: "public",
+        image_url: imageUrl,
       });
 
       if (error) throw error;
@@ -71,6 +129,8 @@ export const CreatePostDialog = () => {
       setTitle("");
       setContent("");
       setPostType("behind_scenes");
+      setImageFile(null);
+      setImagePreview(null);
       setOpen(false);
 
       // Refresh feed
@@ -132,8 +192,45 @@ export const CreatePostDialog = () => {
               placeholder="Share your story, insights, or update..."
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              rows={6}
+              rows={4}
               required
+            />
+          </div>
+
+          {/* Image Upload */}
+          <div className="space-y-2">
+            <Label>Image (optional)</Label>
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-cover"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 p-1 bg-black/50 rounded-full hover:bg-black/70 transition-colors"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="w-full h-32 border-2 border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+              >
+                <ImagePlus className="h-8 w-8" />
+                <span className="text-sm">Click to add an image</span>
+              </button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageSelect}
             />
           </div>
 
@@ -141,8 +238,15 @@ export const CreatePostDialog = () => {
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Posting..." : "Share Post"}
+            <Button type="submit" disabled={isSubmitting || isUploadingImage}>
+              {isSubmitting || isUploadingImage ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  {isUploadingImage ? "Uploading..." : "Posting..."}
+                </>
+              ) : (
+                "Share Post"
+              )}
             </Button>
           </div>
         </form>

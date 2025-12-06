@@ -550,6 +550,7 @@ export type Database = {
       }
       designer_profiles: {
         Row: {
+          cover_image_url: string | null
           created_at: string
           design_background: string | null
           email: string
@@ -566,6 +567,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          cover_image_url?: string | null
           created_at?: string
           design_background?: string | null
           email: string
@@ -582,6 +584,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          cover_image_url?: string | null
           created_at?: string
           design_background?: string | null
           email?: string
@@ -628,6 +631,35 @@ export type Database = {
           },
         ]
       }
+      feed_post_saves: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_post_saves_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "feed_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       feed_posts: {
         Row: {
           comments_count: number
@@ -636,6 +668,7 @@ export type Database = {
           designer_id: string
           id: string
           image_url: string | null
+          image_urls: Json | null
           likes_count: number
           metadata: Json | null
           post_type: string
@@ -650,6 +683,7 @@ export type Database = {
           designer_id: string
           id?: string
           image_url?: string | null
+          image_urls?: Json | null
           likes_count?: number
           metadata?: Json | null
           post_type: string
@@ -664,6 +698,7 @@ export type Database = {
           designer_id?: string
           id?: string
           image_url?: string | null
+          image_urls?: Json | null
           likes_count?: number
           metadata?: Json | null
           post_type?: string

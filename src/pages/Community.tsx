@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { FeedPost } from "@/components/FeedPost";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Sparkles, TrendingUp, Award, Users, Flame } from "lucide-react";
@@ -11,10 +10,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CommunitySidebar } from "@/components/community/CommunitySidebar";
 import { CreatePostDialog } from "@/components/community/CreatePostDialog";
 import { WeeklyThemes } from "@/components/community/WeeklyThemes";
-import { Link } from "react-router-dom";
+import { StoriesBar } from "@/components/community/StoriesBar";
+import { FeedViewToggle } from "@/components/community/FeedViewToggle";
+import { PostGrid } from "@/components/community/PostGrid";
+import { InstagramFeedPost } from "@/components/community/InstagramFeedPost";
 
 const Community = () => {
   const [filter, setFilter] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<"feed" | "grid">("feed");
 
   const { data: feedPosts, isLoading } = useQuery({
     queryKey: ["feed-posts", filter],
@@ -84,7 +87,7 @@ const Community = () => {
 
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-12 border-b">
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-8 sm:py-12 border-b">
           <div className="container">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
@@ -104,66 +107,86 @@ const Community = () => {
           </div>
         </section>
 
+        {/* Stories Bar */}
+        <section className="container py-4 border-b">
+          <StoriesBar />
+        </section>
+
         {/* Feed Section with Sidebar */}
-        <section className="container py-8">
+        <section className="container py-6 sm:py-8">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
             {/* Main Feed */}
             <div>
-              <Tabs defaultValue="all" className="space-y-6" onValueChange={setFilter}>
-                <TabsList className="grid w-full grid-cols-4 sticky top-20 z-10 bg-background">
-                  <TabsTrigger value="all" className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">All</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="product_launch" className="flex items-center gap-2">
-                    <Sparkles className="h-4 w-4" />
-                    <span className="hidden sm:inline">Launches</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="milestone" className="flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="hidden sm:inline">Milestones</span>
-                  </TabsTrigger>
-                  <TabsTrigger value="achievement" className="flex items-center gap-2">
-                    <Award className="h-4 w-4" />
-                    <span className="hidden sm:inline">Achievements</span>
-                  </TabsTrigger>
-                </TabsList>
+              <div className="flex items-center justify-between mb-6">
+                <Tabs defaultValue="all" className="flex-1" onValueChange={setFilter}>
+                  <TabsList className="grid w-full grid-cols-4 max-w-md">
+                    <TabsTrigger value="all" className="flex items-center gap-1 sm:gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      <span className="hidden sm:inline">All</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="product_launch" className="flex items-center gap-1 sm:gap-2">
+                      <Sparkles className="h-4 w-4" />
+                      <span className="hidden sm:inline">Launches</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="milestone" className="flex items-center gap-1 sm:gap-2">
+                      <TrendingUp className="h-4 w-4" />
+                      <span className="hidden sm:inline">Milestones</span>
+                    </TabsTrigger>
+                    <TabsTrigger value="achievement" className="flex items-center gap-1 sm:gap-2">
+                      <Award className="h-4 w-4" />
+                      <span className="hidden sm:inline">Achievements</span>
+                    </TabsTrigger>
+                  </TabsList>
+                </Tabs>
+                <div className="ml-4">
+                  <FeedViewToggle view={viewMode} onViewChange={setViewMode} />
+                </div>
+              </div>
 
-                <TabsContent value={filter} className="space-y-6">
-                  {isLoading ? (
-                    <div className="space-y-6">
-                      {[1, 2, 3].map((i) => (
-                        <div key={i} className="border rounded-lg p-6 space-y-4">
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="h-12 w-12 rounded-full" />
-                            <div className="space-y-2">
-                              <Skeleton className="h-4 w-32" />
-                              <Skeleton className="h-3 w-24" />
-                            </div>
+              {isLoading ? (
+                <div className="space-y-6">
+                  {viewMode === "feed" ? (
+                    [1, 2, 3].map((i) => (
+                      <div key={i} className="border rounded-lg p-6 space-y-4">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-12 w-12 rounded-full" />
+                          <div className="space-y-2">
+                            <Skeleton className="h-4 w-32" />
+                            <Skeleton className="h-3 w-24" />
                           </div>
-                          <Skeleton className="h-20 w-full" />
-                          <Skeleton className="h-64 w-full" />
                         </div>
-                      ))}
-                    </div>
-                  ) : feedPosts && feedPosts.length > 0 ? (
-                    <div className="space-y-6">
-                      {feedPosts.map((post) => (
-                        <FeedPost key={post.id} post={post} />
-                      ))}
-                    </div>
+                        <Skeleton className="h-20 w-full" />
+                        <Skeleton className="h-64 w-full" />
+                      </div>
+                    ))
                   ) : (
-                    <div className="text-center py-16 border rounded-lg">
-                      <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                      <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+                    <div className="grid grid-cols-3 gap-1 sm:gap-2">
+                      {[1, 2, 3, 4, 5, 6].map((i) => (
+                        <Skeleton key={i} className="aspect-square rounded-sm sm:rounded-lg" />
+                      ))}
                     </div>
                   )}
-                </TabsContent>
-              </Tabs>
+                </div>
+              ) : feedPosts && feedPosts.length > 0 ? (
+                viewMode === "feed" ? (
+                  <div className="space-y-4 sm:space-y-6">
+                    {feedPosts.map((post) => (
+                      <InstagramFeedPost key={post.id} post={post} />
+                    ))}
+                  </div>
+                ) : (
+                  <PostGrid posts={feedPosts} />
+                )
+              ) : (
+                <div className="text-center py-16 border rounded-lg">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+                  <p className="text-muted-foreground">No posts yet. Be the first to share!</p>
+                </div>
+              )}
             </div>
 
             {/* Sidebar */}
-            <div className="lg:sticky lg:top-24 lg:self-start space-y-6">
+            <div className="hidden lg:block lg:sticky lg:top-24 lg:self-start space-y-6">
               <WeeklyThemes />
               <CommunitySidebar />
             </div>
