@@ -215,7 +215,10 @@ export const InstagramFeedPost = ({ post }: InstagramFeedPostProps) => {
             <button onClick={handleLike} className="hover:opacity-70 transition-opacity">
               <Heart className={`h-6 w-6 ${isLiked ? "fill-primary text-primary" : ""}`} />
             </button>
-            <button className="hover:opacity-70 transition-opacity">
+            <button 
+              onClick={() => toast({ title: "Comments coming soon!" })} 
+              className="hover:opacity-70 transition-opacity"
+            >
               <MessageCircle className="h-6 w-6" />
             </button>
             <button onClick={handleShare} className="hover:opacity-70 transition-opacity">
