@@ -136,6 +136,13 @@ export const Header = () => {
                   Community
                 </Link>
                 <Link
+                  to="/explore"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
+                >
+                  Explore
+                </Link>
+                <Link
                   to="/creator-leaderboard"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
@@ -272,6 +279,9 @@ export const Header = () => {
           </Link>
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
+          </Link>
+          <Link to="/explore" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+            Explore
           </Link>
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Leaderboard

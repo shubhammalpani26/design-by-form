@@ -50,6 +50,7 @@ import NotFound from "./pages/NotFound";
 import { CreatorLayout } from "./layouts/CreatorLayout";
 import AdminPanel from "./pages/AdminPanel";
 import Community from "./pages/Community";
+import Explore from "./pages/Explore";
 
 const queryClient = new QueryClient();
 
@@ -71,6 +72,7 @@ const App = () => (
             <Route path="/design-studio" element={<DesignStudio />} />
             <Route path="/creators" element={<Creators />} />
             <Route path="/community" element={<Community />} />
+            <Route path="/explore" element={<Explore />} />
             <Route path="/designer-signup" element={<DesignerSignup />} />
             <Route path="/designer-dashboard" element={<DesignerDashboard />} />
             <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
