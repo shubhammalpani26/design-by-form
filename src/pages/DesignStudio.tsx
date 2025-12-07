@@ -2042,13 +2042,64 @@ const DesignStudio = () => {
 
                     <div>
                       <label className="text-sm font-medium mb-2 block text-foreground">Description *</label>
-                      <Textarea 
-                        placeholder="Describe your design, its features, and what makes it unique..."
-                        className="min-h-[100px]"
-                        value={submissionData.description}
-                        onChange={(e) => setSubmissionData({ ...submissionData, description: e.target.value })}
-                        required
-                      />
+                      <div className="space-y-2">
+                        <Textarea 
+                          placeholder="Describe your design, its features, and what makes it unique..."
+                          className="min-h-[100px]"
+                          value={submissionData.description}
+                          onChange={(e) => setSubmissionData({ ...submissionData, description: e.target.value })}
+                          required
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={async () => {
+                            try {
+                              toast({
+                                title: "Generating description...",
+                                description: "AI is creating a premium description for your design",
+                              });
+
+                              const { data, error } = await supabase.functions.invoke('generate-product-description', {
+                                body: {
+                                  productName: submissionData.name || 'Design',
+                                  category: submissionData.category,
+                                  materials: "High-grade resin reinforced with composite fibre, with hand-finished details",
+                                  dimensions: {
+                                    width: parseFloat(dimensions.breadth) || 60,
+                                    depth: parseFloat(dimensions.length) || 60,
+                                    height: parseFloat(dimensions.height) || 80
+                                  }
+                                }
+                              });
+
+                              if (error) throw error;
+
+                              if (data?.description) {
+                                setSubmissionData({ ...submissionData, description: data.description });
+                                toast({
+                                  title: "Description generated!",
+                                  description: "AI has created a premium description for your design",
+                                });
+                              }
+                            } catch (error) {
+                              console.error('Error generating description:', error);
+                              toast({
+                                title: "Failed to generate description",
+                                description: "Please try again or write a description manually",
+                                variant: "destructive",
+                              });
+                            }
+                          }}
+                          className="whitespace-nowrap"
+                        >
+                          <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          AI Suggest Description
+                        </Button>
+                      </div>
                     </div>
 
                     <div>
