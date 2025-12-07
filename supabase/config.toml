@@ -1,7 +1,7 @@
 project_id = "rdcfakdhgndnhgzfkuvw"
 
 [functions.generate-design]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-product-description]
 verify_jwt = true
