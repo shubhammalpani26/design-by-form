@@ -42,6 +42,8 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             <img
               src={image}
               alt={name}
+              loading="lazy"
+              decoding="async"
               className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
             

@@ -196,6 +196,8 @@ export const InstagramFeedPost = ({ post }: InstagramFeedPostProps) => {
             <img
               src={post.image_url}
               alt={post.title}
+              loading="lazy"
+              decoding="async"
               className="w-full aspect-square object-cover"
             />
           </Link>
