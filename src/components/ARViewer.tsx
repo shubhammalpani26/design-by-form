@@ -282,13 +282,50 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       width: '100%',
       height: '100%',
       background: 'transparent',
-      touchAction: 'none', // Prevent scroll conflicts
+      touchAction: 'pan-y', // Allow vertical scroll but capture horizontal for rotation
     } : {
       width: '100%',
       height: '100%',
       minHeight: '250px',
       background: 'transparent'
     };
+    
+    // For in-room AR: static model that user can only rotate manually, no auto-spin
+    // For standalone: auto-rotate showcase mode
+    if (inRoom) {
+      return (
+        <>
+          {isModelLoading && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
+              <div className="text-center space-y-2">
+                <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                <p className="text-sm text-muted-foreground">Loading 3D model...</p>
+              </div>
+            </div>
+          )}
+          {/* @ts-ignore - model-viewer is a web component */}
+          <model-viewer
+            key={viewerKey}
+            ref={handleViewerRef}
+            src={proxiedModelUrl}
+            alt={productName}
+            camera-controls
+            disable-zoom
+            disable-pan
+            disable-tap
+            interaction-prompt="none"
+            interpolation-decay="100"
+            orbit-sensitivity="0.5"
+            camera-orbit="0deg 75deg 105%"
+            min-camera-orbit="auto 30deg auto"
+            max-camera-orbit="auto 150deg auto"
+            field-of-view="30deg"
+            loading="eager"
+            style={style}
+          />
+        </>
+      );
+    }
     
     return (
       <>
@@ -306,16 +343,10 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
           ref={handleViewerRef}
           src={proxiedModelUrl}
           alt={productName}
-          auto-rotate={!inRoom}
+          auto-rotate
           camera-controls
-          rotation-per-second={inRoom ? "0deg" : "30deg"}
+          rotation-per-second="30deg"
           loading="eager"
-          interaction-prompt="none"
-          disable-zoom={inRoom}
-          min-camera-orbit={inRoom ? "auto 45deg auto" : undefined}
-          max-camera-orbit={inRoom ? "auto 135deg auto" : undefined}
-          camera-orbit={inRoom ? "0deg 75deg 105%" : undefined}
-          field-of-view={inRoom ? "30deg" : undefined}
           style={style}
         />
       </>
