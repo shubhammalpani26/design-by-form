@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Move, RotateCw, ZoomIn, Loader2 } from "lucide-react";
 import { processImageUrl } from "@/lib/backgroundRemoval";
@@ -26,9 +26,10 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const [isDragging, setIsDragging] = useState(false);
   const [proxiedModelUrl, setProxiedModelUrl] = useState<string | null>(null);
   const [isModelLoading, setIsModelLoading] = useState(false);
+  const [viewerKey, setViewerKey] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const modelViewerRef = useRef<HTMLElement>(null);
+  const viewerElementRef = useRef<HTMLElement | null>(null);
   const { toast } = useToast();
 
   // Track which URLs have been processed to prevent re-processing
@@ -79,59 +80,48 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   // Create proxied URL for 3D model to avoid CORS issues
   useEffect(() => {
     if (modelUrl) {
-      // Use the same proxy as ModelViewer3D to avoid CORS issues
       const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
       setProxiedModelUrl(proxyUrl);
       setIsModelLoading(true);
+      setViewerKey(k => k + 1); // Force remount
     } else {
       setProxiedModelUrl(null);
       setIsModelLoading(false);
     }
   }, [modelUrl]);
 
-  // Attach event listeners to model-viewer elements
-  useEffect(() => {
-    if (!proxiedModelUrl) return;
-
-    // Use requestAnimationFrame to ensure DOM is updated after render
-    const rafId = requestAnimationFrame(() => {
-      const viewer = modelViewerRef.current;
-      if (!viewer) {
-        console.log('⏳ AR: Waiting for model-viewer element...');
-        return;
-      }
-
-      console.log('🎯 AR: Attaching event listeners to model-viewer');
-
-      const handleLoad = () => {
-        console.log('✅ AR model-viewer loaded');
-        setIsModelLoading(false);
-      };
-
-      const handleError = () => {
-        console.error('❌ AR model-viewer failed to load');
-        setIsModelLoading(false);
-        toast({
-          title: "Failed to load 3D model",
-          description: "Using 2D image instead",
-          variant: "destructive"
-        });
-      };
-
-      // Check if already loaded
-      const modelViewer = viewer as any;
-      if (modelViewer.loaded) {
-        handleLoad();
-        return;
-      }
-
-      viewer.addEventListener('load', handleLoad);
-      viewer.addEventListener('error', handleError);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
+  // Handle model-viewer element via callback ref
+  const handleViewerRef = useCallback((element: HTMLElement | null) => {
+    viewerElementRef.current = element;
+    
+    if (!element || !proxiedModelUrl) return;
+    
+    console.log('🎯 AR: Setting up model-viewer element');
+    
+    const handleLoad = () => {
+      console.log('✅ AR model-viewer loaded');
+      setIsModelLoading(false);
     };
+
+    const handleError = () => {
+      console.error('❌ AR model-viewer failed to load');
+      setIsModelLoading(false);
+      toast({
+        title: "Failed to load 3D model",
+        description: "Using 2D image instead",
+        variant: "destructive"
+      });
+    };
+
+    // Check if already loaded
+    const modelViewer = element as any;
+    if (modelViewer.loaded) {
+      handleLoad();
+      return;
+    }
+
+    element.addEventListener('load', handleLoad);
+    element.addEventListener('error', handleError);
   }, [proxiedModelUrl, toast]);
 
   useEffect(() => {
@@ -190,7 +180,6 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       // Check if we've already processed this URL in this session
       if (processedUrls.has(urlToProcess)) {
         console.log('Already processed this URL in this session');
-        // If it's in processedUrls but not in cache, we need to use the current processedFurnitureUrl
         return;
       }
 
@@ -285,6 +274,47 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     setIsDragging(false);
   };
 
+  // Render model-viewer element
+  const renderModelViewer = (inRoom: boolean = false) => {
+    if (!proxiedModelUrl) return null;
+    
+    const style: React.CSSProperties = inRoom ? {
+      width: '100%',
+      height: '100%',
+      background: 'transparent'
+    } : {
+      width: '100%',
+      height: '100%',
+      minHeight: '250px',
+      background: 'transparent'
+    };
+    
+    return (
+      <>
+        {isModelLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
+            <div className="text-center space-y-2">
+              <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+              <p className="text-sm text-muted-foreground">Loading 3D model...</p>
+            </div>
+          </div>
+        )}
+        {/* @ts-ignore - model-viewer is a web component */}
+        <model-viewer
+          key={viewerKey}
+          ref={handleViewerRef}
+          src={proxiedModelUrl}
+          alt={productName}
+          auto-rotate
+          camera-controls
+          rotation-per-second="30deg"
+          loading="eager"
+          style={style}
+        />
+      </>
+    );
+  };
+
   return (
     <Card className="border-secondary/20 shadow-medium bg-secondary/5">
       <CardContent className="p-6">
@@ -337,26 +367,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       transition: isDragging ? 'none' : 'transform 0.2s ease-out',
                     }}
                   >
-                    {isModelLoading && (
-                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
-                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-                      </div>
-                    )}
-                    {/* @ts-ignore */}
-                    <model-viewer
-                      ref={modelViewerRef}
-                      src={proxiedModelUrl}
-                      alt={productName}
-                      auto-rotate
-                      camera-controls
-                      rotation-per-second="30deg"
-                      loading="eager"
-                      style={{ 
-                        width: '100%', 
-                        height: '100%',
-                        background: 'transparent'
-                      } as React.CSSProperties}
-                    />
+                    {renderModelViewer(true)}
                   </div>
                 ) : (
                   <img
@@ -395,30 +406,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             ) : !uploadedPhoto && proxiedModelUrl ? (
               // Show 3D model preview without room
               <div className="relative w-full h-full flex items-center justify-center p-4">
-                {isModelLoading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
-                    <div className="text-center space-y-2">
-                      <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
-                      <p className="text-sm text-muted-foreground">Loading 3D model...</p>
-                    </div>
-                  </div>
-                )}
-                {/* @ts-ignore */}
-                <model-viewer
-                  ref={modelViewerRef}
-                  src={proxiedModelUrl}
-                  alt={productName}
-                  auto-rotate
-                  camera-controls
-                  rotation-per-second="30deg"
-                  loading="eager"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    minHeight: '250px',
-                    background: 'transparent'
-                  }}
-                />
+                {renderModelViewer(false)}
                 <div className="absolute bottom-4 left-0 right-0 text-center">
                   <p className="text-xs text-muted-foreground bg-background/80 inline-block px-3 py-1 rounded-full">
                     Upload a room photo below to see this in your space
@@ -434,170 +422,129 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                     alt={productName}
                     className="max-w-[250px] max-h-[200px] object-contain mx-auto rounded-lg shadow-lg"
                   />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{productName}</p>
-                    <p className="text-xs text-muted-foreground mt-1">Upload a room photo below to see this in your space</p>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">
+                      Upload a photo of your room to see this {productName} in your space
+                    </p>
                   </div>
                 </div>
               </div>
-            ) : !imageUrl && !modelUrl ? (
-              <div className="text-center space-y-3 p-8">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">AR Preview</p>
-                  <p className="text-xs text-muted-foreground mt-2">Generate a design first, then upload a room photo</p>
-                </div>
-              </div>
             ) : (
-              <div className="text-center space-y-3 p-8">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <div className="text-center p-8 space-y-4">
+                <div className="w-16 h-16 rounded-full bg-secondary/20 flex items-center justify-center mx-auto">
+                  <svg className="w-8 h-8 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
                 </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Ready for AR!</p>
-                  <p className="text-xs text-muted-foreground mt-1">Processing...</p>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Upload a photo of your room to preview {productName} in your space
+                </p>
               </div>
             )}
           </div>
 
-          {uploadedPhoto && processedFurnitureUrl && (
-            <div className="space-y-3 p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-3">
-                <Move className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Position</span>
-                <p className="text-xs text-muted-foreground">Drag furniture to move</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoUpload}
+            className="hidden"
+          />
+
+          {/* Control Panel */}
+          {uploadedPhoto && processedFurnitureUrl && !proxiedModelUrl && (
+            <div className="space-y-4 p-4 bg-accent/50 rounded-lg">
+              <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <Move className="w-4 h-4" />
+                Position Controls
               </div>
               
-              <div className="flex items-center gap-3">
-                <ZoomIn className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Scale</span>
-                <Slider
-                  value={[furnitureScale]}
-                  onValueChange={(value) => setFurnitureScale(value[0])}
-                  min={20}
-                  max={100}
-                  step={1}
-                  className="flex-1"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <ZoomIn className="w-3 h-3" />
+                    Scale
+                  </label>
+                  <Slider
+                    value={[furnitureScale]}
+                    min={20}
+                    max={100}
+                    step={1}
+                    onValueChange={(value) => setFurnitureScale(value[0])}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground flex items-center gap-1">
+                    <RotateCw className="w-3 h-3" />
+                    Rotation
+                  </label>
+                  <Slider
+                    value={[furnitureRotation]}
+                    min={-180}
+                    max={180}
+                    step={5}
+                    onValueChange={(value) => setFurnitureRotation(value[0])}
+                  />
+                </div>
               </div>
-              
-              <div className="flex items-center gap-3">
-                <RotateCw className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Spin</span>
-                <Slider
-                  value={[furnitureRotation]}
-                  onValueChange={(value) => setFurnitureRotation(value[0])}
-                  min={0}
-                  max={360}
-                  step={1}
-                  className="flex-1"
-                />
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <svg className="h-4 w-4 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                </svg>
-                <span className="text-sm text-muted-foreground w-20 flex-shrink-0">Tilt</span>
+
+              <div className="space-y-2">
+                <label className="text-xs text-muted-foreground flex items-center gap-1">
+                  <RotateCw className="w-3 h-3" />
+                  Lateral Rotation (3D effect)
+                </label>
                 <Slider
                   value={[furnitureLateralRotation]}
+                  min={-60}
+                  max={60}
+                  step={5}
                   onValueChange={(value) => setFurnitureLateralRotation(value[0])}
-                  min={-180}
-                  max={180}
-                  step={1}
-                  className="flex-1"
                 />
               </div>
-            </div>
-          )}
 
-          {isARSupported ? (
-            <div className="space-y-3">
-              <div className="grid grid-cols-2 gap-2">
-                <Button 
-                  variant="default" 
-                  className="bg-secondary hover:bg-secondary/90"
-                  disabled={!imageUrl && !modelUrl}
-                  onClick={onStartAR}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                  Live AR
-                </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={!imageUrl && !modelUrl}
-                >
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Upload Photo
-                </Button>
-              </div>
-              <input 
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handlePhotoUpload}
-              />
-
-              <div className="bg-accent rounded-lg p-4 space-y-2">
-                <p className="text-xs font-semibold text-foreground flex items-center gap-2">
-                  <svg className="w-4 h-4 text-secondary" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                  </svg>
-                  How AR works:
-                </p>
-                <ul className="text-xs text-muted-foreground space-y-1 ml-6 list-disc">
-                  <li>AI removes background from furniture automatically</li>
-                  <li>Upload a photo of your space</li>
-                  <li>Drag to position the furniture</li>
-                  <li>Use sliders to scale and rotate</li>
-                  <li>Visualize before ordering</li>
-                </ul>
-                {!modelUrl && (
-                  <p className="text-xs text-amber-600 mt-2 flex items-start gap-1">
-                    <svg className="w-3 h-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                    <span>3D view unavailable. Using high-quality 2D AR with AI background removal.</span>
-                  </p>
-                )}
-              </div>
-
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" className="flex-1" disabled={!imageUrl && !modelUrl}>
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-                  </svg>
-                  Share AR
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1" disabled={!imageUrl && !modelUrl}>
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                  Take Photo
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="bg-accent rounded-lg p-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                AR is not supported on this device. Try opening this page on a mobile device with AR capabilities.
+              <p className="text-xs text-muted-foreground">
+                Tip: Click and drag on the image to move the furniture
               </p>
             </div>
           )}
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              className="flex-1"
+            >
+              {uploadedPhoto ? 'Change Room Photo' : 'Upload Room Photo'}
+            </Button>
+            
+            {uploadedPhoto && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setUploadedPhoto(null);
+                  setFurniturePosition({ x: 50, y: 50 });
+                  setFurnitureScale(50);
+                  setFurnitureRotation(0);
+                  setFurnitureLateralRotation(0);
+                  sessionStorage.removeItem('ar-viewer-state');
+                }}
+                className="flex-1"
+              >
+                Clear Photo
+              </Button>
+            )}
+          </div>
+
+          <div className="text-xs text-muted-foreground bg-accent/50 p-3 rounded-lg">
+            <p>
+              <strong>How it works:</strong> Upload a photo of your room, then position the furniture using drag or controls.
+              {proxiedModelUrl ? ' Rotate the 3D model with your mouse.' : ''}
+            </p>
+          </div>
         </div>
       </CardContent>
     </Card>

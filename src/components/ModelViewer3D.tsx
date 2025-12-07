@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
@@ -40,15 +40,18 @@ interface ModelViewer3DProps {
 type LoadingState = 'idle' | 'loading-script' | 'loading-model' | 'loaded' | 'error';
 
 export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DProps) => {
-  const modelViewerRef = useRef<HTMLElement>(null);
   const [scriptReady, setScriptReady] = useState(() => modelViewerScriptLoaded || !!customElements.get('model-viewer'));
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
-  // Counter to force re-run of effect after render
-  const [renderCount, setRenderCount] = useState(0);
+  
+  // Use a key to force remount of model-viewer when URL changes
+  const [viewerKey, setViewerKey] = useState(0);
+  
+  // Store the actual DOM element reference
+  const viewerElementRef = useRef<HTMLElement | null>(null);
 
   // Load model-viewer script
   useEffect(() => {
@@ -105,8 +108,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
       setProxiedUrl(cachedProxyUrl);
       setLoadingState('loading-model');
       setLoadProgress(0);
-      // Trigger re-render to attach listeners after DOM update
-      setRenderCount(c => c + 1);
+      setViewerKey(k => k + 1); // Force remount
       return;
     }
 
@@ -118,73 +120,64 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
     console.log('🔗 Setting proxy URL:', proxyUrl);
     setProxiedUrl(proxyUrl);
-    // Trigger re-render to attach listeners after DOM update
-    setRenderCount(c => c + 1);
+    setViewerKey(k => k + 1); // Force remount
   }, [modelUrl, scriptReady]);
 
-  // Attach event listeners when model-viewer is mounted and proxiedUrl is set
-  // Uses renderCount to ensure we try again after the DOM is updated
-  useEffect(() => {
-    if (!proxiedUrl || !scriptReady) return;
-
-    // Use requestAnimationFrame to ensure DOM is updated
-    const rafId = requestAnimationFrame(() => {
-      const viewer = modelViewerRef.current;
-      if (!viewer) {
-        console.log('⏳ Waiting for model-viewer element...');
-        // Try again after a short delay
-        const timeoutId = setTimeout(() => setRenderCount(c => c + 1), 100);
-        return () => clearTimeout(timeoutId);
+  // Handle model-viewer element via callback ref
+  const handleViewerRef = useCallback((element: HTMLElement | null) => {
+    // Clean up old listeners if we have a previous element
+    const prevElement = viewerElementRef.current;
+    if (prevElement && prevElement !== element) {
+      console.log('🧹 Cleaning up old model-viewer listeners');
+      // Remove all listeners by cloning (simplest cleanup)
+    }
+    
+    viewerElementRef.current = element;
+    
+    if (!element || !proxiedUrl) return;
+    
+    console.log('🎯 Setting up model-viewer element with src:', proxiedUrl);
+    
+    const handleLoad = () => {
+      console.log('✅ Model loaded successfully');
+      if (modelUrl) {
+        loadedModelsCache.set(modelUrl, proxiedUrl);
       }
+      setLoadingState('loaded');
+      setLoadProgress(100);
+    };
 
-      console.log('🎯 Attaching event listeners to model-viewer');
+    const handleError = (event: Event) => {
+      console.error('❌ Model load failed:', event);
+      setLoadingState('error');
+      const msg = 'Failed to load 3D model. Please try again or contact support.';
+      setErrorMessage(msg);
+      onError?.(msg);
+    };
 
-      const handleLoad = () => {
-        console.log('✅ Model loaded successfully');
-        if (modelUrl) {
-          loadedModelsCache.set(modelUrl, proxiedUrl);
-        }
-        setLoadingState('loaded');
-        setLoadProgress(100);
-      };
-
-      const handleError = (event: Event) => {
-        console.error('❌ Model load failed:', event);
-        setLoadingState('error');
-        const msg = 'Failed to load 3D model. Please try again or contact support.';
-        setErrorMessage(msg);
-        onError?.(msg);
-      };
-
-      const handleProgress = (event: any) => {
-        if (event.detail && event.detail.totalProgress !== undefined) {
-          const progress = Math.round(event.detail.totalProgress * 100);
-          console.log('📊 Loading progress:', progress);
-          setLoadProgress(progress);
-        }
-      };
-
-      // Check if already loaded (e.g., from browser cache)
-      const modelViewer = viewer as any;
-      if (modelViewer.loaded) {
-        console.log('✅ Model already loaded (browser cache)');
-        handleLoad();
-      }
-
-      viewer.addEventListener('load', handleLoad);
-      viewer.addEventListener('error', handleError);
-      viewer.addEventListener('progress', handleProgress);
-    });
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      const viewer = modelViewerRef.current;
-      if (viewer) {
-        // Clean up listeners - but we need to store references
-        // Since we can't access the handlers, just let React handle cleanup
+    const handleProgress = (event: any) => {
+      if (event.detail && event.detail.totalProgress !== undefined) {
+        const progress = Math.round(event.detail.totalProgress * 100);
+        console.log('📊 Loading progress:', progress);
+        setLoadProgress(progress);
       }
     };
-  }, [proxiedUrl, scriptReady, modelUrl, onError, renderCount]);
+
+    // Check if already loaded (e.g., from browser cache)
+    const modelViewer = element as any;
+    if (modelViewer.loaded) {
+      console.log('✅ Model already loaded (browser cache)');
+      handleLoad();
+      return;
+    }
+
+    element.addEventListener('load', handleLoad);
+    element.addEventListener('error', handleError);
+    element.addEventListener('progress', handleProgress);
+    
+    // Return cleanup function isn't needed for callback refs,
+    // but we store reference for manual cleanup if needed
+  }, [proxiedUrl, modelUrl, onError]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
@@ -201,7 +194,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     setProxiedUrl('https://modelviewer.dev/shared-assets/models/Astronaut.glb');
     setLoadingState('loading-model');
     setLoadProgress(0);
-    setRenderCount(c => c + 1);
+    setViewerKey(k => k + 1);
   };
 
   const handleRetry = () => {
@@ -214,7 +207,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
         setProxiedUrl(proxyUrl);
         setLoadingState('loading-model');
         setLoadProgress(0);
-        setRenderCount(c => c + 1);
+        setViewerKey(k => k + 1);
       }, 100);
     }
   };
@@ -302,7 +295,8 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
             ) : (
               <>
                 <model-viewer
-                  ref={modelViewerRef}
+                  key={viewerKey}
+                  ref={handleViewerRef}
                   src={proxiedUrl}
                   alt={productName}
                   auto-rotate
@@ -356,8 +350,9 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                   <p><strong>Status:</strong> {loadingState}</p>
                   <p><strong>Progress:</strong> {loadProgress}%</p>
                   <p><strong>Script Ready:</strong> {scriptReady ? 'Yes' : 'No'}</p>
-                  <p><strong>Has Ref:</strong> {modelViewerRef.current ? 'Yes' : 'No'}</p>
+                  <p><strong>Has Ref:</strong> {viewerElementRef.current ? 'Yes' : 'No'}</p>
                   <p><strong>Cached:</strong> {loadedModelsCache.has(modelUrl) ? 'Yes' : 'No'}</p>
+                  <p><strong>Viewer Key:</strong> {viewerKey}</p>
                   {modelFileSize && <p><strong>Size:</strong> {modelFileSize}</p>}
                   <p className="break-all"><strong>URL:</strong> {modelUrl}</p>
                   {proxiedUrl && (
