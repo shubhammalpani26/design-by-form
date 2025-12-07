@@ -51,6 +51,17 @@ serve(async (req) => {
       throw new Error('Product ID is required');
     }
 
+    // Get product details before approving
+    const { data: product, error: productError } = await supabase
+      .from('designer_products')
+      .select('*, designer_profiles(id, name)')
+      .eq('id', productId)
+      .single();
+
+    if (productError || !product) {
+      throw new Error('Product not found');
+    }
+
     // Approve product
     const { error: updateError } = await supabase
       .from('designer_products')
@@ -59,13 +70,49 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
+    console.log(`Product ${productId} approved, creating community feed post...`);
+
+    // Auto-publish to community feed when product is approved
+    const { error: feedPostError } = await supabase
+      .from('feed_posts')
+      .insert({
+        designer_id: product.designer_id,
+        post_type: 'product_launch',
+        title: `New Design: ${product.name}`,
+        content: product.description || `Check out this new ${product.category} design!`,
+        image_url: product.image_url,
+        visibility: 'public',
+        metadata: {
+          product_id: productId,
+          category: product.category,
+          price: product.designer_price,
+          auto_generated: true
+        }
+      });
+
+    if (feedPostError) {
+      console.error('Error creating feed post:', feedPostError);
+      // Don't fail the approval if feed post fails
+    } else {
+      console.log(`Community feed post created for product ${productId}`);
+    }
+
     // Send approval notification
-    await supabase.functions.invoke('notify-product-status', {
-      body: { productId, status: 'approved' }
-    });
+    try {
+      await supabase.functions.invoke('notify-product-status', {
+        body: { productId, status: 'approved' }
+      });
+    } catch (notifyError) {
+      console.error('Error sending notification:', notifyError);
+      // Don't fail if notification fails
+    }
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Product approved successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Product approved and published to community feed',
+        feedPostCreated: !feedPostError
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
