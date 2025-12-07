@@ -49,7 +49,8 @@ export const ProfileImageUpload = ({
       if (!profile) throw new Error("Designer profile not found");
 
       const fileExt = file.name.split(".").pop();
-      const fileName = `${profile.id}/${type}-${Date.now()}.${fileExt}`;
+      // Use user.id as folder path to match storage RLS policy
+      const fileName = `${user.id}/${type}-${Date.now()}.${fileExt}`;
 
       // Upload to storage
       const { error: uploadError } = await supabase.storage
