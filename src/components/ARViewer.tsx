@@ -274,14 +274,15 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     setIsDragging(false);
   };
 
-  // Render model-viewer element
+  // Render model-viewer element for AR with improved controls
   const renderModelViewer = (inRoom: boolean = false) => {
     if (!proxiedModelUrl) return null;
     
     const style: React.CSSProperties = inRoom ? {
       width: '100%',
       height: '100%',
-      background: 'transparent'
+      background: 'transparent',
+      touchAction: 'none', // Prevent scroll conflicts
     } : {
       width: '100%',
       height: '100%',
@@ -305,10 +306,16 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
           ref={handleViewerRef}
           src={proxiedModelUrl}
           alt={productName}
-          auto-rotate
+          auto-rotate={!inRoom}
           camera-controls
-          rotation-per-second="30deg"
+          rotation-per-second={inRoom ? "0deg" : "30deg"}
           loading="eager"
+          interaction-prompt="none"
+          disable-zoom={inRoom}
+          min-camera-orbit={inRoom ? "auto 45deg auto" : undefined}
+          max-camera-orbit={inRoom ? "auto 135deg auto" : undefined}
+          camera-orbit={inRoom ? "0deg 75deg 105%" : undefined}
+          field-of-view={inRoom ? "30deg" : undefined}
           style={style}
         />
       </>
@@ -330,7 +337,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
 
           <div 
             ref={containerRef}
-            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-visible cursor-move"
             style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -356,18 +363,24 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                 ) : proxiedModelUrl ? (
                   // Use 3D model viewer for AR when model is available
                   <div
-                    className="absolute pointer-events-auto"
+                    className="absolute pointer-events-auto rounded-lg"
                     style={{
-                      left: `${furniturePosition.x}%`,
-                      top: `${furniturePosition.y}%`,
+                      left: `${Math.max(15, Math.min(85, furniturePosition.x))}%`,
+                      top: `${Math.max(20, Math.min(80, furniturePosition.y))}%`,
                       transform: `translate(-50%, -50%) scale(${furnitureScale / 50})`,
-                      width: '40%',
-                      maxWidth: '300px',
-                      height: '250px',
-                      transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                      width: '35%',
+                      minWidth: '180px',
+                      maxWidth: '280px',
+                      height: '200px',
+                      transition: isDragging ? 'none' : 'all 0.2s ease-out',
+                      zIndex: 10,
                     }}
                   >
-                    {renderModelViewer(true)}
+                    <div className="w-full h-full relative">
+                      {renderModelViewer(true)}
+                      {/* Visual boundary indicator */}
+                      <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-lg pointer-events-none opacity-0 hover:opacity-100 transition-opacity" />
+                    </div>
                   </div>
                 ) : (
                   <img
@@ -452,8 +465,8 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             className="hidden"
           />
 
-          {/* Control Panel */}
-          {uploadedPhoto && processedFurnitureUrl && !proxiedModelUrl && (
+          {/* Control Panel - Show for both 2D and 3D models */}
+          {uploadedPhoto && (processedFurnitureUrl || proxiedModelUrl) && (
             <div className="space-y-4 p-4 bg-accent/50 rounded-lg">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Move className="w-4 h-4" />
@@ -464,7 +477,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground flex items-center gap-1">
                     <ZoomIn className="w-3 h-3" />
-                    Scale
+                    Size
                   </label>
                   <Slider
                     value={[furnitureScale]}
@@ -475,37 +488,55 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   />
                 </div>
                 
+                {!proxiedModelUrl && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <RotateCw className="w-3 h-3" />
+                      Rotation
+                    </label>
+                    <Slider
+                      value={[furnitureRotation]}
+                      min={-180}
+                      max={180}
+                      step={5}
+                      onValueChange={(value) => setFurnitureRotation(value[0])}
+                    />
+                  </div>
+                )}
+
+                {proxiedModelUrl && (
+                  <div className="space-y-2">
+                    <label className="text-xs text-muted-foreground flex items-center gap-1">
+                      <RotateCw className="w-3 h-3" />
+                      3D Controls
+                    </label>
+                    <p className="text-xs text-muted-foreground">
+                      Drag on model to rotate
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {!proxiedModelUrl && (
                 <div className="space-y-2">
                   <label className="text-xs text-muted-foreground flex items-center gap-1">
                     <RotateCw className="w-3 h-3" />
-                    Rotation
+                    Lateral Rotation (3D effect)
                   </label>
                   <Slider
-                    value={[furnitureRotation]}
-                    min={-180}
-                    max={180}
+                    value={[furnitureLateralRotation]}
+                    min={-60}
+                    max={60}
                     step={5}
-                    onValueChange={(value) => setFurnitureRotation(value[0])}
+                    onValueChange={(value) => setFurnitureLateralRotation(value[0])}
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground flex items-center gap-1">
-                  <RotateCw className="w-3 h-3" />
-                  Lateral Rotation (3D effect)
-                </label>
-                <Slider
-                  value={[furnitureLateralRotation]}
-                  min={-60}
-                  max={60}
-                  step={5}
-                  onValueChange={(value) => setFurnitureLateralRotation(value[0])}
-                />
-              </div>
+              )}
 
               <p className="text-xs text-muted-foreground">
-                Tip: Click and drag on the image to move the furniture
+                {proxiedModelUrl 
+                  ? "Tip: Drag outside the model to move it, drag on the model to rotate it" 
+                  : "Tip: Click and drag on the image to move the furniture"}
               </p>
             </div>
           )}
