@@ -96,6 +96,8 @@ const DesignStudio = () => {
   const [intentDialogHandled, setIntentDialogHandled] = useState(false);
   const [hasUnlimited3D, setHasUnlimited3D] = useState(false);
   const [is3DGenerating, setIs3DGenerating] = useState(false);
+  const [uploadedModelFile, setUploadedModelFile] = useState<File | null>(null);
+  const [isUploadingModel, setIsUploadingModel] = useState(false);
   const { toast } = useToast();
 
   // Check if user has seen the guide - only show after intent dialog is handled
@@ -1457,22 +1459,183 @@ const DesignStudio = () => {
                       Already Have a Model?
                     </h4>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Upload your .OBJ, .STL, or .FBX file and we'll prepare it for manufacturing
+                      Upload your .GLB, .OBJ, .STL, or .FBX file and we'll prepare it for manufacturing
                     </p>
-                     <Button variant="outline" size="sm" className="w-full" asChild>
-                      <label className="cursor-pointer">
-                        <input type="file" accept=".obj,.stl,.fbx" className="hidden" onChange={(e) => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            toast({
-                              title: "Model Uploaded",
-                              description: "We'll review your model for manufacturing feasibility",
-                            });
-                          }
-                        }} />
-                        Upload Model File
-                      </label>
-                    </Button>
+                    
+                    {uploadedModelFile ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 p-2 bg-secondary/20 rounded-lg">
+                          <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm text-foreground truncate flex-1">{uploadedModelFile.name}</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={() => {
+                              setUploadedModelFile(null);
+                              // Clear model URL from current variation if any
+                              if (selectedVariation !== null) {
+                                setGeneratedVariations(prev => {
+                                  const updated = [...prev];
+                                  if (updated[selectedVariation]) {
+                                    updated[selectedVariation] = {
+                                      ...updated[selectedVariation],
+                                      modelUrl: undefined
+                                    };
+                                  }
+                                  return updated;
+                                });
+                                setGenerated3DModel(null);
+                              }
+                              toast({
+                                title: "Model Removed",
+                                description: "The uploaded model has been removed",
+                              });
+                            }}
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                          </Button>
+                        </div>
+                        {selectedVariation !== null && generatedVariations[selectedVariation]?.modelUrl && (
+                          <p className="text-xs text-secondary">Model applied to current design</p>
+                        )}
+                      </div>
+                    ) : (
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full" 
+                        disabled={isUploadingModel}
+                        asChild
+                      >
+                        <label className="cursor-pointer">
+                          <input 
+                            type="file" 
+                            accept=".glb,.obj,.stl,.fbx" 
+                            className="hidden" 
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              
+                              // Validate file size (max 50MB)
+                              if (file.size > 50 * 1024 * 1024) {
+                                toast({
+                                  title: "File Too Large",
+                                  description: "Please upload a file smaller than 50MB",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+                              
+                              setIsUploadingModel(true);
+                              setUploadedModelFile(file);
+                              
+                              try {
+                                // Check if user is logged in
+                                if (!user) {
+                                  toast({
+                                    title: "Login Required",
+                                    description: "Please log in to upload 3D models",
+                                    variant: "destructive",
+                                  });
+                                  setUploadedModelFile(null);
+                                  setIsUploadingModel(false);
+                                  return;
+                                }
+                                
+                                // Upload to Supabase storage
+                                const fileExt = file.name.split('.').pop()?.toLowerCase() || 'glb';
+                                const fileName = `${user.id}/${Date.now()}-model.${fileExt}`;
+                                
+                                const { data: uploadData, error: uploadError } = await supabase.storage
+                                  .from('3d-models')
+                                  .upload(fileName, file, {
+                                    cacheControl: '3600',
+                                    upsert: false
+                                  });
+                                
+                                if (uploadError) {
+                                  console.error('Upload error:', uploadError);
+                                  // If bucket doesn't exist, show helpful message
+                                  if (uploadError.message.includes('Bucket not found')) {
+                                    toast({
+                                      title: "Storage Setup Required",
+                                      description: "3D model storage is being configured. Please try again in a moment.",
+                                      variant: "destructive",
+                                    });
+                                  } else {
+                                    toast({
+                                      title: "Upload Failed",
+                                      description: uploadError.message || "Failed to upload model file",
+                                      variant: "destructive",
+                                    });
+                                  }
+                                  setUploadedModelFile(null);
+                                  setIsUploadingModel(false);
+                                  return;
+                                }
+                                
+                                // Get public URL
+                                const { data: urlData } = supabase.storage
+                                  .from('3d-models')
+                                  .getPublicUrl(fileName);
+                                
+                                const modelUrl = urlData.publicUrl;
+                                
+                                // If we have a selected variation, update it with the model URL
+                                if (selectedVariation !== null && generatedVariations[selectedVariation]) {
+                                  setGeneratedVariations(prev => {
+                                    const updated = [...prev];
+                                    updated[selectedVariation] = {
+                                      ...updated[selectedVariation],
+                                      modelUrl: modelUrl
+                                    };
+                                    return updated;
+                                  });
+                                  setGenerated3DModel(modelUrl);
+                                  
+                                  toast({
+                                    title: "Model Uploaded Successfully",
+                                    description: "Your 3D model has been applied to the current design. Switch to 3D Model tab to preview.",
+                                  });
+                                } else {
+                                  // Store the URL for later use when a variation is selected
+                                  toast({
+                                    title: "Model Uploaded Successfully", 
+                                    description: "Generate a design first, then the model will be applied automatically.",
+                                  });
+                                }
+                                
+                              } catch (error) {
+                                console.error('Model upload error:', error);
+                                toast({
+                                  title: "Upload Failed",
+                                  description: "An error occurred while uploading your model",
+                                  variant: "destructive",
+                                });
+                                setUploadedModelFile(null);
+                              } finally {
+                                setIsUploadingModel(false);
+                              }
+                            }} 
+                          />
+                          {isUploadingModel ? (
+                            <>
+                              <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                              </svg>
+                              Uploading...
+                            </>
+                          ) : (
+                            'Upload Model File'
+                          )}
+                        </label>
+                      </Button>
+                    )}
                   </CardContent>
                 </Card>
 
