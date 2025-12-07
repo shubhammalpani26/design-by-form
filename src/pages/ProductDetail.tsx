@@ -387,7 +387,7 @@ const ProductDetail = () => {
 
               <TabsContent value="360" className="mt-2">
                 {product.model_url ? (
-                  <div className="h-[500px]">
+                  <div className="h-[450px] overflow-hidden rounded-xl">
                     <ModelViewer3D
                       modelUrl={product.model_url}
                       productName={product.name}
