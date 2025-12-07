@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useState, useRef, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Move, RotateCw, ZoomIn } from "lucide-react";
+import { Move, RotateCw, ZoomIn, Loader2 } from "lucide-react";
 import { processImageUrl } from "@/lib/backgroundRemoval";
 
 interface ARViewerProps {
@@ -24,8 +24,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   const [furnitureRotation, setFurnitureRotation] = useState(0);
   const [furnitureLateralRotation, setFurnitureLateralRotation] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [proxiedModelUrl, setProxiedModelUrl] = useState<string | null>(null);
+  const [isModelLoading, setIsModelLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const modelViewerRef = useRef<HTMLElement>(null);
   const { toast } = useToast();
 
   // Track which URLs have been processed to prevent re-processing
@@ -72,6 +75,19 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     };
     sessionStorage.setItem('ar-viewer-state', JSON.stringify(state));
   }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, uploadedPhoto, processedFurnitureUrl]);
+
+  // Create proxied URL for 3D model to avoid CORS issues
+  useEffect(() => {
+    if (modelUrl) {
+      // Use the same proxy as ModelViewer3D to avoid CORS issues
+      const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
+      setProxiedModelUrl(proxyUrl);
+      setIsModelLoading(true);
+    } else {
+      setProxiedModelUrl(null);
+      setIsModelLoading(false);
+    }
+  }, [modelUrl]);
 
   useEffect(() => {
     // Load room image if provided (only if we don't already have one cached)
@@ -246,7 +262,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {uploadedPhoto && (processedFurnitureUrl || modelUrl) ? (
+            {uploadedPhoto && (processedFurnitureUrl || proxiedModelUrl) ? (
               <>
                 <img 
                   src={uploadedPhoto} 
@@ -262,7 +278,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       <div className="text-xs text-muted-foreground">This may take 10-30 seconds</div>
                     </div>
                   </div>
-                ) : modelUrl ? (
+                ) : proxiedModelUrl ? (
                   // Use 3D model viewer for AR when model is available
                   <div
                     className="absolute pointer-events-auto"
@@ -276,13 +292,29 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       transition: isDragging ? 'none' : 'transform 0.2s ease-out',
                     }}
                   >
+                    {isModelLoading && (
+                      <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
+                        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                      </div>
+                    )}
                     {/* @ts-ignore */}
                     <model-viewer
-                      src={modelUrl}
+                      ref={modelViewerRef}
+                      src={proxiedModelUrl}
                       alt={productName}
                       auto-rotate
                       camera-controls
                       rotation-per-second="30deg"
+                      loading="eager"
+                      onLoad={() => setIsModelLoading(false)}
+                      onError={() => {
+                        setIsModelLoading(false);
+                        toast({
+                          title: "Failed to load 3D model",
+                          description: "Using 2D image instead",
+                          variant: "destructive"
+                        });
+                      }}
                       style={{ 
                         width: '100%', 
                         height: '100%',
@@ -308,7 +340,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   />
                 )}
               </>
-            ) : uploadedPhoto && (imageUrl || modelUrl) && !processedFurnitureUrl && !modelUrl ? (
+            ) : uploadedPhoto && (imageUrl || proxiedModelUrl) && !processedFurnitureUrl && !proxiedModelUrl ? (
               <>
                 <img 
                   src={uploadedPhoto} 
@@ -324,16 +356,34 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   </div>
                 </div>
               </>
-            ) : !uploadedPhoto && modelUrl ? (
+            ) : !uploadedPhoto && proxiedModelUrl ? (
               // Show 3D model preview without room
               <div className="relative w-full h-full flex items-center justify-center p-4">
+                {isModelLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-lg z-10">
+                    <div className="text-center space-y-2">
+                      <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+                      <p className="text-sm text-muted-foreground">Loading 3D model...</p>
+                    </div>
+                  </div>
+                )}
                 {/* @ts-ignore */}
                 <model-viewer
-                  src={modelUrl}
+                  src={proxiedModelUrl}
                   alt={productName}
                   auto-rotate
                   camera-controls
                   rotation-per-second="30deg"
+                  loading="eager"
+                  onLoad={() => setIsModelLoading(false)}
+                  onError={() => {
+                    setIsModelLoading(false);
+                    toast({
+                      title: "Failed to load 3D model",
+                      description: "Please try again",
+                      variant: "destructive"
+                    });
+                  }}
                   style={{ 
                     width: '100%', 
                     height: '100%',
