@@ -355,6 +355,8 @@ const Home = () => {
                     <img
                       src={heroProducts.length > 0 ? heroProducts[currentProductIndex].image : chairHero}
                       alt="AI-generated furniture design"
+                      loading="eager"
+                      decoding="async"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                     />
                     
