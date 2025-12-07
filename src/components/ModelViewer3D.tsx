@@ -1,8 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { ExternalLink, AlertCircle, Loader2 } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { ExternalLink, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
 // Global flag to track if model-viewer script is loaded
 let modelViewerScriptLoaded = false;
@@ -42,124 +41,103 @@ type LoadingState = 'idle' | 'loading-script' | 'loading-model' | 'loaded' | 'er
 
 export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DProps) => {
   const modelViewerRef = useRef<HTMLElement>(null);
-  
-  // Initialize from cache if available to prevent flashing/reloading
-  const cachedUrl = modelUrl ? loadedModelsCache.get(modelUrl) : undefined;
-  const [loadingState, setLoadingState] = useState<LoadingState>(() => {
-    return cachedUrl ? 'loaded' : 'idle';
-  });
+  const [scriptReady, setScriptReady] = useState(() => modelViewerScriptLoaded || !!customElements.get('model-viewer'));
+  const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [loadProgress, setLoadProgress] = useState(cachedUrl ? 100 : 0);
-  const [proxiedUrl, setProxiedUrl] = useState<string>(() => {
-    return cachedUrl || "";
-  });
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
+  const [viewerReady, setViewerReady] = useState(false);
 
   // Load model-viewer script
   useEffect(() => {
-    const loadScript = async () => {
-      // Check if already loaded globally
-      if (modelViewerScriptLoaded || customElements.get('model-viewer')) {
-        setLoadingState('idle');
-        return;
-      }
+    if (modelViewerScriptLoaded || customElements.get('model-viewer')) {
+      setScriptReady(true);
+      return;
+    }
 
-      setLoadingState('loading-script');
+    setLoadingState('loading-script');
 
-      const script = document.createElement('script');
-      script.type = 'module';
-      script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
-      
-      script.onload = () => {
-        const checkElement = setInterval(() => {
-          if (customElements.get('model-viewer')) {
-            modelViewerScriptLoaded = true;
-            setLoadingState('idle');
-            clearInterval(checkElement);
-          }
-        }, 100);
-        
-        setTimeout(() => {
+    const script = document.createElement('script');
+    script.type = 'module';
+    script.src = 'https://ajax.googleapis.com/ajax/libs/model-viewer/3.4.0/model-viewer.min.js';
+    
+    script.onload = () => {
+      const checkElement = setInterval(() => {
+        if (customElements.get('model-viewer')) {
+          modelViewerScriptLoaded = true;
+          setScriptReady(true);
+          setLoadingState('idle');
           clearInterval(checkElement);
-          if (!modelViewerScriptLoaded) {
-            setLoadingState('error');
-            setErrorMessage('Failed to load 3D viewer library');
-          }
-        }, 5000);
-      };
+        }
+      }, 100);
       
-      script.onerror = () => {
-        setLoadingState('error');
-        setErrorMessage('Failed to load 3D viewer library');
-      };
-      
-      document.head.appendChild(script);
-
-      return () => {
-        // Cleanup is handled globally, so we don't remove the script
-      };
+      setTimeout(() => {
+        clearInterval(checkElement);
+        if (!modelViewerScriptLoaded) {
+          setLoadingState('error');
+          setErrorMessage('Failed to load 3D viewer library');
+        }
+      }, 5000);
     };
     
-    loadScript();
+    script.onerror = () => {
+      setLoadingState('error');
+      setErrorMessage('Failed to load 3D viewer library');
+    };
+    
+    document.head.appendChild(script);
   }, []);
 
-  // Setup model viewer - always use proxy to avoid CORS issues
+  // Build proxy URL when modelUrl changes
   useEffect(() => {
-    if (!modelUrl || loadingState === 'loading-script') {
+    if (!modelUrl || !scriptReady) {
+      setProxiedUrl("");
+      setLoadingState('idle');
       return;
     }
-    
-    // Check if in cache
-    const cachedUrl = loadedModelsCache.get(modelUrl);
-    if (cachedUrl && !proxiedUrl) {
-      setProxiedUrl(cachedUrl);
+
+    // Check cache first
+    const cachedProxyUrl = loadedModelsCache.get(modelUrl);
+    if (cachedProxyUrl) {
+      console.log('📦 Using cached proxy URL for:', modelUrl);
+      setProxiedUrl(cachedProxyUrl);
       setLoadingState('loaded');
       setLoadProgress(100);
-      setErrorMessage("");
       return;
     }
 
-    // If we already have a proxied URL set (either from cache on mount or previous setup)
-    // we just need to attach event listeners when the viewer is ready
-    if (proxiedUrl) {
+    // Build new proxy URL
+    setLoadingState('loading-model');
+    setLoadProgress(0);
+    setErrorMessage("");
+    setViewerReady(false);
+
+    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
+    console.log('🔗 Setting proxy URL:', proxyUrl);
+    setProxiedUrl(proxyUrl);
+  }, [modelUrl, scriptReady]);
+
+  // Handle model-viewer ref callback to attach event listeners
+  const handleViewerRef = useCallback((element: HTMLElement | null) => {
+    if (!element) {
+      setViewerReady(false);
       return;
     }
 
-    const setupModel = async () => {
-      setLoadingState('loading-model');
-      setLoadProgress(0);
-      setErrorMessage("");
-
-      // Always use proxy to avoid CORS issues with external GLB files
-      try {
-        // Build proxy URL - the edge function will fetch and serve the GLB with CORS headers
-        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
-        setProxiedUrl(proxyUrl);
-      } catch (error) {
-        console.error('Error setting up 3D model:', error);
-        setLoadingState('error');
-        const msg = 'Failed to setup 3D viewer. Please try again.';
-        setErrorMessage(msg);
-        onError?.(msg);
-      }
-    };
-
-    setupModel();
-  }, [modelUrl, proxiedUrl, onError, loadingState]);
-  
-  // Attach event listeners to model-viewer element
-  useEffect(() => {
-    if (!modelUrl || !proxiedUrl || loadingState === 'loading-script') {
-      return;
-    }
-
-    const viewer = modelViewerRef.current;
-    if (!viewer) return;
+    // Store ref for other uses
+    (modelViewerRef as React.MutableRefObject<HTMLElement | null>).current = element;
+    
+    console.log('🎯 model-viewer element mounted, attaching listeners');
 
     const handleLoad = () => {
-      loadedModelsCache.set(modelUrl, proxiedUrl);
+      console.log('✅ Model loaded successfully');
+      if (modelUrl && proxiedUrl) {
+        loadedModelsCache.set(modelUrl, proxiedUrl);
+      }
       setLoadingState('loaded');
       setLoadProgress(100);
+      setViewerReady(true);
     };
 
     const handleError = (event: Event) => {
@@ -173,24 +151,34 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     const handleProgress = (event: any) => {
       if (event.detail && event.detail.totalProgress !== undefined) {
         const progress = Math.round(event.detail.totalProgress * 100);
+        console.log('📊 Loading progress:', progress);
         setLoadProgress(progress);
+        if (progress > 0) {
+          setLoadingState('loading-model');
+        }
       }
     };
 
-    viewer.addEventListener('load', handleLoad);
-    viewer.addEventListener('error', handleError);
-    viewer.addEventListener('progress', handleProgress);
+    // Check if already loaded (e.g., from browser cache)
+    const modelViewer = element as any;
+    if (modelViewer.loaded) {
+      console.log('✅ Model already loaded (cached)');
+      handleLoad();
+    }
+
+    element.addEventListener('load', handleLoad);
+    element.addEventListener('error', handleError);
+    element.addEventListener('progress', handleProgress);
 
     return () => {
-      viewer.removeEventListener('load', handleLoad);
-      viewer.removeEventListener('error', handleError);
-      viewer.removeEventListener('progress', handleProgress);
+      element.removeEventListener('load', handleLoad);
+      element.removeEventListener('error', handleError);
+      element.removeEventListener('progress', handleProgress);
     };
-  }, [modelUrl, proxiedUrl, onError, loadingState]);
+  }, [modelUrl, proxiedUrl, onError]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
-      // Create a download link
       const link = document.createElement('a');
       link.href = modelUrl;
       link.download = `${productName.replace(/\s+/g, '_')}_3D_Model.glb`;
@@ -201,11 +189,28 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   };
 
   const handleTestSampleModel = () => {
-    // Use a known-good sample GLB from the internet
     setProxiedUrl('https://modelviewer.dev/shared-assets/models/Astronaut.glb');
+    setLoadingState('loading-model');
+    setLoadProgress(0);
   };
 
-  if (loadingState === 'loading-script') {
+  const handleRetry = () => {
+    if (modelUrl) {
+      // Clear cache and retry
+      loadedModelsCache.delete(modelUrl);
+      setProxiedUrl("");
+      setLoadingState('idle');
+      // Trigger re-setup
+      setTimeout(() => {
+        const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
+        setProxiedUrl(proxyUrl);
+        setLoadingState('loading-model');
+        setLoadProgress(0);
+      }, 100);
+    }
+  };
+
+  if (!scriptReady) {
     return (
       <Card className="border-primary/20 shadow-medium h-full">
         <CardContent className="p-6 h-full flex flex-col">
@@ -253,10 +258,14 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                 <div className="space-y-2">
                   <p className="text-sm font-medium text-destructive">{errorMessage}</p>
                   <p className="text-xs text-muted-foreground">
-                    The 3D model could not be loaded. This may be due to CORS restrictions or the model file format.
+                    The 3D model could not be loaded. This may be due to network issues or the model file.
                   </p>
                 </div>
-                <div className="flex gap-2 justify-center">
+                <div className="flex gap-2 justify-center flex-wrap">
+                  <Button variant="outline" size="sm" onClick={handleRetry} className="gap-2">
+                    <RefreshCw className="w-4 h-4" />
+                    Retry
+                  </Button>
                   {modelUrl && (
                     <Button variant="outline" size="sm" onClick={handleDownloadModel}>
                       Download Model
@@ -284,7 +293,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
             ) : (
               <>
                 <model-viewer
-                  ref={modelViewerRef}
+                  ref={handleViewerRef}
                   src={proxiedUrl}
                   alt={productName}
                   auto-rotate
@@ -337,9 +346,12 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                 <div className="mt-2 space-y-1 font-mono text-[10px] bg-muted p-2 rounded">
                   <p><strong>Status:</strong> {loadingState}</p>
                   <p><strong>Progress:</strong> {loadProgress}%</p>
+                  <p><strong>Script Ready:</strong> {scriptReady ? 'Yes' : 'No'}</p>
+                  <p><strong>Viewer Ready:</strong> {viewerReady ? 'Yes' : 'No'}</p>
+                  <p><strong>Cached:</strong> {loadedModelsCache.has(modelUrl) ? 'Yes' : 'No'}</p>
                   {modelFileSize && <p><strong>Size:</strong> {modelFileSize}</p>}
                   <p className="break-all"><strong>URL:</strong> {modelUrl}</p>
-                  {proxiedUrl !== modelUrl && (
+                  {proxiedUrl && (
                     <p className="text-primary"><strong>Using proxy:</strong> Yes</p>
                   )}
                 </div>
