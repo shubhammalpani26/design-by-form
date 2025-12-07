@@ -93,36 +93,44 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   useEffect(() => {
     if (!proxiedModelUrl) return;
 
-    const viewer = modelViewerRef.current;
-    if (!viewer) return;
+    // Use requestAnimationFrame to ensure DOM is updated after render
+    const rafId = requestAnimationFrame(() => {
+      const viewer = modelViewerRef.current;
+      if (!viewer) {
+        console.log('⏳ AR: Waiting for model-viewer element...');
+        return;
+      }
 
-    const handleLoad = () => {
-      console.log('✅ AR model-viewer loaded');
-      setIsModelLoading(false);
-    };
+      console.log('🎯 AR: Attaching event listeners to model-viewer');
 
-    const handleError = () => {
-      console.error('❌ AR model-viewer failed to load');
-      setIsModelLoading(false);
-      toast({
-        title: "Failed to load 3D model",
-        description: "Using 2D image instead",
-        variant: "destructive"
-      });
-    };
+      const handleLoad = () => {
+        console.log('✅ AR model-viewer loaded');
+        setIsModelLoading(false);
+      };
 
-    // Check if already loaded
-    const modelViewer = viewer as any;
-    if (modelViewer.loaded) {
-      handleLoad();
-    }
+      const handleError = () => {
+        console.error('❌ AR model-viewer failed to load');
+        setIsModelLoading(false);
+        toast({
+          title: "Failed to load 3D model",
+          description: "Using 2D image instead",
+          variant: "destructive"
+        });
+      };
 
-    viewer.addEventListener('load', handleLoad);
-    viewer.addEventListener('error', handleError);
+      // Check if already loaded
+      const modelViewer = viewer as any;
+      if (modelViewer.loaded) {
+        handleLoad();
+        return;
+      }
+
+      viewer.addEventListener('load', handleLoad);
+      viewer.addEventListener('error', handleError);
+    });
 
     return () => {
-      viewer.removeEventListener('load', handleLoad);
-      viewer.removeEventListener('error', handleError);
+      cancelAnimationFrame(rafId);
     };
   }, [proxiedModelUrl, toast]);
 
