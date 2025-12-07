@@ -89,6 +89,43 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     }
   }, [modelUrl]);
 
+  // Attach event listeners to model-viewer elements
+  useEffect(() => {
+    if (!proxiedModelUrl) return;
+
+    const viewer = modelViewerRef.current;
+    if (!viewer) return;
+
+    const handleLoad = () => {
+      console.log('✅ AR model-viewer loaded');
+      setIsModelLoading(false);
+    };
+
+    const handleError = () => {
+      console.error('❌ AR model-viewer failed to load');
+      setIsModelLoading(false);
+      toast({
+        title: "Failed to load 3D model",
+        description: "Using 2D image instead",
+        variant: "destructive"
+      });
+    };
+
+    // Check if already loaded
+    const modelViewer = viewer as any;
+    if (modelViewer.loaded) {
+      handleLoad();
+    }
+
+    viewer.addEventListener('load', handleLoad);
+    viewer.addEventListener('error', handleError);
+
+    return () => {
+      viewer.removeEventListener('load', handleLoad);
+      viewer.removeEventListener('error', handleError);
+    };
+  }, [proxiedModelUrl, toast]);
+
   useEffect(() => {
     // Load room image if provided (only if we don't already have one cached)
     if (roomImage && !uploadedPhoto) {
@@ -306,15 +343,6 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       camera-controls
                       rotation-per-second="30deg"
                       loading="eager"
-                      onLoad={() => setIsModelLoading(false)}
-                      onError={() => {
-                        setIsModelLoading(false);
-                        toast({
-                          title: "Failed to load 3D model",
-                          description: "Using 2D image instead",
-                          variant: "destructive"
-                        });
-                      }}
                       style={{ 
                         width: '100%', 
                         height: '100%',
@@ -369,21 +397,13 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                 )}
                 {/* @ts-ignore */}
                 <model-viewer
+                  ref={modelViewerRef}
                   src={proxiedModelUrl}
                   alt={productName}
                   auto-rotate
                   camera-controls
                   rotation-per-second="30deg"
                   loading="eager"
-                  onLoad={() => setIsModelLoading(false)}
-                  onError={() => {
-                    setIsModelLoading(false);
-                    toast({
-                      title: "Failed to load 3D model",
-                      description: "Please try again",
-                      variant: "destructive"
-                    });
-                  }}
                   style={{ 
                     width: '100%', 
                     height: '100%',

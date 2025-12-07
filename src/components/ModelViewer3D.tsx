@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 
@@ -47,7 +47,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
-  const [viewerReady, setViewerReady] = useState(false);
 
   // Load model-viewer script
   useEffect(() => {
@@ -102,8 +101,9 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     if (cachedProxyUrl) {
       console.log('📦 Using cached proxy URL for:', modelUrl);
       setProxiedUrl(cachedProxyUrl);
-      setLoadingState('loaded');
-      setLoadProgress(100);
+      // Don't set to 'loaded' here - let the model-viewer element trigger that
+      setLoadingState('loading-model');
+      setLoadProgress(0);
       return;
     }
 
@@ -111,33 +111,31 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     setLoadingState('loading-model');
     setLoadProgress(0);
     setErrorMessage("");
-    setViewerReady(false);
 
     const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
     console.log('🔗 Setting proxy URL:', proxyUrl);
     setProxiedUrl(proxyUrl);
   }, [modelUrl, scriptReady]);
 
-  // Handle model-viewer ref callback to attach event listeners
-  const handleViewerRef = useCallback((element: HTMLElement | null) => {
-    if (!element) {
-      setViewerReady(false);
+  // Attach event listeners when model-viewer is mounted and proxiedUrl is set
+  useEffect(() => {
+    if (!proxiedUrl || !scriptReady) return;
+
+    const viewer = modelViewerRef.current;
+    if (!viewer) {
+      console.log('⏳ Waiting for model-viewer element...');
       return;
     }
 
-    // Store ref for other uses
-    (modelViewerRef as React.MutableRefObject<HTMLElement | null>).current = element;
-    
-    console.log('🎯 model-viewer element mounted, attaching listeners');
+    console.log('🎯 Attaching event listeners to model-viewer');
 
     const handleLoad = () => {
       console.log('✅ Model loaded successfully');
-      if (modelUrl && proxiedUrl) {
+      if (modelUrl) {
         loadedModelsCache.set(modelUrl, proxiedUrl);
       }
       setLoadingState('loaded');
       setLoadProgress(100);
-      setViewerReady(true);
     };
 
     const handleError = (event: Event) => {
@@ -153,29 +151,26 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
         const progress = Math.round(event.detail.totalProgress * 100);
         console.log('📊 Loading progress:', progress);
         setLoadProgress(progress);
-        if (progress > 0) {
-          setLoadingState('loading-model');
-        }
       }
     };
 
     // Check if already loaded (e.g., from browser cache)
-    const modelViewer = element as any;
+    const modelViewer = viewer as any;
     if (modelViewer.loaded) {
-      console.log('✅ Model already loaded (cached)');
+      console.log('✅ Model already loaded (browser cache)');
       handleLoad();
     }
 
-    element.addEventListener('load', handleLoad);
-    element.addEventListener('error', handleError);
-    element.addEventListener('progress', handleProgress);
+    viewer.addEventListener('load', handleLoad);
+    viewer.addEventListener('error', handleError);
+    viewer.addEventListener('progress', handleProgress);
 
     return () => {
-      element.removeEventListener('load', handleLoad);
-      element.removeEventListener('error', handleError);
-      element.removeEventListener('progress', handleProgress);
+      viewer.removeEventListener('load', handleLoad);
+      viewer.removeEventListener('error', handleError);
+      viewer.removeEventListener('progress', handleProgress);
     };
-  }, [modelUrl, proxiedUrl, onError]);
+  }, [proxiedUrl, scriptReady, modelUrl, onError]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
@@ -189,6 +184,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   };
 
   const handleTestSampleModel = () => {
+    // Clear current state and use a sample model (no proxy needed for modelviewer.dev)
     setProxiedUrl('https://modelviewer.dev/shared-assets/models/Astronaut.glb');
     setLoadingState('loading-model');
     setLoadProgress(0);
@@ -293,7 +289,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
             ) : (
               <>
                 <model-viewer
-                  ref={handleViewerRef}
+                  ref={modelViewerRef}
                   src={proxiedUrl}
                   alt={productName}
                   auto-rotate
@@ -310,7 +306,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                     backgroundColor: 'transparent'
                   }}
                 />
-                {loadingState === 'loading-model' && loadProgress < 100 && (
+                {loadingState === 'loading-model' && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                     <div className="text-center space-y-3">
                       <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
@@ -347,7 +343,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                   <p><strong>Status:</strong> {loadingState}</p>
                   <p><strong>Progress:</strong> {loadProgress}%</p>
                   <p><strong>Script Ready:</strong> {scriptReady ? 'Yes' : 'No'}</p>
-                  <p><strong>Viewer Ready:</strong> {viewerReady ? 'Yes' : 'No'}</p>
+                  <p><strong>Has Ref:</strong> {modelViewerRef.current ? 'Yes' : 'No'}</p>
                   <p><strong>Cached:</strong> {loadedModelsCache.has(modelUrl) ? 'Yes' : 'No'}</p>
                   {modelFileSize && <p><strong>Size:</strong> {modelFileSize}</p>}
                   <p className="break-all"><strong>URL:</strong> {modelUrl}</p>
