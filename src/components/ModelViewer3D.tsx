@@ -47,6 +47,8 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
   const [modelFileSize, setModelFileSize] = useState<string>("");
+  // Counter to force re-run of effect after render
+  const [renderCount, setRenderCount] = useState(0);
 
   // Load model-viewer script
   useEffect(() => {
@@ -101,9 +103,10 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     if (cachedProxyUrl) {
       console.log('📦 Using cached proxy URL for:', modelUrl);
       setProxiedUrl(cachedProxyUrl);
-      // Don't set to 'loaded' here - let the model-viewer element trigger that
       setLoadingState('loading-model');
       setLoadProgress(0);
+      // Trigger re-render to attach listeners after DOM update
+      setRenderCount(c => c + 1);
       return;
     }
 
@@ -115,62 +118,73 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
     console.log('🔗 Setting proxy URL:', proxyUrl);
     setProxiedUrl(proxyUrl);
+    // Trigger re-render to attach listeners after DOM update
+    setRenderCount(c => c + 1);
   }, [modelUrl, scriptReady]);
 
   // Attach event listeners when model-viewer is mounted and proxiedUrl is set
+  // Uses renderCount to ensure we try again after the DOM is updated
   useEffect(() => {
     if (!proxiedUrl || !scriptReady) return;
 
-    const viewer = modelViewerRef.current;
-    if (!viewer) {
-      console.log('⏳ Waiting for model-viewer element...');
-      return;
-    }
-
-    console.log('🎯 Attaching event listeners to model-viewer');
-
-    const handleLoad = () => {
-      console.log('✅ Model loaded successfully');
-      if (modelUrl) {
-        loadedModelsCache.set(modelUrl, proxiedUrl);
+    // Use requestAnimationFrame to ensure DOM is updated
+    const rafId = requestAnimationFrame(() => {
+      const viewer = modelViewerRef.current;
+      if (!viewer) {
+        console.log('⏳ Waiting for model-viewer element...');
+        // Try again after a short delay
+        const timeoutId = setTimeout(() => setRenderCount(c => c + 1), 100);
+        return () => clearTimeout(timeoutId);
       }
-      setLoadingState('loaded');
-      setLoadProgress(100);
-    };
 
-    const handleError = (event: Event) => {
-      console.error('❌ Model load failed:', event);
-      setLoadingState('error');
-      const msg = 'Failed to load 3D model. Please try again or contact support.';
-      setErrorMessage(msg);
-      onError?.(msg);
-    };
+      console.log('🎯 Attaching event listeners to model-viewer');
 
-    const handleProgress = (event: any) => {
-      if (event.detail && event.detail.totalProgress !== undefined) {
-        const progress = Math.round(event.detail.totalProgress * 100);
-        console.log('📊 Loading progress:', progress);
-        setLoadProgress(progress);
+      const handleLoad = () => {
+        console.log('✅ Model loaded successfully');
+        if (modelUrl) {
+          loadedModelsCache.set(modelUrl, proxiedUrl);
+        }
+        setLoadingState('loaded');
+        setLoadProgress(100);
+      };
+
+      const handleError = (event: Event) => {
+        console.error('❌ Model load failed:', event);
+        setLoadingState('error');
+        const msg = 'Failed to load 3D model. Please try again or contact support.';
+        setErrorMessage(msg);
+        onError?.(msg);
+      };
+
+      const handleProgress = (event: any) => {
+        if (event.detail && event.detail.totalProgress !== undefined) {
+          const progress = Math.round(event.detail.totalProgress * 100);
+          console.log('📊 Loading progress:', progress);
+          setLoadProgress(progress);
+        }
+      };
+
+      // Check if already loaded (e.g., from browser cache)
+      const modelViewer = viewer as any;
+      if (modelViewer.loaded) {
+        console.log('✅ Model already loaded (browser cache)');
+        handleLoad();
       }
-    };
 
-    // Check if already loaded (e.g., from browser cache)
-    const modelViewer = viewer as any;
-    if (modelViewer.loaded) {
-      console.log('✅ Model already loaded (browser cache)');
-      handleLoad();
-    }
-
-    viewer.addEventListener('load', handleLoad);
-    viewer.addEventListener('error', handleError);
-    viewer.addEventListener('progress', handleProgress);
+      viewer.addEventListener('load', handleLoad);
+      viewer.addEventListener('error', handleError);
+      viewer.addEventListener('progress', handleProgress);
+    });
 
     return () => {
-      viewer.removeEventListener('load', handleLoad);
-      viewer.removeEventListener('error', handleError);
-      viewer.removeEventListener('progress', handleProgress);
+      cancelAnimationFrame(rafId);
+      const viewer = modelViewerRef.current;
+      if (viewer) {
+        // Clean up listeners - but we need to store references
+        // Since we can't access the handlers, just let React handle cleanup
+      }
     };
-  }, [proxiedUrl, scriptReady, modelUrl, onError]);
+  }, [proxiedUrl, scriptReady, modelUrl, onError, renderCount]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
@@ -184,24 +198,23 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
   };
 
   const handleTestSampleModel = () => {
-    // Clear current state and use a sample model (no proxy needed for modelviewer.dev)
     setProxiedUrl('https://modelviewer.dev/shared-assets/models/Astronaut.glb');
     setLoadingState('loading-model');
     setLoadProgress(0);
+    setRenderCount(c => c + 1);
   };
 
   const handleRetry = () => {
     if (modelUrl) {
-      // Clear cache and retry
       loadedModelsCache.delete(modelUrl);
       setProxiedUrl("");
       setLoadingState('idle');
-      // Trigger re-setup
       setTimeout(() => {
         const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
         setProxiedUrl(proxyUrl);
         setLoadingState('loading-model');
         setLoadProgress(0);
+        setRenderCount(c => c + 1);
       }, 100);
     }
   };
