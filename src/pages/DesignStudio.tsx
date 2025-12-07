@@ -94,6 +94,8 @@ const DesignStudio = () => {
   const [showIntentDialog, setShowIntentDialog] = useState(true);
   const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
   const [intentDialogHandled, setIntentDialogHandled] = useState(false);
+  const [hasUnlimited3D, setHasUnlimited3D] = useState(false);
+  const [is3DGenerating, setIs3DGenerating] = useState(false);
   const { toast } = useToast();
 
   // Check if user has seen the guide - only show after intent dialog is handled
@@ -138,6 +140,27 @@ const DesignStudio = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // Check if user has unlimited 3D subscription
+  useEffect(() => {
+    const checkSubscription = async () => {
+      if (!user) return;
+      
+      const { data: subData } = await supabase
+        .from('subscriptions')
+        .select('three_d_models_limit, status')
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      // User has unlimited if limit is 999 or higher
+      if (subData && subData.three_d_models_limit && subData.three_d_models_limit >= 999) {
+        setHasUnlimited3D(true);
+      }
+    };
+    
+    checkSubscription();
+  }, [user]);
 
   const handleRoomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1763,43 +1786,88 @@ const DesignStudio = () => {
                               </div>
                             </div>
                           </div>
-                        ) : generatedDesign && pendingProductId && threeDFeePaid ? (
+                        ) : generatedDesign && (hasUnlimited3D || threeDFeePaid) ? (
                           <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-4 max-w-md">
                               <svg className="w-16 h-16 mx-auto mb-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
                               <div>
-                                <p className="text-foreground text-base font-semibold mb-2">Ready to Generate 3D!</p>
+                                <p className="text-foreground text-base font-semibold mb-2">Generate 3D Model</p>
                                 <p className="text-muted-foreground text-sm mb-4">
-                                  3D generation fee paid. Click below to start generating your 3D model.
+                                  {hasUnlimited3D ? "You have unlimited 3D generation! Click below to create your 3D model." : "3D generation ready. Click below to start."}
                                 </p>
                               </div>
                               <Button
                                 id="generate-3d-button"
+                                disabled={is3DGenerating}
                                 onClick={async () => {
-                                  if (selectedVariation === null) return;
-                                  const variation = generatedVariations[selectedVariation];
-                                  if (variation.taskId) {
-                                    poll3DStatus(selectedVariation, variation.taskId);
+                                  if (selectedVariation === null || !generatedDesign) return;
+                                  
+                                  setIs3DGenerating(true);
+                                  try {
+                                    toast({
+                                      title: "Starting 3D Generation",
+                                      description: "Creating your 3D model from the design...",
+                                    });
+                                    
+                                    const { data, error } = await supabase.functions.invoke('generate-design', {
+                                      body: {
+                                        generate3D: true,
+                                        imageUrl: generatedDesign
+                                      }
+                                    });
+                                    
+                                    if (error) throw error;
+                                    
+                                    if (data?.taskId) {
+                                      // Update variation with task ID and start polling
+                                      setGeneratedVariations(prev => {
+                                        const updated = [...prev];
+                                        if (updated[selectedVariation]) {
+                                          updated[selectedVariation] = {
+                                            ...updated[selectedVariation],
+                                            taskId: data.taskId
+                                          };
+                                        }
+                                        return updated;
+                                      });
+                                      poll3DStatus(selectedVariation, data.taskId);
+                                    }
+                                  } catch (error) {
+                                    console.error('3D generation error:', error);
+                                    toast({
+                                      title: "3D Generation Failed",
+                                      description: "Please try again",
+                                      variant: "destructive",
+                                    });
+                                  } finally {
+                                    setIs3DGenerating(false);
                                   }
                                 }}
                                 className="mt-4"
                               >
-                                Generate 3D Model
+                                {is3DGenerating ? (
+                                  <>
+                                    <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                    Starting...
+                                  </>
+                                ) : "Generate 3D Model"}
                               </Button>
                             </div>
                           </div>
-                        ) : generatedDesign && pendingProductId ? (
+                        ) : generatedDesign ? (
                           <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-4 max-w-md">
                               <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
                               </svg>
                               <div>
-                                <p className="text-foreground text-base font-semibold mb-2">Upgrade to 3D + AR</p>
+                                <p className="text-foreground text-base font-semibold mb-2">Add 3D Model + AR Preview</p>
                                 <p className="text-muted-foreground text-sm mb-4">
-                                  Enhance your listing with an interactive 3D model and AR preview
+                                  Enhance your design with an interactive 3D model and AR preview
                                 </p>
                               </div>
                               <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-left mb-4">
@@ -1817,28 +1885,6 @@ const DesignStudio = () => {
                               >
                                 Add 3D for ₹750 / $15
                               </Button>
-                            </div>
-                          </div>
-                        ) : generatedDesign ? (
-                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <div className="text-center p-8 space-y-4 max-w-md">
-                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                              <div>
-                                <p className="text-foreground text-base font-semibold mb-2">3D Model Optional</p>
-                                <p className="text-muted-foreground text-sm mb-4">
-                                  Submit your design first. You can add 3D after paying the listing fee (₹500).
-                                </p>
-                              </div>
-                              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-left">
-                                <p className="text-xs font-semibold text-primary mb-2">📋 Next Steps:</p>
-                                <ul className="text-xs text-muted-foreground space-y-1">
-                                  <li>1. Complete the submission form below</li>
-                                  <li>2. Pay listing fee (₹500 India / $10 International)</li>
-                                  <li>3. Optionally add 3D (₹750 India / $15 International)</li>
-                                </ul>
-                              </div>
                             </div>
                           </div>
                         ) : (
@@ -2393,20 +2439,18 @@ const DesignStudio = () => {
       )}
 
       {/* 3D Generation Fee Dialog */}
-      {pendingProductId && (
-        <ThreeDGenerationFeeDialog
-          open={show3DFeeDialog}
-          onOpenChange={setShow3DFeeDialog}
-          productId={pendingProductId}
-          onSuccess={() => {
-            setThreeDFeePaid(true);
-            toast({
-              title: "3D Generation Enabled!",
-              description: "You can now generate 3D models for this design.",
-            });
-          }}
-        />
-      )}
+      <ThreeDGenerationFeeDialog
+        open={show3DFeeDialog}
+        onOpenChange={setShow3DFeeDialog}
+        productId={pendingProductId || "preview"}
+        onSuccess={() => {
+          setThreeDFeePaid(true);
+          toast({
+            title: "3D Generation Enabled!",
+            description: "You can now generate 3D models for this design.",
+          });
+        }}
+      />
 
       {/* Designer Guide Dialog */}
       <DesignerGuide
