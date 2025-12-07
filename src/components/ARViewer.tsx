@@ -246,7 +246,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             onMouseUp={handleMouseUp}
             onMouseLeave={handleMouseUp}
           >
-            {uploadedPhoto && processedFurnitureUrl ? (
+            {uploadedPhoto && (processedFurnitureUrl || modelUrl) ? (
               <>
                 <img 
                   src={uploadedPhoto} 
@@ -262,9 +262,37 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                       <div className="text-xs text-muted-foreground">This may take 10-30 seconds</div>
                     </div>
                   </div>
+                ) : modelUrl ? (
+                  // Use 3D model viewer for AR when model is available
+                  <div
+                    className="absolute pointer-events-auto"
+                    style={{
+                      left: `${furniturePosition.x}%`,
+                      top: `${furniturePosition.y}%`,
+                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50})`,
+                      width: '40%',
+                      maxWidth: '300px',
+                      height: '250px',
+                      transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                    }}
+                  >
+                    {/* @ts-ignore */}
+                    <model-viewer
+                      src={modelUrl}
+                      alt={productName}
+                      auto-rotate
+                      camera-controls
+                      rotation-per-second="30deg"
+                      style={{ 
+                        width: '100%', 
+                        height: '100%',
+                        background: 'transparent'
+                      } as React.CSSProperties}
+                    />
+                  </div>
                 ) : (
                   <img
-                    src={processedFurnitureUrl}
+                    src={processedFurnitureUrl || ''}
                     alt={productName}
                     className="absolute pointer-events-none"
                     style={{
@@ -280,7 +308,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   />
                 )}
               </>
-            ) : uploadedPhoto && (imageUrl || modelUrl) && !processedFurnitureUrl ? (
+            ) : uploadedPhoto && (imageUrl || modelUrl) && !processedFurnitureUrl && !modelUrl ? (
               <>
                 <img 
                   src={uploadedPhoto} 
@@ -296,12 +324,35 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   </div>
                 </div>
               </>
-            ) : !uploadedPhoto && (imageUrl || modelUrl) ? (
+            ) : !uploadedPhoto && modelUrl ? (
+              // Show 3D model preview without room
+              <div className="relative w-full h-full flex items-center justify-center p-4">
+                {/* @ts-ignore */}
+                <model-viewer
+                  src={modelUrl}
+                  alt={productName}
+                  auto-rotate
+                  camera-controls
+                  rotation-per-second="30deg"
+                  style={{ 
+                    width: '100%', 
+                    height: '100%',
+                    minHeight: '250px',
+                    background: 'transparent'
+                  }}
+                />
+                <div className="absolute bottom-4 left-0 right-0 text-center">
+                  <p className="text-xs text-muted-foreground bg-background/80 inline-block px-3 py-1 rounded-full">
+                    Upload a room photo below to see this in your space
+                  </p>
+                </div>
+              </div>
+            ) : !uploadedPhoto && imageUrl ? (
               // Show product preview without room - just the product image
               <div className="relative w-full h-full flex items-center justify-center p-8">
                 <div className="text-center space-y-4">
                   <img
-                    src={imageUrl || ''}
+                    src={imageUrl}
                     alt={productName}
                     className="max-w-[250px] max-h-[200px] object-contain mx-auto rounded-lg shadow-lg"
                   />
