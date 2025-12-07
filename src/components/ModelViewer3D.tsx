@@ -109,18 +109,19 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
       return;
     }
     
-    // Skip if already loaded (states initialized from cache on mount)
-    if (loadingState === 'loaded' && proxiedUrl) {
-      return;
-    }
-    
-    // Skip if in cache (shouldn't happen as states are initialized from cache)
+    // Check if in cache
     const cachedUrl = loadedModelsCache.get(modelUrl);
-    if (cachedUrl) {
+    if (cachedUrl && !proxiedUrl) {
       setProxiedUrl(cachedUrl);
       setLoadingState('loaded');
       setLoadProgress(100);
       setErrorMessage("");
+      return;
+    }
+
+    // If we already have a proxied URL set (either from cache on mount or previous setup)
+    // we just need to attach event listeners when the viewer is ready
+    if (proxiedUrl) {
       return;
     }
 
@@ -130,45 +131,10 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
       setErrorMessage("");
 
       // Always use proxy to avoid CORS issues with external GLB files
-      
       try {
         // Build proxy URL - the edge function will fetch and serve the GLB with CORS headers
         const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
         setProxiedUrl(proxyUrl);
-        
-        const viewer = modelViewerRef.current;
-        if (!viewer) return;
-
-        const handleLoad = () => {
-          loadedModelsCache.set(modelUrl, proxyUrl); // Cache this model with its proxy URL
-          setLoadingState('loaded');
-          setLoadProgress(100);
-        };
-
-        const handleError = async (event: Event) => {
-          console.error('❌ Model load failed:', event);
-          setLoadingState('error');
-          const msg = 'Failed to load 3D model. Please try again or contact support.';
-          setErrorMessage(msg);
-          onError?.(msg);
-        };
-
-        const handleProgress = (event: any) => {
-          if (event.detail && event.detail.totalProgress !== undefined) {
-            const progress = Math.round(event.detail.totalProgress * 100);
-            setLoadProgress(progress);
-          }
-        };
-
-        viewer.addEventListener('load', handleLoad);
-        viewer.addEventListener('error', handleError);
-        viewer.addEventListener('progress', handleProgress);
-
-        return () => {
-          viewer.removeEventListener('load', handleLoad);
-          viewer.removeEventListener('error', handleError);
-          viewer.removeEventListener('progress', handleProgress);
-        };
       } catch (error) {
         console.error('Error setting up 3D model:', error);
         setLoadingState('error');
@@ -179,7 +145,48 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     };
 
     setupModel();
-  }, [modelUrl, onError]);
+  }, [modelUrl, proxiedUrl, onError, loadingState]);
+  
+  // Attach event listeners to model-viewer element
+  useEffect(() => {
+    if (!modelUrl || !proxiedUrl || loadingState === 'loading-script') {
+      return;
+    }
+
+    const viewer = modelViewerRef.current;
+    if (!viewer) return;
+
+    const handleLoad = () => {
+      loadedModelsCache.set(modelUrl, proxiedUrl);
+      setLoadingState('loaded');
+      setLoadProgress(100);
+    };
+
+    const handleError = (event: Event) => {
+      console.error('❌ Model load failed:', event);
+      setLoadingState('error');
+      const msg = 'Failed to load 3D model. Please try again or contact support.';
+      setErrorMessage(msg);
+      onError?.(msg);
+    };
+
+    const handleProgress = (event: any) => {
+      if (event.detail && event.detail.totalProgress !== undefined) {
+        const progress = Math.round(event.detail.totalProgress * 100);
+        setLoadProgress(progress);
+      }
+    };
+
+    viewer.addEventListener('load', handleLoad);
+    viewer.addEventListener('error', handleError);
+    viewer.addEventListener('progress', handleProgress);
+
+    return () => {
+      viewer.removeEventListener('load', handleLoad);
+      viewer.removeEventListener('error', handleError);
+      viewer.removeEventListener('progress', handleProgress);
+    };
+  }, [modelUrl, proxiedUrl, onError, loadingState]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
