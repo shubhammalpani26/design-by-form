@@ -989,7 +989,7 @@ const DesignStudio = () => {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
-              <span className="text-sm font-semibold text-primary">AI Design Studio - Beta</span>
+              <span className="text-sm font-semibold text-primary">AI Design Studio</span>
             </div>
             
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
