@@ -1249,6 +1249,20 @@ export type Database = {
         Returns: undefined
       }
       generate_invoice_number: { Args: never; Returns: string }
+      get_public_designer_profile: {
+        Args: { profile_id: string }
+        Returns: {
+          cover_image_url: string
+          created_at: string
+          design_background: string
+          furniture_interests: string
+          id: string
+          name: string
+          portfolio_url: string
+          profile_picture_url: string
+          status: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
