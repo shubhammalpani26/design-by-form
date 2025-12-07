@@ -87,91 +87,95 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   useEffect(() => {
     // Use 3D model directly if available, otherwise process 2D image ONLY if room photo is uploaded
     const processFurniture = async () => {
+      // If we have a 3D model URL, use it directly - no background removal needed
+      if (modelUrl) {
+        console.log('Using 3D model for AR preview (no background removal needed)');
+        // For 3D models, we still need the 2D image for AR overlay display
+        setProcessedFurnitureUrl(imageUrl || modelUrl);
+        setIsProcessing(false);
+        return;
+      }
+      
       // If we have an image URL but no room photo, just show the product image directly
-      if ((imageUrl || modelUrl) && !uploadedPhoto) {
+      if (imageUrl && !uploadedPhoto) {
         console.log('No room photo - showing product image for reference');
+        setProcessedFurnitureUrl(imageUrl);
+        setIsProcessing(false);
+        return;
+      }
+      
+      // If no room photo uploaded yet and no image, nothing to process
+      if (!uploadedPhoto || !imageUrl) {
+        console.log('No room photo or image - waiting');
         setProcessedFurnitureUrl(imageUrl || null);
         setIsProcessing(false);
         return;
       }
       
-      // If no room photo uploaded yet, nothing to process
-      if (!uploadedPhoto) {
-        console.log('No room photo uploaded - waiting for upload');
-        setProcessedFurnitureUrl(null);
-        setIsProcessing(false);
+      // Only run background removal if we have BOTH room photo AND image, but NO 3D model
+      const urlToProcess = imageUrl;
+      
+      // Check cache first - see if we have the processed result stored
+      const cacheKey = `ar-processed-${urlToProcess}`;
+      const cachedResult = sessionStorage.getItem(cacheKey);
+      
+      if (cachedResult) {
+        console.log('Using cached processed furniture image');
+        setProcessedFurnitureUrl(cachedResult);
+        setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         return;
       }
+
+      // Check if we've already processed this URL in this session
+      if (processedUrls.has(urlToProcess)) {
+        console.log('Already processed this URL in this session');
+        // If it's in processedUrls but not in cache, we need to use the current processedFurnitureUrl
+        return;
+      }
+
+      setIsProcessing(true);
+      console.log('Starting background removal for:', urlToProcess);
+      toast({
+        title: "Removing background",
+        description: "Using AI to remove background from the furniture. This may take a moment...",
+      });
       
-      // Fall back to 2D image with background removal
-      const urlToProcess = imageUrl;
-      if (urlToProcess) {
-        // Check cache first - see if we have the processed result stored
-        const cacheKey = `ar-processed-${urlToProcess}`;
-        const cachedResult = sessionStorage.getItem(cacheKey);
+      try {
+        const processed = await processImageUrl(urlToProcess);
+        setProcessedFurnitureUrl(processed);
         
-        if (cachedResult) {
-          console.log('Using cached processed furniture image');
-          setProcessedFurnitureUrl(cachedResult);
-          setProcessedUrls(prev => new Set(prev).add(urlToProcess));
-          return;
-        }
-
-        // Check if we've already processed this URL in this session
-        if (processedUrls.has(urlToProcess)) {
-          console.log('Already processed this URL in this session');
-          // If it's in processedUrls but not in cache, we need to use the current processedFurnitureUrl
-          return;
-        }
-
-        setIsProcessing(true);
-        console.log('Starting background removal for:', urlToProcess);
-        toast({
-          title: "Removing background",
-          description: "Using AI to remove background from the furniture. This may take a moment...",
+        // Save both the URL marker and the processed result
+        sessionStorage.setItem(cacheKey, processed);
+        setProcessedUrls(prev => {
+          const newSet = new Set(prev).add(urlToProcess);
+          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
+          console.log('Saved processed URL to cache:', urlToProcess);
+          return newSet;
         });
         
-        try {
-          const processed = await processImageUrl(urlToProcess);
-          setProcessedFurnitureUrl(processed);
-          
-          // Save both the URL marker and the processed result
-          sessionStorage.setItem(cacheKey, processed);
-          setProcessedUrls(prev => {
-            const newSet = new Set(prev).add(urlToProcess);
-            sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-            console.log('Saved processed URL to cache:', urlToProcess);
-            return newSet;
-          });
-          
-          console.log('Background removed from furniture image using AI');
-          toast({
-            title: "Background removed!",
-            description: "The furniture is now ready for AR preview.",
-          });
-        } catch (error) {
-          console.error('Failed to remove background:', error);
-          setProcessedFurnitureUrl(urlToProcess); // Fallback to original
-          setProcessedUrls(prev => {
-            const newSet = new Set(prev).add(urlToProcess);
-            sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-            return newSet;
-          });
-          toast({
-            title: "Background removal failed",
-            description: "Using original image. Background may be visible in AR view.",
-            variant: "destructive",
-          });
-        } finally {
-          setIsProcessing(false);
-        }
-      } else {
-        setProcessedFurnitureUrl(null);
+        console.log('Background removed from furniture image using AI');
+        toast({
+          title: "Background removed!",
+          description: "The furniture is now ready for AR preview.",
+        });
+      } catch (error) {
+        console.error('Failed to remove background:', error);
+        setProcessedFurnitureUrl(urlToProcess); // Fallback to original
+        setProcessedUrls(prev => {
+          const newSet = new Set(prev).add(urlToProcess);
+          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
+          return newSet;
+        });
+        toast({
+          title: "Background removal failed",
+          description: "Using original image for AR preview.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsProcessing(false);
       }
     };
 
-    // Always prefer 3D model if available
-    // Process when URLs change or when room photo is uploaded
     processFurniture();
   }, [imageUrl, modelUrl, uploadedPhoto]);
 
