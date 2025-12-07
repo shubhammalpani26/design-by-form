@@ -36,6 +36,19 @@ export const ThreeDGenerationFeeDialog = ({
   const handlePayment = async () => {
     setLoading(true);
     try {
+      // If productId is "preview", this is a pre-submission payment
+      // Just mark as paid locally without backend call
+      if (productId === "preview") {
+        toast({
+          title: "3D Generation Enabled!",
+          description: "You can now generate 3D models for your design.",
+        });
+        onSuccess();
+        onOpenChange(false);
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('pay-3d-generation-fee', {
         body: {
           productId,
