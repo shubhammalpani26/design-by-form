@@ -206,10 +206,13 @@ const DesignStudio = () => {
   };
 
   const handleGenerate = async () => {
-    if (!prompt.trim() && !uploadedImage) {
+    // Allow generation if: prompt is filled, OR sketch is uploaded, OR room image + furniture type
+    if (!prompt.trim() && !uploadedImage && !(roomImage && furnitureType.trim())) {
       toast({
-        title: "Missing Description",
-        description: "Please describe your furniture design or upload a sketch.",
+        title: "Missing Input",
+        description: roomImage 
+          ? "Please specify what furniture you need for this space."
+          : "Please describe your furniture design or upload a sketch.",
         variant: "destructive",
       });
       return;
@@ -1422,7 +1425,7 @@ const DesignStudio = () => {
                         size="lg"
                         className="w-full group" 
                         onClick={handleGenerate}
-                        disabled={isGenerating || !prompt.trim()}
+                        disabled={isGenerating || (!prompt.trim() && !uploadedImage && !(roomImage && furnitureType.trim()))}
                       >
                         {isGenerating ? (
                           <>
