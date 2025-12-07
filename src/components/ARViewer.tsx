@@ -87,18 +87,18 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
   useEffect(() => {
     // Use 3D model directly if available, otherwise process 2D image ONLY if room photo is uploaded
     const processFurniture = async () => {
-      // Prefer 3D model - no background removal needed
-      if (modelUrl) {
-        console.log('Using 3D model for AR preview (no background removal needed)');
-        setProcessedFurnitureUrl(modelUrl);
+      // If we have an image URL but no room photo, just show the product image directly
+      if ((imageUrl || modelUrl) && !uploadedPhoto) {
+        console.log('No room photo - showing product image for reference');
+        setProcessedFurnitureUrl(imageUrl || null);
         setIsProcessing(false);
         return;
       }
       
-      // Only process furniture image if user has uploaded a room photo
+      // If no room photo uploaded yet, nothing to process
       if (!uploadedPhoto) {
-        console.log('No room photo uploaded - skipping furniture background removal');
-        setProcessedFurnitureUrl(imageUrl || null);
+        console.log('No room photo uploaded - waiting for upload');
+        setProcessedFurnitureUrl(null);
         setIsProcessing(false);
         return;
       }
@@ -292,21 +292,19 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   </div>
                 </div>
               </>
-            ) : !uploadedPhoto && !imageUrl && !modelUrl ? (
-              <div className="text-center space-y-3 p-8">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">AR Preview Unavailable</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    To use AR preview: <br/>
-                    1. Upload a room photo in customization options<br/>
-                    2. Generate a design<br/>
-                    3. Select a variation
-                  </p>
+            ) : !uploadedPhoto && (imageUrl || modelUrl) ? (
+              // Show product preview without room - just the product image
+              <div className="relative w-full h-full flex items-center justify-center p-8">
+                <div className="text-center space-y-4">
+                  <img
+                    src={imageUrl || ''}
+                    alt={productName}
+                    className="max-w-[250px] max-h-[200px] object-contain mx-auto rounded-lg shadow-lg"
+                  />
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{productName}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Upload a room photo below to see this in your space</p>
+                  </div>
                 </div>
               </div>
             ) : !imageUrl && !modelUrl ? (
@@ -317,20 +315,8 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                   </svg>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-foreground">Design Generated!</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload a room photo below to see AR preview</p>
-                </div>
-              </div>
-            ) : !uploadedPhoto ? (
-              <div className="text-center space-y-3 p-8">
-                <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                  <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-foreground">Upload Room Photo</p>
-                  <p className="text-xs text-muted-foreground mt-1">Upload a room photo below to see this furniture in your space</p>
+                  <p className="text-sm font-medium text-foreground">AR Preview</p>
+                  <p className="text-xs text-muted-foreground mt-2">Generate a design first, then upload a room photo</p>
                 </div>
               </div>
             ) : (
@@ -342,7 +328,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Ready for AR!</p>
-                  <p className="text-xs text-muted-foreground mt-1">Generating AR preview...</p>
+                  <p className="text-xs text-muted-foreground mt-1">Processing...</p>
                 </div>
               </div>
             )}

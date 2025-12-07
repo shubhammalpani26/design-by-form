@@ -181,9 +181,15 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     setupModel();
   }, [modelUrl, onError]);
 
-  const handleOpenInNewTab = () => {
+  const handleDownloadModel = () => {
     if (modelUrl) {
-      window.open(modelUrl, '_blank');
+      // Create a download link
+      const link = document.createElement('a');
+      link.href = modelUrl;
+      link.download = `${productName.replace(/\s+/g, '_')}_3D_Model.glb`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     }
   };
 
@@ -200,7 +206,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold text-foreground">3D Model Viewer</h3>
             </div>
-            <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[500px]">
+            <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[400px] max-h-[500px]">
               <div className="text-center space-y-3 p-8">
                 <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
                 <p className="text-sm text-muted-foreground">Loading 3D viewer library...</p>
@@ -222,16 +228,16 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
               <Button
                 variant="outline"
                 size="sm"
-                onClick={handleOpenInNewTab}
+                onClick={handleDownloadModel}
                 className="gap-2"
               >
                 <ExternalLink className="w-4 h-4" />
-                View in New Tab
+                Download 3D Model
               </Button>
             )}
           </div>
 
-          <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[500px]">
+          <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[400px] max-h-[500px]">
             {loadingState === 'error' ? (
               <div className="text-center space-y-4 p-8 max-w-md">
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mx-auto">
@@ -245,8 +251,8 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                 </div>
                 <div className="flex gap-2 justify-center">
                   {modelUrl && (
-                    <Button variant="outline" size="sm" onClick={handleOpenInNewTab}>
-                      Open Model URL
+                    <Button variant="outline" size="sm" onClick={handleDownloadModel}>
+                      Download Model
                     </Button>
                   )}
                   <Button variant="outline" size="sm" onClick={handleTestSampleModel}>
@@ -284,7 +290,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                   style={{ 
                     width: '100%', 
                     height: '100%',
-                    minHeight: '500px',
+                    maxHeight: '500px',
                     backgroundColor: 'transparent'
                   }}
                 />
