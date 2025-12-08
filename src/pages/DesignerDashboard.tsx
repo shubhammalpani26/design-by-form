@@ -223,6 +223,14 @@ const DesignerDashboard = () => {
       <Tabs defaultValue="products" className="w-full">
         <TabsList>
           <TabsTrigger value="products">My Products ({products.length})</TabsTrigger>
+          <TabsTrigger value="rejected" className="relative">
+            Rejected
+            {products.filter(p => p.status === 'rejected').length > 0 && (
+              <Badge variant="destructive" className="ml-2 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                {products.filter(p => p.status === 'rejected').length}
+              </Badge>
+            )}
+          </TabsTrigger>
           <TabsTrigger value="sales">Recent Sales ({sales.length})</TabsTrigger>
         </TabsList>
 
@@ -326,6 +334,86 @@ const DesignerDashboard = () => {
                 <Link to="/design-studio">
                   <Button>Create Your First Design</Button>
                 </Link>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
+
+        <TabsContent value="rejected" className="mt-6">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold mb-2">Rejected Designs</h2>
+            <p className="text-muted-foreground">
+              Review feedback from the admin and resubmit after making improvements
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {products.filter(p => p.status === 'rejected').map((product) => (
+              <Card key={product.id} className="border-destructive/50">
+                <div className="aspect-video overflow-hidden rounded-t-lg bg-accent">
+                  {product.image_url && (
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="w-full h-full object-cover opacity-75"
+                    />
+                  )}
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-lg">{product.name}</h3>
+                    <Badge variant="destructive">Rejected</Badge>
+                  </div>
+                  
+                  {product.rejection_reason && (
+                    <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 mb-4">
+                      <p className="text-sm font-medium text-destructive mb-1">Admin Feedback:</p>
+                      <p className="text-sm text-foreground">{product.rejection_reason}</p>
+                    </div>
+                  )}
+                  
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Submitted: {new Date(product.created_at).toLocaleDateString()}
+                  </p>
+                  
+                  <div className="flex gap-2">
+                    <Link to={`/product-edit/${product.id}`} className="flex-1">
+                      <Button size="sm" className="w-full">
+                        <Edit className="w-3 h-3 mr-2" />
+                        Edit & Resubmit
+                      </Button>
+                    </Link>
+                    <AlertDialog>
+                      <AlertDialogTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>Delete Product?</AlertDialogTitle>
+                          <AlertDialogDescription>
+                            This action cannot be undone. This will permanently delete your product.
+                          </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>Cancel</AlertDialogCancel>
+                          <AlertDialogAction onClick={() => handleDeleteProduct(product.id)}>
+                            Delete
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {products.filter(p => p.status === 'rejected').length === 0 && (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-muted-foreground">No rejected designs</p>
               </CardContent>
             </Card>
           )}

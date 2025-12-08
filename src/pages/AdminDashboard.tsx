@@ -312,20 +312,33 @@ const AdminDashboard = () => {
           <DialogHeader>
             <DialogTitle>Reject Product</DialogTitle>
             <DialogDescription>
-              Please provide a reason for rejecting this product. The designer will be notified.
+              Please provide a reason for rejecting "{selectedProduct?.name}". The designer will be notified with this feedback.
             </DialogDescription>
           </DialogHeader>
-          <Textarea
-            placeholder="Enter rejection reason..."
-            value={rejectionReason}
-            onChange={(e) => setRejectionReason(e.target.value)}
-            rows={4}
-          />
+          <div className="space-y-2">
+            <Label htmlFor="rejection-reason">Rejection Reason *</Label>
+            <Textarea
+              id="rejection-reason"
+              placeholder="Explain why this product is being rejected and what the designer can improve..."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
+            />
+            {rejectionReason.length < 10 && (
+              <p className="text-xs text-muted-foreground">
+                Please provide a detailed reason (at least 10 characters)
+              </p>
+            )}
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowRejectDialog(false)}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={rejectProduct}>
+            <Button 
+              variant="destructive" 
+              onClick={rejectProduct}
+              disabled={rejectionReason.length < 10}
+            >
               Reject Product
             </Button>
           </DialogFooter>
