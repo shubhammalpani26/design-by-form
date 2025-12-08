@@ -36,6 +36,7 @@ const ProductSuccessKit = () => {
     { angle: 'Top View', url: '', loading: false },
     { angle: 'Bottom View', url: '', loading: false },
   ]);
+  const [lifestyleImage, setLifestyleImage] = useState<{ url: string; loading: boolean }>({ url: '', loading: false });
 
   const productUrl = `${window.location.origin}/product/${productId}`;
 
@@ -171,6 +172,59 @@ const ProductSuccessKit = () => {
       setAngleShots(prev => prev.map((shot, idx) => 
         idx === index ? { ...shot, loading: false } : shot
       ));
+    }
+  };
+
+  const generateLifestyleImage = async () => {
+    if (!product) return;
+
+    setLifestyleImage({ url: '', loading: true });
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error('Not authenticated');
+      }
+
+      const { data, error } = await supabase.functions.invoke('generate-angle-view', {
+        body: {
+          imageUrl: product.image_url,
+          angle: 'Lifestyle',
+          productName: product.name
+        }
+      });
+
+      if (error) {
+        if (error.message?.includes('402') || error.message?.includes('credits')) {
+          throw new Error('Insufficient credits. Lifestyle image generation costs 1 credit.');
+        }
+        throw new Error(error.message || 'Failed to generate lifestyle image');
+      }
+
+      if (data?.error) {
+        if (data.error.includes('402') || data.error.includes('credits')) {
+          throw new Error('Insufficient credits. Lifestyle image generation costs 1 credit.');
+        }
+        throw new Error(data.error);
+      }
+
+      if (data?.imageUrl) {
+        setLifestyleImage({ url: data.imageUrl, loading: false });
+        toast({
+          title: 'Success',
+          description: 'Lifestyle image generated successfully! (1 credit used)',
+        });
+      } else {
+        throw new Error('No image URL returned');
+      }
+    } catch (error) {
+      console.error('Error generating lifestyle image:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to generate lifestyle image',
+        variant: 'destructive',
+      });
+      setLifestyleImage({ url: '', loading: false });
     }
   };
 
@@ -317,6 +371,64 @@ const ProductSuccessKit = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Lifestyle Image Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Lifestyle Image
+                </CardTitle>
+                <CardDescription>
+                  Generate a beautiful lifestyle/room setting image of your product
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="max-w-md">
+                  <div className="aspect-[4/3] bg-muted rounded-lg overflow-hidden flex items-center justify-center mb-4">
+                    {lifestyleImage.loading ? (
+                      <div className="flex flex-col items-center gap-2">
+                        <Sparkles className="w-8 h-8 animate-pulse text-primary" />
+                        <p className="text-sm text-muted-foreground">Generating lifestyle image...</p>
+                      </div>
+                    ) : lifestyleImage.url ? (
+                      <img 
+                        src={lifestyleImage.url} 
+                        alt="Lifestyle"
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="text-center p-4">
+                        <p className="text-sm text-muted-foreground">No lifestyle image yet</p>
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {lifestyleImage.url && !lifestyleImage.loading && (
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          const link = document.createElement('a');
+                          link.href = lifestyleImage.url;
+                          link.download = `${product.name}-lifestyle.png`;
+                          link.click();
+                        }}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        Download
+                      </Button>
+                    )}
+                    <Button
+                      onClick={generateLifestyleImage}
+                      disabled={lifestyleImage.loading}
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {lifestyleImage.url ? 'Regenerate' : 'Generate Lifestyle Image'}
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
