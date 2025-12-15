@@ -2243,12 +2243,18 @@ const DesignStudio = () => {
                             defaultValue={estimatedCost * 1.5}
                             className="w-full px-3 py-2 border border-border rounded-md text-foreground bg-background"
                             onChange={(e) => {
-                              const markup = parseInt(e.target.value) - estimatedCost;
-                              const commission = estimatedCost * 0.10;
-                              const total = markup + commission;
+                              const sellingPrice = parseInt(e.target.value) || estimatedCost;
+                              const markup = sellingPrice - estimatedCost;
+                              const yourEarnings = Math.round(markup * 0.7); // 70% of markup
+                              const platformShare = Math.round(markup * 0.3); // 30% to platform
                               document.getElementById('markup-display')!.textContent = `₹${markup.toLocaleString()}`;
-                              document.getElementById('commission-display')!.textContent = `₹${commission.toLocaleString()}`;
-                              document.getElementById('total-earnings')!.textContent = `₹${total.toLocaleString()}`;
+                              document.getElementById('your-share-display')!.textContent = `₹${yourEarnings.toLocaleString()}`;
+                              document.getElementById('total-earnings')!.textContent = `₹${yourEarnings.toLocaleString()}`;
+                              // Update monthly income
+                              const monthlyElem = document.getElementById('monthly-income');
+                              if (monthlyElem) {
+                                monthlyElem.textContent = `₹${(yourEarnings * 10).toLocaleString()}`;
+                              }
                             }}
                           />
                           <p className="text-xs text-muted-foreground">Minimum: ₹{estimatedCost.toLocaleString()}</p>
@@ -2256,25 +2262,25 @@ const DesignStudio = () => {
 
                         <div className="bg-primary/5 rounded-lg p-3 space-y-2">
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Your Markup (100% yours)</span>
-                            <span id="markup-display" className="font-semibold text-primary">₹{(estimatedCost * 0.5).toLocaleString()}</span>
+                            <span className="text-muted-foreground">Your Markup</span>
+                            <span id="markup-display" className="font-medium text-muted-foreground">₹{(estimatedCost * 0.5).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Commission (10% on base)</span>
-                            <span id="commission-display" className="font-semibold text-secondary">₹{(estimatedCost * 0.10).toLocaleString()}</span>
+                            <span className="text-muted-foreground">Your Share (70% of markup)</span>
+                            <span id="your-share-display" className="font-semibold text-primary">₹{Math.round(estimatedCost * 0.5 * 0.7).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-primary/20">
                             <span className="font-semibold text-foreground">Per Sale Earnings</span>
-                            <span id="total-earnings" className="font-bold text-primary">₹{(estimatedCost * 0.60).toLocaleString()}</span>
+                            <span id="total-earnings" className="font-bold text-primary">₹{Math.round(estimatedCost * 0.5 * 0.7).toLocaleString()}</span>
                           </div>
                         </div>
 
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
                           <p className="text-sm font-bold text-foreground">
-                            Monthly Income: ₹{(submissionData.designerPrice > submissionData.basePrice
-                              ? ((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)) * 10 
-                              : 0).toLocaleString()}
+                            Monthly Income: <span id="monthly-income">₹{(submissionData.designerPrice > submissionData.basePrice
+                              ? Math.round((submissionData.designerPrice - submissionData.basePrice) * 0.7 * 10)
+                              : 0).toLocaleString()}</span>
                           </p>
                         </div>
 

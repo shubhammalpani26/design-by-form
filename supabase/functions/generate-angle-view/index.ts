@@ -86,9 +86,36 @@ serve(async (req) => {
       );
     }
 
-    const prompt = `Professional product photography of ${productName}, ${angle.toLowerCase()}, studio lighting, white background, high resolution, commercial quality`;
+    // Use specialized prompt for lifestyle images, generic for other angles
+    let prompt: string;
     
-    console.log('Generating angle view:', { angle, productName });
+    if (angle.toLowerCase() === 'lifestyle') {
+      prompt = `Create a wide-angle, ultra-realistic lifestyle interior photograph featuring the given furniture product as the natural focal element.
+
+The product must be placed in a spatially appropriate, well-designed interior that logically suits its function and scale, without over-staging. The room should feel architecturally resolved, calm, and premium.
+
+Show the FULL room with generous negative space, using correct real-world proportions and believable spatial depth. The product should feel designed for the space — not added later.
+
+Lighting: Soft natural daylight combined with subtle ambient interior lighting, realistic shadows, gentle highlights, no harsh contrast.
+
+Camera & Composition: Eye-level camera, wide-angle lens (24–28mm look), true perspective with no distortion, editorial interior photography framing.
+
+Interior Language: Contemporary, warm minimal, softly futuristic, materials such as textured plaster, microcement, stone, wood, linen, neutral earthy palette with refined tonal variation.
+
+Styling Rules: Minimal, intentional, and restrained. Only elements that support scale and realism. No clutter, no over-decoration, no visual noise.
+
+Realism Constraints: Photographic depth of field, natural imperfections, accurate material behavior and reflections, cinematic but believable.
+
+Strictly avoid: Collages, split frames, floating objects, CGI or render-like appearance, people, text, logos, branding, over-saturated colors, exaggerated decor, incorrect scale or forced staging.
+
+Final Output: A calm, timeless, magazine-quality interior photograph that feels naturally lived-in yet refined, website-ready, premium, and fully realistic.
+
+Product: ${productName}`;
+    } else {
+      prompt = `Professional product photography of ${productName}, ${angle.toLowerCase()}, studio lighting, white background, high resolution, commercial quality`;
+    }
+    
+    console.log('Generating angle view:', { angle, productName, isLifestyle: angle.toLowerCase() === 'lifestyle' });
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
