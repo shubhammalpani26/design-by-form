@@ -10,7 +10,7 @@ const corsHeaders = {
 
 // Validation schema
 const generateDesignSchema = z.object({
-  prompt: z.string().trim().max(2000).optional(),
+  prompt: z.string().trim().max(10000).optional(), // Allow longer prompts for detailed descriptions
   variationNumber: z.number().int().min(1).max(10).optional().default(1),
   roomImageBase64: z.string().optional(),
   sketchImageBase64: z.string().optional(), // User's uploaded sketch
