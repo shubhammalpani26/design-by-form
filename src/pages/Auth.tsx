@@ -11,6 +11,39 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
 
+// PasswordInput component defined outside to prevent re-creation on every render
+const PasswordInput = ({ 
+  value, 
+  onChange, 
+  showPassword, 
+  onToggle, 
+  placeholder = "••••••••" 
+}: { 
+  value: string; 
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
+  showPassword: boolean; 
+  onToggle: () => void; 
+  placeholder?: string;
+}) => (
+  <div className="relative">
+    <Input
+      type={showPassword ? "text" : "password"}
+      placeholder={placeholder}
+      value={value}
+      onChange={onChange}
+      required
+      className="pr-10"
+    />
+    <button
+      type="button"
+      onClick={onToggle}
+      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+    </button>
+  </div>
+);
+
 const Auth = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -72,7 +105,6 @@ const Auth = () => {
         title: "Welcome back!",
         description: "You've successfully logged in.",
       });
-      // Navigation will happen via onAuthStateChange
     } catch (error: any) {
       toast({
         title: "Login failed",
@@ -193,38 +225,6 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
-  const PasswordInput = ({ 
-    value, 
-    onChange, 
-    showPassword, 
-    onToggle, 
-    placeholder = "••••••••" 
-  }: { 
-    value: string; 
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; 
-    showPassword: boolean; 
-    onToggle: () => void; 
-    placeholder?: string;
-  }) => (
-    <div className="relative">
-      <Input
-        type={showPassword ? "text" : "password"}
-        placeholder={placeholder}
-        value={value}
-        onChange={onChange}
-        required
-        className="pr-10"
-      />
-      <button
-        type="button"
-        onClick={onToggle}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-      >
-        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-      </button>
-    </div>
-  );
 
   return (
     <div className="min-h-screen flex flex-col">
