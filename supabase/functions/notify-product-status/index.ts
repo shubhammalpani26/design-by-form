@@ -62,6 +62,12 @@ const handler = async (req: Request): Promise<Response> => {
     let notificationType = "";
 
     if (status === "approved") {
+      // Calculate markup percentage
+      const markup = product.base_price > 0 
+        ? Math.round(((product.designer_price - product.base_price) / product.base_price) * 100)
+        : 0;
+      const designerEarnings = Math.round((product.designer_price - product.base_price) * 0.7);
+
       notificationTitle = "Product Approved! 🎉";
       notificationMessage = `Your product "${product.name}" has been approved and is now live on the marketplace!`;
       notificationType = "product_approval";
@@ -98,6 +104,27 @@ const handler = async (req: Request): Promise<Response> => {
                 border-radius: 8px;
                 margin: 20px 0;
               }
+              .pricing-table {
+                width: 100%;
+                border-collapse: collapse;
+                margin: 15px 0;
+              }
+              .pricing-table td {
+                padding: 10px;
+                border-bottom: 1px solid #e5e7eb;
+              }
+              .pricing-table td:last-child {
+                text-align: right;
+                font-weight: 600;
+              }
+              .earnings-highlight {
+                background: #ecfdf5;
+                border: 1px solid #10b981;
+                border-radius: 8px;
+                padding: 15px;
+                margin: 15px 0;
+                text-align: center;
+              }
               .button {
                 display: inline-block;
                 background: #667eea;
@@ -127,8 +154,30 @@ const handler = async (req: Request): Promise<Response> => {
               <div class="product-card">
                 <h2 style="margin-top: 0;">${product.name}</h2>
                 <p><strong>Category:</strong> ${product.category}</p>
-                <p><strong>Your Price:</strong> ₹${Number(product.designer_price).toLocaleString('en-IN')}</p>
-                <p><strong>Base Price:</strong> ₹${Number(product.base_price).toLocaleString('en-IN')}</p>
+                
+                <table class="pricing-table">
+                  <tr>
+                    <td>Manufacturing Base Price</td>
+                    <td>₹${Number(product.base_price).toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr>
+                    <td>Selling Price</td>
+                    <td>₹${Number(product.designer_price).toLocaleString('en-IN')}</td>
+                  </tr>
+                  <tr>
+                    <td>Your Markup</td>
+                    <td>${markup}%</td>
+                  </tr>
+                </table>
+                
+                <div class="earnings-highlight">
+                  <p style="margin: 0; color: #059669; font-size: 18px;">
+                    <strong>Your Earnings Per Sale: ₹${designerEarnings.toLocaleString('en-IN')}</strong>
+                  </p>
+                  <p style="margin: 5px 0 0; color: #6b7280; font-size: 12px;">
+                    (70% of markup on base manufacturing price)
+                  </p>
+                </div>
               </div>
               
               <p><strong>What happens next?</strong></p>
@@ -140,17 +189,17 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
               
               <center>
-                <a href="${supabaseUrl.replace('https://', 'https://').split('.supabase')[0]}.lovable.app/designer-dashboard" class="button">
+                <a href="https://formo.co.in/designer-dashboard" class="button">
                   View Dashboard
                 </a>
               </center>
               
-              <p>Need help? Check out our <a href="#">Designer FAQ</a> or contact our support team.</p>
+              <p>Need help? Check out our <a href="https://formo.co.in/creator-faq">Creator FAQ</a> or contact our support team.</p>
               
-              <p>Happy selling!<br>The Parametric Furniture Team</p>
+              <p>Happy selling!<br>The Formo Team</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Parametric Furniture. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} Formo. All rights reserved.</p>
             </div>
           </body>
         </html>
@@ -242,17 +291,17 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
               
               <center>
-                <a href="${supabaseUrl.replace('https://', 'https://').split('.supabase')[0]}.lovable.app/product-edit/${productId}" class="button">
+                <a href="https://formo.co.in/product-edit/${productId}" class="button">
                   Edit & Resubmit Product
                 </a>
               </center>
               
               <p>If you have any questions about this feedback, please don't hesitate to reach out to our support team.</p>
               
-              <p>Best regards,<br>The Parametric Furniture Team</p>
+              <p>Best regards,<br>The Formo Team</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Parametric Furniture. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} Formo. All rights reserved.</p>
             </div>
           </body>
         </html>
