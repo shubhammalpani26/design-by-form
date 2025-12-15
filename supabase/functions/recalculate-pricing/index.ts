@@ -21,21 +21,25 @@ serve(async (req) => {
     // Calculate volume for reference
     const volume = (dimensions.width * dimensions.depth * dimensions.height) / 1000000; // cubic meters
     
-    const prompt = `You are a luxury furniture pricing expert. Calculate an appropriate designer price for this artisan-crafted, organically-shaped furniture piece.
+    const prompt = `You are a furniture pricing analyst. Calculate a competitive manufacturing base price for this designer furniture piece.
 
 Product: ${productName}
 Category: ${category}
 Description: ${description}
 Dimensions: ${dimensions.width}cm W × ${dimensions.depth}cm D × ${dimensions.height}cm H
 Volume: ${volume.toFixed(2)} cubic meters
-Material: High-grade resin reinforced with glass fibre, crafted through innovative fabrication techniques with meticulous hand-finishing
+Material: Resin reinforced with composite fibre, hybrid fabrication with hand-finishing
 
-Pricing considerations:
-- This is a luxury, designer piece with organic flowing forms
-- Advanced composite fabrication blending modern precision with artisan craftsmanship
-- On-demand, sustainable production with responsibly sourced materials
-- Unique parametric designs with sculptural freedom
-- Small batch/custom production with refined artistic finish
+Pricing guidelines (in INR):
+- Small decor items (vases, bowls, planters): base_price ₹3,000-₹8,000
+- Medium items (side tables, stools, shelves): base_price ₹8,000-₹18,000
+- Large items (chairs, benches, coffee tables): base_price ₹15,000-₹35,000
+- Extra large items (dining tables, sofas, beds): base_price ₹30,000-₹60,000
+
+Consider:
+- Efficient batch production capabilities
+- Competitive Indian manufacturing costs
+- Volume-based cost optimization
 
 Return ONLY a JSON object with this structure (no markdown, no explanation):
 {
@@ -44,7 +48,7 @@ Return ONLY a JSON object with this structure (no markdown, no explanation):
   "reasoning": "<brief explanation of pricing>"
 }
 
-Designer price should be 1.8-2.5x the base manufacturing cost. Think high-end design gallery pricing.`;
+Designer price should be 1.5-2x the base manufacturing cost. Keep base prices affordable and competitive.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
