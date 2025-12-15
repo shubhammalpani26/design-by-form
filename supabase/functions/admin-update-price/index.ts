@@ -54,16 +54,47 @@ serve(async (req) => {
     const body = await req.json();
     const { productId, basePrice } = priceUpdateSchema.parse(body);
 
-    // Update base price
+    // Fetch current product to calculate markup percentage
+    const { data: product, error: fetchError } = await supabase
+      .from('designer_products')
+      .select('base_price, designer_price')
+      .eq('id', productId)
+      .single();
+
+    if (fetchError || !product) {
+      throw new Error('Product not found');
+    }
+
+    // Calculate the original markup percentage
+    const originalMarkup = product.base_price > 0 
+      ? (product.designer_price - product.base_price) / product.base_price 
+      : 0.5; // Default to 50% if base was 0
+
+    // Apply same markup percentage to new base price
+    const newDesignerPrice = Math.round(basePrice * (1 + originalMarkup));
+
+    console.log(`Price update: base ${product.base_price} → ${basePrice}, markup ${(originalMarkup * 100).toFixed(1)}%, designer ${product.designer_price} → ${newDesignerPrice}`);
+
+    // Update both base price and designer price
     const { error: updateError } = await supabase
       .from('designer_products')
-      .update({ base_price: basePrice })
+      .update({ 
+        base_price: basePrice,
+        designer_price: newDesignerPrice,
+        original_designer_price: newDesignerPrice
+      })
       .eq('id', productId);
 
     if (updateError) throw updateError;
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Price updated successfully' }),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Price updated successfully',
+        basePrice,
+        designerPrice: newDesignerPrice,
+        markupPercentage: Math.round(originalMarkup * 100)
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

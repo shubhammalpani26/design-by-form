@@ -105,9 +105,12 @@ const AdminDashboard = () => {
 
       if (error) throw error;
 
+      // Refresh to get updated designer price
+      fetchPendingItems();
+
       toast({
         title: 'Price updated',
-        description: 'Manufacturing price has been updated successfully',
+        description: `Base: ₹${newPrice.toLocaleString()}, Designer: ₹${data.designerPrice?.toLocaleString()} (${data.markupPercentage}% markup maintained)`,
       });
     } catch (error) {
       console.error('Error updating price:', error);
