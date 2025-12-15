@@ -466,6 +466,10 @@ const DesignStudio = () => {
     setLifestyleImage(null);
     
     try {
+      // Add timeout of 30 seconds for lifestyle generation
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
+      
       const { data, error } = await supabase.functions.invoke('generate-angle-view', {
         body: {
           imageUrl,
@@ -474,13 +478,19 @@ const DesignStudio = () => {
         }
       });
 
+      clearTimeout(timeoutId);
+      
       if (error) throw error;
       
-      if (data?.generatedImageUrl) {
-        setLifestyleImage(data.generatedImageUrl);
+      // Edge function returns { imageUrl: ... }
+      if (data?.imageUrl) {
+        setLifestyleImage(data.imageUrl);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Lifestyle image generation failed:', error);
+      if (error?.name === 'AbortError') {
+        console.log('Lifestyle generation timed out');
+      }
       // Silent fail - lifestyle is optional enhancement
     } finally {
       setIsGeneratingLifestyle(false);
