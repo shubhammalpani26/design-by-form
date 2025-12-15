@@ -9,7 +9,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ZoomIn } from "lucide-react";
+import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { DesignerGuide, HelpButton } from "@/components/DesignerGuide";
@@ -100,6 +101,7 @@ const DesignStudio = () => {
   const [isUploadingModel, setIsUploadingModel] = useState(false);
   const [lifestyleImage, setLifestyleImage] = useState<string | null>(null);
   const [isGeneratingLifestyle, setIsGeneratingLifestyle] = useState(false);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const { toast } = useToast();
 
   // Check if user has seen the guide - only show after intent dialog is handled
@@ -1781,10 +1783,26 @@ const DesignStudio = () => {
                                         )}
                                       </div>
                                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                       <div className="absolute top-4 left-4">
+                                         <button
+                                           onClick={(e) => {
+                                             e.stopPropagation();
+                                             setFullscreenImage(
+                                               selectedVariation === index && generatedDesign 
+                                                 ? generatedDesign 
+                                                 : variation.imageUrl
+                                             );
+                                           }}
+                                           className="p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
+                                           aria-label="View fullscreen"
+                                         >
+                                           <ZoomIn className="w-4 h-4" />
+                                         </button>
+                                       </div>
                                        <div className="absolute bottom-4 left-4 right-4">
                                          <p className="text-white font-semibold">Variation {index + 1}</p>
                                        </div>
-                                     </div>
+                                      </div>
                                      {selectedVariation === index && (
                                        <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
                                          <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
@@ -1981,32 +1999,49 @@ const DesignStudio = () => {
                                        </div>
                                      </div>
                                    ) : lifestyleImage ? (
-                                     <div className="relative group">
-                                       <img 
-                                         src={lifestyleImage} 
-                                         alt="Lifestyle preview" 
-                                         className="w-full aspect-video object-cover"
-                                       />
-                                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
-                                           <span className="text-white text-sm font-medium">Your design in a real setting</span>
-                                           <Button 
-                                             variant="secondary" 
-                                             size="sm"
-                                             onClick={() => generateLifestyleImage(
-                                               generatedVariations[selectedVariation].imageUrl,
-                                               submissionData.name || 'Custom Furniture'
-                                             )}
-                                             className="bg-white/20 hover:bg-white/30 text-white border-0"
-                                           >
-                                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                             </svg>
-                                             New Scene
-                                           </Button>
-                                         </div>
-                                       </div>
-                                     </div>
+                                      <div className="relative group">
+                                        <img 
+                                          src={lifestyleImage} 
+                                          alt="Lifestyle preview" 
+                                          className="w-full aspect-video object-cover cursor-pointer"
+                                          onClick={() => setFullscreenImage(lifestyleImage)}
+                                        />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                                          <div className="absolute top-4 right-4 pointer-events-auto">
+                                            <Button 
+                                              variant="secondary" 
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setFullscreenImage(lifestyleImage);
+                                              }}
+                                              className="bg-white/20 hover:bg-white/30 text-white border-0"
+                                            >
+                                              <ZoomIn className="w-4 h-4" />
+                                            </Button>
+                                          </div>
+                                          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between pointer-events-auto">
+                                            <span className="text-white text-sm font-medium">Click to expand • Your design in a real setting</span>
+                                            <Button 
+                                              variant="secondary" 
+                                              size="sm"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                generateLifestyleImage(
+                                                  generatedVariations[selectedVariation].imageUrl,
+                                                  submissionData.name || 'Custom Furniture'
+                                                );
+                                              }}
+                                              className="bg-white/20 hover:bg-white/30 text-white border-0"
+                                            >
+                                              <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                              </svg>
+                                              New Scene
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
                                    ) : (
                                      <div className="aspect-video flex items-center justify-center bg-accent/20">
                                        <div className="text-center space-y-2 p-6">
@@ -2278,9 +2313,7 @@ const DesignStudio = () => {
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
                           <p className="text-sm font-bold text-foreground">
-                            Monthly Income: <span id="monthly-income">₹{(submissionData.designerPrice > submissionData.basePrice
-                              ? Math.round((submissionData.designerPrice - submissionData.basePrice) * 0.7 * 10)
-                              : 0).toLocaleString()}</span>
+                            Monthly Income: <span id="monthly-income">₹{Math.round(estimatedCost * 0.5 * 0.7 * 10).toLocaleString()}</span>
                           </p>
                         </div>
 
@@ -2761,6 +2794,14 @@ const DesignStudio = () => {
 
       {/* Help Button */}
       <HelpButton onClick={() => setShowGuide(true)} />
+
+      {/* Fullscreen Image Viewer */}
+      <FullscreenImageViewer 
+        imageUrl={fullscreenImage}
+        isOpen={!!fullscreenImage}
+        onClose={() => setFullscreenImage(null)}
+        alt="Design preview"
+      />
     </div>
   );
 };
