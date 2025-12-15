@@ -98,6 +98,8 @@ const DesignStudio = () => {
   const [is3DGenerating, setIs3DGenerating] = useState(false);
   const [uploadedModelFile, setUploadedModelFile] = useState<File | null>(null);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
+  const [lifestyleImage, setLifestyleImage] = useState<string | null>(null);
+  const [isGeneratingLifestyle, setIsGeneratingLifestyle] = useState(false);
   const { toast } = useToast();
 
   // Check if user has seen the guide - only show after intent dialog is handled
@@ -459,6 +461,32 @@ const DesignStudio = () => {
     setTimeout(checkStatus, 5000);
   };
 
+  const generateLifestyleImage = async (imageUrl: string, productName: string) => {
+    setIsGeneratingLifestyle(true);
+    setLifestyleImage(null);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-angle-view', {
+        body: {
+          imageUrl,
+          angle: 'Lifestyle',
+          productName: productName || 'furniture design'
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data?.generatedImageUrl) {
+        setLifestyleImage(data.generatedImageUrl);
+      }
+    } catch (error) {
+      console.error('Lifestyle image generation failed:', error);
+      // Silent fail - lifestyle is optional enhancement
+    } finally {
+      setIsGeneratingLifestyle(false);
+    }
+  };
+
   const handleSelectVariation = async (index: number) => {
     setSelectedVariation(index);
     const selectedVar = generatedVariations[index];
@@ -467,6 +495,7 @@ const DesignStudio = () => {
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
     setPreviewMode("2d"); // Reset to 2D view when selecting new variation
+    setLifestyleImage(null); // Reset lifestyle image for new selection
     
     // Store the pricing data for this variation
     const pricingData = selectedVar.pricing || {
@@ -503,6 +532,9 @@ const DesignStudio = () => {
       title: "Variation Selected",
       description: "Ready to customize dimensions and submit your design.",
     });
+
+    // Auto-generate lifestyle image in background
+    generateLifestyleImage(selectedVar.imageUrl, submissionData.name || 'Custom Furniture');
   };
 
   const applyColorFinishToSelected = async (color?: string, finish?: string) => {
@@ -1897,6 +1929,87 @@ const DesignStudio = () => {
                                  </div>
                                ))}
                              </div>
+
+                             {/* Lifestyle Image Preview */}
+                             {selectedVariation !== null && (
+                               <Card className="mt-6 overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+                                 <CardContent className="p-0">
+                                   <div className="flex items-center justify-between px-4 py-3 border-b border-primary/10">
+                                     <div className="flex items-center gap-2">
+                                       <div className="p-1.5 bg-primary/10 rounded-lg">
+                                         <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                         </svg>
+                                       </div>
+                                       <div>
+                                         <h4 className="font-semibold text-sm text-foreground">Lifestyle Preview</h4>
+                                         <p className="text-xs text-muted-foreground">See how it looks in a room setting</p>
+                                       </div>
+                                     </div>
+                                     {!lifestyleImage && !isGeneratingLifestyle && (
+                                       <Button 
+                                         variant="outline" 
+                                         size="sm"
+                                         onClick={() => generateLifestyleImage(
+                                           generatedVariations[selectedVariation].imageUrl,
+                                           submissionData.name || 'Custom Furniture'
+                                         )}
+                                       >
+                                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                         </svg>
+                                         Regenerate
+                                       </Button>
+                                     )}
+                                   </div>
+                                   
+                                   {isGeneratingLifestyle ? (
+                                     <div className="aspect-video flex items-center justify-center bg-accent/30">
+                                       <div className="text-center space-y-3">
+                                         <div className="w-12 h-12 mx-auto border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+                                         <p className="text-sm text-muted-foreground">Creating lifestyle preview...</p>
+                                       </div>
+                                     </div>
+                                   ) : lifestyleImage ? (
+                                     <div className="relative group">
+                                       <img 
+                                         src={lifestyleImage} 
+                                         alt="Lifestyle preview" 
+                                         className="w-full aspect-video object-cover"
+                                       />
+                                       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                                         <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between">
+                                           <span className="text-white text-sm font-medium">Your design in a real setting</span>
+                                           <Button 
+                                             variant="secondary" 
+                                             size="sm"
+                                             onClick={() => generateLifestyleImage(
+                                               generatedVariations[selectedVariation].imageUrl,
+                                               submissionData.name || 'Custom Furniture'
+                                             )}
+                                             className="bg-white/20 hover:bg-white/30 text-white border-0"
+                                           >
+                                             <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                             </svg>
+                                             New Scene
+                                           </Button>
+                                         </div>
+                                       </div>
+                                     </div>
+                                   ) : (
+                                     <div className="aspect-video flex items-center justify-center bg-accent/20">
+                                       <div className="text-center space-y-2 p-6">
+                                         <svg className="w-12 h-12 mx-auto text-muted-foreground/50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                         </svg>
+                                         <p className="text-sm text-muted-foreground">Lifestyle preview loading...</p>
+                                       </div>
+                                     </div>
+                                   )}
+                                 </CardContent>
+                               </Card>
+                             )}
                            </div>
                         ) : (
                           <div className="aspect-square rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
