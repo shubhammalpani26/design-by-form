@@ -368,18 +368,22 @@ const DesignStudio = () => {
       
       // Don't auto-start 3D generation anymore
       
-      // Calculate initial estimated cost using category default dimensions and AI pricing
+      // Calculate initial estimated cost using category default dimensions and bounded pricing
       const defaultDims = suggestDimensionsForDesign(submissionData.category, prompt);
       const l = parseFloat(defaultDims.length) / 12;
       const b = parseFloat(defaultDims.breadth) / 12;
       const h = parseFloat(defaultDims.height) / 12;
       const cubicFeet = l * b * h;
-      
-      // Use pricing from first variation if available
+
+      // Use pricing from first variation if available, but keep it within sane bounds
       const initialPricing = variations[0]?.pricing;
-      const pricePerCubicFoot = initialPricing?.pricePerCubicFoot || 9000;
-      const baseCost = Math.round(cubicFeet * pricePerCubicFoot);
-      
+      const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 1200;
+      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 400, 2500);
+
+      const rawBaseCost = Math.round(cubicFeet * pricePerCubicFoot);
+      const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
+      const baseCost = clampNumber(rawBaseCost, min, max);
+
       setEstimatedCost(baseCost);
       setLeadTime(28); // 4 weeks
       
@@ -745,16 +749,55 @@ const DesignStudio = () => {
     }
   };
 
+  const clampNumber = (value: number, min: number, max: number) => {
+    const num = Number.isFinite(value) ? value : min;
+    return Math.min(max, Math.max(min, num));
+  };
+
+  const getBasePriceGuideline = (category: string, cubicFeet: number): { min: number; max: number } => {
+    // Ranges align with platform pricing guidance (INR)
+    // - Small decor: ₹3k–₹8k
+    // - Medium: ₹8k–₹18k
+    // - Large: ₹15k–₹35k
+    // - Extra large: ₹30k–₹60k
+
+    const cf = Number.isFinite(cubicFeet) && cubicFeet > 0 ? cubicFeet : 1;
+
+    const tiers = {
+      small: { min: 3000, max: 8000 },
+      medium: { min: 8000, max: 18000 },
+      large: { min: 15000, max: 35000 },
+      xlarge: { min: 30000, max: 60000 },
+    };
+
+    switch (category) {
+      case 'decor':
+      case 'lighting':
+        return cf <= 2 ? tiers.small : cf <= 6 ? tiers.medium : tiers.large;
+
+      case 'tables':
+      case 'chairs':
+      case 'benches':
+        return cf <= 15 ? tiers.medium : cf <= 45 ? tiers.large : tiers.xlarge;
+
+      case 'storage':
+        return cf <= 20 ? tiers.medium : cf <= 55 ? tiers.large : tiers.xlarge;
+
+      default:
+        return cf <= 10 ? tiers.medium : cf <= 40 ? tiers.large : tiers.xlarge;
+    }
+  };
+
   const suggestDimensionsForDesign = (category: string, prompt: string): { length: string; breadth: string; height: string } => {
     // Analyze prompt for size hints
     const promptLower = prompt.toLowerCase();
     const isLarge = promptLower.includes('large') || promptLower.includes('big') || promptLower.includes('spacious') || promptLower.includes('six-seater') || promptLower.includes('four-seater');
     const isSmall = promptLower.includes('small') || promptLower.includes('compact') || promptLower.includes('mini');
     const isBench = promptLower.includes('bench');
-    
+
     // Default dimensions based on category (in inches)
     const categoryDefaults: Record<string, { length: string; breadth: string; height: string }> = {
-      chairs: isLarge ? { length: "24", breadth: "24", height: "36" } : 
+      chairs: isLarge ? { length: "24", breadth: "24", height: "36" } :
               isSmall ? { length: "18", breadth: "18", height: "30" } :
               { length: "20", breadth: "20", height: "32" },
       tables: isLarge ? { length: "72", breadth: "40", height: "30" } :
@@ -773,27 +816,29 @@ const DesignStudio = () => {
                 isSmall ? { length: "10", breadth: "10", height: "18" } :
                 { length: "14", breadth: "14", height: "30" },
     };
-    
+
     // If prompt mentions bench but category isn't benches, use bench dimensions
     if (isBench && category !== 'benches') {
       return categoryDefaults['benches'];
     }
-    
+
     return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
 
-  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 9000) => {
+  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 1200) => {
     if (!length || !breadth || !height) return;
-    
+
     // Convert inches to feet and calculate cubic feet
     const l = parseFloat(length) / 12;
     const b = parseFloat(breadth) / 12;
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
-    
-    // Calculate price using AI-determined or default price per cubic foot
-    const baseCost = Math.round(cubicFeet * pricePerCubicFoot);
-    
+
+    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 400, 2500);
+    const rawBaseCost = Math.round(cubicFeet * safePricePerCubicFoot);
+    const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
+    const baseCost = clampNumber(rawBaseCost, min, max);
+
     setEstimatedCost(baseCost);
     setSubmissionData(prev => ({
       ...prev,
@@ -801,7 +846,7 @@ const DesignStudio = () => {
       designerPrice: Math.round(baseCost * 1.25), // Default 25% markup
     }));
     setShowSubmissionForm(true);
-    
+
     toast({
       title: "Price Calculated",
       description: `Base price: ₹${baseCost.toLocaleString()} for ${cubicFeet.toFixed(2)} cubic feet`,
