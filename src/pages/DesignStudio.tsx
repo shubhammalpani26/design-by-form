@@ -375,10 +375,10 @@ const DesignStudio = () => {
       const h = parseFloat(defaultDims.height) / 12;
       const cubicFeet = l * b * h;
 
-      // Use pricing from first variation if available, but keep it within sane bounds
+      // Use pricing from first variation if available, balanced range
       const initialPricing = variations[0]?.pricing;
-      const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 1200;
-      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 400, 2500);
+      const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 2500;
+      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 1500, 4500);
 
       const rawBaseCost = Math.round(cubicFeet * pricePerCubicFoot);
       const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
@@ -755,36 +755,39 @@ const DesignStudio = () => {
   };
 
   const getBasePriceGuideline = (category: string, cubicFeet: number): { min: number; max: number } => {
-    // Ranges align with platform pricing guidance (INR)
-    // - Small decor: ₹3k–₹8k
-    // - Medium: ₹8k–₹18k
-    // - Large: ₹15k–₹35k
-    // - Extra large: ₹30k–₹60k
+    // Balanced pricing guidance (INR) - realistic manufacturing costs
+    // - Small decor: ₹4k–₹12k
+    // - Medium items: ₹10k–₹25k
+    // - Large items: ₹20k–₹45k
+    // - Extra large: ₹35k–₹75k
 
     const cf = Number.isFinite(cubicFeet) && cubicFeet > 0 ? cubicFeet : 1;
 
     const tiers = {
-      small: { min: 3000, max: 8000 },
-      medium: { min: 8000, max: 18000 },
-      large: { min: 15000, max: 35000 },
-      xlarge: { min: 30000, max: 60000 },
+      small: { min: 4000, max: 12000 },
+      medium: { min: 10000, max: 25000 },
+      large: { min: 20000, max: 45000 },
+      xlarge: { min: 35000, max: 75000 },
     };
 
     switch (category) {
       case 'decor':
       case 'lighting':
-        return cf <= 2 ? tiers.small : cf <= 6 ? tiers.medium : tiers.large;
+        return cf <= 1 ? tiers.small : cf <= 4 ? tiers.medium : tiers.large;
 
       case 'tables':
+        // Tables need higher base - even small tables cost more to manufacture
+        return cf <= 8 ? tiers.medium : cf <= 25 ? tiers.large : tiers.xlarge;
+
       case 'chairs':
       case 'benches':
-        return cf <= 15 ? tiers.medium : cf <= 45 ? tiers.large : tiers.xlarge;
+        return cf <= 10 ? tiers.medium : cf <= 30 ? tiers.large : tiers.xlarge;
 
       case 'storage':
-        return cf <= 20 ? tiers.medium : cf <= 55 ? tiers.large : tiers.xlarge;
+        return cf <= 15 ? tiers.medium : cf <= 40 ? tiers.large : tiers.xlarge;
 
       default:
-        return cf <= 10 ? tiers.medium : cf <= 40 ? tiers.large : tiers.xlarge;
+        return cf <= 8 ? tiers.medium : cf <= 30 ? tiers.large : tiers.xlarge;
     }
   };
 
@@ -834,7 +837,8 @@ const DesignStudio = () => {
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
 
-    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 400, 2500);
+    // Balanced price per cubic foot: ₹1500-₹4500 range
+    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 1500, 4500);
     const rawBaseCost = Math.round(cubicFeet * safePricePerCubicFoot);
     const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
     const baseCost = clampNumber(rawBaseCost, min, max);
