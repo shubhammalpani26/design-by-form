@@ -375,10 +375,10 @@ const DesignStudio = () => {
       const h = parseFloat(defaultDims.height) / 12;
       const cubicFeet = l * b * h;
 
-      // Use pricing from first variation if available, balanced range
+      // Use pricing from first variation if available - premium pricing range
       const initialPricing = variations[0]?.pricing;
-      const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 2500;
-      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 1500, 4500);
+      const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 8000;
+      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 5000, 15000);
 
       const rawBaseCost = Math.round(cubicFeet * pricePerCubicFoot);
       const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
@@ -755,39 +755,61 @@ const DesignStudio = () => {
   };
 
   const getBasePriceGuideline = (category: string, cubicFeet: number): { min: number; max: number } => {
-    // Balanced pricing guidance (INR) - realistic manufacturing costs
-    // - Small decor: ₹4k–₹12k
-    // - Medium items: ₹10k–₹25k
-    // - Large items: ₹20k–₹45k
-    // - Extra large: ₹35k–₹75k
+    // Premium designer furniture pricing (INR)
+    // These are handcrafted, unique pieces - not mass-produced
 
     const cf = Number.isFinite(cubicFeet) && cubicFeet > 0 ? cubicFeet : 1;
 
-    const tiers = {
-      small: { min: 4000, max: 12000 },
-      medium: { min: 10000, max: 25000 },
-      large: { min: 20000, max: 45000 },
-      xlarge: { min: 35000, max: 75000 },
-    };
-
+    // Category-specific pricing ranges
     switch (category) {
       case 'decor':
-      case 'lighting':
-        return cf <= 1 ? tiers.small : cf <= 4 ? tiers.medium : tiers.large;
+        // Vases, bowls, planters: ₹10k–₹30k
+        return cf <= 1 ? { min: 10000, max: 20000 } : 
+               cf <= 3 ? { min: 15000, max: 30000 } : 
+               { min: 25000, max: 45000 };
 
-      case 'tables':
-        // Tables need higher base - even small tables cost more to manufacture
-        return cf <= 8 ? tiers.medium : cf <= 25 ? tiers.large : tiers.xlarge;
+      case 'lighting':
+        // Lamps, pendants: ₹15k–₹50k
+        return cf <= 2 ? { min: 15000, max: 35000 } : 
+               cf <= 5 ? { min: 30000, max: 50000 } : 
+               { min: 45000, max: 75000 };
 
       case 'chairs':
+        // Chairs: ₹50k–₹75k
+        return cf <= 5 ? { min: 45000, max: 60000 } : 
+               cf <= 10 ? { min: 50000, max: 75000 } : 
+               { min: 65000, max: 90000 };
+
+      case 'tables':
+        // Stools/side tables: ₹30k–₹60k, Big tables: ₹80k–₹120k
+        return cf <= 5 ? { min: 30000, max: 50000 } :   // Small side tables, stools
+               cf <= 15 ? { min: 50000, max: 80000 } :  // Medium tables
+               cf <= 30 ? { min: 80000, max: 120000 } : // Large dining tables
+               { min: 100000, max: 150000 };            // Extra large tables
+
       case 'benches':
-        return cf <= 10 ? tiers.medium : cf <= 30 ? tiers.large : tiers.xlarge;
+        // Benches: ₹120k–₹180k
+        return cf <= 8 ? { min: 80000, max: 120000 } :
+               cf <= 20 ? { min: 120000, max: 180000 } :
+               { min: 150000, max: 220000 };
 
       case 'storage':
-        return cf <= 15 ? tiers.medium : cf <= 40 ? tiers.large : tiers.xlarge;
+        // Shelves, cabinets: ₹60k–₹150k
+        return cf <= 10 ? { min: 40000, max: 70000 } :
+               cf <= 30 ? { min: 60000, max: 100000 } :
+               { min: 90000, max: 150000 };
+
+      case 'installations':
+        // Art installations: ₹150k–₹500k+
+        return cf <= 20 ? { min: 150000, max: 250000 } :
+               cf <= 50 ? { min: 200000, max: 350000 } :
+               { min: 300000, max: 500000 };
 
       default:
-        return cf <= 8 ? tiers.medium : cf <= 30 ? tiers.large : tiers.xlarge;
+        // Default to medium-high pricing
+        return cf <= 10 ? { min: 40000, max: 70000 } :
+               cf <= 30 ? { min: 70000, max: 120000 } :
+               { min: 100000, max: 180000 };
     }
   };
 
@@ -837,8 +859,8 @@ const DesignStudio = () => {
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
 
-    // Balanced price per cubic foot: ₹1500-₹4500 range
-    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 1500, 4500);
+    // Premium price per cubic foot: ₹5,000-₹15,000 range
+    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 5000, 15000);
     const rawBaseCost = Math.round(cubicFeet * safePricePerCubicFoot);
     const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
     const baseCost = clampNumber(rawBaseCost, min, max);
