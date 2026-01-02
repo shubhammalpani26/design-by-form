@@ -30,9 +30,23 @@ const Browse = () => {
 
   useEffect(() => {
     if (category) {
-      const filtered = products.filter(p => p.category === category);
-      console.log(`Filtering by category "${category}":`, filtered.length, 'products found');
-      console.log('Filtered products:', filtered);
+      // Map shop category URLs to database categories
+      const categoryMapping: Record<string, string[]> = {
+        'chairs': ['chairs'],
+        'coffee-tables': ['tables', 'coffee-tables'],
+        'dining-tables': ['tables', 'dining-tables'],
+        'tables': ['tables', 'coffee-tables', 'dining-tables'],
+        'benches': ['benches'],
+        'vases': ['vases', 'decor'],
+        'home-decor': ['home-decor', 'decor'],
+        'installations': ['installations'],
+        'lighting': ['lighting'],
+        'storage': ['storage'],
+      };
+      
+      const matchingCategories = categoryMapping[category] || [category];
+      const filtered = products.filter(p => matchingCategories.includes(p.category));
+      console.log(`Filtering by category "${category}" (matching: ${matchingCategories.join(', ')}):`, filtered.length, 'products found');
       setFilteredProducts(filtered);
     } else {
       setFilteredProducts(products);
