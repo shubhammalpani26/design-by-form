@@ -368,7 +368,7 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
 
           <div 
             ref={containerRef}
-            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-visible cursor-move"
+            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
             style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -376,61 +376,65 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
             onMouseLeave={handleMouseUp}
           >
             {uploadedPhoto && (processedFurnitureUrl || proxiedModelUrl) ? (
-              <>
+              <div className="relative w-full h-full">
+                {/* Room photo as background - using object-contain to see the full photo */}
                 <img 
                   src={uploadedPhoto} 
                   alt="Your space" 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain bg-black/5"
                   style={{ imageRendering: '-webkit-optimize-contrast' }}
                 />
-                {isProcessing ? (
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
-                    <div className="bg-white/90 rounded-lg p-4 text-center space-y-2">
-                      <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto"></div>
-                      <div className="text-sm font-medium text-foreground">Removing background with AI...</div>
-                      <div className="text-xs text-muted-foreground">This may take 10-30 seconds</div>
+                {/* Overlay container that matches the visible area of the room photo */}
+                <div className="absolute inset-0">
+                  {isProcessing ? (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm">
+                      <div className="bg-white/90 rounded-lg p-4 text-center space-y-2">
+                        <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                        <div className="text-sm font-medium text-foreground">Removing background with AI...</div>
+                        <div className="text-xs text-muted-foreground">This may take 10-30 seconds</div>
+                      </div>
                     </div>
-                  </div>
-                ) : proxiedModelUrl ? (
-                  // Use 3D model viewer for AR when model is available
-                  <div
-                    className="absolute pointer-events-auto rounded-lg"
-                    style={{
-                      left: `${Math.max(15, Math.min(85, furniturePosition.x))}%`,
-                      top: `${Math.max(20, Math.min(80, furniturePosition.y))}%`,
-                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50})`,
-                      width: '35%',
-                      minWidth: '180px',
-                      maxWidth: '280px',
-                      height: '200px',
-                      transition: isDragging ? 'none' : 'all 0.2s ease-out',
-                      zIndex: 10,
-                    }}
-                  >
-                    <div className="w-full h-full relative">
-                      {renderModelViewer(true)}
-                      {/* Visual boundary indicator */}
-                      <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-lg pointer-events-none opacity-0 hover:opacity-100 transition-opacity" />
+                  ) : proxiedModelUrl ? (
+                    // Use 3D model viewer for AR when model is available
+                    <div
+                      className="absolute pointer-events-auto rounded-lg"
+                      style={{
+                        left: `${Math.max(15, Math.min(85, furniturePosition.x))}%`,
+                        top: `${Math.max(20, Math.min(80, furniturePosition.y))}%`,
+                        transform: `translate(-50%, -50%) scale(${furnitureScale / 50})`,
+                        width: '35%',
+                        minWidth: '180px',
+                        maxWidth: '280px',
+                        height: '200px',
+                        transition: isDragging ? 'none' : 'all 0.2s ease-out',
+                        zIndex: 10,
+                      }}
+                    >
+                      <div className="w-full h-full relative">
+                        {renderModelViewer(true)}
+                        {/* Visual boundary indicator */}
+                        <div className="absolute inset-0 border-2 border-dashed border-primary/30 rounded-lg pointer-events-none opacity-0 hover:opacity-100 transition-opacity" />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <img
-                    src={processedFurnitureUrl || ''}
-                    alt={productName}
-                    className="absolute pointer-events-none"
-                    style={{
-                      left: `${furniturePosition.x}%`,
-                      top: `${furniturePosition.y}%`,
-                      transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotateZ(${furnitureRotation}deg) rotateY(${furnitureLateralRotation}deg)`,
-                      width: '40%',
-                      maxWidth: '300px',
-                      transition: isDragging ? 'none' : 'transform 0.2s ease-out',
-                      transformStyle: 'preserve-3d',
-                      backfaceVisibility: 'visible'
-                    }}
-                  />
-                )}
-              </>
+                  ) : (
+                    <img
+                      src={processedFurnitureUrl || ''}
+                      alt={productName}
+                      className="absolute pointer-events-none"
+                      style={{
+                        left: `${furniturePosition.x}%`,
+                        top: `${furniturePosition.y}%`,
+                        transform: `translate(-50%, -50%) scale(${furnitureScale / 50}) rotateZ(${furnitureRotation}deg) rotateY(${furnitureLateralRotation}deg)`,
+                        width: '40%',
+                        maxWidth: '300px',
+                        transition: isDragging ? 'none' : 'transform 0.2s ease-out',
+                        transformStyle: 'preserve-3d',
+                        backfaceVisibility: 'visible'
+                      }}
+                    />
+                  )}
+                </div>
+              </div>
             ) : uploadedPhoto && (imageUrl || proxiedModelUrl) && !processedFurnitureUrl && !proxiedModelUrl ? (
               <>
                 <img 
