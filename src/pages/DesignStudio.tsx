@@ -375,14 +375,19 @@ const DesignStudio = () => {
       const h = parseFloat(defaultDims.height) / 12;
       const cubicFeet = l * b * h;
 
-      // Use pricing from first variation if available - premium pricing range
+      // Use pricing from first variation if available - premium pricing with variation
       const initialPricing = variations[0]?.pricing;
       const rawPricePerCubicFoot = initialPricing?.pricePerCubicFoot ?? 8000;
-      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot, 5000, 15000);
+      // Add ±20% random variation for uniqueness
+      const variation = 1 + (Math.random() - 0.5) * 0.4;
+      const pricePerCubicFoot = clampNumber(rawPricePerCubicFoot * variation, 5000, 15000);
 
       const rawBaseCost = Math.round(cubicFeet * pricePerCubicFoot);
       const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
-      const baseCost = clampNumber(rawBaseCost, min, max);
+      // Dynamic pricing within range
+      const range = max - min;
+      const position = 0.3 + Math.random() * 0.4; // Place in middle 40% of range
+      const baseCost = Math.round(min + range * position);
 
       setEstimatedCost(baseCost);
       setLeadTime(28); // 4 weeks
@@ -850,6 +855,32 @@ const DesignStudio = () => {
     return categoryDefaults[category] || { length: "36", breadth: "24", height: "30" };
   };
 
+  // Helper to get a dynamic price within a range (not just clamped to bounds)
+  const getDynamicPriceInRange = (rawPrice: number, min: number, max: number): number => {
+    // If raw price is within range, add slight variation for uniqueness
+    if (rawPrice >= min && rawPrice <= max) {
+      // Add ±5% variation within the range
+      const variation = (Math.random() - 0.5) * 0.1 * rawPrice;
+      const varied = rawPrice + variation;
+      return Math.round(clampNumber(varied, min, max));
+    }
+    
+    // If outside range, place proportionally within the range
+    // Use a sigmoid-like mapping to create variation
+    const range = max - min;
+    const midPoint = min + range * 0.5;
+    
+    if (rawPrice < min) {
+      // Below min: place in lower 40% of range
+      const position = Math.random() * 0.4;
+      return Math.round(min + range * position);
+    } else {
+      // Above max: place in upper 40% of range
+      const position = 0.6 + Math.random() * 0.4;
+      return Math.round(min + range * position);
+    }
+  };
+
   const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 1200) => {
     if (!length || !breadth || !height) return;
 
@@ -859,11 +890,17 @@ const DesignStudio = () => {
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
 
-    // Premium price per cubic foot: ₹5,000-₹15,000 range
-    const safePricePerCubicFoot = clampNumber(pricePerCubicFoot, 5000, 15000);
+    // Premium price per cubic foot: ₹5,000-₹15,000 range with variation
+    const basePricePerCubicFoot = clampNumber(pricePerCubicFoot, 5000, 15000);
+    // Add randomness: ±15% variation
+    const variation = 1 + (Math.random() - 0.5) * 0.3;
+    const safePricePerCubicFoot = Math.round(basePricePerCubicFoot * variation);
+    
     const rawBaseCost = Math.round(cubicFeet * safePricePerCubicFoot);
     const { min, max } = getBasePriceGuideline(submissionData.category, cubicFeet);
-    const baseCost = clampNumber(rawBaseCost, min, max);
+    
+    // Get dynamic price within range instead of just clamping
+    const baseCost = getDynamicPriceInRange(rawBaseCost, min, max);
 
     setEstimatedCost(baseCost);
     setSubmissionData(prev => ({

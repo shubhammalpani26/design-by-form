@@ -66,8 +66,7 @@ export const Header = () => {
 
   const categories = [
     { name: "Chairs", path: "/browse?category=chairs" },
-    { name: "Coffee Tables", path: "/browse?category=coffee-tables" },
-    { name: "Dining Tables", path: "/browse?category=dining-tables" },
+    { name: "Tables", path: "/browse?category=tables" },
     { name: "Benches", path: "/browse?category=benches" },
     { name: "Vases", path: "/browse?category=vases" },
     { name: "Home Decor", path: "/browse?category=home-decor" },
