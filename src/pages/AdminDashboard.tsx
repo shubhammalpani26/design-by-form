@@ -248,35 +248,69 @@ const AdminDashboard = () => {
                       </p>
                     )}
                     <p className="text-sm mb-4">{product.description}</p>
-                    <div className="space-y-4 mb-4">
-                      <div>
-                        <Label htmlFor={`base-price-${product.id}`}>Manufacturing Price (₹)</Label>
-                        <div className="flex gap-2 mt-1">
+                    {/* Price Editing Section */}
+                    <div className="bg-accent/50 rounded-lg p-4 mb-4 border border-border">
+                      <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
+                        💰 Pricing
+                      </h4>
+                      
+                      <div className="grid grid-cols-2 gap-4 mb-3">
+                        <div>
+                          <Label htmlFor={`base-price-${product.id}`} className="text-xs font-medium">
+                            Manufacturing Cost (₹)
+                          </Label>
                           <Input
                             id={`base-price-${product.id}`}
                             type="number"
-                            value={editingPrice[product.id] || product.base_price}
+                            value={editingPrice[product.id] ?? product.base_price}
                             onChange={(e) => setEditingPrice({
                               ...editingPrice,
                               [product.id]: parseFloat(e.target.value) || 0
                             })}
-                            onBlur={() => updateBasePrice(product.id, editingPrice[product.id])}
-                            className="flex-1"
+                            className="mt-1 font-mono text-lg"
+                            placeholder="Enter base price"
                           />
                         </div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Selling Price</p>
+                          <div className="bg-background rounded-md px-3 py-2 border mt-1">
+                            <p className="font-mono text-lg font-semibold text-primary">
+                              ₹{product.designer_price.toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground">Designer Price</p>
-                        <p className="font-semibold">₹{product.designer_price.toLocaleString()}</p>
+                      
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                        <span>Markup:</span>
+                        <Badge variant="secondary">
+                          {product.base_price > 0 
+                            ? `${Math.round(((product.designer_price - product.base_price) / product.base_price) * 100)}%`
+                            : '—'
+                          }
+                        </Badge>
+                        <span className="text-green-600 dark:text-green-400">
+                          → Designer earns 70% of ₹{(product.designer_price - product.base_price).toLocaleString()}
+                        </span>
                       </div>
-                      <div>
-                        <Link to={`/admin/products/${product.id}/edit`}>
-                          <Button variant="outline" size="sm" className="w-full">
-                            Edit Product Details
-                          </Button>
-                        </Link>
-                      </div>
+                      
+                      {editingPrice[product.id] !== product.base_price && (
+                        <Button 
+                          onClick={() => updateBasePrice(product.id, editingPrice[product.id])}
+                          size="sm"
+                          className="w-full"
+                          variant="secondary"
+                        >
+                          Update Price
+                        </Button>
+                      )}
                     </div>
+                    
+                    <Link to={`/admin/products/${product.id}/edit`} className="block mb-4">
+                      <Button variant="outline" size="sm" className="w-full">
+                        ✏️ Edit Product Details
+                      </Button>
+                    </Link>
                     <p className="text-xs text-muted-foreground mb-4">
                       Submitted: {new Date(product.created_at).toLocaleDateString()}
                     </p>
