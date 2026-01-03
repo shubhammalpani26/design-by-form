@@ -100,7 +100,7 @@ const App = () => (
             <Route path="/compare" element={<ProductComparison />} />
             
             <Route path="/admin" element={<AdminPanel />} />
-            <Route path="/admin-dashboard" element={<AdminDashboard />} />
+            <Route path="/admin-dashboard" element={<AdminPanel />} />
             <Route path="/admin/panel" element={<AdminPanel />} />
             <Route path="/admin/payouts" element={<AdminPayouts />} />
             <Route path="/admin/products/:id/edit" element={<AdminProductEdit />} />
