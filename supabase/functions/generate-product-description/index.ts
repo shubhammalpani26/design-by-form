@@ -26,33 +26,46 @@ serve(async (req) => {
 
     // Handle surprise prompt generation
     if (type === 'surprise_prompt') {
-      systemContent = 'You are a visionary furniture designer who creates unique, unexpected design concepts optimized for 3D printing. Your ideas push boundaries while remaining manufacturable as single-material prints. You describe designs with vivid, evocative language that sparks imagination.';
+      systemContent = 'You are an expert furniture designer and structural engineer who creates unique, unexpected design concepts that are BOTH visually striking AND structurally sound. You understand physics, load-bearing requirements, and real-world manufacturing constraints. Your designs are imaginative but always practical and stable.';
       
-      prompt = `Generate a unique, creative, and unexpected design prompt for a ${category || 'furniture'} piece that is 3D printable.
+      prompt = `Generate a unique, creative design prompt for a ${category || 'furniture'} piece that is 3D printable AND structurally sound.
 
-CRITICAL CONSTRAINTS:
-- SINGLE MATERIAL ONLY: The design must use ONE primary material (resin reinforced with composite fiber)
-- SINGLE COLOR/FINISH: Choose ONE color or finish per design (e.g., matte charcoal, glossy pearl white, metallic bronze, textured terracotta)
-- 3D PRINTABLE: The form must be achievable through 3D printing - no impossible overhangs, reasonable wall thickness
-- UPHOLSTERY OPTIONAL: You may add minimal upholstery elements (cushion, seat pad) or embroidered fabric accents as secondary elements
+STRUCTURAL INTEGRITY REQUIREMENTS (CRITICAL):
+- Must be SELF-SUPPORTING: The design must stand on its own without tipping over
+- Proper CENTER OF GRAVITY: Weight distribution must be balanced and realistic
+- STABLE BASE: All furniture needs adequate ground contact and support points
+- LOAD-BEARING CAPABLE: Chairs/benches must support human weight (80-120kg), tables must hold objects
+- NO FRAGILE CANTILEVERS: Avoid extreme overhangs or thin unsupported extensions that would snap
+- REALISTIC PROPORTIONS: Wall thickness minimum 8-15mm for structural parts, proper joint design
+- PHYSICS-COMPLIANT: No designs that would collapse, tip over, or break under normal use
+
+MATERIAL CONSTRAINTS:
+- SINGLE MATERIAL: Resin reinforced with composite fiber (strong but has limits)
+- SINGLE COLOR/FINISH: One color per design (matte charcoal, glossy pearl, metallic bronze, terracotta, etc.)
+- UPHOLSTERY OPTIONAL: Cushions or fabric accents allowed as secondary elements
 
 DESIGN FOCUS:
-- Be wildly imaginative with FORM and SHAPE - this is where creativity shines
-- Reference nature, architecture, art movements, or cultural elements for organic inspiration
-- Focus on sculptural, flowing, or geometric forms
-- Single-piece construction preferred
+- Be creative with FORM while respecting structural limits
+- Reference nature's load-bearing structures: tree trunks, bones, shells, coral
+- Sculptural AND functional - beauty through strength
+- Thick, solid bases with elegant upper forms work well
 
 FORMAT:
 - 2-3 sentences maximum
-- Return ONLY the design prompt text, no explanations
-- Specify the single color/finish clearly
+- Return ONLY the design prompt, no explanations
+- Specify color/finish clearly
 
-Examples:
-- "A sculptural lounge chair with ribbed, wave-like contours inspired by wind-carved sand dunes, printed in warm terracotta matte finish with a minimal linen seat cushion"
-- "An asymmetric side table resembling a frozen water splash, with fluid organic curves and a high-gloss obsidian black finish"
-- "A floor lamp installation mimicking the spiraling geometry of a nautilus shell, in pearl white with subtle iridescent finish"
+GOOD Examples (structurally sound):
+- "A sculptural dining chair with a wide tripod base and flowing organic backrest inspired by whale vertebrae, in matte charcoal finish with a fitted leather seat cushion"
+- "A side table with a sturdy mushroom-shaped pedestal base and organic rippled top edge, in glossy obsidian black"
+- "A bench with thick, arched supports resembling ancient Roman aqueducts, featuring a gently curved seating surface in warm terracotta matte"
 
-Now generate a completely unique and surprising ${category || 'furniture'} design prompt:`;
+BAD Examples (would fail structurally):
+- Thin spindle legs supporting heavy tops
+- Extreme cantilevered seats with no counterbalance
+- Tall narrow designs with tiny bases
+
+Now generate a completely unique, structurally sound ${category || 'furniture'} design prompt:`;
     } else {
       // Standard product description generation
       systemContent = 'You are a luxury furniture copywriter who creates compelling, story-driven product descriptions that evoke emotion and desire. Your writing is elegant, sophisticated, and makes every piece sound like a masterpiece.';
