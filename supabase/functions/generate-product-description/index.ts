@@ -11,16 +11,45 @@ serve(async (req) => {
   }
 
   try {
-    const { productName, category, materials, dimensions } = await req.json();
+    const body = await req.json();
+    const { productName, category, materials, dimensions, type, prompt: customPrompt } = body;
     
-    console.log('Generating description for:', { productName, category, materials, dimensions });
+    console.log('Request type:', type, 'Category:', category);
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const prompt = `Create a premium, captivating product description for a furniture piece with the following details:
+    let prompt: string;
+    let systemContent: string;
+
+    // Handle surprise prompt generation
+    if (type === 'surprise_prompt') {
+      systemContent = 'You are a visionary furniture designer who creates unique, unexpected design concepts. Your ideas push boundaries while remaining manufacturable. You describe designs with vivid, evocative language that sparks imagination.';
+      
+      prompt = `Generate a unique, creative, and unexpected design prompt for a ${category || 'furniture'} piece. 
+
+Requirements:
+- Be wildly imaginative and avoid generic descriptions
+- Include specific materials, organic forms, textures, and artistic inspirations
+- Reference nature, architecture, art movements, or cultural elements for inspiration
+- The design must be manufacturable using resin reinforced with composite fiber and artisan hand-finishing
+- Focus on single-piece sculptural forms with smooth, flowing lines
+- Include suggested finishes (matte, glossy, metallic, textured, etc.)
+- Keep it to 2-3 sentences maximum
+- Return ONLY the design prompt text, no explanations or formatting
+
+Examples of good prompts:
+- "A meditation chair inspired by unfurling fern fronds, with a spiraling seat that cradles the body, finished in moss-green matte with subtle bronze veining"
+- "Floor installation resembling frozen smoke captured mid-swirl, with translucent layers creating depth and mystery, in ethereal pearl white"
+
+Now generate a completely unique and surprising ${category || 'furniture'} design prompt:`;
+    } else {
+      // Standard product description generation
+      systemContent = 'You are a luxury furniture copywriter who creates compelling, story-driven product descriptions that evoke emotion and desire. Your writing is elegant, sophisticated, and makes every piece sound like a masterpiece.';
+      
+      prompt = `Create a premium, captivating product description for a furniture piece with the following details:
 
 Product Name: ${productName}
 Category: ${category}
@@ -38,6 +67,7 @@ Requirements:
 - Write in a flowing, narrative style
 
 The description should make potential buyers feel they're investing in art, not just furniture.`;
+    }
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -50,7 +80,7 @@ The description should make potential buyers feel they're investing in art, not 
         messages: [
           {
             role: 'system',
-            content: 'You are a luxury furniture copywriter who creates compelling, story-driven product descriptions that evoke emotion and desire. Your writing is elegant, sophisticated, and makes every piece sound like a masterpiece.'
+            content: systemContent
           },
           {
             role: 'user',
