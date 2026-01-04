@@ -102,7 +102,7 @@ const Explore = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Explore Designs | Forma"
+        title="Explore Designs | Formo"
         description="Discover unique furniture designs from talented creators. Browse by category and find trending pieces."
       />
       <Header />

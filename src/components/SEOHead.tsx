@@ -21,7 +21,7 @@ export const SEOHead = ({
 }: SEOHeadProps) => {
   useEffect(() => {
     // Update document title
-    document.title = `${title} | Forma`;
+    document.title = `${title} | Formo`;
 
     // Helper function to set or update meta tags
     const setMetaTag = (property: string, content: string, isName = false) => {

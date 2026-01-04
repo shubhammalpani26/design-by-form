@@ -39,7 +39,7 @@ const Sustainability = () => {
                   <h3 className="text-2xl font-bold mb-3 text-foreground">On-Demand Manufacturing</h3>
                   <p className="text-muted-foreground mb-4">
                     Traditional furniture manufacturing creates massive waste through overproduction. 
-                    Forma eliminates this entirely—we only manufacture what customers order.
+                    Formo eliminates this entirely—we only manufacture what customers order.
                   </p>
                   <Card className="bg-accent border-border">
                     <CardContent className="p-4">

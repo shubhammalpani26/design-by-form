@@ -679,7 +679,7 @@ const Home = () => {
         <section className="py-20">
           <div className="container">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Forma Ecosystem</h2>
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">

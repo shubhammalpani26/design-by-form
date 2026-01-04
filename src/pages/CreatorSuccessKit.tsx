@@ -23,7 +23,7 @@ const CreatorSuccessKit = () => {
     {
       category: "Product Launch",
       templates: [
-        "✨ New design alert! Just dropped my latest creation on @forma.design - [Product Name]. What do you think? Link in bio 🔗 #FurnitureDesign #CreatorEconomy",
+        "✨ New design alert! Just dropped my latest creation on @formo.design - [Product Name]. What do you think? Link in bio 🔗 #FurnitureDesign #CreatorEconomy",
         "From concept to creation 🎨 My [Product Name] is now live and ready to transform your space. Shop the link in my bio! #SculpturalFurniture #AIDesign",
         "Excited to share my newest piece with you all! [Product Name] combines [key feature] with [key feature]. Available now 👆 #DesignerLife #ModernFurniture"
       ]
@@ -276,12 +276,12 @@ const CreatorSuccessKit = () => {
                         <input
                           type="text"
                           readOnly
-                          value="forma.design/c/your-username?utm_source=instagram&utm_medium=bio"
+                          value="formo.design/c/your-username?utm_source=instagram&utm_medium=bio"
                           className="flex-1 px-3 py-2 border border-border rounded-md bg-accent/20 text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopy("forma.design/c/your-username?utm_source=instagram&utm_medium=bio", "Instagram link")}
+                          onClick={() => handleCopy("formo.design/c/your-username?utm_source=instagram&utm_medium=bio", "Instagram link")}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
@@ -294,12 +294,12 @@ const CreatorSuccessKit = () => {
                         <input
                           type="text"
                           readOnly
-                          value="forma.design/c/your-username?utm_source=facebook&utm_medium=post"
+                          value="formo.design/c/your-username?utm_source=facebook&utm_medium=post"
                           className="flex-1 px-3 py-2 border border-border rounded-md bg-accent/20 text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopy("forma.design/c/your-username?utm_source=facebook&utm_medium=post", "Facebook link")}
+                          onClick={() => handleCopy("formo.design/c/your-username?utm_source=facebook&utm_medium=post", "Facebook link")}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
@@ -312,12 +312,12 @@ const CreatorSuccessKit = () => {
                         <input
                           type="text"
                           readOnly
-                          value="forma.design/c/your-username?utm_source=twitter&utm_medium=tweet"
+                          value="formo.design/c/your-username?utm_source=twitter&utm_medium=tweet"
                           className="flex-1 px-3 py-2 border border-border rounded-md bg-accent/20 text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopy("forma.design/c/your-username?utm_source=twitter&utm_medium=tweet", "Twitter link")}
+                          onClick={() => handleCopy("formo.design/c/your-username?utm_source=twitter&utm_medium=tweet", "Twitter link")}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
@@ -330,12 +330,12 @@ const CreatorSuccessKit = () => {
                         <input
                           type="text"
                           readOnly
-                          value="forma.design/c/your-username?utm_source=email&utm_medium=newsletter"
+                          value="formo.design/c/your-username?utm_source=email&utm_medium=newsletter"
                           className="flex-1 px-3 py-2 border border-border rounded-md bg-accent/20 text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopy("forma.design/c/your-username?utm_source=email&utm_medium=newsletter", "Email link")}
+                          onClick={() => handleCopy("formo.design/c/your-username?utm_source=email&utm_medium=newsletter", "Email link")}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
@@ -348,12 +348,12 @@ const CreatorSuccessKit = () => {
                         <input
                           type="text"
                           readOnly
-                          value="forma.design/c/your-username?utm_source=youtube&utm_medium=description"
+                          value="formo.design/c/your-username?utm_source=youtube&utm_medium=description"
                           className="flex-1 px-3 py-2 border border-border rounded-md bg-accent/20 text-sm"
                         />
                         <Button
                           variant="outline"
-                          onClick={() => handleCopy("forma.design/c/your-username?utm_source=youtube&utm_medium=description", "YouTube link")}
+                          onClick={() => handleCopy("formo.design/c/your-username?utm_source=youtube&utm_medium=description", "YouTube link")}
                         >
                           <Copy className="w-4 h-4" />
                         </Button>
