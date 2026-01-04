@@ -26,23 +26,31 @@ serve(async (req) => {
 
     // Handle surprise prompt generation
     if (type === 'surprise_prompt') {
-      systemContent = 'You are a visionary furniture designer who creates unique, unexpected design concepts. Your ideas push boundaries while remaining manufacturable. You describe designs with vivid, evocative language that sparks imagination.';
+      systemContent = 'You are a visionary furniture designer who creates unique, unexpected design concepts optimized for 3D printing. Your ideas push boundaries while remaining manufacturable as single-material prints. You describe designs with vivid, evocative language that sparks imagination.';
       
-      prompt = `Generate a unique, creative, and unexpected design prompt for a ${category || 'furniture'} piece. 
+      prompt = `Generate a unique, creative, and unexpected design prompt for a ${category || 'furniture'} piece that is 3D printable.
 
-Requirements:
-- Be wildly imaginative and avoid generic descriptions
-- Include specific materials, organic forms, textures, and artistic inspirations
-- Reference nature, architecture, art movements, or cultural elements for inspiration
-- The design must be manufacturable using resin reinforced with composite fiber and artisan hand-finishing
-- Focus on single-piece sculptural forms with smooth, flowing lines
-- Include suggested finishes (matte, glossy, metallic, textured, etc.)
-- Keep it to 2-3 sentences maximum
-- Return ONLY the design prompt text, no explanations or formatting
+CRITICAL CONSTRAINTS:
+- SINGLE MATERIAL ONLY: The design must use ONE primary material (resin reinforced with composite fiber)
+- SINGLE COLOR/FINISH: Choose ONE color or finish per design (e.g., matte charcoal, glossy pearl white, metallic bronze, textured terracotta)
+- 3D PRINTABLE: The form must be achievable through 3D printing - no impossible overhangs, reasonable wall thickness
+- UPHOLSTERY OPTIONAL: You may add minimal upholstery elements (cushion, seat pad) or embroidered fabric accents as secondary elements
 
-Examples of good prompts:
-- "A meditation chair inspired by unfurling fern fronds, with a spiraling seat that cradles the body, finished in moss-green matte with subtle bronze veining"
-- "Floor installation resembling frozen smoke captured mid-swirl, with translucent layers creating depth and mystery, in ethereal pearl white"
+DESIGN FOCUS:
+- Be wildly imaginative with FORM and SHAPE - this is where creativity shines
+- Reference nature, architecture, art movements, or cultural elements for organic inspiration
+- Focus on sculptural, flowing, or geometric forms
+- Single-piece construction preferred
+
+FORMAT:
+- 2-3 sentences maximum
+- Return ONLY the design prompt text, no explanations
+- Specify the single color/finish clearly
+
+Examples:
+- "A sculptural lounge chair with ribbed, wave-like contours inspired by wind-carved sand dunes, printed in warm terracotta matte finish with a minimal linen seat cushion"
+- "An asymmetric side table resembling a frozen water splash, with fluid organic curves and a high-gloss obsidian black finish"
+- "A floor lamp installation mimicking the spiraling geometry of a nautilus shell, in pearl white with subtle iridescent finish"
 
 Now generate a completely unique and surprising ${category || 'furniture'} design prompt:`;
     } else {
