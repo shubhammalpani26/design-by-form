@@ -2825,9 +2825,14 @@ const DesignStudio = () => {
                             ₹{((submissionData.designerPrice - submissionData.basePrice) * 0.70).toLocaleString()}
                           </span>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          70% of Markup (₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()})
-                        </p>
+                        <div className="flex justify-between items-center">
+                          <p className="text-xs text-muted-foreground">
+                            70% of Markup (₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()})
+                          </p>
+                          <span className="text-xs font-medium text-primary/80 bg-primary/10 px-2 py-0.5 rounded">
+                            {Math.round(((submissionData.designerPrice - submissionData.basePrice) / submissionData.basePrice) * 100)}% markup
+                          </span>
+                        </div>
                       </div>
                       )}
 
