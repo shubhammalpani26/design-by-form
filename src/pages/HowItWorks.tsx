@@ -14,7 +14,7 @@ const HowItWorks = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              How Forma Works
+              How Formo Works
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               From idea to earnings in 5 simple steps
@@ -118,7 +118,7 @@ const HowItWorks = () => {
               <div className="flex-1">
                 <h3 className="text-2xl font-bold mb-3 text-foreground">List on Marketplace</h3>
                 <p className="text-muted-foreground mb-4">
-                  Your design renders go live on the Forma marketplace. We handle product photography, product pages, and customer service. You focus on what you do best - creating and sharing your designs.
+                  Your design renders go live on the Formo marketplace. We handle product photography, product pages, and customer service. You focus on what you do best - creating and sharing your designs.
                 </p>
                 <div className="grid grid-cols-3 gap-3">
                   <Card className="border-primary/20">
@@ -182,7 +182,7 @@ const HowItWorks = () => {
             <CardContent className="p-12 text-center">
               <h2 className="text-3xl font-bold mb-4">Ready to Start Creating?</h2>
               <p className="text-lg mb-6 opacity-90">
-                Join hundreds of designers already earning on Forma
+                Join hundreds of designers already earning on Formo
               </p>
               <div className="flex gap-4 justify-center">
                 <Link to="/design-studio">

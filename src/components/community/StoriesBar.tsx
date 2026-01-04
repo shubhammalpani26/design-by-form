@@ -78,7 +78,7 @@ export const StoriesBar = () => {
       {creators?.map((creator) => (
         <Link
           key={creator.id}
-          to={`/creator/${creator.id}`}
+          to={`/designer/${creator.id}`}
           className="flex flex-col items-center gap-2 flex-shrink-0 group"
         >
           <div className="relative">

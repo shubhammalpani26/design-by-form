@@ -92,7 +92,7 @@ const About = () => {
               <h2 className="text-3xl font-bold mb-6 text-foreground">The Story</h2>
               <div className="space-y-4 text-muted-foreground">
               <p>
-                  Forma was born from a simple frustration: talented creators were creating 
+                  Formo was born from a simple frustration: talented creators were creating 
                   beautiful furniture concepts that never made it to production. The barriers 
                   were too high—manufacturing minimums, upfront capital, complex logistics.
                 </p>
@@ -102,7 +102,7 @@ const About = () => {
                   needed a middle ground.
                 </p>
                 <p>
-                  We built Forma to solve both problems. By combining AI-powered design tools 
+                  We built Formo to solve both problems. By combining AI-powered design tools 
                   with on-demand manufacturing, we created a platform where anyone can design 
                   furniture and earn from it, while customers get unique, sustainably-made pieces 
                   at accessible prices.

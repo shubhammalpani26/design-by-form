@@ -70,32 +70,10 @@ serve(async (req) => {
 
     if (updateError) throw updateError;
 
-    console.log(`Product ${productId} approved, creating community feed post...`);
+    console.log(`Product ${productId} approved successfully`);
 
-    // Auto-publish to community feed when product is approved
-    const { error: feedPostError } = await supabase
-      .from('feed_posts')
-      .insert({
-        designer_id: product.designer_id,
-        post_type: 'product_launch',
-        title: `New Design: ${product.name}`,
-        content: product.description || `Check out this new ${product.category} design!`,
-        image_url: product.image_url,
-        visibility: 'public',
-        metadata: {
-          product_id: productId,
-          category: product.category,
-          price: product.designer_price,
-          auto_generated: true
-        }
-      });
-
-    if (feedPostError) {
-      console.error('Error creating feed post:', feedPostError);
-      // Don't fail the approval if feed post fails
-    } else {
-      console.log(`Community feed post created for product ${productId}`);
-    }
+    // Note: Community feed post is created automatically by database trigger 'create_product_launch_post_trigger'
+    // to avoid duplicate posts
 
     // Send approval notification
     try {
@@ -110,8 +88,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Product approved and published to community feed',
-        feedPostCreated: !feedPostError
+        message: 'Product approved successfully'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

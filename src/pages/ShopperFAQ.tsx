@@ -159,7 +159,7 @@ const ShopperFAQ = () => {
                 How can I stay updated on new designs?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Follow us on social media (@forma.design), subscribe to our newsletter, or check the "Browse" page regularly. We add new creator designs weekly and send curated design drops to subscribers first.
+                Follow us on social media (@formo.design), subscribe to our newsletter, or check the "Browse" page regularly. We add new creator designs weekly and send curated design drops to subscribers first.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
