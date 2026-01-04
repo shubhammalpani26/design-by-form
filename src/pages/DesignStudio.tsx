@@ -5,11 +5,12 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ZoomIn } from "lucide-react";
+import { ChevronDown, ZoomIn, Sparkles, Shuffle } from "lucide-react";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
@@ -54,6 +55,8 @@ const DesignStudio = () => {
   const [roomImage, setRoomImage] = useState<File | null>(null);
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
   const [furnitureType, setFurnitureType] = useState<string>("");
+  const [designCategory, setDesignCategory] = useState<string>("");
+  const [isGeneratingSurprise, setIsGeneratingSurprise] = useState(false);
   const [isRoomSectionOpen, setIsRoomSectionOpen] = useState(false);
   const [selectedColor, setSelectedColor] = useState<string>("");
   const [showWorkflow, setShowWorkflow] = useState(false);
@@ -168,6 +171,82 @@ const DesignStudio = () => {
     
     checkSubscription();
   }, [user]);
+
+  const handleSurpriseMe = async () => {
+    setIsGeneratingSurprise(true);
+    
+    try {
+      const categoryContext = designCategory || "furniture";
+      
+      const { data, error } = await supabase.functions.invoke('generate-product-description', {
+        body: { 
+          type: 'surprise_prompt',
+          category: categoryContext,
+          prompt: `Generate a unique, creative, and unexpected design prompt for a ${categoryContext} piece. Be imaginative and avoid generic descriptions. Include specific materials, organic forms, textures, and artistic inspirations. The design should be manufacturable using resin and composite fiber with artisan finishing. Return ONLY the design prompt text, nothing else.`
+        }
+      });
+      
+      if (error) throw error;
+      
+      const generatedPrompt = data?.description || data?.title || data;
+      if (generatedPrompt && typeof generatedPrompt === 'string') {
+        setPrompt(generatedPrompt.trim());
+        toast({
+          title: "✨ Surprise prompt generated!",
+          description: "A unique design idea has been created for you.",
+        });
+      } else {
+        throw new Error('Invalid response format');
+      }
+    } catch (error) {
+      console.error('Surprise prompt error:', error);
+      // Fallback to a random creative prompt if AI fails
+      const fallbackPrompts: Record<string, string[]> = {
+        chairs: [
+          "A meditation chair inspired by lotus petals, with a cradling seat that wraps around the sitter like nature's embrace, finished in deep ocean blue with mother-of-pearl shimmer",
+          "Asymmetrical lounge chair with one arm flowing into a reading lamp pedestal, inspired by Art Nouveau organic forms, in burnished bronze finish",
+          "A suspended hammock-style chair with rigid curved frame, featuring woven patterns inspired by spider silk geometry, in matte charcoal"
+        ],
+        tables: [
+          "Coffee table resembling frozen liquid mid-splash, with glass-like resin top and bronze-tinted ripples cascading down the legs",
+          "Side table inspired by eroded canyon walls, with layered terracing and natural edge variations, in warm terracotta and cream gradient",
+          "Dining table with a sculptural base resembling intertwined tree roots breaking through the floor, in aged driftwood finish"
+        ],
+        benches: [
+          "Garden bench shaped like a resting wave frozen in time, with subtle spray texture at the edges, in weathered seafoam green",
+          "Entryway bench inspired by origami folds, with sharp geometric creases softened by rounded edges, in paper-white matte finish",
+          "Two-seater bench with seats that appear to grow from a shared organic trunk, in living wood grain texture"
+        ],
+        installations: [
+          "Ceiling-mounted sculptural installation of interconnected spheres creating a constellation effect, with internal LED glow, in cosmic midnight blue",
+          "Wall-mounted modular panels that create an optical illusion of depth and movement, inspired by ocean currents, in iridescent pearl",
+          "Floor-standing kinetic sculpture with balanced elements that sway gently, inspired by Calder mobiles, in matte black and brushed gold"
+        ],
+        "sculptural art": [
+          "Abstract floor sculpture representing the moment of transformation, with twisted ribbons of form ascending skyward, in mirror-polished chrome",
+          "Biomorphic standing sculpture inspired by cellular division, with smooth interconnected pods, in translucent amber resin",
+          "Totem-like vertical sculpture with stacked geometric forms that appear to defy gravity, in oxidized copper patina"
+        ],
+        decor: [
+          "Vessel shaped like captured wind, with asymmetrical openings and spiral internal structure visible through translucent walls",
+          "Sculptural bookend pair representing the duality of order and chaos, one crystalline and angular, the other fluid and organic",
+          "Statement planter resembling a partially excavated archaeological artifact, with ancient-looking surface texture"
+        ]
+      };
+      
+      const category = designCategory || 'chairs';
+      const prompts = fallbackPrompts[category] || fallbackPrompts.chairs;
+      const randomPrompt = prompts[Math.floor(Math.random() * prompts.length)];
+      setPrompt(randomPrompt);
+      
+      toast({
+        title: "✨ Creative prompt ready!",
+        description: "Here's an inspiring design idea for you.",
+      });
+    } finally {
+      setIsGeneratingSurprise(false);
+    }
+  };
 
   const handleRoomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1238,64 +1317,52 @@ const DesignStudio = () => {
                       onChange={(e) => setPrompt(e.target.value)}
                     />
 
-                    {/* Quick Ideas */}
-                    <div className="space-y-2">
-                      <p className="text-xs font-medium text-muted-foreground">💡 Quick Ideas:</p>
-                      <div className="flex gap-2">
-                        {(() => {
-                          const allIdeas = [
-                            "Dining chair with curved backrest",
-                            "Coffee table with sculpted base",
-                            "Bench with twisted seat design",
-                            "Lounge chair with flowing armrest",
-                            "Side table with spiral leg structure",
-                            "Center table with organic edges",
-                            "Outdoor bench inspired by waves",
-                            "Sculptural stool with soft curves",
-                            "Reading chair with continuous back and seat",
-                            "Console table with fluid form",
-                            "Dining table with sculpted pedestal base",
-                            "Accent chair inspired by nature",
-                            "Bench with smooth folded shape",
-                            "Coffee table with hollow center",
-                            "Chair with twisted back support",
-                            "Table inspired by flowing fabric",
-                            "Bench that appears to float above ground",
-                            "Side table shaped like a droplet",
-                            "Lounge chair with wave-like seat",
-                            "Installation bench with interwoven lines",
-                            "Two-seater bench with curved backrest",
-                            "Cantilever chair with gradient finish",
-                            "Nesting coffee tables with organic forms",
-                            "Rocking chair with biomorphic armrests",
-                            "Low-profile coffee table with stone top",
-                            "Four-seater dining bench with wood slats",
-                            "Swivel accent chair with metallic legs",
-                            "Modular coffee table with hidden storage",
-                            "Dining chair with curved backrest",
-                            "Oval coffee table with wood and resin mix",
-                            "Outdoor bench with organic flowing lines",
-                            "High-back lounge chair with tufted cushion",
-                            "Minimalist side table with single-color finish",
-                            "Large six-seater bench with sculptural base",
-                            "Wave-pattern wall shelf",
-                            "Organic vase with spiral curves",
-                            "Sculptural planter with drainage design",
-                            "Parametric lamp base with lattice structure"
-                          ];
-                          // Shuffle and pick 2 random ideas
-                          const shuffled = [...allIdeas].sort(() => Math.random() - 0.5);
-                          return shuffled.slice(0, 2).map((example, i) => (
-                            <button
-                              key={i}
-                              onClick={() => setPrompt(example)}
-                              className="text-xs px-3 py-1.5 rounded-full border border-border hover:border-primary hover:bg-accent transition-all flex-1"
-                            >
-                              {example}
-                            </button>
-                          ));
-                        })()}
+                    {/* Category & Surprise Me */}
+                    <div className="space-y-3">
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1">
+                          <label className="text-xs font-medium text-muted-foreground mb-1.5 block">Category</label>
+                          <Select value={designCategory} onValueChange={setDesignCategory}>
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Select category..." />
+                            </SelectTrigger>
+                            <SelectContent className="bg-background border-border z-50">
+                              <SelectItem value="chairs">Chairs & Seating</SelectItem>
+                              <SelectItem value="tables">Tables</SelectItem>
+                              <SelectItem value="benches">Benches</SelectItem>
+                              <SelectItem value="decor">Decor & Accessories</SelectItem>
+                              <SelectItem value="installations">Installations</SelectItem>
+                              <SelectItem value="sculptural art">Sculptural Art</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="pt-5">
+                          <Button
+                            variant="outline"
+                            size="default"
+                            onClick={handleSurpriseMe}
+                            disabled={isGeneratingSurprise}
+                            className="gap-2 border-primary/30 hover:border-primary hover:bg-primary/5"
+                          >
+                            {isGeneratingSurprise ? (
+                              <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <Shuffle className="w-4 h-4" />
+                                Surprise Me
+                              </>
+                            )}
+                          </Button>
+                        </div>
                       </div>
+                      <p className="text-xs text-muted-foreground">
+                        Select a category and click "Surprise Me" for a unique AI-generated design prompt
+                      </p>
                     </div>
 
                     {/* Color & Finish - Combined in one line */}
