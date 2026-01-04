@@ -79,7 +79,7 @@ const DesignerDashboard = () => {
 
       setProducts(productsData || []);
 
-      // Fetch sales
+      // Fetch sales from product_sales table
       const { data: salesData } = await supabase
         .from('product_sales')
         .select(`
@@ -92,12 +92,28 @@ const DesignerDashboard = () => {
 
       setSales(salesData || []);
 
-      // Calculate earnings
-      const totalEarnings = salesData?.reduce((sum, sale) => sum + Number(sale.designer_earnings), 0) || 0;
+      // Fetch real earnings from designer_earnings table
+      const { data: earningsData } = await supabase
+        .from('designer_earnings')
+        .select('royalty_amount, status, paid_at')
+        .eq('designer_id', profile.id);
+
+      // Fetch paid out amount from payout_requests
+      const { data: payoutsData } = await supabase
+        .from('payout_requests')
+        .select('amount, status')
+        .eq('designer_id', profile.id)
+        .eq('status', 'completed');
+
+      // Calculate real earnings
+      const totalEarnings = earningsData?.reduce((sum, earning) => sum + Number(earning.royalty_amount), 0) || 0;
+      const paidOut = payoutsData?.reduce((sum, payout) => sum + Number(payout.amount), 0) || 0;
+      const pendingEarnings = totalEarnings - paidOut;
+
       setEarnings({
         total: totalEarnings,
-        pending: totalEarnings * 0.3, // Simulated pending
-        paid: totalEarnings * 0.7, // Simulated paid
+        pending: Math.max(0, pendingEarnings),
+        paid: paidOut,
       });
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
