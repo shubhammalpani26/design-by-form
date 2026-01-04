@@ -2820,12 +2820,11 @@ const DesignStudio = () => {
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
                           <span className="text-xl font-bold text-primary">
-                            ₹{((submissionData.designerPrice - submissionData.basePrice) + (submissionData.basePrice * 0.10)).toLocaleString()}
+                            ₹{((submissionData.designerPrice - submissionData.basePrice) * 0.70).toLocaleString()}
                           </span>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Markup: ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()} + 
-                          Commission: ₹{(submissionData.basePrice * 0.10).toLocaleString()}
+                          70% of Markup (₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()})
                         </p>
                       </div>
                       )}
