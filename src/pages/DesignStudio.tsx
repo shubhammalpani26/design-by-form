@@ -2478,8 +2478,8 @@ const DesignStudio = () => {
                   </CardContent>
                 </Card>
 
-                {/* Set Your Price & Earnings */}
-                {generatedDesign && estimatedCost && (
+                {/* Set Your Price & Earnings - Only show for designer mode */}
+                {generatedDesign && estimatedCost && userIntent === 'designer' && (
                   <Card className="border-primary/20">
                     <CardContent className="p-6 space-y-4">
                       <h3 className="font-semibold text-lg text-foreground">Set Your Price & Earnings</h3>
@@ -2546,13 +2546,37 @@ const DesignStudio = () => {
                     </CardContent>
                   </Card>
                 )}
+                
+                {/* Estimated Cost - Only for personal use */}
+                {generatedDesign && estimatedCost && userIntent === 'personal' && (
+                  <Card className="border-secondary/20">
+                    <CardContent className="p-6 space-y-4">
+                      <h3 className="font-semibold text-lg text-foreground">Estimated Manufacturing Cost</h3>
+                      <div className="space-y-3 text-sm">
+                        <div className="flex justify-between pb-2 border-b border-border">
+                          <span className="text-muted-foreground">Estimated Cost</span>
+                          <span className="font-semibold text-foreground text-xl">₹{estimatedCost.toLocaleString()}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          This is an estimate based on dimensions. Final pricing will be confirmed after our team reviews your design for manufacturing feasibility.
+                        </p>
+                        {leadTime && (
+                          <div className="flex justify-between pt-2">
+                            <span className="text-muted-foreground">Estimated Manufacturing Time</span>
+                            <span className="font-semibold text-foreground">{leadTime} days</span>
+                          </div>
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Selling Locations - Where to Sell */}
-        {showSubmissionForm && submissionData.category && (
+        {/* Selling Locations - Where to Sell - Only show for designer mode */}
+        {showSubmissionForm && submissionData.category && userIntent === 'designer' && (
           <section className="py-12 bg-gradient-to-br from-primary/5 to-secondary/5">
             <div className="container max-w-4xl mx-auto">
               <SellingLocations category={submissionData.category} />
@@ -2566,9 +2590,14 @@ const DesignStudio = () => {
             <div className="container max-w-3xl mx-auto">
               <Card className="border-primary/20">
                 <CardContent className="p-8">
-                  <h2 className="text-2xl font-bold mb-2 text-foreground">Submit Your Design</h2>
+                  <h2 className="text-2xl font-bold mb-2 text-foreground">
+                    {userIntent === 'personal' ? 'Request Manufacturing Quote' : 'Submit Your Design'}
+                  </h2>
                   <p className="text-muted-foreground mb-6">
-                    Complete the details below to submit your design for review and listing
+                    {userIntent === 'personal' 
+                      ? 'Complete the details below to request a quote for manufacturing your custom design'
+                      : 'Complete the details below to submit your design for review and listing'
+                    }
                   </p>
 
                   <div className="space-y-6">
@@ -2768,7 +2797,7 @@ const DesignStudio = () => {
                     </div>
 
                     {dimensions.length && dimensions.breadth && dimensions.height && submissionData.basePrice > 0 ? (
-                      <>
+                      userIntent === 'designer' ? (
                         <div className="grid grid-cols-2 gap-4">
                           <div>
                             <label className="text-sm font-medium mb-2 block text-foreground">Base Manufacturing Price (₹) *</label>
@@ -2808,7 +2837,17 @@ const DesignStudio = () => {
                             <p className="text-xs text-muted-foreground mt-1">Must be at least ₹{submissionData.basePrice.toLocaleString()}</p>
                           </div>
                         </div>
-                      </>
+                      ) : (
+                        <div className="bg-secondary/5 border border-secondary/20 rounded-lg p-4">
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-medium text-foreground">Estimated Manufacturing Cost</span>
+                            <span className="text-xl font-bold text-secondary">₹{submissionData.basePrice.toLocaleString()}</span>
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-2">
+                            This is a preliminary estimate. Our team will provide a detailed quote after reviewing your design.
+                          </p>
+                        </div>
+                      )
                     ) : (
                       <div className="bg-accent/50 border border-border rounded-lg p-4 text-center">
                         <p className="text-sm text-muted-foreground">
@@ -2817,7 +2856,8 @@ const DesignStudio = () => {
                       </div>
                     )}
 
-                    {dimensions.length && dimensions.breadth && dimensions.height && submissionData.basePrice > 0 && submissionData.designerPrice > 0 && (
+                    {/* Earnings display - Only for designer mode */}
+                    {dimensions.length && dimensions.breadth && dimensions.height && submissionData.basePrice > 0 && submissionData.designerPrice > 0 && userIntent === 'designer' && (
                       <div className="bg-primary/5 rounded-lg p-4">
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
@@ -2834,7 +2874,7 @@ const DesignStudio = () => {
                           </span>
                         </div>
                       </div>
-                      )}
+                    )}
 
                     <div className="border border-border rounded-lg p-4 space-y-4">
                       <div className="flex items-start space-x-3">
@@ -2854,23 +2894,45 @@ const DesignStudio = () => {
                           <a href="/terms" target="_blank" className="text-primary hover:underline">
                             Terms & Conditions
                           </a>
-                          {" "}including commission structure, intellectual property policies, and manufacturing guidelines.
+                          {userIntent === 'designer' 
+                            ? " including commission structure, intellectual property policies, and manufacturing guidelines."
+                            : " including manufacturing guidelines and intellectual property policies."
+                          }
                         </label>
                       </div>
                     </div>
 
-                    <div className="bg-secondary/10 rounded-lg p-4 border border-secondary/20">
-                      <h4 className="font-semibold mb-2 text-foreground flex items-center gap-2">
-                        <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                        Order Notifications
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        You'll receive email and SMS notifications when someone places an order for your design. 
-                        Make sure your contact details in your creator profile are up to date.
-                      </p>
-                    </div>
+                    {/* Order notifications - Only for designer mode */}
+                    {userIntent === 'designer' && (
+                      <div className="bg-secondary/10 rounded-lg p-4 border border-secondary/20">
+                        <h4 className="font-semibold mb-2 text-foreground flex items-center gap-2">
+                          <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                          </svg>
+                          Order Notifications
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          You'll receive email and SMS notifications when someone places an order for your design. 
+                          Make sure your contact details in your creator profile are up to date.
+                        </p>
+                      </div>
+                    )}
+                    
+                    {/* What happens next - Only for personal use */}
+                    {userIntent === 'personal' && (
+                      <div className="bg-secondary/10 rounded-lg p-4 border border-secondary/20">
+                        <h4 className="font-semibold mb-2 text-foreground flex items-center gap-2">
+                          <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          What Happens Next?
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          Our team will review your design for manufacturing feasibility and send you a detailed quote 
+                          via email within 2-3 business days. This is a private design—it won't be listed publicly.
+                        </p>
+                      </div>
+                    )}
 
                     <Button 
                       variant="hero" 
@@ -2883,10 +2945,10 @@ const DesignStudio = () => {
                           <svg className="w-4 h-4 mr-2 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                           </svg>
-                          Submitting Design...
+                          {userIntent === 'personal' ? 'Requesting Quote...' : 'Submitting Design...'}
                         </>
                       ) : (
-                        "Submit Design for Review"
+                        userIntent === 'personal' ? "Request Manufacturing Quote" : "Submit Design for Review"
                       )}
                     </Button>
                   </div>
