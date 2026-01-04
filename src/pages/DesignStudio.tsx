@@ -2771,7 +2771,7 @@ const DesignStudio = () => {
                       <>
                         <div className="grid grid-cols-2 gap-4">
                           <div>
-                            <label className="text-sm font-medium mb-2 block text-foreground">Base Price (₹) *</label>
+                            <label className="text-sm font-medium mb-2 block text-foreground">Base Manufacturing Price (₹) *</label>
                             <Input 
                               type="number"
                               value={submissionData.basePrice}
@@ -2780,7 +2780,9 @@ const DesignStudio = () => {
                               required
                               disabled
                             />
-                            <p className="text-xs text-muted-foreground mt-1">Production cost</p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Preliminary estimate. Final MBP confirmed upon approval; your markup % will be preserved.
+                            </p>
                           </div>
 
                           <div>
