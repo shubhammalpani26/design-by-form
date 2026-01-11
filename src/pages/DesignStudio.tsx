@@ -106,6 +106,8 @@ const DesignStudio = () => {
   const [isGeneratingLifestyle, setIsGeneratingLifestyle] = useState(false);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
+  const [aiGeneratedDescription, setAiGeneratedDescription] = useState<string | null>(null);
+  const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
@@ -1090,6 +1092,55 @@ const DesignStudio = () => {
       title: "Price Calculated",
       description: `Base price: ₹${baseCost.toLocaleString()} for ${cubicFeet.toFixed(2)} cubic feet`,
     });
+
+    // Start generating AI description in background for designer mode
+    if (userIntent === 'designer' && submissionData.name && !aiGeneratedDescription) {
+      generateAIDescription(submissionData.name, submissionData.category, {
+        width: parseFloat(length),
+        depth: parseFloat(breadth),
+        height: parseFloat(height)
+      });
+    }
+  };
+
+  // Generate AI description in background
+  const generateAIDescription = async (productName: string, category: string, dims: { width: number; depth: number; height: number }) => {
+    if (isGeneratingDescription || !productName) return;
+    
+    setIsGeneratingDescription(true);
+    toast({
+      title: "Generating AI Description",
+      description: "Creating a premium product description...",
+    });
+
+    try {
+      const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-product-description', {
+        body: {
+          productName: productName,
+          category: category,
+          materials: "High-grade resin reinforced with composite fibre, with hand-finished details",
+          dimensions: dims
+        }
+      });
+
+      if (aiError) {
+        console.error('AI description generation error:', aiError);
+        toast({
+          title: "Using Your Description",
+          description: "Couldn't generate AI description, using your provided text.",
+        });
+      } else if (aiData?.description) {
+        setAiGeneratedDescription(aiData.description);
+        toast({
+          title: "AI Description Ready",
+          description: "Premium description generated for your product!",
+        });
+      }
+    } catch (error) {
+      console.error('Failed to generate AI description:', error);
+    } finally {
+      setIsGeneratingDescription(false);
+    }
   };
 
   const handleSubmitDesign = async () => {
@@ -1204,51 +1255,42 @@ const DesignStudio = () => {
         profile = newProfile;
       }
 
-      // Generate AI description for the product
+      // Use pre-generated AI description if available, otherwise use user's description
       let productDescription = validatedData.description;
       
       if (userIntent === 'designer') {
-        try {
-          if (!isAutoSubmitting) {
+        if (aiGeneratedDescription) {
+          // Use the pre-generated description
+          productDescription = aiGeneratedDescription;
+        } else if (!isAutoSubmitting && !isGeneratingDescription) {
+          // Generate description on-the-fly if not already generated (fallback)
+          try {
             toast({
               title: "Generating Description",
               description: "Creating a premium product description...",
             });
-          }
 
-          const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-product-description', {
-            body: {
-              productName: validatedData.name,
-              category: validatedData.category,
-              materials: "High-grade resin reinforced with composite fibre, with hand-finished details",
-              dimensions: {
-                width: parseFloat(dimensions.length),
-                depth: parseFloat(dimensions.breadth),
-                height: parseFloat(dimensions.height)
+            const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-product-description', {
+              body: {
+                productName: validatedData.name,
+                category: validatedData.category,
+                materials: "High-grade resin reinforced with composite fibre, with hand-finished details",
+                dimensions: {
+                  width: parseFloat(dimensions.length),
+                  depth: parseFloat(dimensions.breadth),
+                  height: parseFloat(dimensions.height)
+                }
               }
-            }
-          });
+            });
 
-          if (aiError) {
-            console.error('AI description generation error:', aiError);
-            if (!isAutoSubmitting) {
-              toast({
-                title: "Using Your Description",
-                description: "Couldn't generate AI description, using your provided text.",
-              });
+            if (aiError) {
+              console.error('AI description generation error:', aiError);
+            } else if (aiData?.description) {
+              productDescription = aiData.description;
             }
-          } else if (aiData?.description) {
-            productDescription = aiData.description;
-            if (!isAutoSubmitting) {
-              toast({
-                title: "AI Description Generated",
-                description: "Added a premium description to your product!",
-              });
-            }
+          } catch (error) {
+            console.error('Failed to generate AI description:', error);
           }
-        } catch (error) {
-          console.error('Failed to generate AI description:', error);
-          // Continue with user's description
         }
       }
 
@@ -2716,7 +2758,21 @@ const DesignStudio = () => {
                         <Input 
                           placeholder="e.g., Modern Curve Chair"
                           value={submissionData.name}
-                          onChange={(e) => setSubmissionData({ ...submissionData, name: e.target.value })}
+                          onChange={(e) => {
+                            setSubmissionData({ ...submissionData, name: e.target.value });
+                            // Clear pre-generated description when name changes
+                            setAiGeneratedDescription(null);
+                          }}
+                          onBlur={() => {
+                            // Trigger AI description generation when user finishes typing name
+                            if (userIntent === 'designer' && submissionData.name && dimensions.length && dimensions.breadth && dimensions.height && !aiGeneratedDescription && !isGeneratingDescription) {
+                              generateAIDescription(submissionData.name, submissionData.category, {
+                                width: parseFloat(dimensions.length),
+                                depth: parseFloat(dimensions.breadth),
+                                height: parseFloat(dimensions.height)
+                              });
+                            }
+                          }}
                           required
                           className="flex-1"
                         />
@@ -2746,11 +2802,21 @@ const DesignStudio = () => {
                               if (error) throw error;
 
                               if (data?.title) {
-                                setSubmissionData({ ...submissionData, name: data.title });
+                                setSubmissionData(prev => ({ ...prev, name: data.title }));
+                                setAiGeneratedDescription(null); // Clear old description
                                 toast({
                                   title: "Title generated!",
                                   description: "AI has suggested a creative title for your design",
                                 });
+                                
+                                // Auto-generate description with the new title
+                                if (userIntent === 'designer' && dimensions.length && dimensions.breadth && dimensions.height) {
+                                  generateAIDescription(data.title, submissionData.category, {
+                                    width: parseFloat(dimensions.length),
+                                    depth: parseFloat(dimensions.breadth),
+                                    height: parseFloat(dimensions.height)
+                                  });
+                                }
                               }
                             } catch (error) {
                               console.error('Error generating title:', error);
