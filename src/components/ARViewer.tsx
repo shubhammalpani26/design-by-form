@@ -8,13 +8,15 @@ import { processImageUrl } from "@/lib/backgroundRemoval";
 
 interface ARViewerProps {
   productName: string;
+  productId?: string; // Used to scope AR state per product
   imageUrl?: string;
   modelUrl?: string;
   onStartAR?: () => void;
   roomImage?: File | null;
+  isDesignStudio?: boolean; // Whether this is in design studio (different storage)
 }
 
-export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage }: ARViewerProps) => {
+export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false }: ARViewerProps) => {
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
@@ -42,9 +44,18 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
     }
   });
 
-  // Persist AR state in sessionStorage
+  // Generate storage key based on context (design studio vs product page)
+  const getStorageKey = () => {
+    if (isDesignStudio) {
+      return 'ar-viewer-state-design-studio';
+    }
+    return productId ? `ar-viewer-state-${productId}` : 'ar-viewer-state-default';
+  };
+
+  // Persist AR state in sessionStorage (scoped per product or design studio)
   useEffect(() => {
-    const savedState = sessionStorage.getItem('ar-viewer-state');
+    const storageKey = getStorageKey();
+    const savedState = sessionStorage.getItem(storageKey);
     if (savedState) {
       try {
         const state = JSON.parse(savedState);
@@ -62,10 +73,11 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
         console.error('Failed to restore AR state:', e);
       }
     }
-  }, []);
+  }, [productId, isDesignStudio]);
 
-  // Save state when it changes
+  // Save state when it changes (scoped per product or design studio)
   useEffect(() => {
+    const storageKey = getStorageKey();
     const state = {
       position: furniturePosition,
       scale: furnitureScale,
@@ -74,8 +86,8 @@ export const ARViewer = ({ productName, imageUrl, modelUrl, onStartAR, roomImage
       uploadedPhoto,
       processedFurnitureUrl,
     };
-    sessionStorage.setItem('ar-viewer-state', JSON.stringify(state));
-  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, uploadedPhoto, processedFurnitureUrl]);
+    sessionStorage.setItem(storageKey, JSON.stringify(state));
+  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, uploadedPhoto, processedFurnitureUrl, productId, isDesignStudio]);
 
   // Create proxied URL for 3D model to avoid CORS issues
   useEffect(() => {
