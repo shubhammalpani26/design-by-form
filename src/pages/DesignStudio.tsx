@@ -108,6 +108,9 @@ const DesignStudio = () => {
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const { toast } = useToast();
 
+  // Flag to track if we should auto-submit after restoration
+  const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
+
   // Save design data to localStorage before navigating away
   const saveDesignToLocalStorage = () => {
     const designData = {
@@ -121,13 +124,14 @@ const DesignStudio = () => {
       prompt,
       currentPricing,
       showSubmissionForm,
+      autoSubmitAfterRestore: true, // Flag to trigger auto-submit
     };
     localStorage.setItem('pending-design-data', JSON.stringify(designData));
     localStorage.setItem('pending-design-intent', 'designer');
   };
 
   // Restore design data from localStorage after onboarding
-  const restoreDesignFromLocalStorage = () => {
+  const restoreDesignFromLocalStorage = (): { restored: boolean; shouldAutoSubmit: boolean } => {
     const savedData = localStorage.getItem('pending-design-data');
     if (savedData) {
       try {
@@ -143,19 +147,17 @@ const DesignStudio = () => {
         if (data.currentPricing) setCurrentPricing(data.currentPricing);
         if (data.showSubmissionForm) setShowSubmissionForm(data.showSubmissionForm);
         
+        const autoSubmit = data.autoSubmitAfterRestore === true;
+        
         localStorage.removeItem('pending-design-data');
         
-        toast({
-          title: "Design Restored!",
-          description: "Your saved design is ready. You can now submit it.",
-        });
-        return true;
+        return { restored: true, shouldAutoSubmit: autoSubmit };
       } catch (e) {
         console.error('Failed to restore design data:', e);
         localStorage.removeItem('pending-design-data');
       }
     }
-    return false;
+    return { restored: false, shouldAutoSubmit: false };
   };
 
   // Check if user was redirected from designer onboarding - auto-select designer mode and restore design
@@ -172,12 +174,34 @@ const DesignStudio = () => {
       
       // Restore any saved design data
       if (pendingDesignData) {
-        restoreDesignFromLocalStorage();
+        const { restored, shouldAutoSubmit: autoSubmit } = restoreDesignFromLocalStorage();
+        if (restored && autoSubmit) {
+          setShouldAutoSubmit(true);
+          toast({
+            title: "Design Restored!",
+            description: "Submitting your design automatically...",
+          });
+        } else if (restored) {
+          toast({
+            title: "Design Restored!",
+            description: "Your saved design is ready. You can now submit it.",
+          });
+        }
       }
     }
   }, [user]);
 
-  // Check if user has seen the guide - only show after intent dialog is handled
+  // Auto-submit design after restoration if flagged
+  useEffect(() => {
+    if (shouldAutoSubmit && generatedDesign && submissionData.name && user) {
+      // Small delay to ensure all state is properly set
+      const timer = setTimeout(() => {
+        setShouldAutoSubmit(false);
+        handleSubmitDesign();
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldAutoSubmit, generatedDesign, submissionData.name, user]);
   useEffect(() => {
     const hasSeenGuide = localStorage.getItem("designer-guide-completed");
     // Only show guide if: user is authenticated, intent dialog has been handled, and hasn't seen guide before
