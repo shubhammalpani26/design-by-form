@@ -115,6 +115,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
           <div className="flex-1 h-full">
             <ARViewer 
               productName={name}
+              productId={id}
               imageUrl={image}
             />
           </div>

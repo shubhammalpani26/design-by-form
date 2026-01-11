@@ -2628,6 +2628,7 @@ const DesignStudio = () => {
                               imageUrl={generatedDesign}
                               modelUrl={selectedVariation !== null ? generatedVariations[selectedVariation]?.modelUrl : undefined}
                               roomImage={roomImage}
+                              isDesignStudio={true}
                               onStartAR={() => {
                                 toast({
                                   title: "AR Preview Available",

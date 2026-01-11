@@ -410,6 +410,7 @@ const ProductDetail = () => {
               <TabsContent value="ar" className="mt-2">
                 <ARViewer 
                   productName={product.name}
+                  productId={product.id}
                   imageUrl={product.image_url}
                   modelUrl={product.model_url}
                 />
