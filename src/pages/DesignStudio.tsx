@@ -108,15 +108,72 @@ const DesignStudio = () => {
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const { toast } = useToast();
 
-  // Check if user was redirected from designer onboarding - auto-select designer mode
+  // Save design data to localStorage before navigating away
+  const saveDesignToLocalStorage = () => {
+    const designData = {
+      generatedDesign,
+      generatedVariations,
+      selectedVariation,
+      dimensions,
+      variationDimensions,
+      submissionData,
+      designCategory,
+      prompt,
+      currentPricing,
+      showSubmissionForm,
+    };
+    localStorage.setItem('pending-design-data', JSON.stringify(designData));
+    localStorage.setItem('pending-design-intent', 'designer');
+  };
+
+  // Restore design data from localStorage after onboarding
+  const restoreDesignFromLocalStorage = () => {
+    const savedData = localStorage.getItem('pending-design-data');
+    if (savedData) {
+      try {
+        const data = JSON.parse(savedData);
+        if (data.generatedDesign) setGeneratedDesign(data.generatedDesign);
+        if (data.generatedVariations) setGeneratedVariations(data.generatedVariations);
+        if (data.selectedVariation !== null) setSelectedVariation(data.selectedVariation);
+        if (data.dimensions) setDimensions(data.dimensions);
+        if (data.variationDimensions) setVariationDimensions(data.variationDimensions);
+        if (data.submissionData) setSubmissionData(data.submissionData);
+        if (data.designCategory) setDesignCategory(data.designCategory);
+        if (data.prompt) setPrompt(data.prompt);
+        if (data.currentPricing) setCurrentPricing(data.currentPricing);
+        if (data.showSubmissionForm) setShowSubmissionForm(data.showSubmissionForm);
+        
+        localStorage.removeItem('pending-design-data');
+        
+        toast({
+          title: "Design Restored!",
+          description: "Your saved design is ready. You can now submit it.",
+        });
+        return true;
+      } catch (e) {
+        console.error('Failed to restore design data:', e);
+        localStorage.removeItem('pending-design-data');
+      }
+    }
+    return false;
+  };
+
+  // Check if user was redirected from designer onboarding - auto-select designer mode and restore design
   useEffect(() => {
+    const pendingDesignData = localStorage.getItem('pending-design-data');
     const pendingIntent = localStorage.getItem('pending-design-intent');
-    if (pendingIntent === 'designer' && user) {
+    
+    if ((pendingDesignData || pendingIntent === 'designer') && user) {
       // User just completed designer onboarding, auto-select designer mode
       setUserIntent('designer');
       setShowIntentDialog(false);
       setIntentDialogHandled(true);
       localStorage.removeItem('pending-design-intent');
+      
+      // Restore any saved design data
+      if (pendingDesignData) {
+        restoreDesignFromLocalStorage();
+      }
     }
   }, [user]);
 
@@ -1071,19 +1128,24 @@ const DesignStudio = () => {
       // For personal mode, skip designer onboarding requirement
       if (userIntent === 'designer') {
         if (profileError || !profile) {
+          // Save design data before redirecting so it's not lost
+          saveDesignToLocalStorage();
+          
           toast({
             title: "Complete Designer Onboarding",
-            description: "Please complete the designer onboarding process first.",
+            description: "Your design is saved! Let's set up your profile first, then you can submit.",
           });
           navigate('/designer-onboarding');
           return;
         }
 
         if (!profile.terms_accepted) {
+          // Save design data before redirecting
+          saveDesignToLocalStorage();
+          
           toast({
             title: "Terms Not Accepted",
-            description: "Please complete the designer onboarding to accept terms.",
-            variant: "destructive",
+            description: "Your design is saved! Please complete onboarding to accept terms.",
           });
           navigate('/designer-onboarding');
           return;
