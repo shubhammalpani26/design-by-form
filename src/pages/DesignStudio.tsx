@@ -960,7 +960,7 @@ const DesignStudio = () => {
     }
   };
 
-  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot: number = 1200) => {
+  const calculatePriceFromDimensions = (length: string, breadth: string, height: string, pricePerCubicFoot?: number) => {
     if (!length || !breadth || !height) return;
 
     // Convert inches to feet and calculate cubic feet
@@ -969,10 +969,13 @@ const DesignStudio = () => {
     const h = parseFloat(height) / 12;
     const cubicFeet = l * b * h;
 
-    // Premium price per cubic foot: ₹5,000-₹15,000 range with variation
-    const basePricePerCubicFoot = clampNumber(pricePerCubicFoot, 5000, 15000);
-    // Add randomness: ±15% variation
-    const variation = 1 + (Math.random() - 0.5) * 0.3;
+    // Use passed price, or stored pricing, or default to premium range
+    const effectivePricePerCubicFoot = pricePerCubicFoot ?? currentPricing?.pricePerCubicFoot ?? 12000;
+    
+    // Premium price per cubic foot: ₹8,000-₹18,000 range with variation
+    const basePricePerCubicFoot = clampNumber(effectivePricePerCubicFoot, 8000, 18000);
+    // Add randomness: ±10% variation for subtle uniqueness
+    const variation = 1 + (Math.random() - 0.5) * 0.2;
     const safePricePerCubicFoot = Math.round(basePricePerCubicFoot * variation);
     
     const rawBaseCost = Math.round(cubicFeet * safePricePerCubicFoot);
