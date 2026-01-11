@@ -46,6 +46,13 @@ MANUFACTURING CONSTRAINTS (must follow for 3D printability):
 - Minimum 8-15mm wall thickness for structural parts
 - Optional: fabric cushions or upholstery accents allowed
 
+DESIGN STYLE CONSTRAINTS (CRITICAL - must follow):
+- NO parametric patterns, voronoi, lattice, mesh, or cellular structures
+- NO holes, perforations, or cut-out patterns in surfaces
+- SOLID, continuous surfaces only - smooth, flowing forms
+- Think sculptural, organic, monolithic shapes - NOT algorithmic/generative patterns
+- Avoid anything that looks computer-generated or fractal
+
 FORMAT:
 - 2-3 sentences ONLY
 - Be SPECIFIC about the unique form/structure
