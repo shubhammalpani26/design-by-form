@@ -108,6 +108,18 @@ const DesignStudio = () => {
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const { toast } = useToast();
 
+  // Check if user was redirected from designer onboarding - auto-select designer mode
+  useEffect(() => {
+    const pendingIntent = localStorage.getItem('pending-design-intent');
+    if (pendingIntent === 'designer' && user) {
+      // User just completed designer onboarding, auto-select designer mode
+      setUserIntent('designer');
+      setShowIntentDialog(false);
+      setIntentDialogHandled(true);
+      localStorage.removeItem('pending-design-intent');
+    }
+  }, [user]);
+
   // Check if user has seen the guide - only show after intent dialog is handled
   useEffect(() => {
     const hasSeenGuide = localStorage.getItem("designer-guide-completed");
