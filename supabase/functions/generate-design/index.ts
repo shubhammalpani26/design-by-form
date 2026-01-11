@@ -264,18 +264,20 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
 
     // Analyze design for pricing using Aarav's expertise
     let pricingData = {
-      basePrice: 9000, // Default fallback - more competitive
+      basePrice: 12000, // Default fallback - premium range
       complexity: 'medium',
-      pricePerCubicFoot: 9000,
-      reasoning: 'Standard furniture piece'
+      pricePerCubicFoot: 12000,
+      reasoning: 'Premium designer furniture'
     };
 
     try {
       console.log("Analyzing design for pricing with Aarav");
       
-      const pricingPrompt = `You are Aarav, the Master Maker and AI craftsman. Analyze this furniture design and provide competitive pricing.
+      const pricingPrompt = `You are Aarav, the Master Maker and AI craftsman for premium designer furniture. Analyze this furniture design and provide pricing.
 
 Design Prompt: ${prompt}
+
+This is PREMIUM DESIGNER FURNITURE - not mass-produced items. These are handcrafted, unique pieces using advanced 3D printing and hand-finishing.
 
 Analyze this furniture piece and determine:
 1. Manufacturing complexity (simple/medium/high)
@@ -284,15 +286,17 @@ Analyze this furniture piece and determine:
 4. Customization level (minimal / moderate / fully bespoke)
 5. Assembly difficulty (single piece / modular / multi-part)
 
-Based on your analysis, provide a COMPETITIVE price per cubic foot between ₹6,000 and ₹18,000.
-We aim to be the most competitive option in the market while maintaining quality.
-
-IMPORTANT: For small decor items (planters, vases, bowls, shelves under 18"), use LOWER pricing (₹6,000-9,000/ft³) as these are smaller items with less material.
+Based on your analysis, provide a PREMIUM price per cubic foot between ₹8,000 and ₹18,000.
 
 Decision Framework:
-- Low Complexity (₹6,000-9,000/ft³): Simple forms, single material PP, matte/single-color, minimal custom, basic craft, single piece, SMALL DECOR ITEMS (planters, vases, bowls)
-- Medium Complexity (₹10,000-14,000/ft³): Curved/organic, PP + one add-on, dual-finish/texture, moderate custom, modular
-- High Complexity (₹15,000-18,000/ft³): Sculptural/intricate, multi-material, gloss/hand-polished/metallic, fully bespoke, intensive handwork, multi-part
+- Low Complexity (₹8,000-10,000/ft³): Simple forms, single material PP, matte/single-color finish, minimal customization
+- Medium Complexity (₹11,000-14,000/ft³): Curved/organic shapes, PP + one add-on, dual-finish/texture, moderate custom
+- High Complexity (₹15,000-18,000/ft³): Sculptural/intricate, multi-material, gloss/hand-polished/metallic, fully bespoke
+
+IMPORTANT: 
+- Small decor items (planters, vases, bowls) still use these rates but with smaller volume
+- Benches and large installations should lean toward higher complexity pricing
+- These prices reflect premium artisan craftsmanship
 
 Respond ONLY in valid JSON format (no markdown):
 {
@@ -321,10 +325,10 @@ Respond ONLY in valid JSON format (no markdown):
         if (content) {
           const parsed = JSON.parse(content);
           pricingData = {
-            basePrice: Math.max(6000, Math.min(18000, parsed.pricePerCubicFoot || 9000)),
+            basePrice: Math.max(8000, Math.min(18000, parsed.pricePerCubicFoot || 12000)),
             complexity: parsed.complexity || 'medium',
-            pricePerCubicFoot: Math.max(6000, Math.min(18000, parsed.pricePerCubicFoot || 9000)),
-            reasoning: parsed.reasoning || 'AI-analyzed competitive pricing'
+            pricePerCubicFoot: Math.max(8000, Math.min(18000, parsed.pricePerCubicFoot || 12000)),
+            reasoning: parsed.reasoning || 'AI-analyzed premium pricing'
           };
           console.log("Pricing analysis complete:", pricingData);
         }
