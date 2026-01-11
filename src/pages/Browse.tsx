@@ -31,14 +31,16 @@ const Browse = () => {
   useEffect(() => {
     if (category) {
       // Map shop category URLs to database categories
+      // Database categories: benches, chairs, coffee-tables, dining-tables, home-decor, installations, tables, vases
       const categoryMapping: Record<string, string[]> = {
         'chairs': ['chairs'],
-        'coffee-tables': ['tables', 'coffee-tables'],
-        'dining-tables': ['tables', 'dining-tables'],
-        'tables': ['tables', 'coffee-tables', 'dining-tables'],
+        'coffee-tables': ['coffee-tables', 'tables'], // Include both specific and generic
+        'dining-tables': ['dining-tables', 'tables'], // Include both specific and generic
+        'tables': ['tables', 'coffee-tables', 'dining-tables'], // Umbrella category for all tables
         'benches': ['benches'],
-        'vases': ['vases', 'decor'],
-        'home-decor': ['home-decor', 'decor'],
+        'vases': ['vases', 'home-decor', 'decor'], // Vases might be in home-decor
+        'home-decor': ['home-decor', 'vases', 'decor'], // Include vases and decor
+        'decor': ['decor', 'home-decor', 'vases'], // Alias for home-decor
         'installations': ['installations'],
         'lighting': ['lighting'],
         'storage': ['storage'],

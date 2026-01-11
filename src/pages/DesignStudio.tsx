@@ -1294,7 +1294,33 @@ const DesignStudio = () => {
         }
       }
 
-      // Create product with dimensions and pricing analytics
+      // Calculate weight using AI before creating product
+      let calculatedWeight = 15; // Default fallback
+      try {
+        console.log('Calculating weight for product submission...');
+        const { data: weightData, error: weightError } = await supabase.functions.invoke('calculate-weight', {
+          body: {
+            dimensions: {
+              width: parseFloat(dimensions.length),
+              depth: parseFloat(dimensions.breadth),
+              height: parseFloat(dimensions.height)
+            },
+            category: validatedData.category,
+            productName: validatedData.name
+          }
+        });
+        
+        if (weightError) {
+          console.error('Weight calculation error:', weightError);
+        } else if (weightData?.weight) {
+          calculatedWeight = weightData.weight;
+          console.log('AI calculated weight:', calculatedWeight, 'kg', weightData.reasoning);
+        }
+      } catch (weightCalcError) {
+        console.error('Failed to calculate weight:', weightCalcError);
+      }
+
+      // Create product with dimensions, weight, and pricing analytics
       const { data: newProduct, error: productError } = await supabase.from("designer_products")
         .insert({
           designer_id: profile.id,
@@ -1306,6 +1332,7 @@ const DesignStudio = () => {
           original_designer_price: validatedData.designerPrice,
           image_url: generatedDesign,
           model_url: selectedVariation !== null ? generatedVariations[selectedVariation]?.modelUrl : null,
+          weight: calculatedWeight, // AI-calculated weight
           dimensions: {
             length: parseFloat(dimensions.length),
             breadth: parseFloat(dimensions.breadth),
