@@ -110,8 +110,8 @@ const DesignStudio = () => {
 
   // Flag to track if we should auto-submit after restoration
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
-
-  // Save design data to localStorage before navigating away
+  // Flag to suppress intermediate toasts during auto-submit
+  const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
   const saveDesignToLocalStorage = () => {
     const designData = {
       generatedDesign,
@@ -197,6 +197,7 @@ const DesignStudio = () => {
       // Small delay to ensure all state is properly set
       const timer = setTimeout(() => {
         setShouldAutoSubmit(false);
+        setIsAutoSubmitting(true);
         handleSubmitDesign();
       }, 500);
       return () => clearTimeout(timer);
@@ -1208,10 +1209,12 @@ const DesignStudio = () => {
       
       if (userIntent === 'designer') {
         try {
-          toast({
-            title: "Generating Description",
-            description: "Creating a premium product description...",
-          });
+          if (!isAutoSubmitting) {
+            toast({
+              title: "Generating Description",
+              description: "Creating a premium product description...",
+            });
+          }
 
           const { data: aiData, error: aiError } = await supabase.functions.invoke('generate-product-description', {
             body: {
@@ -1228,16 +1231,20 @@ const DesignStudio = () => {
 
           if (aiError) {
             console.error('AI description generation error:', aiError);
-            toast({
-              title: "Using Your Description",
-              description: "Couldn't generate AI description, using your provided text.",
-            });
+            if (!isAutoSubmitting) {
+              toast({
+                title: "Using Your Description",
+                description: "Couldn't generate AI description, using your provided text.",
+              });
+            }
           } else if (aiData?.description) {
             productDescription = aiData.description;
-            toast({
-              title: "AI Description Generated",
-              description: "Added a premium description to your product!",
-            });
+            if (!isAutoSubmitting) {
+              toast({
+                title: "AI Description Generated",
+                description: "Added a premium description to your product!",
+              });
+            }
           }
         } catch (error) {
           console.error('Failed to generate AI description:', error);
@@ -1317,6 +1324,7 @@ const DesignStudio = () => {
       }
     } finally {
       setIsSubmitting(false);
+      setIsAutoSubmitting(false);
     }
   };
 
