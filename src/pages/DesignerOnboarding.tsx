@@ -111,13 +111,12 @@ export default function DesignerOnboarding() {
         description: "Your designer account is now active. Start creating designs!",
       });
 
-      // Check if user was redirected from Design Studio
+      // Check if user was redirected from Design Studio with pending design
       const pendingDesignData = localStorage.getItem('pending-design-data');
       if (pendingDesignData) {
-        // Don't remove pending-design-intent here - let DesignStudio handle restoration
         toast({
-          title: "Returning to Design Studio",
-          description: "Your saved design is ready to submit!",
+          title: "Submitting Your Design",
+          description: "Redirecting to complete your submission...",
         });
         navigate("/design-studio");
         return;
