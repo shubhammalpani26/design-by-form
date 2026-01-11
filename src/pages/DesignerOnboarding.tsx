@@ -111,6 +111,17 @@ export default function DesignerOnboarding() {
         description: "Your designer account is now active. Start creating designs!",
       });
 
+      // Check if user was redirected from Design Studio
+      const pendingIntent = localStorage.getItem('pending-design-intent');
+      if (pendingIntent === 'designer') {
+        localStorage.removeItem('pending-design-intent');
+        // Return to design studio - the intent dialog will auto-select designer mode
+        toast({
+          title: "Returning to Design Studio",
+          description: "You can now create designs to sell!",
+        });
+      }
+      
       navigate("/design-studio");
     } catch (error) {
       console.error('Onboarding error:', error);

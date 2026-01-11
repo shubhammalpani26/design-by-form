@@ -1,7 +1,11 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Store, User } from "lucide-react";
+import { Store, User, Loader2 } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface IntentSelectionDialogProps {
   isOpen: boolean;
@@ -9,11 +13,79 @@ interface IntentSelectionDialogProps {
 }
 
 export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialogProps) => {
+  const navigate = useNavigate();
+  const { toast } = useToast();
   const { formatPrice, currency } = useCurrency();
+  const [isCheckingProfile, setIsCheckingProfile] = useState(false);
   
   // Listing fee: ₹1,000 for India, $10 USD equivalent for international
   const feeInINR = currency === 'INR' ? 1000 : 10 / 0.012; // $10 USD = ~833 INR
   const displayFee = formatPrice(feeInINR);
+
+  const handleDesignerSelect = async () => {
+    setIsCheckingProfile(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast({
+          title: "Authentication Required",
+          description: "Please sign in to sell designs.",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return;
+      }
+
+      // Check if user has an approved designer profile
+      const { data: profile, error } = await supabase
+        .from("designer_profiles")
+        .select("id, status, terms_accepted")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error checking designer profile:', error);
+      }
+
+      if (!profile || !profile.terms_accepted) {
+        // No profile or terms not accepted - redirect to onboarding
+        // Save current intent so we can return to design studio after onboarding
+        localStorage.setItem('pending-design-intent', 'designer');
+        
+        toast({
+          title: "Complete Designer Registration",
+          description: "Let's set up your designer profile first, then you can create designs to sell.",
+        });
+        
+        navigate('/designer-onboarding');
+        return;
+      }
+
+      if (profile.status !== 'approved') {
+        toast({
+          title: "Profile Under Review",
+          description: "Your designer profile is pending approval. We'll notify you once it's approved.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Profile exists and is approved - proceed with designer mode
+      onSelect('designer');
+      
+    } catch (error) {
+      console.error('Error checking designer profile:', error);
+      toast({
+        title: "Error",
+        description: "Could not verify designer status. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsCheckingProfile(false);
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onSelect && onSelect(null as any)}>
@@ -27,12 +99,17 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
           <button
-            onClick={() => onSelect('designer')}
-            className="group relative overflow-hidden rounded-lg border-2 border-border hover:border-primary transition-all p-6 text-left bg-card hover:bg-accent"
+            onClick={handleDesignerSelect}
+            disabled={isCheckingProfile}
+            className="group relative overflow-hidden rounded-lg border-2 border-border hover:border-primary transition-all p-6 text-left bg-card hover:bg-accent disabled:opacity-50 disabled:cursor-wait"
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="p-4 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <Store className="w-8 h-8 text-primary" />
+                {isCheckingProfile ? (
+                  <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                ) : (
+                  <Store className="w-8 h-8 text-primary" />
+                )}
               </div>
               <div>
                 <h3 className="font-semibold text-lg mb-2">Create to Sell</h3>
@@ -52,7 +129,8 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
 
           <button
             onClick={() => onSelect('personal')}
-            className="group relative overflow-hidden rounded-lg border-2 border-border hover:border-primary transition-all p-6 text-left bg-card hover:bg-accent"
+            disabled={isCheckingProfile}
+            className="group relative overflow-hidden rounded-lg border-2 border-border hover:border-primary transition-all p-6 text-left bg-card hover:bg-accent disabled:opacity-50"
           >
             <div className="flex flex-col items-center text-center space-y-4">
               <div className="p-4 rounded-full bg-primary/10 group-hover:bg-primary/20 transition-colors">
