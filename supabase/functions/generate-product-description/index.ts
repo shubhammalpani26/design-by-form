@@ -26,82 +26,31 @@ serve(async (req) => {
 
     // Handle surprise prompt generation
     if (type === 'surprise_prompt') {
-      systemContent = 'You are a visionary furniture designer who creates unexpected, never-before-seen design concepts. Each design must be unique, surprising, and completely different from anything you\'ve suggested before. You have expertise in structural engineering and understand 3D printing constraints.';
+      systemContent = 'You are a wildly creative furniture designer with expertise in 3D printing and structural engineering. Generate completely unexpected, never-before-seen designs. Be random, surprising, and inventive with colors, finishes, and inspirations. Every response must be different.';
       
-      // Expanded color palette for variety
-      const colorPalettes = [
-        // Earthy & Warm
-        'matte terracotta', 'burnt sienna', 'warm clay', 'desert sand', 'rustic ochre',
-        // Cool & Modern
-        'arctic white', 'glacier blue', 'storm grey', 'slate', 'cool concrete',
-        // Bold & Dramatic
-        'obsidian black', 'deep burgundy', 'midnight navy', 'forest green', 'aubergine purple',
-        // Metallics
-        'brushed gold', 'rose gold', 'antique brass', 'weathered copper', 'pewter silver',
-        // Nature-Inspired
-        'moss green', 'driftwood grey', 'coral pink', 'sage', 'sandstone beige',
-        // Contemporary
-        'blush pink', 'dusty lavender', 'eucalyptus green', 'warm taupe', 'cream ivory'
-      ];
+      const randomSeed = Math.floor(Math.random() * 100000);
       
-      // Design inspiration themes for variety
-      const designThemes = [
-        'ancient architecture (Gothic arches, Roman columns, Egyptian geometry)',
-        'marine life (coral formations, shells, whale bones, jellyfish)',
-        'geological formations (crystals, cave formations, erosion patterns)',
-        'botanical structures (seed pods, tree roots, mushroom caps, fern fronds)',
-        'wind and water erosion (sand dunes, river stones, wind-carved rock)',
-        'microscopic structures (diatoms, pollen, cellular patterns)',
-        'cultural motifs (Japanese wabi-sabi, Scandinavian minimalism, African patterns)',
-        'aerospace engineering (aerodynamic curves, structural ribbing)',
-        'musical instruments (curved forms, resonance chambers, flowing lines)',
-        'origami and paper folding (angular planes, folded surfaces)'
-      ];
-      
-      // Random selections to inject variety
-      const randomColors = colorPalettes.sort(() => Math.random() - 0.5).slice(0, 8).join(', ');
-      const randomTheme = designThemes[Math.floor(Math.random() * designThemes.length)];
-      const randomSeed = Math.floor(Math.random() * 10000);
-      
-      prompt = `VARIATION SEED: ${randomSeed}
+      prompt = `SEED: ${randomSeed}
 
-Generate a COMPLETELY UNIQUE and SURPRISING design prompt for a ${category || 'furniture'} piece.
+Generate a COMPLETELY RANDOM and UNIQUE design prompt for a ${category || 'furniture'} piece.
 
-CRITICAL: Your response must be DIFFERENT from common designs. Avoid these overused concepts:
-- Generic "organic flowing" shapes without specific inspiration
-- Simple geometric patterns
-- Standard furniture silhouettes with minor modifications
-- Bronze or metallic bronze finish (use other colors!)
+BE UNPREDICTABLE - choose ANY inspiration, ANY color, ANY finish. Surprise me with something I've never seen!
 
-STRUCTURAL REQUIREMENTS (non-negotiable):
-- Self-supporting with proper center of gravity
-- Stable base with adequate ground contact
-- Load-bearing capable (chairs: 120kg, tables: hold objects)
+MANUFACTURING CONSTRAINTS (must follow for 3D printability):
+- Single material: resin/composite (3D printed with hand-finishing)
+- Single color OR single finish (no multi-color patterns)
+- Self-supporting structure with stable base
+- Proper center of gravity for the category
+- Load-bearing requirements: chairs 120kg, tables hold objects, benches seat multiple people
 - No fragile cantilevers or thin unsupported extensions
 - Minimum 8-15mm wall thickness for structural parts
-
-MATERIAL: Single resin/composite material, single color finish
-UPHOLSTERY: Optional cushions or fabric accents allowed
-
-TODAY'S INSPIRATION THEME: ${randomTheme}
-Draw unexpected connections between this theme and furniture design.
-
-COLOR OPTIONS (pick ONE that's unexpected for furniture):
-${randomColors}
+- Optional: fabric cushions or upholstery accents allowed
 
 FORMAT:
 - 2-3 sentences ONLY
-- Return ONLY the design prompt, no explanations or preamble
-- Be SPECIFIC about the unique structural feature
-- Name the EXACT color/finish
-
-EXAMPLES OF GOOD VARIETY:
-- "A console table inspired by Gothic cathedral flying buttresses, with three dramatically arched supports meeting at a floating top surface, in matte midnight navy"
-- "A lounge chair mimicking an unfurling fern frond, with the backrest spiraling outward from a solid weighted base, finished in dusty sage green with cream linen cushioning"
-- "A side table inspired by balancing river stones, featuring three interlocking rounded forms that create a stable tripod, in weathered copper finish"
-- "A dining chair drawing from origami aesthetics, with angular folded planes forming seat and back from a single continuous surface, in arctic white matte"
-
-Now create something COMPLETELY DIFFERENT and unexpected for a ${category || 'furniture'}:`;
+- Be SPECIFIC about the unique form/structure
+- Name ONE color or finish (your random choice!)
+- Return ONLY the design prompt, nothing else`;
     } else {
       // Standard product description generation
       systemContent = 'You are a luxury furniture copywriter who creates compelling, story-driven product descriptions that evoke emotion and desire. Your writing is elegant, sophisticated, and makes every piece sound like a masterpiece.';
@@ -144,7 +93,7 @@ The description should make potential buyers feel they're investing in art, not 
             content: prompt
           }
         ],
-        temperature: type === 'surprise_prompt' ? 0.95 : 0.8,
+        temperature: type === 'surprise_prompt' ? 0.98 : 0.8,
       }),
     });
 
