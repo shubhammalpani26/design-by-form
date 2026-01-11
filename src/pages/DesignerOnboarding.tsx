@@ -112,14 +112,15 @@ export default function DesignerOnboarding() {
       });
 
       // Check if user was redirected from Design Studio
-      const pendingIntent = localStorage.getItem('pending-design-intent');
-      if (pendingIntent === 'designer') {
-        localStorage.removeItem('pending-design-intent');
-        // Return to design studio - the intent dialog will auto-select designer mode
+      const pendingDesignData = localStorage.getItem('pending-design-data');
+      if (pendingDesignData) {
+        // Don't remove pending-design-intent here - let DesignStudio handle restoration
         toast({
           title: "Returning to Design Studio",
-          description: "You can now create designs to sell!",
+          description: "Your saved design is ready to submit!",
         });
+        navigate("/design-studio");
+        return;
       }
       
       navigate("/design-studio");
