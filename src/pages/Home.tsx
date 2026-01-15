@@ -71,51 +71,14 @@ interface Product {
   price: number;
   weight: number;
   image: string;
+  description?: string;
 }
 
-// Generate matching prompts based on product names
-const generatePromptFromName = (name: string): string => {
-  const nameLower = name.toLowerCase();
-  
-  if (nameLower.includes('chair')) {
-    if (nameLower.includes('organic') || nameLower.includes('flow')) return "Create an organic lounge chair with flowing curved lines";
-    if (nameLower.includes('spiral')) return "Design a modern chair with spiral sculptural elements";
-    return "Design a contemporary chair with ergonomic curves";
-  }
-  
-  if (nameLower.includes('table')) {
-    if (nameLower.includes('coffee')) return "Create a coffee table with abstract geometric base";
-    if (nameLower.includes('wave') || nameLower.includes('flow')) return "Design a dining table with fluid wave-like legs";
-    if (nameLower.includes('ripple') || nameLower.includes('curv')) return "Create a table with rippling curved surfaces";
-    return "Design a modern table with sculptural form";
-  }
-  
-  if (nameLower.includes('bench')) {
-    if (nameLower.includes('curv')) return "Create a curved bench with flowing organic lines";
-    return "Design an ergonomic bench with smooth curves";
-  }
-  
-  if (nameLower.includes('vase')) {
-    return "Create a sculptural vase with organic flowing form";
-  }
-  
-  if (nameLower.includes('bowl')) {
-    return "Design an organic bowl with natural flowing curves";
-  }
-  
-  if (nameLower.includes('shelf')) {
-    return "Create a floating wall shelf with geometric design";
-  }
-  
-  if (nameLower.includes('spiral') || nameLower.includes('column') || nameLower.includes('sculpture')) {
-    if (nameLower.includes('hexagon')) return "Design a hexagonal tessellation sculpture installation";
-    if (nameLower.includes('fractal')) return "Create a fractal-inspired sculptural installation";
-    if (nameLower.includes('voronoi')) return "Design a voronoi pattern architectural sculpture";
-    return "Create a large spiral column sculpture installation";
-  }
-  
-  // Default
-  return "Design a contemporary furniture piece with organic curves";
+// Truncate description for display
+const truncateDescription = (description: string | undefined, maxLength: number = 80): string => {
+  if (!description) return "AI-generated furniture design";
+  if (description.length <= maxLength) return description;
+  return description.substring(0, maxLength).trim() + "...";
 };
 
 const Home = () => {
@@ -158,6 +121,7 @@ const Home = () => {
         .select(`
           id,
           name,
+          description,
           designer_price,
           weight,
           image_url,
@@ -175,6 +139,7 @@ const Home = () => {
         const mappedProducts: Product[] = data.map(item => ({
           id: item.id,
           name: item.name,
+          description: item.description || undefined,
           designer: item.designer_profiles.name,
           designerId: item.designer_id,
           price: Number(item.designer_price),
@@ -374,9 +339,9 @@ const Home = () => {
                               </div>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-medium text-muted-foreground mb-0.5">AI prompt:</p>
+                              <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Design:</p>
                               <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
-                                "{generatePromptFromName(heroProducts[currentProductIndex].name)}"
+                                {truncateDescription(heroProducts[currentProductIndex].description)}
                               </p>
                             </div>
                           </div>
