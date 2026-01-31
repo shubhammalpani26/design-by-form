@@ -155,8 +155,8 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      // Fetch one product from each category
-      const categories = ['chairs', 'tables', 'benches', 'installations', 'vases', 'home-decor'];
+      // Fetch multiple products from each category for carousel
+      const categories = ['tables', 'benches', 'installations', 'vases', 'home-decor'];
       const allProducts: Product[] = [];
 
       for (const category of categories) {
@@ -175,24 +175,25 @@ const Home = () => {
           .eq('status', 'approved')
           .eq('category', category)
           .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .limit(2);
 
         if (!error && categoryData) {
-          allProducts.push({
-            id: categoryData.id,
-            name: categoryData.name,
-            designer: categoryData.designer_profiles?.name || 'Unknown Designer',
-            designerId: categoryData.designer_id,
-            price: Number(categoryData.designer_price),
-            weight: Number(categoryData.weight || 5),
-            image: categoryData.image_url || ''
+          categoryData.forEach(product => {
+            allProducts.push({
+              id: product.id,
+              name: product.name,
+              designer: product.designer_profiles?.name || 'Unknown Designer',
+              designerId: product.designer_id,
+              price: Number(product.designer_price),
+              weight: Number(product.weight || 5),
+              image: product.image_url || ''
+            });
           });
         }
       }
 
-      // Take first 5 products (one from each main category)
-      setFeaturedProducts(allProducts.slice(0, 5));
+      // Keep up to 10 products for carousel scrolling
+      setFeaturedProducts(allProducts.slice(0, 10));
     } catch (error) {
       console.error('Error fetching featured products:', error);
     } finally {
@@ -340,31 +341,27 @@ const Home = () => {
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="relative">
+            <div className="relative px-12">
               {/* Navigation Buttons */}
-              <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
-                  onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 1))}
-                  disabled={carouselIndex === 0}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
+                onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 1))}
+                disabled={carouselIndex === 0}
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
               
-              <div className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
-                  onClick={() => setCarouselIndex(Math.min(Math.max(0, featuredProducts.length - 5), carouselIndex + 1))}
-                  disabled={carouselIndex >= featuredProducts.length - 5}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
+                onClick={() => setCarouselIndex(Math.min(Math.max(0, featuredProducts.length - 5), carouselIndex + 1))}
+                disabled={carouselIndex >= Math.max(0, featuredProducts.length - 5)}
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
 
               {/* Products Grid with Carousel */}
               <div className="overflow-hidden">
