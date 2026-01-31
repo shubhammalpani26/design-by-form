@@ -3091,6 +3091,7 @@ const DesignStudio = () => {
                         <option value="chairs">Chairs</option>
                         <option value="tables">Tables</option>
                         <option value="benches">Benches</option>
+                        <option value="consoles">Consoles</option>
                         <option value="storage">Storage</option>
                         <option value="decor">Decor</option>
                         <option value="lighting">Lighting</option>
