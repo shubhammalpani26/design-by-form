@@ -1,157 +1,214 @@
 
-# Seamless AI Design Studio Experience
 
-## Problem
-Users must click through 3-4 barriers before experiencing the AI Design Studio's magic:
-1. Auth redirect (if not logged in)
-2. Sign up/login process
-3. Intent Selection Dialog
-4. Optional Designer Guide tutorial
+# Studio-Lite on Homepage: Enhanced Design Preview
 
-By the time users reach the actual design interface, excitement may have faded.
+## Overview
 
-## Solution: "Try Before You Commit" Experience
+Transform the existing `InstantDesignPreview` component into a more powerful "Studio-Lite" experience that gives users a richer taste of the AI Design Studio capabilities without leaving the homepage. This creates an immediate "wow" moment while naturally funneling engaged users to the full studio for advanced features.
 
-Create an immediate "wow" moment by letting users experience AI generation BEFORE requiring authentication.
+## Current State Analysis
 
-## Implementation Strategy
+The `InstantDesignPreview` component currently offers:
+- Category selection dropdown
+- Text prompt input
+- Single "Generate Design" button
+- Background gallery rotation of approved designs
+- Basic expand/download for generated images
+- "Continue in Full Design Studio" button after generation
 
-### Phase 1: Homepage "Instant Design" Preview
+## Proposed Enhancements
 
-Add an interactive design preview directly on the homepage:
+### 1. Add "Surprise Me" Button
+Bring the popular `handleSurpriseMe` functionality from the full Design Studio to the homepage.
 
-**New Component: `InstantDesignPreview`**
-- Embedded mini design prompt on the homepage hero section
-- Pre-filled with a compelling default prompt (e.g., "Modern sculptural chair with flowing organic curves")
-- One-click "Generate" button that shows a simulated or cached AI generation
-- Shows 2-3 pre-generated example outputs cycling through
-- Clear CTA: "Try the Full AI Studio" that leads to the full experience
+**Implementation:**
+- Add a "Surprise Me" button (with Shuffle icon) next to the Generate button
+- Reuse the same AI prompt generation logic from `DesignStudio.tsx`
+- When clicked, auto-fill the prompt field with a creative AI-generated design idea
+- Visual feedback with loading state during generation
 
+### 2. Generate 3 Variations Instead of 1
+Show users the power of AI by generating multiple options simultaneously.
+
+**Implementation:**
+- Instead of a single image, generate 3 design variations
+- Display them in a horizontal row with selection capability
+- Show a compact variation selector (thumbnails or dots)
+- Selected variation becomes the main preview
+- Each variation can be expanded/downloaded
+
+### 3. Quick-Sell Flow (For Authenticated Users)
+Enable a streamlined path to list designs for sale without going to the full studio.
+
+**Implementation:**
+- After generation, show a "List This Design" button for authenticated users
+- Opens a compact submission dialog with:
+  - Product name field
+  - Category (pre-filled)
+  - Dimensions with smart defaults (using `suggestDimensionsForDesign`)
+  - Auto-calculated price preview
+  - "Submit for Review" button
+- For guests, show "Sign up to sell your design" nudge
+
+### 4. Visual & UX Improvements
+
+**Compact Generation Cards:**
+- Show variations as smaller preview cards in a row
+- Main selected image remains large
+- Hover states with expand/download actions
+
+**Progress States:**
+- Animated sparkles during generation (existing)
+- Progress bar for multi-variation generation
+- Clear "Your creation" badge on user-generated content
+
+**Trust Indicators:**
+- "X designs generated today" live counter
+- Subtle animation on the existing trust badges
+
+## Technical Implementation
+
+### Files to Modify
+
+#### 1. `src/components/InstantDesignPreview.tsx`
+
+**New State Variables:**
 ```text
-+------------------------------------------+
-|  [Category Dropdown]  [Prompt Input...] |
-|  [Generate Preview Button]               |
-+------------------------------------------+
-|    [Animated preview of AI-generated    |
-|     designs cycling through]             |
-+------------------------------------------+
-|  "See more magic" → Full Design Studio  |
-+------------------------------------------+
+- isGeneratingSurprise: boolean
+- generatedVariations: Array<{ imageUrl: string; index: number }>
+- selectedVariationIndex: number
+- showQuickSellDialog: boolean
+- quickSellData: { name, category, dimensions, price }
 ```
 
-### Phase 2: Design Studio Guest Mode
-
-Modify the Design Studio to allow limited usage without authentication:
-
-**Changes to `DesignStudio.tsx`:**
-1. Remove auth redirect - allow guest browsing
-2. Defer Intent Selection Dialog - show it only when user clicks "Submit Design" (not on page load)
-3. Allow 1 free generation for non-authenticated users (demo mode)
-4. After first generation, show gentle nudge to sign up to save/continue
-5. Store generated design in localStorage so it persists after signup
-
-### Phase 3: Streamlined First-Time Flow
-
-**Revised User Journey:**
-1. Home page shows live AI generation examples
-2. User clicks "Start Designing" → lands directly in Design Studio
-3. User can immediately describe and generate their first design (guest mode)
-4. Upon clicking "Submit" or after 1-2 generations, prompt for signup
-5. Intent dialog appears only at submission time
-6. Design is auto-restored after authentication
-
----
-
-## Technical Implementation Details
-
-### File Changes
-
-#### 1. `src/pages/Home.tsx`
-- Add new `InstantDesignPreview` section below hero
-- Show rotating gallery of pre-generated designs with their prompts
-- Include a mini "try it now" prompt input
-- Link directly to Design Studio with pre-filled prompt
-
-#### 2. `src/pages/DesignStudio.tsx`
-- **Remove line 231-234**: Remove automatic redirect to `/auth` if not logged in
-- **Modify line 98-99**: Change `showIntentDialog` default to `false`
-- Add new state: `isGuestMode` to track unauthenticated users
-- Allow 1 free generation without auth (check localStorage for demo count)
-- After generation, show "Sign up to save your design" prompt instead of blocking
-- Move Intent Selection Dialog trigger to submission time only
-- Store design in localStorage before redirecting to auth
-
-#### 3. `src/components/InstantDesignPreview.tsx` (new file)
-- Carousel of pre-generated AI designs
-- Each shows the prompt that created it
-- "Try AI Design Studio" prominent CTA
-- Optional: Mini prompt input with "Generate" button that redirects to Studio
-
-#### 4. `src/components/IntentSelectionDialog.tsx`
-- No changes needed - just called at different time
-
-#### 5. `src/pages/Auth.tsx`
-- Add redirect-back logic to return to Design Studio after auth
-- Pass through any query params like `?returnTo=/design-studio`
-
-### Guest Mode Logic
-
+**New Functions:**
 ```text
-Guest arrives at Design Studio
-         ↓
-  Can browse interface freely
-         ↓
-  Enters prompt, clicks Generate
-         ↓
-  Check: hasUsedDemoGeneration?
-    No → Allow generation, set flag, show result
-    Yes → Show signup prompt: "Sign up free to continue"
-         ↓
-  After signup, restore design from localStorage
+- handleSurpriseMe(): Generate random creative prompt
+- handleGenerateVariations(): Call generate-design 3 times in parallel
+- handleSelectVariation(index): Set selected variation
+- handleQuickSell(): Open quick-sell dialog
+- calculateQuickPrice(): Use dimension-based pricing logic
 ```
 
-### Pre-Generated Design Gallery for Homepage
+**UI Changes:**
+```text
+- Add Surprise Me button next to Generate
+- Replace single image display with variation grid + main preview
+- Add "List for Sale" button after generation (auth check)
+- Add QuickSellDialog component inline
+```
 
-Create a curated set of 5-6 stunning pre-generated designs to showcase:
-- Organic flow lounge chair
-- Sculptural coffee table
-- Wave-form bench
-- Decorative vase
-- Modern installation piece
+#### 2. `src/components/QuickSellDialog.tsx` (New File)
 
-Each with its prompt visible, demonstrating AI capability.
+A streamlined version of the submission form from DesignStudio:
+- Product name input
+- Category display (from homepage selection)
+- Dimension inputs with smart defaults
+- Price preview (read-only, auto-calculated)
+- Terms checkbox
+- Submit button
 
----
+#### 3. `src/pages/Home.tsx`
 
-## UX Improvements
+Minor adjustments:
+- Update section heading if needed
+- Possibly adjust spacing for the enhanced preview
 
-### Immediate Impact Moments
-1. **Homepage**: Animated showcase of AI-generated designs
-2. **Design Studio**: No dialogs blocking the view on entry
-3. **First interaction**: Generate button works immediately
+### Component Structure
 
-### Progressive Disclosure
-- Intent selection: Only asked when submitting
-- Tutorial guide: Only shown after first successful generation
-- Bank details: Only asked when first payout is requested
+```text
+InstantDesignPreview
+├── Header (title, subtitle)
+├── Input Section
+│   ├── Category Select
+│   ├── Prompt Input
+│   └── Button Row
+│       ├── [Surprise Me] (Shuffle icon)
+│       └── [Generate Design] (Sparkles icon)
+├── Preview Section
+│   ├── Main Image (selected variation or gallery)
+│   │   ├── Expand/Download overlay
+│   │   └── Info overlay (prompt, designer)
+│   ├── Variation Thumbnails (3 small previews)
+│   │   └── Selection indicator
+│   └── Action Buttons
+│       ├── [List for Sale] (authenticated)
+│       ├── [Continue in Full Studio]
+│       └── [Sign up to sell] (guest)
+├── Trust Indicators
+└── QuickSellDialog (modal)
+```
 
-### Trust Building
-- Show "X designs created today" counter
-- Display recent community creations
-- Highlight that first generation is free
+### API Calls
 
----
+**Surprise Me Prompt:**
+```text
+POST /functions/v1/generate-product-description
+body: { type: 'surprise_prompt', category }
+Returns: Creative design prompt text
+```
 
-## Summary of Changes
+**Generate Variations (3 parallel calls):**
+```text
+POST /functions/v1/generate-design (x3)
+body: { prompt, variationNumber: 1|2|3, generate3D: false }
+Returns: { imageUrl }
+```
 
-| File | Change Type | Description |
-|------|-------------|-------------|
-| `src/pages/Home.tsx` | Modify | Add instant design preview section |
-| `src/pages/DesignStudio.tsx` | Modify | Enable guest mode, defer intent dialog |
-| `src/pages/Auth.tsx` | Modify | Add return redirect handling |
-| `src/components/InstantDesignPreview.tsx` | Create | Homepage design showcase |
+**Quick Submit:**
+```text
+Reuse existing designer_products insert logic
+INSERT INTO designer_products
+```
 
-## Expected Outcome
+### User Flow
 
-**Before:** 3-4 clicks + signup before seeing AI magic
-**After:** 0 clicks - AI magic visible immediately on homepage, 1 click to try it
+```text
+Homepage → InstantDesignPreview
+    │
+    ├── [Surprise Me] → Fills prompt field
+    │
+    ├── [Generate Design] → Shows loading
+    │       │
+    │       └── 3 Variations appear
+    │           │
+    │           ├── Click variation → Selects it
+    │           │
+    │           ├── [List for Sale] (if logged in)
+    │           │       │
+    │           │       └── QuickSellDialog
+    │           │               │
+    │           │               └── Submit → Product created
+    │           │
+    │           ├── [Full Studio] → Navigate with design
+    │           │
+    │           └── [Sign up] (if guest) → Auth page
+    │
+    └── Gallery rotation (when no generation)
+```
+
+## Guest Mode Considerations
+
+- First generation is free (existing localStorage check)
+- After generation, show signup nudge for selling
+- "Continue in Full Studio" works for guests (studio handles auth flow)
+- Quick-sell button only visible to authenticated users
+
+## Estimated Effort
+
+| Task | Complexity |
+|------|------------|
+| Surprise Me button | Low |
+| 3-variation generation | Medium |
+| Variation UI with thumbnails | Medium |
+| QuickSellDialog component | Medium |
+| Auth-aware button states | Low |
+| Testing & polish | Medium |
+
+## Benefits
+
+1. **Higher Engagement**: Users experience more AI magic immediately
+2. **Lower Friction**: Quick-sell path removes unnecessary studio navigation
+3. **Better Conversion**: Multiple variations increase likelihood of finding a loved design
+4. **Trust Building**: Surprise Me demonstrates AI creativity without user effort
+
