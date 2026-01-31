@@ -279,7 +279,29 @@ const InstantDesignPreview = () => {
       sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
       sessionStorage.setItem('homepage-generated-image', generatedVariations[selectedVariationIndex].imageUrl);
     }
+    // Persist sketch and space images to Design Studio
+    if (uploadedImagePreview) {
+      sessionStorage.setItem('homepage-sketch-image', uploadedImagePreview);
+    }
+    if (roomImagePreview) {
+      sessionStorage.setItem('homepage-space-image', roomImagePreview);
+    }
     navigate(`/design-studio${queryParams.toString() ? '?' + queryParams.toString() : ''}`);
+  };
+
+  const handleGetQuote = () => {
+    // Store design data for quote request flow
+    if (generatedVariations.length > 0) {
+      sessionStorage.setItem('quote-design-image', generatedVariations[selectedVariationIndex].imageUrl);
+      sessionStorage.setItem('quote-design-category', category);
+      sessionStorage.setItem('quote-design-prompt', prompt);
+    }
+    // Navigate to design studio in personal use mode
+    const queryParams = new URLSearchParams();
+    if (prompt) queryParams.set('prompt', prompt);
+    if (category) queryParams.set('category', category);
+    queryParams.set('mode', 'personal');
+    navigate(`/design-studio?${queryParams.toString()}`);
   };
 
   const handleDownload = async (imageUrl: string) => {
@@ -549,27 +571,56 @@ const InstantDesignPreview = () => {
                   {/* Action buttons after generation */}
                   {hasGeneratedImages && (
                     <div className="flex flex-col gap-2 pt-2">
-                      {user ? (
-                        <Button 
-                          variant="secondary" 
-                          size="lg" 
-                          className="w-full"
-                          onClick={() => setShowQuickSellDialog(true)}
-                        >
-                          <ShoppingBag className="w-4 h-4 mr-2" />
-                          List This Design for Sale
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant="secondary" 
-                          size="lg" 
-                          className="w-full"
-                          onClick={() => navigate('/auth')}
-                        >
-                          Sign Up to Sell Your Design
-                          <ArrowRight className="w-4 h-4 ml-2" />
-                        </Button>
-                      )}
+                      {/* Two-column layout for primary actions */}
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Consumer path - Get a Quote / Buy for yourself */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="hero" 
+                              size="lg" 
+                              className="w-full"
+                              onClick={handleGetQuote}
+                            >
+                              <ShoppingBag className="w-4 h-4 mr-2" />
+                              Get a Quote
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                            <p>Want this made for your home? Get a manufacturing quote</p>
+                          </TooltipContent>
+                        </Tooltip>
+
+                        {/* Designer path - List for Sale */}
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            {user ? (
+                              <Button 
+                                variant="secondary" 
+                                size="lg" 
+                                className="w-full"
+                                onClick={() => setShowQuickSellDialog(true)}
+                              >
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Sell This Design
+                              </Button>
+                            ) : (
+                              <Button 
+                                variant="secondary" 
+                                size="lg" 
+                                className="w-full"
+                                onClick={() => navigate('/auth')}
+                              >
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                Sell This Design
+                              </Button>
+                            )}
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                            <p>List this design and earn royalties when others buy it</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </div>
                       
                       <Button 
                         variant="outline" 
