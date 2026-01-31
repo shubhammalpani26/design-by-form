@@ -244,7 +244,7 @@ const Home = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-20 md:py-32">
+        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-16 md:py-24">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
               <div className="space-y-6">
