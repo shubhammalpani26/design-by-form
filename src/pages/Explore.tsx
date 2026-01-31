@@ -16,6 +16,7 @@ const CATEGORIES = [
   { id: "chairs", label: "Chairs", icon: null },
   { id: "tables", label: "Tables", icon: null },
   { id: "benches", label: "Benches", icon: null },
+  { id: "consoles", label: "Consoles", icon: null },
   { id: "installations", label: "Installations", icon: null },
   { id: "vases", label: "Vases", icon: null },
   { id: "home-decor", label: "Home Decor", icon: null },

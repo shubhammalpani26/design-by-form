@@ -53,6 +53,7 @@ const DesignStudio = () => {
   const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [previewMode, setPreviewMode] = useState<"2d" | "3d" | "ar">("2d");
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+  const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
   const [roomImage, setRoomImage] = useState<File | null>(null);
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
   const [furnitureType, setFurnitureType] = useState<string>("");
@@ -227,7 +228,7 @@ const DesignStudio = () => {
     };
   }, []);
 
-  // Handle URL params for pre-filled prompt from homepage AND restore homepage-generated image
+  // Handle URL params for pre-filled prompt from homepage AND restore homepage-generated images
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlPrompt = params.get('prompt');
@@ -240,9 +241,30 @@ const DesignStudio = () => {
       setDesignCategory(urlCategory);
     }
     
-    // Check for homepage-generated image in sessionStorage
+    // Check for homepage-generated images in sessionStorage (all variations)
+    const homepageImagesStr = sessionStorage.getItem('homepage-generated-images');
     const homepageImage = sessionStorage.getItem('homepage-generated-image');
-    if (homepageImage) {
+    
+    if (homepageImagesStr) {
+      try {
+        const imageUrls = JSON.parse(homepageImagesStr) as string[];
+        if (imageUrls.length > 0) {
+          setGeneratedVariations(imageUrls.map(url => ({ imageUrl: url })));
+          setGeneratedDesign(imageUrls[0]);
+          setSelectedVariation(0);
+          setShowWorkflow(true);
+          sessionStorage.removeItem('homepage-generated-images');
+          sessionStorage.removeItem('homepage-generated-image');
+          toast({
+            title: "Designs restored!",
+            description: `${imageUrls.length} variations ready. Customize or submit to sell.`,
+          });
+        }
+      } catch (e) {
+        console.error('Failed to parse homepage images:', e);
+      }
+    } else if (homepageImage) {
+      // Fallback for single image
       setGeneratedDesign(homepageImage);
       setGeneratedVariations([{ imageUrl: homepageImage }]);
       setSelectedVariation(0);
@@ -252,6 +274,23 @@ const DesignStudio = () => {
         title: "Design restored!",
         description: "Your homepage creation is ready. Customize it further or submit to sell.",
       });
+    }
+    
+    // Restore sketch and space images from homepage
+    const sketchImage = sessionStorage.getItem('homepage-sketch-image');
+    const spaceImage = sessionStorage.getItem('homepage-space-image');
+    
+    if (sketchImage) {
+      // Create a data URL preview for the sketch
+      setUploadedImagePreview(sketchImage);
+      setLastEditedInput('sketch');
+      sessionStorage.removeItem('homepage-sketch-image');
+    }
+    
+    if (spaceImage) {
+      setRoomImagePreview(spaceImage);
+      setLastEditedInput('room');
+      sessionStorage.removeItem('homepage-space-image');
     }
   }, []);
 
@@ -353,6 +392,11 @@ const DesignStudio = () => {
           "Entryway bench inspired by origami folds, with sharp geometric creases softened by rounded edges, in paper-white matte finish",
           "Two-seater bench with seats that appear to grow from a shared organic trunk, in living wood grain texture"
         ],
+        consoles: [
+          "Console table inspired by flowing water, with a slim profile and elegant curves that seem to hover above the floor, finished in polished obsidian black",
+          "Entryway console with an asymmetric cantilever design, featuring a hidden drawer seamlessly integrated into the sculptural form, in warm walnut finish",
+          "Wall-mounted console resembling a modernist wave frozen mid-motion, with integrated storage compartments and brass accent details"
+        ],
         installations: [
           "Ceiling-mounted sculptural installation of interconnected spheres creating a constellation effect, with internal LED glow, in cosmic midnight blue",
           "Wall-mounted modular panels that create an optical illusion of depth and movement, inspired by ocean currents, in iridescent pearl",
@@ -421,6 +465,12 @@ const DesignStudio = () => {
         return;
       }
       setUploadedImage(file);
+      // Create preview from file
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setUploadedImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
       setLastEditedInput('sketch'); // Track that sketch was edited last
       toast({
         title: "Image uploaded",
@@ -430,8 +480,8 @@ const DesignStudio = () => {
   };
 
   const handleGenerate = async () => {
-    // Allow generation if: prompt is filled, OR sketch is uploaded, OR room image + furniture type
-    if (!prompt.trim() && !uploadedImage && !(roomImage && furnitureType.trim())) {
+    // Allow generation if: prompt is filled, OR sketch is uploaded (or preview from homepage), OR room image + furniture type
+    if (!prompt.trim() && !uploadedImage && !uploadedImagePreview && !(roomImage && furnitureType.trim()) && !(roomImagePreview && furnitureType.trim())) {
       toast({
         title: "Missing Input",
         description: roomImage 
@@ -503,22 +553,30 @@ const DesignStudio = () => {
       let roomImageBase64: string | undefined;
       let sketchImageBase64: string | undefined;
       
-      if (lastEditedInput === 'room' && roomImage) {
+      if (lastEditedInput === 'room' && (roomImage || roomImagePreview)) {
         // Room was edited last, only use room image
-        roomImageBase64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(roomImage);
-        });
-      } else if (lastEditedInput === 'sketch' && uploadedImage) {
+        if (roomImage) {
+          roomImageBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(roomImage);
+          });
+        } else if (roomImagePreview) {
+          roomImageBase64 = roomImagePreview;
+        }
+      } else if (lastEditedInput === 'sketch' && (uploadedImage || uploadedImagePreview)) {
         // Sketch was edited last, only use sketch image
-        sketchImageBase64 = await new Promise<string>((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(uploadedImage);
-        });
+        if (uploadedImage) {
+          sketchImageBase64 = await new Promise<string>((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(uploadedImage);
+          });
+        } else if (uploadedImagePreview) {
+          sketchImageBase64 = uploadedImagePreview;
+        }
       } else {
         // Fallback: use whichever is available (prefer sketch if both, for backwards compatibility)
         if (uploadedImage) {
@@ -528,6 +586,8 @@ const DesignStudio = () => {
             reader.onerror = reject;
             reader.readAsDataURL(uploadedImage);
           });
+        } else if (uploadedImagePreview) {
+          sketchImageBase64 = uploadedImagePreview;
         } else if (roomImage) {
           roomImageBase64 = await new Promise<string>((resolve, reject) => {
             const reader = new FileReader();
@@ -535,6 +595,8 @@ const DesignStudio = () => {
             reader.onerror = reject;
             reader.readAsDataURL(roomImage);
           });
+        } else if (roomImagePreview) {
+          roomImageBase64 = roomImagePreview;
         }
       }
 
@@ -1569,6 +1631,7 @@ const DesignStudio = () => {
                               <SelectItem value="chairs">Chairs & Seating</SelectItem>
                               <SelectItem value="tables">Tables</SelectItem>
                               <SelectItem value="benches">Benches</SelectItem>
+                              <SelectItem value="consoles">Consoles</SelectItem>
                               <SelectItem value="decor">Decor & Accessories</SelectItem>
                               <SelectItem value="installations">Installations</SelectItem>
                               <SelectItem value="sculptural art">Sculptural Art</SelectItem>
@@ -1808,22 +1871,27 @@ const DesignStudio = () => {
                           <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                           </svg>
-                          {uploadedImage ? `✓ ${uploadedImage.name}` : "Upload Image / Sketch"}
+                          {uploadedImage ? `✓ ${uploadedImage.name}` : uploadedImagePreview ? "✓ Sketch from homepage" : "Upload Image / Sketch"}
                         </label>
                       </Button>
-                      {uploadedImage && (
+                      {(uploadedImage || uploadedImagePreview) && (
                         <div className="flex items-center justify-between gap-2 mt-2 p-2 bg-primary/5 rounded-lg border border-primary/20">
                           <div className="flex items-center gap-2 text-xs text-muted-foreground min-w-0">
-                            <svg className="w-4 h-4 flex-shrink-0 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                              <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
-                            </svg>
-                            <span className="truncate">{uploadedImage.name}</span>
+                            {uploadedImagePreview ? (
+                              <img src={uploadedImagePreview} alt="Sketch preview" className="w-8 h-8 object-cover rounded" />
+                            ) : (
+                              <svg className="w-4 h-4 flex-shrink-0 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clipRule="evenodd" />
+                              </svg>
+                            )}
+                            <span className="truncate">{uploadedImage?.name || "Sketch added"}</span>
                           </div>
                           <button
                             onClick={() => {
                               setUploadedImage(null);
+                              setUploadedImagePreview(null);
                               if (lastEditedInput === 'sketch') {
-                                setLastEditedInput(roomImage ? 'room' : null);
+                                setLastEditedInput(roomImage || roomImagePreview ? 'room' : null);
                               }
                               toast({
                                 title: "Sketch removed",

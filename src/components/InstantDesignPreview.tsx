@@ -382,6 +382,7 @@ const InstantDesignPreview = () => {
                       <SelectItem value="chairs">Chairs & Seating</SelectItem>
                       <SelectItem value="tables">Tables</SelectItem>
                       <SelectItem value="benches">Benches</SelectItem>
+                      <SelectItem value="consoles">Consoles</SelectItem>
                       <SelectItem value="installations">Art Installations</SelectItem>
                       <SelectItem value="sculptural art">Sculptural Art</SelectItem>
                       <SelectItem value="decor">Decor & Vases</SelectItem>
