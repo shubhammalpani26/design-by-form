@@ -7,7 +7,13 @@ import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
@@ -95,7 +101,6 @@ const Home = () => {
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
-  const [carouselIndex, setCarouselIndex] = useState(0);
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -341,57 +346,28 @@ const Home = () => {
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="relative px-12">
-              {/* Navigation Buttons */}
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
-                onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 1))}
-                disabled={carouselIndex === 0}
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </Button>
-              
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
-                onClick={() => setCarouselIndex(Math.min(Math.max(0, featuredProducts.length - 5), carouselIndex + 1))}
-                disabled={carouselIndex >= Math.max(0, featuredProducts.length - 5)}
-              >
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+            <Carousel
+              opts={{ align: "start", loop: false }}
+              className="relative px-10"
+            >
+              <CarouselContent>
+                {featuredProducts.map((product) => (
+                  <CarouselItem
+                    key={product.id}
+                    className="basis-full sm:basis-1/2 lg:basis-1/5"
+                  >
+                    <HomeProductCard {...product} />
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
 
-              {/* Products Grid with Carousel */}
-              <div className="overflow-hidden">
-                <div 
-                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 transition-transform duration-300"
-                  style={{ 
-                    transform: `translateX(-${carouselIndex * (100 / 5)}%)`,
-                  }}
-                >
-                  {featuredProducts.map((product) => (
-                    <HomeProductCard key={product.id} {...product} />
-                  ))}
-                </div>
-              </div>
-
-              {/* Dot Indicators for Mobile */}
-              {featuredProducts.length > 1 && (
-                <div className="flex justify-center gap-2 mt-6 md:hidden">
-                  {featuredProducts.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={() => setCarouselIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-colors ${
-                        index === carouselIndex ? 'bg-primary' : 'bg-muted-foreground/30'
-                      }`}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+              <CarouselPrevious
+                className="left-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
+              />
+              <CarouselNext
+                className="right-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
+              />
+            </Carousel>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No featured products available yet.</p>
