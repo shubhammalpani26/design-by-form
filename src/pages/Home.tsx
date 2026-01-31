@@ -7,7 +7,7 @@ import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import obsidianFlowBench from "@/assets/obsidian-flow-bench.png";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
@@ -74,6 +74,12 @@ interface Product {
   description?: string;
 }
 
+interface HeroProduct {
+  id: string;
+  name: string;
+  image_url: string;
+}
+
 // Truncate description for display
 const truncateDescription = (description: string | undefined, maxLength: number = 80): string => {
   if (!description) return "AI-generated furniture design";
@@ -88,10 +94,13 @@ const Home = () => {
     activeCreators: 0,
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
+  const [carouselIndex, setCarouselIndex] = useState(0);
 
   useEffect(() => {
     fetchFeaturedProducts();
     fetchCreatorStats();
+    fetchHeroProduct();
   }, []);
 
   useEffect(() => {
@@ -124,6 +133,23 @@ const Home = () => {
       });
     } catch (error) {
       console.error('Error fetching creator stats:', error);
+    }
+  };
+
+  const fetchHeroProduct = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('designer_products')
+        .select('id, name, image_url')
+        .ilike('name', '%obsidian flow bench%')
+        .limit(1)
+        .maybeSingle();
+      
+      if (!error && data) {
+        setHeroProduct(data);
+      }
+    } catch (error) {
+      console.error('Error fetching hero product:', error);
     }
   };
 
@@ -249,34 +275,40 @@ const Home = () => {
               <div className="relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
-                  <Link 
-                    to="/browse"
-                    className="block w-full h-full cursor-pointer"
-                  >
-                    <img
-                      src={obsidianFlowBench}
-                      alt="Obsidian Flow Bench - sculptural furniture design"
-                      loading="eager"
-                      decoding="async"
-                      className="w-full h-full object-contain bg-muted/30 transition-all duration-700 group-hover:scale-105"
-                    />
-                    
-                    {/* Simple overlay badge */}
-                    <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
-                      <div className="p-3">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                            <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
+                  {heroProduct ? (
+                    <Link 
+                      to={`/product/${heroProduct.id}`}
+                      className="block w-full h-full cursor-pointer"
+                    >
+                      <img
+                        src={heroProduct.image_url}
+                        alt={heroProduct.name}
+                        loading="eager"
+                        decoding="async"
+                        className="w-full h-full object-contain bg-muted/30 transition-all duration-700 group-hover:scale-105"
+                      />
+                      
+                      {/* Simple overlay badge */}
+                      <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
+                        <div className="p-3">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                              <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                              </svg>
+                            </div>
+                            <p className="text-sm font-medium text-foreground">
+                              {heroProduct.name}
+                            </p>
                           </div>
-                          <p className="text-sm font-medium text-foreground">
-                            AI-powered design studio
-                          </p>
                         </div>
                       </div>
+                    </Link>
+                  ) : (
+                    <div className="w-full h-full bg-muted/30 flex items-center justify-center">
+                      <Skeleton className="w-full h-full" />
                     </div>
-                  </Link>
+                  )}
                 </div>
               </div>
             </div>
@@ -288,11 +320,13 @@ const Home = () => {
 
         {/* Featured Products */}
         <section className="container py-20">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Discover pieces crafted by our community of talented designers
-            </p>
+          <div className="flex items-center justify-between mb-12">
+            <div className="text-center flex-1">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                Discover pieces crafted by our community of talented designers
+              </p>
+            </div>
           </div>
           
           {loading ? (
@@ -306,10 +340,60 @@ const Home = () => {
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
-              {featuredProducts.map((product) => (
-                <HomeProductCard key={product.id} {...product} />
-              ))}
+            <div className="relative">
+              {/* Navigation Buttons */}
+              <div className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
+                  onClick={() => setCarouselIndex(Math.max(0, carouselIndex - 1))}
+                  disabled={carouselIndex === 0}
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+              </div>
+              
+              <div className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 hidden md:block">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-full shadow-lg bg-background/95 backdrop-blur-sm h-10 w-10"
+                  onClick={() => setCarouselIndex(Math.min(Math.max(0, featuredProducts.length - 5), carouselIndex + 1))}
+                  disabled={carouselIndex >= featuredProducts.length - 5}
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </Button>
+              </div>
+
+              {/* Products Grid with Carousel */}
+              <div className="overflow-hidden">
+                <div 
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 transition-transform duration-300"
+                  style={{ 
+                    transform: `translateX(-${carouselIndex * (100 / 5)}%)`,
+                  }}
+                >
+                  {featuredProducts.map((product) => (
+                    <HomeProductCard key={product.id} {...product} />
+                  ))}
+                </div>
+              </div>
+
+              {/* Dot Indicators for Mobile */}
+              {featuredProducts.length > 1 && (
+                <div className="flex justify-center gap-2 mt-6 md:hidden">
+                  {featuredProducts.map((_, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setCarouselIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === carouselIndex ? 'bg-primary' : 'bg-muted-foreground/30'
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-12">
