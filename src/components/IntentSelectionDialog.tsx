@@ -63,14 +63,14 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 <User className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Create & Commission</h3>
+                <h3 className="font-semibold text-lg mb-2">Get a Quote</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Have your custom piece manufactured exclusively for you
+                  Get a manufacturing quote for your custom design
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• No creator profile required</li>
-                  <li>• Professional feasibility review ({displayFee})</li>
-                  <li>• Expert manufacturing assessment</li>
+                  <li>• Free feasibility assessment</li>
+                  <li>• Custom manufacturing quote</li>
                   <li>• Private, one-of-a-kind piece</li>
                   <li>• Direct to production after approval</li>
                 </ul>
