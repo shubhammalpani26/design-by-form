@@ -520,8 +520,11 @@ const Home = () => {
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
                 From Idea to Reality in Minutes
               </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
+              <p className="text-muted-foreground max-w-2xl mx-auto mb-3">
                 Our AI design studio turns sketches, photos, or text descriptions into production-ready furniture designs
+              </p>
+              <p className="text-sm font-medium text-primary">
+                3 unique variations in ~30 seconds • Manufacturing-ready constraints built-in
               </p>
             </div>
             
@@ -570,6 +573,9 @@ const Home = () => {
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto">
+                A collaborative loop where everyone wins
+              </p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -581,6 +587,7 @@ const Home = () => {
                 <p className="text-muted-foreground">
                   Anyone can submit designs - students, architects, hobbyists, professionals
                 </p>
+                <p className="text-sm font-medium text-primary">You earn royalties on every sale</p>
               </div>
               
               <div className="text-center space-y-4">
@@ -591,16 +598,18 @@ const Home = () => {
                 <p className="text-muted-foreground">
                   Each piece is crafted on-demand through our verified sustainable network
                 </p>
+                <p className="text-sm font-medium text-secondary">Formo handles production & shipping</p>
               </div>
               
               <div className="text-center space-y-4">
                 <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft">
                   3
                 </div>
-                <h3 className="text-xl font-semibold text-foreground">Growth Loop</h3>
+                <h3 className="text-xl font-semibold text-foreground">Customers Discover</h3>
                 <p className="text-muted-foreground">
-                  Designers promote their work, bringing more customers and inspiring more creators
+                  Get unique, story-backed furniture made just for you
                 </p>
+                <p className="text-sm font-medium text-green-600">One-of-a-kind pieces, sustainably made</p>
               </div>
             </div>
           </div>
