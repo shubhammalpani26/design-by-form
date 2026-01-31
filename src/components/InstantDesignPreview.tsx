@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check, Upload, X, ImagePlus, Home } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check, Upload, X, ImagePlus, Home, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
@@ -752,6 +752,32 @@ const InstantDesignPreview = () => {
                           )}
                         </div>
                       </div>
+                      
+                      {/* Navigation arrows - only show when viewing gallery (no generated images) */}
+                      {!hasGeneratedImages && designs.length > 1 && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentIndex((prev) => (prev - 1 + designs.length) % designs.length);
+                            }}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                            aria-label="Previous design"
+                          >
+                            <ChevronLeft className="w-5 h-5 text-foreground" />
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentIndex((prev) => (prev + 1) % designs.length);
+                            }}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                            aria-label="Next design"
+                          >
+                            <ChevronRight className="w-5 h-5 text-foreground" />
+                          </button>
+                        </>
+                      )}
                       
                       {/* Progress dots - only show when viewing gallery (no generated images) */}
                       {!hasGeneratedImages && designs.length > 1 && (
