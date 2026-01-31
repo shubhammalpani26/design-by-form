@@ -247,6 +247,16 @@ const DesignStudio = () => {
       setUserIntent(urlMode);
       setShowIntentDialog(false);
       setIntentDialogHandled(true);
+    } else {
+      // No mode in URL - show intent dialog on entry (after a brief delay for better UX)
+      const pendingDesignData = localStorage.getItem('pending-design-data');
+      const pendingIntent = localStorage.getItem('pending-design-intent');
+      // Only show dialog if not coming from designer onboarding
+      if (!pendingDesignData && pendingIntent !== 'designer') {
+        setTimeout(() => {
+          setShowIntentDialog(true);
+        }, 500);
+      }
     }
     
     // Check for homepage-generated images in sessionStorage (all variations)
@@ -1566,45 +1576,59 @@ const DesignStudio = () => {
         {/* Design Interface */}
         <section className="container py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Mode Switcher */}
-            {userIntent && (
-              <div className="mb-6 flex justify-center">
-                <div className="inline-flex items-center gap-3 px-6 py-3 rounded-lg bg-card border border-border shadow-sm">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-muted-foreground">Current Mode:</span>
-                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${
-                      userIntent === 'designer' 
-                        ? 'bg-primary/10 text-primary border border-primary/20' 
-                        : 'bg-secondary/10 text-secondary border border-secondary/20'
-                    }`}>
-                      {userIntent === 'designer' ? (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                          </svg>
-                          <span className="font-semibold text-sm">Create to Sell</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                          <span className="font-semibold text-sm">Personal Use</span>
-                        </>
-                      )}
+            {/* Mode Switcher - Always visible */}
+            <div className="mb-6 flex justify-center">
+              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-lg bg-card border border-border shadow-sm">
+                {userIntent ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-muted-foreground">Current Mode:</span>
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${
+                        userIntent === 'designer' 
+                          ? 'bg-primary/10 text-primary border border-primary/20' 
+                          : 'bg-secondary/10 text-secondary border border-secondary/20'
+                      }`}>
+                        {userIntent === 'designer' ? (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            <span className="font-semibold text-sm">Create to Sell</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span className="font-semibold text-sm">Personal Use</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setShowIntentDialog(true)}
+                      className="text-xs"
+                    >
+                      Change Mode
+                    </Button>
+                  </>
+                ) : (
                   <Button 
-                    variant="outline" 
+                    variant="default" 
                     size="sm"
                     onClick={() => setShowIntentDialog(true)}
-                    className="text-xs"
+                    className="gap-2"
                   >
-                    Change Mode
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Choose: Sell or Personal Use?
                   </Button>
-                </div>
+                )}
               </div>
-            )}
+            </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {/* Input Side */}
               <div className="space-y-6">
