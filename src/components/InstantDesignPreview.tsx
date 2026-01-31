@@ -270,10 +270,11 @@ const InstantDesignPreview = () => {
     }
   };
 
-  const handleContinueInStudio = () => {
+  const handleContinueInStudio = (mode?: 'designer' | 'personal') => {
     const queryParams = new URLSearchParams();
     if (prompt) queryParams.set('prompt', prompt);
     if (category) queryParams.set('category', category);
+    if (mode) queryParams.set('mode', mode);
     if (generatedVariations.length > 0) {
       // Store all generated images in sessionStorage so studio can use them
       sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
@@ -286,7 +287,7 @@ const InstantDesignPreview = () => {
     if (roomImagePreview) {
       sessionStorage.setItem('homepage-space-image', roomImagePreview);
     }
-    navigate(`/design-studio${queryParams.toString() ? '?' + queryParams.toString() : ''}`);
+    navigate(`/design-studio?${queryParams.toString()}`);
   };
 
   const handleGetQuote = () => {
@@ -627,7 +628,7 @@ const InstantDesignPreview = () => {
                         variant="outline" 
                         size="lg" 
                         className="w-full"
-                        onClick={handleContinueInStudio}
+                        onClick={() => handleContinueInStudio()}
                       >
                         Continue in Full Design Studio
                         <ArrowRight className="w-4 h-4 ml-2" />
