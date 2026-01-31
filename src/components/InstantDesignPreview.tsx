@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check, Upload, X, ImagePlus, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -324,7 +325,8 @@ const InstantDesignPreview = () => {
   const displayDesigner = hasGeneratedImages ? "You" : (designs.length > 0 ? designs[currentIndex]?.designer : "");
 
   return (
-    <>
+    <TooltipProvider delayDuration={300}>
+      <>
       <section className="py-12 md:py-16 bg-gradient-to-b from-background to-accent/30">
         <div className="container">
           <div className="text-center mb-8">
@@ -393,13 +395,20 @@ const InstantDesignPreview = () => {
                           </div>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          className="w-full h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground"
-                        >
-                          <ImagePlus className="w-4 h-4" />
-                          <span className="text-xs">Add Sketch</span>
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => fileInputRef.current?.click()}
+                              className="w-full h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground"
+                            >
+                              <ImagePlus className="w-4 h-4" />
+                              <span className="text-xs">Add Sketch</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                            <p>Upload a hand-drawn sketch or reference image to guide the AI design</p>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
 
@@ -430,13 +439,20 @@ const InstantDesignPreview = () => {
                           </div>
                         </div>
                       ) : (
-                        <button
-                          onClick={() => roomInputRef.current?.click()}
-                          className="w-full h-20 rounded-lg border-2 border-dashed border-secondary/30 hover:border-secondary/50 bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-secondary"
-                        >
-                          <Home className="w-4 h-4" />
-                          <span className="text-xs">Add Space</span>
-                        </button>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              onClick={() => roomInputRef.current?.click()}
+                              className="w-full h-20 rounded-lg border-2 border-dashed border-secondary/30 hover:border-secondary/50 bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-secondary"
+                            >
+                              <Home className="w-4 h-4" />
+                              <span className="text-xs">Add Space</span>
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                            <p>Upload a photo of your room, corner, or area to get furniture tailored to fit</p>
+                          </TooltipContent>
+                        </Tooltip>
                       )}
                     </div>
                   </div>
@@ -786,7 +802,8 @@ const InstantDesignPreview = () => {
           prompt={prompt}
         />
       )}
-    </>
+      </>
+    </TooltipProvider>
   );
 };
 
