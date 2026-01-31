@@ -7,7 +7,7 @@ import { ProductCard } from "@/components/ProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import chairHero from "@/assets/chair-hero.jpg";
+import benchFluid from "@/assets/bench-fluid.jpg";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
@@ -254,8 +254,8 @@ const Home = () => {
                     className="block w-full h-full cursor-pointer"
                   >
                     <img
-                      src={chairHero}
-                      alt="AI-generated furniture design - sculptural chair"
+                      src={benchFluid}
+                      alt="Obsidian Flow Bench - sculptural furniture design"
                       loading="eager"
                       decoding="async"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
