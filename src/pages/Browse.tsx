@@ -38,6 +38,7 @@ const Browse = () => {
         'dining-tables': ['dining-tables', 'tables'], // Include both specific and generic
         'tables': ['tables', 'coffee-tables', 'dining-tables'], // Umbrella category for all tables
         'benches': ['benches'],
+        'consoles': ['consoles'], // Console tables category
         'vases': ['vases', 'home-decor', 'decor'], // Vases might be in home-decor
         'home-decor': ['home-decor', 'vases', 'decor'], // Include vases and decor
         'decor': ['decor', 'home-decor', 'vases'], // Alias for home-decor
