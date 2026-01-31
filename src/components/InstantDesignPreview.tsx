@@ -734,13 +734,19 @@ const InstantDesignPreview = () => {
                         className="w-full h-full object-cover transition-opacity duration-500"
                       />
                       
-                      {/* Action buttons overlay - show on hover */}
-                      <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      {/* Overlay with design info - placed BEFORE buttons so buttons are on top */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                      
+                      {/* Action buttons overlay - show on hover, z-10 to be above gradient */}
+                      <div className="absolute top-4 left-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                         <Button
                           variant="secondary"
                           size="icon"
                           className="h-9 w-9 bg-white/90 hover:bg-white shadow-lg"
-                          onClick={() => setFullscreenImage(displayImage)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFullscreenImage(displayImage);
+                          }}
                           aria-label="View fullscreen"
                         >
                           <Maximize2 className="w-4 h-4 text-foreground" />
@@ -749,15 +755,15 @@ const InstantDesignPreview = () => {
                           variant="secondary"
                           size="icon"
                           className="h-9 w-9 bg-white/90 hover:bg-white shadow-lg"
-                          onClick={() => handleDownload(displayImage)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDownload(displayImage);
+                          }}
                           aria-label="Download image"
                         >
                           <Download className="w-4 h-4 text-foreground" />
                         </Button>
                       </div>
-                      
-                      {/* Overlay with design info */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
                       
                       <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                         <div className="flex items-start gap-3 mb-3">
@@ -798,7 +804,7 @@ const InstantDesignPreview = () => {
                               e.stopPropagation();
                               setCurrentIndex((prev) => (prev - 1 + designs.length) % designs.length);
                             }}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
                             aria-label="Previous design"
                           >
                             <ChevronLeft className="w-5 h-5 text-foreground" />
@@ -808,7 +814,7 @@ const InstantDesignPreview = () => {
                               e.stopPropagation();
                               setCurrentIndex((prev) => (prev + 1) % designs.length);
                             }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
                             aria-label="Next design"
                           >
                             <ChevronRight className="w-5 h-5 text-foreground" />
