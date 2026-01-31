@@ -183,7 +183,7 @@ const InstantDesignPreview = () => {
 
   const handleGenerate = async () => {
     if (!prompt.trim() && !uploadedImage && !roomImage) {
-      toast.error("Please enter a description, upload a sketch, or add a room photo");
+      toast.error("Please enter a description, upload a sketch, or add a space photo");
       return;
     }
 
@@ -203,10 +203,10 @@ const InstantDesignPreview = () => {
         basePromptPart = 'Create a furniture design based on this sketch';
       }
       if (roomImage && !prompt) {
-        basePromptPart = 'Create a furniture design that fits perfectly in this room space';
+        basePromptPart = 'Create a furniture design that fits perfectly in this space';
       }
       if (roomImage && uploadedImage && !prompt) {
-        basePromptPart = 'Create a furniture design based on this sketch that fits in this room';
+        basePromptPart = 'Create a furniture design based on this sketch that fits in this space';
       }
       const fullPrompt = `${category}: ${basePromptPart}`;
       
@@ -345,7 +345,7 @@ const InstantDesignPreview = () => {
             <div className="space-y-4 order-2 lg:order-1">
               <div className="bg-card border border-border rounded-2xl p-5 shadow-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <span className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold text-primary">1</span>
+                  <Sparkles className="w-5 h-5 text-primary" />
                   Describe your dream furniture
                 </h3>
                 
@@ -403,7 +403,7 @@ const InstantDesignPreview = () => {
                       )}
                     </div>
 
-                    {/* Upload Room Photo */}
+                    {/* Upload Space Photo */}
                     <div className="relative">
                       <input
                         ref={roomInputRef}
@@ -416,7 +416,7 @@ const InstantDesignPreview = () => {
                         <div className="relative h-20 rounded-lg border border-secondary/50 overflow-hidden bg-muted">
                           <img 
                             src={roomImagePreview} 
-                            alt="Room photo" 
+                            alt="Your space" 
                             className="w-full h-full object-cover"
                           />
                           <button
@@ -426,7 +426,7 @@ const InstantDesignPreview = () => {
                             <X className="w-3 h-3" />
                           </button>
                           <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-secondary/80 text-[10px] text-secondary-foreground">
-                            Room
+                            Space
                           </div>
                         </div>
                       ) : (
@@ -435,7 +435,7 @@ const InstantDesignPreview = () => {
                           className="w-full h-20 rounded-lg border-2 border-dashed border-secondary/30 hover:border-secondary/50 bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-secondary"
                         >
                           <Home className="w-4 h-4" />
-                          <span className="text-xs">Add Room</span>
+                          <span className="text-xs">Add Space</span>
                         </button>
                       )}
                     </div>
@@ -449,7 +449,7 @@ const InstantDesignPreview = () => {
                           : uploadedImagePreview 
                             ? "Describe what you want (optional with sketch)" 
                             : roomImagePreview 
-                              ? "Describe furniture for this room (optional)"
+                              ? "Describe furniture for this space (optional)"
                               : "e.g., A flowing wave-inspired lounge chair with organic curves..."
                       }
                       value={prompt}
