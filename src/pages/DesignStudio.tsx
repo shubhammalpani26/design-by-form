@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ZoomIn, Sparkles, Shuffle } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
@@ -95,7 +96,12 @@ const DesignStudio = () => {
   const [show3DFeeDialog, setShow3DFeeDialog] = useState(false);
   const [pendingProductId, setPendingProductId] = useState<string | null>(null);
   const [threeDFeePaid, setThreeDFeePaid] = useState(false);
-  const [showIntentDialog, setShowIntentDialog] = useState(true);
+  const [showIntentDialog, setShowIntentDialog] = useState(false); // Defer intent dialog until submission
+  const [isGuestMode, setIsGuestMode] = useState(false);
+  const [hasUsedDemoGeneration, setHasUsedDemoGeneration] = useState(() => {
+    return localStorage.getItem('demo-generation-used') === 'true';
+  });
+  const [showSignupNudge, setShowSignupNudge] = useState(false);
   const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
   const [intentDialogHandled, setIntentDialogHandled] = useState(false);
   const [hasUnlimited3D, setHasUnlimited3D] = useState(false);
@@ -221,6 +227,20 @@ const DesignStudio = () => {
     };
   }, []);
 
+  // Handle URL params for pre-filled prompt from homepage
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlPrompt = params.get('prompt');
+    const urlCategory = params.get('category');
+    
+    if (urlPrompt) {
+      setPrompt(urlPrompt);
+    }
+    if (urlCategory) {
+      setDesignCategory(urlCategory);
+    }
+  }, []);
+
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -228,8 +248,11 @@ const DesignStudio = () => {
         setSession(session);
         setUser(session?.user ?? null);
         
+        // Enable guest mode for unauthenticated users instead of redirecting
         if (!session?.user) {
-          navigate("/auth");
+          setIsGuestMode(true);
+        } else {
+          setIsGuestMode(false);
         }
       }
     );
@@ -239,8 +262,11 @@ const DesignStudio = () => {
       setSession(session);
       setUser(session?.user ?? null);
       
+      // Enable guest mode for unauthenticated users instead of redirecting
       if (!session?.user) {
-        navigate("/auth");
+        setIsGuestMode(true);
+      } else {
+        setIsGuestMode(false);
       }
     });
 
@@ -402,30 +428,41 @@ const DesignStudio = () => {
       return;
     }
 
-    // Check credits before generation
-    try {
-      const { data: creditCheck, error: creditError } = await supabase.functions.invoke('check-credits', {
-        body: { action: 'check', creditsNeeded: 1 }
-      });
+    // Guest mode: Check if user has already used their demo generation
+    if (isGuestMode) {
+      if (hasUsedDemoGeneration) {
+        // Show signup nudge instead of blocking
+        setShowSignupNudge(true);
+        return;
+      }
+    }
 
-      if (creditError) throw creditError;
+    // Check credits before generation (only for authenticated users)
+    if (!isGuestMode) {
+      try {
+        const { data: creditCheck, error: creditError } = await supabase.functions.invoke('check-credits', {
+          body: { action: 'check', creditsNeeded: 1 }
+        });
 
-      if (!creditCheck.hasCredits) {
+        if (creditError) throw creditError;
+
+        if (!creditCheck.hasCredits) {
+          toast({
+            title: "Insufficient Credits",
+            description: `You need ${creditCheck.creditsNeeded} credit to generate a design. You have ${creditCheck.balance} credits.`,
+            variant: "destructive",
+          });
+          return;
+        }
+      } catch (error) {
+        console.error('Credit check error:', error);
         toast({
-          title: "Insufficient Credits",
-          description: `You need ${creditCheck.creditsNeeded} credit to generate a design. You have ${creditCheck.balance} credits.`,
+          title: "Error",
+          description: "Failed to check credits. Please try again.",
           variant: "destructive",
         });
         return;
       }
-    } catch (error) {
-      console.error('Credit check error:', error);
-      toast({
-        title: "Error",
-        description: "Failed to check credits. Please try again.",
-        variant: "destructive",
-      });
-      return;
     }
 
     setIsGenerating(true);
@@ -538,8 +575,18 @@ const DesignStudio = () => {
       const variations = await Promise.all(variationPromises);
       setGeneratedVariations(variations);
       
-      // Deduct credits after successful generation
-      await deductCreditsAfterGeneration();
+      // Mark demo generation as used for guest mode
+      if (isGuestMode) {
+        localStorage.setItem('demo-generation-used', 'true');
+        setHasUsedDemoGeneration(true);
+        // Show signup nudge after a short delay
+        setTimeout(() => {
+          setShowSignupNudge(true);
+        }, 3000);
+      } else {
+        // Deduct credits after successful generation (only for authenticated users)
+        await deductCreditsAfterGeneration();
+      }
       
       // Don't auto-start 3D generation anymore
       
@@ -3292,6 +3339,69 @@ const DesignStudio = () => {
         onClose={() => setFullscreenImage(null)}
         alt="Design preview"
       />
+
+      {/* Signup Nudge Dialog for Guest Mode */}
+      <Dialog open={showSignupNudge} onOpenChange={setShowSignupNudge}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-primary" />
+              {hasUsedDemoGeneration && generatedVariations.length > 0 
+                ? "Love Your Design?" 
+                : "Continue Creating Amazing Designs"}
+            </DialogTitle>
+            <DialogDescription>
+              {hasUsedDemoGeneration && generatedVariations.length > 0 
+                ? "Sign up to save this design and generate more. Your creation will be waiting for you!"
+                : "Sign up for free to unlock unlimited AI generations and turn your ideas into reality."}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span>Free credits to start designing</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="w-8 h-8 rounded-full bg-secondary/10 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-secondary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span>Save and manage your designs</span>
+            </div>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <div className="w-8 h-8 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <span>Earn royalties from your creations</span>
+            </div>
+          </div>
+          <div className="flex flex-col gap-3">
+            <Button 
+              variant="hero" 
+              onClick={() => {
+                // Save current design to localStorage before redirect
+                saveDesignToLocalStorage();
+                navigate('/auth?returnTo=/design-studio');
+              }}
+            >
+              Sign Up Free
+            </Button>
+            <Button 
+              variant="ghost" 
+              onClick={() => setShowSignupNudge(false)}
+            >
+              Maybe Later
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

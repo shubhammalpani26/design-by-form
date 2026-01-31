@@ -62,14 +62,22 @@ const Auth = () => {
   const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
 
+  // Get returnTo from URL params
+  const getReturnToPath = (): string => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('returnTo') || '/';
+  };
+
   useEffect(() => {
+    const returnTo = getReturnToPath();
+    
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        navigate("/");
+        navigate(returnTo);
       }
     });
 
@@ -82,7 +90,7 @@ const Auth = () => {
       
       // Only redirect on SIGNED_IN event, not on initial load
       if (event === 'SIGNED_IN' && session?.user) {
-        navigate("/");
+        navigate(returnTo);
       }
     });
 
