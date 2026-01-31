@@ -247,17 +247,8 @@ const DesignStudio = () => {
       setUserIntent(urlMode);
       setShowIntentDialog(false);
       setIntentDialogHandled(true);
-    } else {
-      // No mode in URL - show intent dialog on entry (after a brief delay for better UX)
-      const pendingDesignData = localStorage.getItem('pending-design-data');
-      const pendingIntent = localStorage.getItem('pending-design-intent');
-      // Only show dialog if not coming from designer onboarding
-      if (!pendingDesignData && pendingIntent !== 'designer') {
-        setTimeout(() => {
-          setShowIntentDialog(true);
-        }, 500);
-      }
     }
+    // Don't auto-show intent dialog on entry - let user choose via the mode indicator button
     
     // Check for homepage-generated images in sessionStorage (all variations)
     const homepageImagesStr = sessionStorage.getItem('homepage-generated-images');
