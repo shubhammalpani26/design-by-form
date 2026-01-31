@@ -233,12 +233,20 @@ const DesignStudio = () => {
     const params = new URLSearchParams(window.location.search);
     const urlPrompt = params.get('prompt');
     const urlCategory = params.get('category');
+    const urlMode = params.get('mode');
     
     if (urlPrompt) {
       setPrompt(urlPrompt);
     }
     if (urlCategory) {
       setDesignCategory(urlCategory);
+    }
+    
+    // Auto-set user intent from URL param (from homepage navigation)
+    if (urlMode === 'personal' || urlMode === 'designer') {
+      setUserIntent(urlMode);
+      setShowIntentDialog(false);
+      setIntentDialogHandled(true);
     }
     
     // Check for homepage-generated images in sessionStorage (all variations)
