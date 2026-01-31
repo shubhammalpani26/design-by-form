@@ -7,7 +7,6 @@ import { ProductCard } from "@/components/ProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import chairHero from "@/assets/chair-hero.jpg";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
@@ -85,8 +84,6 @@ const truncateDescription = (description: string | undefined, maxLength: number 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [heroProducts, setHeroProducts] = useState<Product[]>([]);
-  const [currentProductIndex, setCurrentProductIndex] = useState(0);
   const [creatorStats, setCreatorStats] = useState({
     activeCreators: 0,
   });
@@ -94,7 +91,6 @@ const Home = () => {
 
   useEffect(() => {
     fetchFeaturedProducts();
-    fetchHeroProducts();
     fetchCreatorStats();
   }, []);
 
@@ -105,67 +101,6 @@ const Home = () => {
     return () => clearInterval(testimonialInterval);
   }, []);
 
-  useEffect(() => {
-    if (heroProducts.length > 0) {
-      const interval = setInterval(() => {
-        setCurrentProductIndex((prev) => (prev + 1) % heroProducts.length);
-      }, 6000); // Change every 6 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [heroProducts.length]);
-
-  const fetchHeroProducts = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('designer_products')
-        .select(`
-          id,
-          name,
-          description,
-          designer_price,
-          weight,
-          image_url,
-          designer_id,
-          total_sales,
-          designer_profiles!inner(name)
-        `)
-        .eq('status', 'approved')
-        .not('image_url', 'is', null)
-        .order('total_sales', { ascending: false })
-        .limit(10);
-
-      if (error) throw error;
-      if (data && data.length > 0) {
-        const mappedProducts: Product[] = data.map(item => ({
-          id: item.id,
-          name: item.name,
-          description: item.description || undefined,
-          designer: item.designer_profiles.name,
-          designerId: item.designer_id,
-          price: Number(item.designer_price),
-          weight: Number(item.weight || 5),
-          image: item.image_url || ''
-        }));
-        setHeroProducts(mappedProducts);
-      }
-    } catch (error) {
-      console.error('Error fetching hero products:', error);
-    }
-  };
-
-
-  const nextProduct = () => {
-    if (heroProducts.length > 0) {
-      setCurrentProductIndex((prev) => (prev + 1) % heroProducts.length);
-    }
-  };
-
-  const prevProduct = () => {
-    if (heroProducts.length > 0) {
-      setCurrentProductIndex((prev) => (prev - 1 + heroProducts.length) % heroProducts.length);
-    }
-  };
 
   const fetchCreatorStats = async () => {
     try {
@@ -315,104 +250,33 @@ const Home = () => {
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   <Link 
-                    to={heroProducts.length > 0 ? `/product/${heroProducts[currentProductIndex].id}` : "/browse"}
+                    to="/browse"
                     className="block w-full h-full cursor-pointer"
                   >
                     <img
-                      src={heroProducts.length > 0 ? heroProducts[currentProductIndex].image : chairHero}
-                      alt="AI-generated furniture design"
+                      src={chairHero}
+                      alt="AI-generated furniture design - sculptural chair"
                       loading="eager"
                       decoding="async"
                       className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
                     />
                     
-                    {/* AI Prompt & Designer Badge */}
-                    {heroProducts.length > 0 && (
-                      <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
-                        <div className="p-3 space-y-2">
-                          {/* AI Prompt Section */}
-                          <div className="flex items-start gap-2">
-                            <div className="flex-shrink-0 mt-0.5">
-                              <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                                <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                                </svg>
-                              </div>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] font-medium text-muted-foreground mb-0.5">Design:</p>
-                              <p className="text-xs font-medium text-foreground leading-snug line-clamp-2">
-                                {truncateDescription(heroProducts[currentProductIndex].description)}
-                              </p>
-                            </div>
+                    {/* Simple overlay badge */}
+                    <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
+                      <div className="p-3">
+                        <div className="flex items-center gap-2">
+                          <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
+                            <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
                           </div>
-                          
-                          {/* Divider */}
-                          <div className="border-t border-border/50"></div>
-                          
-                          {/* Designer Info Section */}
-                          <div className="flex items-center gap-2">
-                            <div className="w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center">
-                              <svg className="w-3 h-3 text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                              </svg>
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[10px] text-muted-foreground">
-                                by <span className="font-medium text-foreground">{heroProducts[currentProductIndex].designer}</span>
-                              </p>
-                            </div>
-                          </div>
+                          <p className="text-sm font-medium text-foreground">
+                            AI-powered design studio
+                          </p>
                         </div>
                       </div>
-                    )}
+                    </div>
                   </Link>
-                  
-                  {heroProducts.length > 1 && (
-                    <>
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          prevProduct();
-                        }}
-                      >
-                        <ChevronLeft className="h-6 w-6" />
-                      </Button>
-
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          e.stopPropagation();
-                          nextProduct();
-                        }}
-                      >
-                        <ChevronRight className="h-6 w-6" />
-                      </Button>
-
-                      <div className="absolute top-4 left-1/2 -translate-x-1/2 flex gap-2 bg-background/80 backdrop-blur-sm px-3 py-2 rounded-full z-10">
-                        {heroProducts.map((_, idx) => (
-                          <button
-                            key={idx}
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              setCurrentProductIndex(idx);
-                            }}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              idx === currentProductIndex ? 'bg-primary w-8' : 'bg-muted-foreground/50'
-                            }`}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
                 </div>
               </div>
             </div>
