@@ -227,7 +227,7 @@ const DesignStudio = () => {
     };
   }, []);
 
-  // Handle URL params for pre-filled prompt from homepage
+  // Handle URL params for pre-filled prompt from homepage AND restore homepage-generated image
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlPrompt = params.get('prompt');
@@ -238,6 +238,20 @@ const DesignStudio = () => {
     }
     if (urlCategory) {
       setDesignCategory(urlCategory);
+    }
+    
+    // Check for homepage-generated image in sessionStorage
+    const homepageImage = sessionStorage.getItem('homepage-generated-image');
+    if (homepageImage) {
+      setGeneratedDesign(homepageImage);
+      setGeneratedVariations([{ imageUrl: homepageImage }]);
+      setSelectedVariation(0);
+      setShowWorkflow(true);
+      sessionStorage.removeItem('homepage-generated-image');
+      toast({
+        title: "Design restored!",
+        description: "Your homepage creation is ready. Customize it further or submit to sell.",
+      });
     }
   }, []);
 
