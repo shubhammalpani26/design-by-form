@@ -13,6 +13,7 @@ import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
 import testimonialArjun from "@/assets/testimonial-arjun.jpg";
+import InstantDesignPreview from "@/components/InstantDesignPreview";
 import testimonialMeera from "@/assets/testimonial-meera.jpg";
 import testimonialKaran from "@/assets/testimonial-karan.jpg";
 
@@ -417,6 +418,9 @@ const Home = () => {
             </div>
           </div>
         </section>
+
+        {/* Instant Design Preview - Try AI Section */}
+        <InstantDesignPreview />
 
         {/* Featured Products */}
         <section className="container py-20">
