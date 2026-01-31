@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
-import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check, Upload, X, ImagePlus } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check, Upload, X, ImagePlus, Home } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
@@ -26,6 +26,7 @@ interface GeneratedVariation {
 const InstantDesignPreview = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const roomInputRef = useRef<HTMLInputElement>(null);
   const [prompt, setPrompt] = useState("");
   const [category, setCategory] = useState("chairs");
   const [designs, setDesigns] = useState<PreviewDesign[]>([]);
@@ -41,6 +42,8 @@ const InstantDesignPreview = () => {
   const [user, setUser] = useState<any>(null);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
+  const [roomImage, setRoomImage] = useState<File | null>(null);
+  const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
     fetchShowcaseDesigns();
@@ -150,13 +153,41 @@ const InstantDesignPreview = () => {
     }
   };
 
+  const handleRoomImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error("Please upload an image file");
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error("Image must be less than 10MB");
+        return;
+      }
+      setRoomImage(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setRoomImagePreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const clearRoomImage = () => {
+    setRoomImage(null);
+    setRoomImagePreview(null);
+    if (roomInputRef.current) {
+      roomInputRef.current.value = '';
+    }
+  };
+
   const handleGenerate = async () => {
-    if (!prompt.trim() && !uploadedImage) {
-      toast.error("Please enter a description or upload a sketch");
+    if (!prompt.trim() && !uploadedImage && !roomImage) {
+      toast.error("Please enter a description, upload a sketch, or add a room photo");
       return;
     }
 
-    if (prompt.trim().length > 0 && prompt.trim().length < 10 && !uploadedImage) {
+    if (prompt.trim().length > 0 && prompt.trim().length < 10 && !uploadedImage && !roomImage) {
       toast.error("Please describe your design in more detail (at least 10 characters)");
       return;
     }
@@ -167,7 +198,17 @@ const InstantDesignPreview = () => {
     setGenerationProgress(0);
 
     try {
-      const fullPrompt = `${category}: ${prompt || 'Create a furniture design based on this sketch'}`;
+      let basePromptPart = prompt || 'Create a furniture design';
+      if (uploadedImage && !prompt) {
+        basePromptPart = 'Create a furniture design based on this sketch';
+      }
+      if (roomImage && !prompt) {
+        basePromptPart = 'Create a furniture design that fits perfectly in this room space';
+      }
+      if (roomImage && uploadedImage && !prompt) {
+        basePromptPart = 'Create a furniture design based on this sketch that fits in this room';
+      }
+      const fullPrompt = `${category}: ${basePromptPart}`;
       
       // Convert uploaded image to base64 if present
       let sketchBase64: string | undefined;
@@ -178,6 +219,16 @@ const InstantDesignPreview = () => {
           reader.readAsDataURL(uploadedImage);
         });
       }
+
+      // Convert room image to base64 if present
+      let roomBase64: string | undefined;
+      if (roomImage) {
+        roomBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.readAsDataURL(roomImage);
+        });
+      }
       
       // Generate 3 variations in parallel
       const variationPromises = [1, 2, 3].map(async (variationNumber) => {
@@ -186,7 +237,8 @@ const InstantDesignPreview = () => {
             prompt: fullPrompt,
             variationNumber,
             generate3D: false,
-            sketchImage: sketchBase64
+            sketchImage: sketchBase64,
+            roomImage: roomBase64
           }
         });
 
@@ -312,46 +364,94 @@ const InstantDesignPreview = () => {
                     </SelectContent>
                   </Select>
                   
-                  {/* Upload Sketch Section */}
-                  <div className="relative">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      className="hidden"
-                    />
-                    {uploadedImagePreview ? (
-                      <div className="relative h-24 rounded-lg border border-border overflow-hidden bg-muted">
-                        <img 
-                          src={uploadedImagePreview} 
-                          alt="Uploaded sketch" 
-                          className="w-full h-full object-contain"
-                        />
-                        <button
-                          onClick={clearUploadedImage}
-                          className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
-                        >
-                          <X className="w-4 h-4" />
-                        </button>
-                        <div className="absolute bottom-1 left-1 px-2 py-0.5 rounded bg-background/80 text-xs text-muted-foreground">
-                          Sketch added
+                  {/* Upload Section - Two side by side */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {/* Upload Sketch */}
+                    <div className="relative">
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      {uploadedImagePreview ? (
+                        <div className="relative h-20 rounded-lg border border-border overflow-hidden bg-muted">
+                          <img 
+                            src={uploadedImagePreview} 
+                            alt="Uploaded sketch" 
+                            className="w-full h-full object-contain"
+                          />
+                          <button
+                            onClick={clearUploadedImage}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-background/80 text-[10px] text-muted-foreground">
+                            Sketch
+                          </div>
                         </div>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => fileInputRef.current?.click()}
-                        className="w-full h-16 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors flex items-center justify-center gap-2 text-muted-foreground hover:text-foreground"
-                      >
-                        <ImagePlus className="w-5 h-5" />
-                        <span className="text-sm">Upload a sketch (optional)</span>
-                      </button>
-                    )}
+                      ) : (
+                        <button
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 bg-muted/30 hover:bg-muted/50 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-foreground"
+                        >
+                          <ImagePlus className="w-4 h-4" />
+                          <span className="text-xs">Add Sketch</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Upload Room Photo */}
+                    <div className="relative">
+                      <input
+                        ref={roomInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handleRoomImageUpload}
+                        className="hidden"
+                      />
+                      {roomImagePreview ? (
+                        <div className="relative h-20 rounded-lg border border-secondary/50 overflow-hidden bg-muted">
+                          <img 
+                            src={roomImagePreview} 
+                            alt="Room photo" 
+                            className="w-full h-full object-cover"
+                          />
+                          <button
+                            onClick={clearRoomImage}
+                            className="absolute top-1 right-1 p-1 rounded-full bg-background/80 hover:bg-background text-muted-foreground hover:text-foreground transition-colors"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                          <div className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-secondary/80 text-[10px] text-secondary-foreground">
+                            Room
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => roomInputRef.current?.click()}
+                          className="w-full h-20 rounded-lg border-2 border-dashed border-secondary/30 hover:border-secondary/50 bg-secondary/5 hover:bg-secondary/10 transition-colors flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-secondary"
+                        >
+                          <Home className="w-4 h-4" />
+                          <span className="text-xs">Add Room</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   <div className="relative">
                     <Input
-                      placeholder={uploadedImagePreview ? "Describe what you want (optional with sketch)" : "e.g., A flowing wave-inspired lounge chair with organic curves..."}
+                      placeholder={
+                        uploadedImagePreview && roomImagePreview 
+                          ? "Describe your ideal design (optional)" 
+                          : uploadedImagePreview 
+                            ? "Describe what you want (optional with sketch)" 
+                            : roomImagePreview 
+                              ? "Describe furniture for this room (optional)"
+                              : "e.g., A flowing wave-inspired lounge chair with organic curves..."
+                      }
                       value={prompt}
                       onChange={(e) => setPrompt(e.target.value)}
                       className="h-12 pr-12"
