@@ -3,10 +3,12 @@ import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Sparkles, ArrowRight, Loader2, Maximize2, Download } from "lucide-react";
+import { Progress } from "@/components/ui/progress";
+import { Sparkles, ArrowRight, Loader2, Maximize2, Download, Shuffle, ShoppingBag, Check } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
+import QuickSellDialog from "@/components/QuickSellDialog";
 
 interface PreviewDesign {
   id: string;
@@ -14,6 +16,11 @@ interface PreviewDesign {
   description: string;
   image: string;
   designer: string;
+}
+
+interface GeneratedVariation {
+  imageUrl: string;
+  index: number;
 }
 
 const InstantDesignPreview = () => {
@@ -24,22 +31,33 @@ const InstantDesignPreview = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [isGeneratingSurprise, setIsGeneratingSurprise] = useState(false);
+  const [generatedVariations, setGeneratedVariations] = useState<GeneratedVariation[]>([]);
+  const [selectedVariationIndex, setSelectedVariationIndex] = useState(0);
+  const [generationProgress, setGenerationProgress] = useState(0);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
+  const [showQuickSellDialog, setShowQuickSellDialog] = useState(false);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     fetchShowcaseDesigns();
+    checkUser();
   }, []);
 
   useEffect(() => {
-    // Only auto-rotate if we haven't generated a custom image
-    if (designs.length > 1 && !generatedImage) {
+    // Only auto-rotate if we haven't generated custom images
+    if (designs.length > 1 && generatedVariations.length === 0) {
       const interval = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % designs.length);
       }, 4000);
       return () => clearInterval(interval);
     }
-  }, [designs.length, generatedImage]);
+  }, [designs.length, generatedVariations.length]);
+
+  const checkUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    setUser(user);
+  };
 
   const fetchShowcaseDesigns = async () => {
     try {
@@ -76,6 +94,31 @@ const InstantDesignPreview = () => {
     }
   };
 
+  const handleSurpriseMe = async () => {
+    setIsGeneratingSurprise(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-product-description', {
+        body: { 
+          type: 'surprise_prompt',
+          category 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.description) {
+        setPrompt(data.description);
+        toast.success("Creative prompt generated! ✨");
+      }
+    } catch (error: any) {
+      console.error('Surprise prompt error:', error);
+      toast.error("Failed to generate surprise prompt");
+    } finally {
+      setIsGeneratingSurprise(false);
+    }
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast.error("Please enter a design description");
@@ -88,32 +131,47 @@ const InstantDesignPreview = () => {
     }
 
     setIsGenerating(true);
-    setGeneratedImage(null);
+    setGeneratedVariations([]);
+    setSelectedVariationIndex(0);
+    setGenerationProgress(0);
 
     try {
       const fullPrompt = `${category}: ${prompt}`;
       
-      const { data, error } = await supabase.functions.invoke('generate-design', {
-        body: { 
-          prompt: fullPrompt,
-          variationNumber: 1,
-          generate3D: false
-        }
+      // Generate 3 variations in parallel
+      const variationPromises = [1, 2, 3].map(async (variationNumber) => {
+        const { data, error } = await supabase.functions.invoke('generate-design', {
+          body: { 
+            prompt: fullPrompt,
+            variationNumber,
+            generate3D: false
+          }
+        });
+
+        if (error) throw error;
+        
+        // Update progress as each variation completes
+        setGenerationProgress(prev => prev + 33);
+        
+        return { imageUrl: data?.imageUrl, index: variationNumber - 1 };
       });
 
-      if (error) throw error;
-
-      if (data?.imageUrl) {
-        setGeneratedImage(data.imageUrl);
-        toast.success("Design generated! ✨");
+      const results = await Promise.all(variationPromises);
+      const validResults = results.filter(r => r.imageUrl) as GeneratedVariation[];
+      
+      if (validResults.length > 0) {
+        setGeneratedVariations(validResults);
+        setGenerationProgress(100);
+        toast.success(`${validResults.length} design variations generated! ✨`);
       } else {
-        throw new Error("No image generated");
+        throw new Error("No images generated");
       }
     } catch (error: any) {
       console.error('Generation error:', error);
-      toast.error(error.message || "Failed to generate design. Please try again.");
+      toast.error(error.message || "Failed to generate designs. Please try again.");
     } finally {
       setIsGenerating(false);
+      setGenerationProgress(0);
     }
   };
 
@@ -121,9 +179,10 @@ const InstantDesignPreview = () => {
     const queryParams = new URLSearchParams();
     if (prompt) queryParams.set('prompt', prompt);
     if (category) queryParams.set('category', category);
-    if (generatedImage) {
-      // Store generated image in sessionStorage so studio can use it
-      sessionStorage.setItem('homepage-generated-image', generatedImage);
+    if (generatedVariations.length > 0) {
+      // Store all generated images in sessionStorage so studio can use them
+      sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
+      sessionStorage.setItem('homepage-generated-image', generatedVariations[selectedVariationIndex].imageUrl);
     }
     navigate(`/design-studio${queryParams.toString() ? '?' + queryParams.toString() : ''}`);
   };
@@ -163,9 +222,12 @@ const InstantDesignPreview = () => {
     return text.substring(0, maxLength).trim() + "...";
   };
 
-  const displayImage = generatedImage || (designs.length > 0 ? designs[currentIndex]?.image : null);
-  const displayDescription = generatedImage ? prompt : (designs.length > 0 ? designs[currentIndex]?.description : "");
-  const displayDesigner = generatedImage ? "You" : (designs.length > 0 ? designs[currentIndex]?.designer : "");
+  const hasGeneratedImages = generatedVariations.length > 0;
+  const displayImage = hasGeneratedImages 
+    ? generatedVariations[selectedVariationIndex]?.imageUrl 
+    : (designs.length > 0 ? designs[currentIndex]?.image : null);
+  const displayDescription = hasGeneratedImages ? prompt : (designs.length > 0 ? designs[currentIndex]?.description : "");
+  const displayDesigner = hasGeneratedImages ? "You" : (designs.length > 0 ? designs[currentIndex]?.designer : "");
 
   return (
     <>
@@ -208,49 +270,122 @@ const InstantDesignPreview = () => {
                     </SelectContent>
                   </Select>
                   
-                  <Input
-                    placeholder="e.g., A flowing wave-inspired lounge chair with organic curves..."
-                    value={prompt}
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="h-12"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && !isGenerating) {
-                        handleGenerate();
-                      }
-                    }}
-                  />
-                  
-                  <Button 
-                    variant="hero" 
-                    size="lg" 
-                    className="w-full group"
-                    onClick={handleGenerate}
-                    disabled={isGenerating}
-                  >
-                    {isGenerating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating your design...
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 mr-2" />
-                        Generate Design
-                        <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                      </>
-                    )}
-                  </Button>
-
-                  {generatedImage && (
-                    <Button 
-                      variant="outline" 
-                      size="lg" 
-                      className="w-full"
-                      onClick={handleContinueInStudio}
+                  <div className="relative">
+                    <Input
+                      placeholder="e.g., A flowing wave-inspired lounge chair with organic curves..."
+                      value={prompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      className="h-12 pr-12"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !isGenerating && !isGeneratingSurprise) {
+                          handleGenerate();
+                        }
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-1 top-1/2 -translate-y-1/2 h-10 w-10 text-muted-foreground hover:text-primary"
+                      onClick={handleSurpriseMe}
+                      disabled={isGeneratingSurprise || isGenerating}
+                      title="Surprise Me - Generate a creative prompt"
                     >
-                      Continue in Full Design Studio
-                      <ArrowRight className="w-4 h-4 ml-2" />
+                      {isGeneratingSurprise ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Shuffle className="w-4 h-4" />
+                      )}
                     </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      className="flex-1"
+                      onClick={handleSurpriseMe}
+                      disabled={isGeneratingSurprise || isGenerating}
+                    >
+                      {isGeneratingSurprise ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Thinking...
+                        </>
+                      ) : (
+                        <>
+                          <Shuffle className="w-4 h-4 mr-2" />
+                          Surprise Me
+                        </>
+                      )}
+                    </Button>
+                    
+                    <Button 
+                      variant="hero" 
+                      size="lg" 
+                      className="flex-1 group"
+                      onClick={handleGenerate}
+                      disabled={isGenerating || isGeneratingSurprise}
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Generate
+                          <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Generation Progress */}
+                  {isGenerating && generationProgress > 0 && (
+                    <div className="space-y-2">
+                      <Progress value={generationProgress} className="h-2" />
+                      <p className="text-xs text-muted-foreground text-center">
+                        Generating 3 variations... {Math.round(generationProgress)}%
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action buttons after generation */}
+                  {hasGeneratedImages && (
+                    <div className="flex flex-col gap-2 pt-2">
+                      {user ? (
+                        <Button 
+                          variant="secondary" 
+                          size="lg" 
+                          className="w-full"
+                          onClick={() => setShowQuickSellDialog(true)}
+                        >
+                          <ShoppingBag className="w-4 h-4 mr-2" />
+                          List This Design for Sale
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="secondary" 
+                          size="lg" 
+                          className="w-full"
+                          onClick={() => navigate('/auth')}
+                        >
+                          Sign Up to Sell Your Design
+                          <ArrowRight className="w-4 h-4 ml-2" />
+                        </Button>
+                      )}
+                      
+                      <Button 
+                        variant="outline" 
+                        size="lg" 
+                        className="w-full"
+                        onClick={handleContinueInStudio}
+                      >
+                        Continue in Full Design Studio
+                        <ArrowRight className="w-4 h-4 ml-2" />
+                      </Button>
+                    </div>
                   )}
                 </div>
 
@@ -297,8 +432,8 @@ const InstantDesignPreview = () => {
                           <Sparkles className="w-16 h-16 text-primary/30" />
                         </div>
                       </div>
-                      <p className="text-muted-foreground font-medium">AI is creating your design...</p>
-                      <p className="text-sm text-muted-foreground/70">This usually takes 10-15 seconds</p>
+                      <p className="text-muted-foreground font-medium">AI is creating 3 variations...</p>
+                      <p className="text-sm text-muted-foreground/70">This usually takes 15-20 seconds</p>
                     </div>
                   ) : isLoading ? (
                     <div className="w-full h-full bg-muted animate-pulse flex items-center justify-center">
@@ -308,7 +443,7 @@ const InstantDesignPreview = () => {
                     <>
                       <img
                         src={displayImage}
-                        alt={generatedImage ? "Your AI-generated design" : designs[currentIndex]?.name}
+                        alt={hasGeneratedImages ? "Your AI-generated design" : designs[currentIndex]?.name}
                         className="w-full h-full object-cover transition-opacity duration-500"
                       />
                       
@@ -344,7 +479,7 @@ const InstantDesignPreview = () => {
                           </div>
                           <div className="flex-1 min-w-0">
                             <p className="text-xs text-white/70 mb-1">
-                              {generatedImage ? "Your Design:" : "AI Generated Design:"}
+                              {hasGeneratedImages ? "Your Design:" : "AI Generated Design:"}
                             </p>
                             <p className="text-sm font-medium leading-snug">
                               {truncateText(displayDescription)}
@@ -357,7 +492,7 @@ const InstantDesignPreview = () => {
                             by <span className="text-white/80 font-medium">{displayDesigner}</span>
                           </p>
                           
-                          {!generatedImage && designs.length > 0 && (
+                          {!hasGeneratedImages && designs.length > 0 && (
                             <Link 
                               to={`/product/${designs[currentIndex].id}`}
                               className="text-xs text-primary hover:text-primary/80 font-medium"
@@ -368,8 +503,8 @@ const InstantDesignPreview = () => {
                         </div>
                       </div>
                       
-                      {/* Progress dots - only show when viewing gallery */}
-                      {!generatedImage && designs.length > 1 && (
+                      {/* Progress dots - only show when viewing gallery (no generated images) */}
+                      {!hasGeneratedImages && designs.length > 1 && (
                         <div className="absolute top-4 right-4 flex gap-1.5">
                           {designs.map((_, idx) => (
                             <button
@@ -386,7 +521,7 @@ const InstantDesignPreview = () => {
                       )}
 
                       {/* "Your creation" badge when showing generated image */}
-                      {generatedImage && (
+                      {hasGeneratedImages && (
                         <div className="absolute top-4 right-4 px-3 py-1.5 bg-primary/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
                           ✨ Your creation
                         </div>
@@ -398,6 +533,42 @@ const InstantDesignPreview = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Variation Thumbnails - show when we have multiple variations */}
+                {hasGeneratedImages && generatedVariations.length > 1 && (
+                  <div className="p-3 bg-muted/50 border-t border-border">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-xs font-medium text-muted-foreground">Select variation:</span>
+                    </div>
+                    <div className="flex gap-2 justify-center">
+                      {generatedVariations.map((variation, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setSelectedVariationIndex(idx)}
+                          className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            idx === selectedVariationIndex 
+                              ? 'border-primary ring-2 ring-primary/20' 
+                              : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <img 
+                            src={variation.imageUrl} 
+                            alt={`Variation ${idx + 1}`}
+                            className="w-full h-full object-cover"
+                          />
+                          {idx === selectedVariationIndex && (
+                            <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                              <Check className="w-4 h-4 text-white drop-shadow-lg" />
+                            </div>
+                          )}
+                          <span className="absolute bottom-0.5 right-0.5 text-[10px] font-bold text-white bg-black/50 rounded px-1">
+                            {idx + 1}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Bottom CTA bar */}
                 <div className="p-3 bg-accent/50 border-t border-border">
@@ -425,6 +596,17 @@ const InstantDesignPreview = () => {
         onClose={() => setFullscreenImage(null)}
         alt="Design preview"
       />
+
+      {/* Quick Sell Dialog */}
+      {hasGeneratedImages && (
+        <QuickSellDialog
+          isOpen={showQuickSellDialog}
+          onClose={() => setShowQuickSellDialog(false)}
+          imageUrl={generatedVariations[selectedVariationIndex]?.imageUrl || ""}
+          category={category}
+          prompt={prompt}
+        />
+      )}
     </>
   );
 };
