@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ZoomIn, Sparkles, Shuffle } from "lucide-react";
+import { ChevronDown, ZoomIn, Sparkles, Shuffle, Download, Maximize2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
@@ -2316,30 +2316,66 @@ const DesignStudio = () => {
                                           </div>
                                         )}
                                       </div>
-                                     <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
-                                       <div className="absolute top-4 left-4">
-                                         <button
-                                           onClick={(e) => {
-                                             e.stopPropagation();
-                                             setFullscreenImage(
-                                               selectedVariation === index && generatedDesign 
-                                                 ? generatedDesign 
-                                                 : variation.imageUrl
-                                             );
-                                           }}
-                                           className="p-2 bg-white/20 hover:bg-white/30 rounded-lg text-white transition-colors"
-                                           aria-label="View fullscreen"
-                                         >
-                                           <ZoomIn className="w-4 h-4" />
-                                         </button>
-                                       </div>
-                                       <div className="absolute bottom-4 left-4 right-4">
-                                         <p className="text-white font-semibold">Variation {index + 1}</p>
-                                       </div>
-                                      </div>
+                                     {/* Always visible action buttons */}
+                                     <div className="absolute top-3 left-3 flex gap-2">
+                                       <button
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           setFullscreenImage(
+                                             selectedVariation === index && generatedDesign 
+                                               ? generatedDesign 
+                                               : variation.imageUrl
+                                           );
+                                         }}
+                                         className="p-2 bg-black/60 hover:bg-black/80 rounded-lg text-white transition-colors shadow-lg"
+                                         aria-label="Expand image"
+                                       >
+                                         <Maximize2 className="w-4 h-4" />
+                                       </button>
+                                       <button
+                                         onClick={(e) => {
+                                           e.stopPropagation();
+                                           const imgUrl = selectedVariation === index && generatedDesign 
+                                             ? generatedDesign 
+                                             : variation.imageUrl;
+                                           // Download the image
+                                           if (imgUrl.startsWith('data:')) {
+                                             const link = document.createElement('a');
+                                             link.href = imgUrl;
+                                             link.download = `design-variation-${index + 1}-${Date.now()}.png`;
+                                             document.body.appendChild(link);
+                                             link.click();
+                                             document.body.removeChild(link);
+                                             toast({ title: "Image downloaded!", description: "Check your downloads folder." });
+                                           } else {
+                                             fetch(imgUrl)
+                                               .then(res => res.blob())
+                                               .then(blob => {
+                                                 const url = window.URL.createObjectURL(blob);
+                                                 const link = document.createElement('a');
+                                                 link.href = url;
+                                                 link.download = `design-variation-${index + 1}-${Date.now()}.png`;
+                                                 document.body.appendChild(link);
+                                                 link.click();
+                                                 document.body.removeChild(link);
+                                                 window.URL.revokeObjectURL(url);
+                                                 toast({ title: "Image downloaded!", description: "Check your downloads folder." });
+                                               });
+                                           }
+                                         }}
+                                         className="p-2 bg-black/60 hover:bg-black/80 rounded-lg text-white transition-colors shadow-lg"
+                                         aria-label="Download image"
+                                       >
+                                         <Download className="w-4 h-4" />
+                                       </button>
+                                     </div>
+                                     {/* Variation label */}
+                                     <div className="absolute bottom-3 left-3 px-2 py-1 bg-black/60 rounded-md">
+                                       <p className="text-white text-xs font-medium">Variation {index + 1}</p>
+                                     </div>
                                      {selectedVariation === index && (
-                                       <div className="absolute top-4 right-4 w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
-                                         <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                                       <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center shadow-lg">
+                                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                                          </svg>
                                        </div>
