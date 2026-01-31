@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ProductCard } from "@/components/ProductCard";
+import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import benchFluid from "@/assets/bench-fluid.jpg";
+import obsidianFlowBench from "@/assets/obsidian-flow-bench.png";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
@@ -254,11 +254,11 @@ const Home = () => {
                     className="block w-full h-full cursor-pointer"
                   >
                     <img
-                      src={benchFluid}
+                      src={obsidianFlowBench}
                       alt="Obsidian Flow Bench - sculptural furniture design"
                       loading="eager"
                       decoding="async"
-                      className="w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                      className="w-full h-full object-contain bg-muted/30 transition-all duration-700 group-hover:scale-105"
                     />
                     
                     {/* Simple overlay badge */}
@@ -308,7 +308,7 @@ const Home = () => {
           ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
               {featuredProducts.map((product) => (
-                <ProductCard key={product.id} {...product} />
+                <HomeProductCard key={product.id} {...product} />
               ))}
             </div>
           ) : (
