@@ -1567,57 +1567,41 @@ const DesignStudio = () => {
         {/* Design Interface */}
         <section className="container py-12">
           <div className="max-w-6xl mx-auto">
-            {/* Mode Switcher - Always visible */}
+            {/* Mode Switcher - Always visible with both options */}
             <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-3 px-6 py-3 rounded-lg bg-card border border-border shadow-sm">
-                {userIntent ? (
-                  <>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-muted-foreground">Current Mode:</span>
-                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md ${
-                        userIntent === 'designer' 
-                          ? 'bg-primary/10 text-primary border border-primary/20' 
-                          : 'bg-secondary/10 text-secondary border border-secondary/20'
-                      }`}>
-                        {userIntent === 'designer' ? (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-                            </svg>
-                            <span className="font-semibold text-sm">Create & List</span>
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                            </svg>
-                            <span className="font-semibold text-sm">Create & Commission</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setShowIntentDialog(true)}
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
-                      Change
-                    </Button>
-                  </>
-                ) : (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowIntentDialog(true)}
-                    className="gap-2 border-primary/30 hover:border-primary"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
-                    </svg>
-                    Select Your Path
-                  </Button>
-                )}
+              <div className="inline-flex items-center gap-2 p-1.5 rounded-lg bg-muted/50 border border-border">
+                <button
+                  onClick={() => {
+                    setUserIntent('designer');
+                    setShowIntentDialog(false);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    userIntent === 'designer'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                  </svg>
+                  Create & List
+                </button>
+                <button
+                  onClick={() => {
+                    setUserIntent('personal');
+                    setShowIntentDialog(false);
+                  }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                    userIntent === 'personal'
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  Get a Quote
+                </button>
               </div>
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
