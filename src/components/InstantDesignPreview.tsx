@@ -75,11 +75,13 @@ const InstantDesignPreview = () => {
           name,
           description,
           image_url,
+          category,
           designer_profiles!inner(name)
         `)
         .eq('status', 'approved')
         .not('image_url', 'is', null)
         .not('description', 'is', null)
+        .not('category', 'eq', 'chairs')
         .order('total_sales', { ascending: false })
         .limit(6);
 
