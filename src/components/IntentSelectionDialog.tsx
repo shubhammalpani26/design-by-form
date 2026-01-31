@@ -39,16 +39,16 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 <Store className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Create to Sell</h3>
+                <h3 className="font-semibold text-lg mb-2">Create & List</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  List your design in our marketplace and earn on every sale
+                  Publish your design to our marketplace and earn royalties
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Become a verified designer</li>
-                  <li>• Pay listing fee ({displayFee})*</li>
-                  <li>• Earn 70% of your markup on every sale</li>
+                  <li>• Join as a verified creator</li>
+                  <li>• Listing fee ({displayFee})*</li>
+                  <li>• Earn 70% of your markup per sale</li>
                   <li>• Platform fees waived initially*</li>
-                  <li>• Public marketplace listing</li>
+                  <li>• Featured in public catalogue</li>
                 </ul>
               </div>
             </div>
@@ -63,15 +63,15 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 <User className="w-8 h-8 text-primary" />
               </div>
               <div>
-                <h3 className="font-semibold text-lg mb-2">Create for Personal Use</h3>
+                <h3 className="font-semibold text-lg mb-2">Create & Commission</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Design custom furniture just for yourself, no public listing
+                  Have your custom piece manufactured exclusively for you
                 </p>
                 <ul className="text-xs text-muted-foreground space-y-1">
-                  <li>• Skip designer onboarding</li>
+                  <li>• No creator profile required</li>
                   <li>• Professional feasibility review ({displayFee})</li>
                   <li>• Expert manufacturing assessment</li>
-                  <li>• Private design, not listed publicly</li>
+                  <li>• Private, one-of-a-kind piece</li>
                   <li>• Direct to production after approval</li>
                 </ul>
               </div>
