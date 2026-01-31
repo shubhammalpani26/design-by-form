@@ -850,7 +850,7 @@ const InstantDesignPreview = () => {
                 <div className="p-3 bg-accent/50 border-t border-border">
                   <div className="flex items-center justify-between">
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">A growing library</span> of AI designs ready for manufacturing
+                      <span className="font-semibold text-foreground">26+ AI designs</span> ready for manufacturing
                     </p>
                     <Link to="/browse">
                       <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
