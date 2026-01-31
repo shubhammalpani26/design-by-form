@@ -277,27 +277,64 @@ const InstantDesignPreview = () => {
     if (prompt) queryParams.set('prompt', prompt);
     if (category) queryParams.set('category', category);
     if (mode) queryParams.set('mode', mode);
+    
+    // Clear old session data first to free up space
+    try {
+      sessionStorage.removeItem('homepage-generated-images');
+      sessionStorage.removeItem('homepage-generated-image');
+      sessionStorage.removeItem('homepage-sketch-image');
+      sessionStorage.removeItem('homepage-space-image');
+    } catch (e) {
+      console.warn('Could not clear sessionStorage:', e);
+    }
+    
     if (generatedVariations.length > 0) {
-      // Store all generated images in sessionStorage so studio can use them
-      sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
-      sessionStorage.setItem('homepage-generated-image', generatedVariations[selectedVariationIndex].imageUrl);
+      try {
+        // Store all generated images in sessionStorage so studio can use them
+        sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
+        sessionStorage.setItem('homepage-generated-image', generatedVariations[selectedVariationIndex].imageUrl);
+      } catch (storageError) {
+        console.warn('SessionStorage quota exceeded, navigating without image data:', storageError);
+        // Continue anyway - the studio can regenerate if needed
+        toast.info("Navigating to studio. Your design preferences are saved.");
+      }
     }
-    // Persist sketch and space images to Design Studio
-    if (uploadedImagePreview) {
-      sessionStorage.setItem('homepage-sketch-image', uploadedImagePreview);
+    
+    // Persist sketch and space images to Design Studio (if they fit)
+    try {
+      if (uploadedImagePreview) {
+        sessionStorage.setItem('homepage-sketch-image', uploadedImagePreview);
+      }
+      if (roomImagePreview) {
+        sessionStorage.setItem('homepage-space-image', roomImagePreview);
+      }
+    } catch (e) {
+      console.warn('Could not store additional images:', e);
     }
-    if (roomImagePreview) {
-      sessionStorage.setItem('homepage-space-image', roomImagePreview);
-    }
+    
     navigate(`/design-studio?${queryParams.toString()}`);
   };
 
   const handleGetQuote = () => {
+    // Clear old quote data first
+    try {
+      sessionStorage.removeItem('quote-design-image');
+      sessionStorage.removeItem('quote-design-category');
+      sessionStorage.removeItem('quote-design-prompt');
+    } catch (e) {
+      console.warn('Could not clear sessionStorage:', e);
+    }
+    
     // Store design data for quote request flow
     if (generatedVariations.length > 0) {
-      sessionStorage.setItem('quote-design-image', generatedVariations[selectedVariationIndex].imageUrl);
-      sessionStorage.setItem('quote-design-category', category);
-      sessionStorage.setItem('quote-design-prompt', prompt);
+      try {
+        sessionStorage.setItem('quote-design-image', generatedVariations[selectedVariationIndex].imageUrl);
+        sessionStorage.setItem('quote-design-category', category);
+        sessionStorage.setItem('quote-design-prompt', prompt);
+      } catch (storageError) {
+        console.warn('SessionStorage quota exceeded:', storageError);
+        toast.info("Navigating to quote flow. Your preferences are saved.");
+      }
     }
     // Navigate to design studio in personal use mode
     const queryParams = new URLSearchParams();
