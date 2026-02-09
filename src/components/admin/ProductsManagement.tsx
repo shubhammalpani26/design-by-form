@@ -13,6 +13,13 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CheckCircle, XCircle, Trash2, ExternalLink, Sparkles } from "lucide-react";
 
+interface DesignerProfile {
+  id: string;
+  name: string;
+  email: string;
+  phone_number: string | null;
+}
+
 interface Product {
   id: string;
   name: string;
@@ -21,13 +28,10 @@ interface Product {
   status: string;
   base_price: number;
   designer_price: number;
+  designer_id: string;
   created_at: string;
   image_url: string | null;
-  designer_profiles: {
-    name: string;
-    email: string;
-    phone_number: string | null;
-  };
+  designer_profiles: DesignerProfile;
 }
 
 export function ProductsManagement() {
@@ -48,20 +52,55 @@ export function ProductsManagement() {
 
   const fetchProducts = async () => {
     try {
-      const { data, error } = await supabase
+      // Step 1: Fetch products only (no join — avoids nested RLS timeout)
+      const { data: rawProducts, error: productsError } = await supabase
         .from("designer_products")
-        .select("*, designer_profiles(name, email, phone_number)")
+        .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
-      setProducts(data || []);
+      if (productsError) throw productsError;
+
+      // Step 2: Fetch designer profiles for unique designer IDs
+      const designerIds = [...new Set((rawProducts || []).map(p => p.designer_id))];
+      let profilesMap: Record<string, DesignerProfile> = {};
+
+      if (designerIds.length > 0) {
+        const { data: profiles, error: profilesError } = await supabase
+          .from("designer_profiles")
+          .select("id, name, email, phone_number")
+          .in("id", designerIds);
+
+        if (profilesError) throw profilesError;
+
+        profilesMap = (profiles || []).reduce((acc, p) => {
+          acc[p.id] = p;
+          return acc;
+        }, {} as Record<string, DesignerProfile>);
+      }
+
+      // Step 3: Merge in JavaScript
+      const merged: Product[] = (rawProducts || []).map(p => ({
+        id: p.id,
+        name: p.name,
+        description: p.description,
+        category: p.category,
+        status: p.status,
+        base_price: p.base_price,
+        designer_price: p.designer_price,
+        designer_id: p.designer_id,
+        created_at: p.created_at,
+        image_url: p.image_url,
+        designer_profiles: profilesMap[p.designer_id] || { id: p.designer_id, name: "Unknown", email: "", phone_number: null },
+      }));
+
+      setProducts(merged);
       
       // Initialize editing prices and auto-apply toggle
       const priceMap: { [key: string]: number } = {};
       const autoApplyMap: { [key: string]: boolean } = {};
-      data?.forEach(p => {
+      merged.forEach(p => {
         priceMap[p.id] = p.base_price;
-        autoApplyMap[p.id] = true; // Default to auto-apply
+        autoApplyMap[p.id] = true;
       });
       setEditingPrice(priceMap);
       setAutoApplyMarkup(autoApplyMap);
