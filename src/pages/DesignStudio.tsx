@@ -3197,15 +3197,17 @@ const DesignStudio = () => {
                               value={submissionData.designerPrice}
                               onChange={(e) => {
                                 const price = parseFloat(e.target.value);
-                                if (price < submissionData.basePrice) {
+                                setSubmissionData(prev => ({ ...prev, designerPrice: price || 0 }));
+                              }}
+                              onBlur={() => {
+                                if (submissionData.designerPrice < submissionData.basePrice) {
                                   toast({
                                     title: "Invalid Price",
                                     description: `Your selling price cannot be less than the base price of ₹${submissionData.basePrice.toLocaleString()}`,
                                     variant: "destructive",
                                   });
-                                  return;
+                                  setSubmissionData(prev => ({ ...prev, designerPrice: prev.basePrice }));
                                 }
-                                setSubmissionData({ ...submissionData, designerPrice: price });
                               }}
                               min={submissionData.basePrice}
                               required
