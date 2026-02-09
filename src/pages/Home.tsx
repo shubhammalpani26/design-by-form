@@ -118,20 +118,18 @@ const Home = () => {
 
   const fetchCreatorStats = async () => {
     try {
-      // Count unique designers with earnings
-      const { data: designerData } = await supabase
-        .from('designer_earnings')
-        .select('designer_id');
+      // Count approved designer profiles (active creators on the platform)
+      const { count, error } = await supabase
+        .from('designer_profiles')
+        .select('id', { count: 'exact', head: true })
+        .eq('status', 'approved');
 
-      // Get unique count
-      const uniqueDesigners = designerData 
-        ? new Set(designerData.map(d => d.designer_id)).size 
-        : 0;
+      if (error) throw error;
+
+      const total = count ?? 0;
 
       // Round down to nearest 5 (1-4 shows 1, 5-9 shows 5, 10-14 shows 10, etc.)
-      const roundedCount = uniqueDesigners > 0 
-        ? (uniqueDesigners < 5 ? 1 : Math.floor(uniqueDesigners / 5) * 5)
-        : 1;
+      const roundedCount = total < 5 ? Math.max(total, 1) : Math.floor(total / 5) * 5;
 
       setCreatorStats({
         activeCreators: roundedCount,
