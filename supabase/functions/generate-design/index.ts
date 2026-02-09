@@ -166,6 +166,21 @@ serve(async (req) => {
       "Create organic, flowing lines with nature-inspired shapes"
     ];
 
+    // Manufacturing constraints applied to EVERY generation
+    const manufacturingConstraints = `
+CRITICAL MANUFACTURING CONSTRAINTS — every design MUST follow these rules:
+- SOLID, CONTINUOUS, MONOLITHIC form only — no hollow shells, no thin walls
+- NO lattice, mesh, voronoi, perforated, or honeycomb patterns
+- NO holes, cutouts, or openings in structural surfaces
+- Single material (resin/composite) and single color/finish
+- Stable, flat base that can stand on its own without support
+- No thin unsupported cantilevers or fragile overhangs
+- Minimum wall thickness throughout — designed for 3D printing at furniture scale
+- Smooth, continuous surfaces suitable for post-processing and finishing
+- Structurally sound: the piece must support its intended load (seating, tabletop, etc.)
+The design must be manufacturable via large-format 3D printing and hand-finishing.`;
+
+
     // Build message content based on whether room image or sketch is provided
     let messages: any[];
     
@@ -175,7 +190,9 @@ serve(async (req) => {
 
 ${prompt || 'Improve and refine this design'}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
+${manufacturingConstraints}
+
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
 
       messages = [{
         role: 'user',
@@ -190,7 +207,9 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
 
 ${prompt}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
+${manufacturingConstraints}
+
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
 
       messages = [{
         role: 'user',
@@ -205,7 +224,9 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
 
 ${prompt}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background. The design should be elegant and manufacturable with advanced fabrication techniques.`;
+${manufacturingConstraints}
+
+Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }
