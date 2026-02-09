@@ -1240,6 +1240,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_get_all_products: {
+        Args: never
+        Returns: {
+          base_price: number
+          category: string
+          created_at: string
+          description: string
+          designer_email: string
+          designer_id: string
+          designer_name: string
+          designer_phone: string
+          designer_price: number
+          id: string
+          image_url: string
+          name: string
+          status: string
+        }[]
+      }
       create_sales_milestone_post: {
         Args: {
           p_designer_id: string
