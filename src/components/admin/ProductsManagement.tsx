@@ -52,45 +52,28 @@ export function ProductsManagement() {
 
   const fetchProducts = async () => {
     try {
-      // Step 1: Fetch products only (no join — avoids nested RLS timeout)
-      const { data: rawProducts, error: productsError } = await supabase
-        .from("designer_products")
-        .select("*")
-        .order("created_at", { ascending: false });
+      // Use SECURITY DEFINER RPC — checks admin once, bypasses per-row RLS
+      const { data, error } = await supabase.rpc("admin_get_all_products");
 
-      if (productsError) throw productsError;
+      if (error) throw error;
 
-      // Step 2: Fetch designer profiles for unique designer IDs
-      const designerIds = [...new Set((rawProducts || []).map(p => p.designer_id))];
-      let profilesMap: Record<string, DesignerProfile> = {};
-
-      if (designerIds.length > 0) {
-        const { data: profiles, error: profilesError } = await supabase
-          .from("designer_profiles")
-          .select("id, name, email, phone_number")
-          .in("id", designerIds);
-
-        if (profilesError) throw profilesError;
-
-        profilesMap = (profiles || []).reduce((acc, p) => {
-          acc[p.id] = p;
-          return acc;
-        }, {} as Record<string, DesignerProfile>);
-      }
-
-      // Step 3: Merge in JavaScript
-      const merged: Product[] = (rawProducts || []).map(p => ({
+      const merged: Product[] = (data || []).map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
         category: p.category,
         status: p.status,
-        base_price: p.base_price,
-        designer_price: p.designer_price,
+        base_price: Number(p.base_price),
+        designer_price: Number(p.designer_price),
         designer_id: p.designer_id,
         created_at: p.created_at,
         image_url: p.image_url,
-        designer_profiles: profilesMap[p.designer_id] || { id: p.designer_id, name: "Unknown", email: "", phone_number: null },
+        designer_profiles: {
+          id: p.designer_id,
+          name: p.designer_name || "Unknown",
+          email: p.designer_email || "",
+          phone_number: p.designer_phone || null,
+        },
       }));
 
       setProducts(merged);
