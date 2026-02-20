@@ -389,24 +389,24 @@ const InstantDesignPreview = () => {
   return (
     <TooltipProvider delayDuration={300}>
       <>
-      <section className="py-12 md:py-16 bg-gradient-to-b from-background to-accent/30">
+      <section className="py-8 md:py-16 bg-gradient-to-b from-background to-accent/30">
         <div className="container">
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 mb-4">
               <Sparkles className="w-4 h-4 text-secondary" />
               <span className="text-sm font-medium text-secondary">Try AI Design Magic</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
               See AI Create Furniture in Real-Time
             </h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto">
               Describe your dream furniture and watch AI bring it to life. No signup needed.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-center">
-            {/* Input Section */}
-            <div className="space-y-4 order-2 lg:order-1">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 items-center">
+            {/* Input Section - show first on mobile */}
+            <div className="space-y-4 order-1 lg:order-1">
               <div className="bg-card border border-border rounded-2xl p-5 shadow-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
@@ -705,7 +705,7 @@ const InstantDesignPreview = () => {
             </div>
 
             {/* Preview Gallery */}
-            <div className="relative order-1 lg:order-2">
+            <div className="relative order-2 lg:order-2">
               <div className="absolute inset-0 bg-gradient-to-r from-secondary/10 to-primary/10 rounded-3xl blur-3xl"></div>
               
               <div className="relative bg-card border border-border rounded-2xl overflow-hidden shadow-xl">
