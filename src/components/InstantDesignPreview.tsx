@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import QuickSellDialog from "@/components/QuickSellDialog";
+import { storeDesignImages } from "@/lib/designTransfer";
 
 interface PreviewDesign {
   id: string;
@@ -272,36 +273,26 @@ const InstantDesignPreview = () => {
     }
   };
 
-  const handleContinueInStudio = (mode?: 'designer' | 'personal') => {
+  const handleContinueInStudio = async (mode?: 'designer' | 'personal') => {
     const queryParams = new URLSearchParams();
     if (prompt) queryParams.set('prompt', prompt);
     if (category) queryParams.set('category', category);
     if (mode) queryParams.set('mode', mode);
     
-    // Clear old session data first to free up space
-    try {
-      sessionStorage.removeItem('homepage-generated-images');
-      sessionStorage.removeItem('homepage-generated-image');
-      sessionStorage.removeItem('homepage-sketch-image');
-      sessionStorage.removeItem('homepage-space-image');
-    } catch (e) {
-      console.warn('Could not clear sessionStorage:', e);
-    }
-    
+    // Store generated images in IndexedDB (handles large data URLs reliably)
     if (generatedVariations.length > 0) {
       try {
-        // Store all generated images in sessionStorage so studio can use them
-        sessionStorage.setItem('homepage-generated-images', JSON.stringify(generatedVariations.map(v => v.imageUrl)));
-        sessionStorage.setItem('homepage-generated-image', generatedVariations[selectedVariationIndex].imageUrl);
+        await storeDesignImages(generatedVariations.map(v => v.imageUrl));
       } catch (storageError) {
-        console.warn('SessionStorage quota exceeded, navigating without image data:', storageError);
-        // Continue anyway - the studio can regenerate if needed
+        console.warn('Could not store design images:', storageError);
         toast.info("Navigating to studio. Your design preferences are saved.");
       }
     }
     
-    // Persist sketch and space images to Design Studio (if they fit)
+    // Persist sketch and space images to Design Studio (these are usually smaller)
     try {
+      sessionStorage.removeItem('homepage-sketch-image');
+      sessionStorage.removeItem('homepage-space-image');
       if (uploadedImagePreview) {
         sessionStorage.setItem('homepage-sketch-image', uploadedImagePreview);
       }
@@ -556,11 +547,11 @@ const InstantDesignPreview = () => {
                     </Button>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <Button 
                       variant="outline"
                       size="lg"
-                      className="flex-1"
+                      className="flex-1 min-w-0"
                       onClick={handleSurpriseMe}
                       disabled={isGeneratingSurprise || isGenerating}
                     >
@@ -580,7 +571,7 @@ const InstantDesignPreview = () => {
                     <Button 
                       variant="hero" 
                       size="lg" 
-                      className="flex-1 group"
+                      className="flex-1 min-w-0 group"
                       onClick={handleGenerate}
                       disabled={isGenerating || isGeneratingSurprise}
                     >
