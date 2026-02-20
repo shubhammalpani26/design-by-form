@@ -1,9 +1,22 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.58.0';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  productName: z.string().trim().min(1).max(200),
+  category: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-&]+$/),
+  description: z.string().trim().max(2000).optional().default(''),
+  dimensions: z.object({
+    width: z.number().positive().max(10000),
+    depth: z.number().positive().max(10000),
+    height: z.number().positive().max(10000),
+  }),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -11,15 +24,47 @@ serve(async (req) => {
   }
 
   try {
-    const { productName, category, description, dimensions } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate input
+    const rawData = await req.json();
+    const validationResult = requestSchema.safeParse(rawData);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { productName, category, description, dimensions } = validationResult.data;
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY not configured');
     }
 
-    // Calculate volume for reference
-    const volume = (dimensions.width * dimensions.depth * dimensions.height) / 1000000; // cubic meters
+    const volume = (dimensions.width * dimensions.depth * dimensions.height) / 1000000;
     
     const prompt = `You are a premium furniture pricing analyst for handcrafted designer pieces. Calculate a manufacturing base price for this designer furniture piece.
 
@@ -79,7 +124,6 @@ Designer price should be approximately 1.25-1.5x the base manufacturing cost.`;
     const data = await response.json();
     const content = data.choices[0].message.content;
     
-    // Parse the JSON response
     const jsonMatch = content.match(/\{[\s\S]*\}/);
     if (!jsonMatch) {
       throw new Error('Invalid AI response format');
@@ -97,7 +141,7 @@ Designer price should be approximately 1.25-1.5x the base manufacturing cost.`;
   } catch (error) {
     console.error('Error in recalculate-pricing:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'Failed to calculate pricing' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
