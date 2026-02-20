@@ -212,14 +212,7 @@ const DesignStudio = () => {
       return () => clearTimeout(timer);
     }
   }, [shouldAutoSubmit, generatedDesign, submissionData.name, user]);
-  useEffect(() => {
-    const hasSeenGuide = localStorage.getItem("designer-guide-completed");
-    // Only show guide if: user is authenticated, intent dialog has been handled, and hasn't seen guide before
-    if (!hasSeenGuide && user && intentDialogHandled && !showIntentDialog) {
-      // Show guide after a brief delay for better UX
-      setTimeout(() => setShowGuide(true), 1000);
-    }
-  }, [user, intentDialogHandled, showIntentDialog]);
+  // Guide is now only triggered manually via the HelpButton — no auto-popup
 
   // Clear AR mode from session when component unmounts
   useEffect(() => {
@@ -1536,7 +1529,7 @@ const DesignStudio = () => {
       <main className="flex-1">
         {/* Furniture Trends Section */}
         {!generatedDesign && !isGenerating && generatedVariations.length === 0 && (
-          <section className="py-8 bg-background">
+          <section className="hidden md:block py-8 bg-background">
             <div className="container max-w-7xl mx-auto">
               <FurnitureTrends />
             </div>
@@ -1544,7 +1537,7 @@ const DesignStudio = () => {
         )}
 
         {/* Hero */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-8">
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-4 md:py-8">
           <div className="container text-center">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-6 animate-fade-in">
               <span className="relative flex h-2 w-2">
@@ -1554,10 +1547,10 @@ const DesignStudio = () => {
               <span className="text-sm font-semibold text-primary">AI Design Studio</span>
             </div>
             
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-foreground">
               Give Form to Your Imagination
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="hidden md:block text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Design custom furniture, home decor, and installations with AI. Upload your room, describe your vision, 
               and we'll manufacture and deliver it. Real products, not just renders.
             </p>
@@ -1565,7 +1558,7 @@ const DesignStudio = () => {
         </section>
 
         {/* Design Interface */}
-        <section className="container py-12">
+        <section className="container py-6 md:py-12">
           <div className="max-w-6xl mx-auto">
             {/* Mode Switcher - Always visible with both options */}
             <div className="mb-6 flex justify-center">
@@ -2217,7 +2210,7 @@ const DesignStudio = () => {
                 </Card>
 
                 {/* Tips */}
-                <Card className="bg-accent border-border">
+                <Card className="hidden md:block bg-accent border-border">
                   <CardContent className="p-6">
                     <h4 className="font-semibold mb-3 text-foreground">💡 Design Guidelines</h4>
                     <ul className="space-y-2 text-sm text-muted-foreground">
@@ -2241,8 +2234,10 @@ const DesignStudio = () => {
                   </CardContent>
                 </Card>
 
-                {/* Weekly Theme */}
-                <WeeklyThemes />
+                {/* Weekly Theme - hidden on mobile for cleaner flow */}
+                <div className="hidden md:block">
+                  <WeeklyThemes />
+                </div>
               </div>
 
               {/* Preview Side */}
