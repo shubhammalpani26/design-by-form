@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
 import type { User, Session } from "@supabase/supabase-js";
 import { applyColorTransformToFurniture } from "@/lib/colorTransform";
+import { retrieveDesignImages } from "@/lib/designTransfer";
 
 const DesignStudio = () => {
   const navigate = useNavigate();
@@ -243,40 +244,36 @@ const DesignStudio = () => {
     }
     // Don't auto-show intent dialog on entry - let user choose via the mode indicator button
     
-    // Check for homepage-generated images in sessionStorage (all variations)
-    const homepageImagesStr = sessionStorage.getItem('homepage-generated-images');
-    const homepageImage = sessionStorage.getItem('homepage-generated-image');
-    
-    if (homepageImagesStr) {
-      try {
-        const imageUrls = JSON.parse(homepageImagesStr) as string[];
-        if (imageUrls.length > 0) {
-          setGeneratedVariations(imageUrls.map(url => ({ imageUrl: url })));
-          setGeneratedDesign(imageUrls[0]);
-          setSelectedVariation(0);
-          setShowWorkflow(true);
-          sessionStorage.removeItem('homepage-generated-images');
-          sessionStorage.removeItem('homepage-generated-image');
-          toast({
-            title: "Designs restored!",
-            description: `${imageUrls.length} variations ready. Customize or submit to sell.`,
-          });
-        }
-      } catch (e) {
-        console.error('Failed to parse homepage images:', e);
+    // Check for homepage-generated images from IndexedDB first, then sessionStorage fallback
+    const restoreHomepageImages = async () => {
+      const images = await retrieveDesignImages();
+      if (images && images.length > 0) {
+        setGeneratedVariations(images.map(url => ({ imageUrl: url })));
+        setGeneratedDesign(images[0]);
+        setSelectedVariation(0);
+        setShowWorkflow(true);
+        toast({
+          title: "Designs restored!",
+          description: `${images.length} variations ready. Customize or submit to sell.`,
+        });
+        return;
       }
-    } else if (homepageImage) {
-      // Fallback for single image
-      setGeneratedDesign(homepageImage);
-      setGeneratedVariations([{ imageUrl: homepageImage }]);
-      setSelectedVariation(0);
-      setShowWorkflow(true);
-      sessionStorage.removeItem('homepage-generated-image');
-      toast({
-        title: "Design restored!",
-        description: "Your homepage creation is ready. Customize it further or submit to sell.",
-      });
-    }
+      
+      // Legacy fallback for single image in sessionStorage
+      const homepageImage = sessionStorage.getItem('homepage-generated-image');
+      if (homepageImage) {
+        setGeneratedDesign(homepageImage);
+        setGeneratedVariations([{ imageUrl: homepageImage }]);
+        setSelectedVariation(0);
+        setShowWorkflow(true);
+        sessionStorage.removeItem('homepage-generated-image');
+        toast({
+          title: "Design restored!",
+          description: "Your homepage creation is ready. Customize it further or submit to sell.",
+        });
+      }
+    };
+    restoreHomepageImages();
     
     // Restore sketch and space images from homepage
     const sketchImage = sessionStorage.getItem('homepage-sketch-image');
