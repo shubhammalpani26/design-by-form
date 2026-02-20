@@ -22,7 +22,6 @@ export const GlobalSearch = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Keyboard shortcut: Cmd+K or Ctrl+K
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -47,7 +46,6 @@ export const GlobalSearch = () => {
         const searchQuery = query.toLowerCase();
         const allResults: SearchResult[] = [];
 
-        // Search products
         const { data: products } = await supabase
           .from('designer_products')
           .select('id, name, description, category, image_url, designer_profiles!inner(name)')
@@ -68,7 +66,6 @@ export const GlobalSearch = () => {
           });
         }
 
-        // Search creators
         const { data: creators } = await supabase
           .from('designer_profiles')
           .select('id, name, email, design_background')
@@ -87,7 +84,6 @@ export const GlobalSearch = () => {
           });
         }
 
-        // Static pages
         const pages = [
           { title: 'About Us', path: '/about', keywords: ['about', 'company', 'story'] },
           { title: 'How It Works', path: '/how-it-works', keywords: ['how', 'works', 'process'] },
@@ -131,10 +127,11 @@ export const GlobalSearch = () => {
 
   return (
     <>
+      {/* Desktop: full search bar */}
       <Button
         variant="outline"
         size="sm"
-        className="relative w-64 justify-start text-sm text-muted-foreground"
+        className="hidden md:flex relative w-64 justify-start text-sm text-muted-foreground"
         onClick={() => setIsOpen(true)}
       >
         <Search className="mr-2 h-4 w-4" />
@@ -142,6 +139,16 @@ export const GlobalSearch = () => {
         <kbd className="pointer-events-none absolute right-2 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
           <span className="text-xs">⌘</span>K
         </kbd>
+      </Button>
+
+      {/* Mobile: icon-only search button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="md:hidden h-8 w-8"
+        onClick={() => setIsOpen(true)}
+      >
+        <Search className="h-4 w-4" />
       </Button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>

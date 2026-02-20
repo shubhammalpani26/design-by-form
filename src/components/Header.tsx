@@ -34,12 +34,10 @@ export const Header = () => {
   const { cartCount } = useCart();
 
   useEffect(() => {
-    // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
     });
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
@@ -76,157 +74,155 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-between gap-2">
-        {/* Mobile Menu */}
-        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild className="md:hidden">
-            <Button variant="ghost" size="icon" className="shrink-0">
-              <Menu className="h-5 w-5" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="w-[300px] sm:w-[350px]">
-            <SheetHeader>
-              <SheetTitle className="text-left">
-                <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
-                  <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-                  <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
-                </Link>
-              </SheetTitle>
-            </SheetHeader>
-            
-            <div className="mt-8 flex flex-col space-y-6">
-              {/* Shop Categories */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Shop</h3>
-                {categories.map((category) => (
-                  <Link
-                    key={category.path}
-                    to={category.path}
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                  >
-                    {category.name}
+      <div className="container mx-auto px-4 flex h-14 md:h-16 items-center justify-between gap-2">
+        {/* Mobile: Left side - Menu + Logo */}
+        <div className="flex items-center gap-2 md:hidden">
+          <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
+              <SheetHeader>
+                <SheetTitle className="text-left">
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
+                    <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
+                    <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
                   </Link>
-                ))}
-              </div>
-
-              {/* Main Navigation */}
-              <div className="space-y-3">
-                <Link
-                  to="/design-studio"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="flex items-center gap-2 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  <Sparkles className="h-5 w-5" />
-                  AI Design Studio
-                </Link>
-                <Link
-                  to="/creators"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  Creators
-                </Link>
-                <Link
-                  to="/community"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  Community
-                </Link>
-                <Link
-                  to="/explore"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  Explore
-                </Link>
-                <Link
-                  to="/creator-leaderboard"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  Leaderboard
-                </Link>
-                <Link
-                  to="/plans"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="block text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                >
-                  Pricing
-                </Link>
-              </div>
-
-              {/* User Actions */}
-              {user ? (
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <Link
-                    to="/design-studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                  >
-                    <Sparkles className="h-5 w-5" />
-                    Create with AI
-                  </Link>
-                  <Link
-                    to="/creator-dashboard"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                  >
-                    <LayoutDashboard className="h-5 w-5" />
-                    Creator Dashboard
-                  </Link>
-                  <Link
-                    to="/cart"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2"
-                  >
-                    <ShoppingCart className="h-5 w-5" />
-                    Cart {cartCount > 0 && `(${cartCount})`}
-                  </Link>
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      handleSignOut();
-                    }}
-                    className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2 w-full text-left"
-                  >
-                    <LogOut className="h-5 w-5" />
-                    Sign Out
-                  </button>
-                </div>
-              ) : (
-                <div className="space-y-3 pt-4 border-t border-border">
-                  <Link
-                    to="/auth"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button variant="outline" className="w-full justify-start">
-                      <UserIcon className="h-5 w-5 mr-2" />
-                      Sign In
-                    </Button>
-                  </Link>
-                  <Link
-                    to="/design-studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    <Button className="w-full justify-start">
-                      <Sparkles className="h-5 w-5 mr-2" />
+                </SheetTitle>
+              </SheetHeader>
+              
+              <div className="mt-6 flex flex-col space-y-1">
+                {/* Sign In / User section - AT THE TOP for visibility */}
+                {user ? (
+                  <div className="space-y-1 pb-4 mb-4 border-b border-border">
+                    <p className="text-sm text-muted-foreground px-2 mb-2">
+                      Signed in as {user.email?.split('@')[0]}
+                    </p>
+                    <Link
+                      to="/design-studio"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
+                    >
+                      <Sparkles className="h-5 w-5" />
                       Create with AI
-                    </Button>
-                  </Link>
+                    </Link>
+                    <Link
+                      to="/creator-dashboard"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
+                    >
+                      <LayoutDashboard className="h-5 w-5" />
+                      Creator Dashboard
+                    </Link>
+                    <Link
+                      to="/cart"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
+                    >
+                      <ShoppingCart className="h-5 w-5" />
+                      Cart {cartCount > 0 && `(${cartCount})`}
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-2 pb-4 mb-4 border-b border-border">
+                    <Link
+                      to="/auth"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button className="w-full" size="lg">
+                        <UserIcon className="h-5 w-5 mr-2" />
+                        Sign In / Sign Up
+                      </Button>
+                    </Link>
+                    <Link
+                      to="/design-studio"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      <Button variant="outline" className="w-full" size="lg">
+                        <Sparkles className="h-5 w-5 mr-2" />
+                        Try AI Design Studio
+                      </Button>
+                    </Link>
+                  </div>
+                )}
+
+                {/* Shop Categories */}
+                <div className="space-y-1">
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 py-2">Shop</h3>
+                  {categories.map((category) => (
+                    <Link
+                      key={category.path}
+                      to={category.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
+                    >
+                      {category.name}
+                    </Link>
+                  ))}
                 </div>
-              )}
 
-              {/* Currency Selector */}
-              <div className="pt-4 border-t border-border">
-                <CurrencySelector />
+                {/* Navigation */}
+                <div className="space-y-1 pt-3 border-t border-border mt-3">
+                  <Link
+                    to="/design-studio"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
+                  >
+                    <Sparkles className="h-4 w-4" />
+                    AI Design Studio
+                  </Link>
+                  {[
+                    { name: "Creators", path: "/creators" },
+                    { name: "Community", path: "/community" },
+                    { name: "Explore", path: "/explore" },
+                    { name: "Leaderboard", path: "/creator-leaderboard" },
+                    { name: "Pricing", path: "/plans" },
+                  ].map((item) => (
+                    <Link
+                      key={item.path}
+                      to={item.path}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="block text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+
+                {/* Sign Out */}
+                {user && (
+                  <div className="pt-3 border-t border-border mt-3">
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        handleSignOut();
+                      }}
+                      className="flex items-center gap-3 text-sm font-medium text-destructive hover:text-destructive/80 transition-colors py-2 px-2 rounded-lg hover:bg-destructive/10 w-full text-left"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </button>
+                  </div>
+                )}
+
+                {/* Currency Selector */}
+                <div className="pt-3 border-t border-border mt-3">
+                  <CurrencySelector />
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
 
-        {/* Logo - Desktop */}
+          {/* Mobile Logo */}
+          <Link to="/" className="flex items-center gap-1.5">
+            <img src={logo} alt="Formo Logo" className="h-6 w-6" />
+            <span className="text-lg font-bold text-primary">Formo</span>
+          </Link>
+        </div>
+
+        {/* Desktop Logo */}
         <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
           <img src={logo} alt="Formo Logo" className="h-8 w-8" />
           <div className="flex flex-col">
@@ -235,15 +231,7 @@ export const Header = () => {
           </div>
         </Link>
         
-        {/* Logo - Mobile (Center) */}
-        <Link to="/" className="md:hidden flex items-center gap-1.5 absolute left-1/2 -translate-x-1/2">
-          <img src={logo} alt="Formo Logo" className="h-6 w-6" />
-          <div className="flex flex-col">
-            <span className="text-xl font-bold text-primary leading-tight">Formo</span>
-            <span className="text-[9px] text-muted-foreground -mt-0.5">By Cyanique</span>
-          </div>
-        </Link>
-        
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -290,38 +278,49 @@ export const Header = () => {
           </Link>
         </nav>
 
-        <div className="flex items-center gap-2">
-          {/* Search */}
-          <GlobalSearch />
-          
-          {/* Mobile Icons - Cart and Notifications (visible on mobile) */}
-          <div className="flex items-center gap-1 md:hidden">
-            {user && (
-              <>
-                <Link to="/cart" className="relative">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-                    <ShoppingCart className="h-5 w-5" />
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold">
-                        {cartCount}
-                      </span>
-                    )}
-                  </Button>
-                </Link>
-                <NotificationBell />
-              </>
-            )}
+        {/* Right side actions */}
+        <div className="flex items-center gap-1 md:gap-2">
+          {/* Search - compact on mobile */}
+          <div className="hidden md:block">
+            <GlobalSearch />
+          </div>
+          <div className="md:hidden">
+            <GlobalSearch />
           </div>
           
+          {/* Mobile: Sign In button (visible, prominent) */}
+          {!user && (
+            <Link to="/auth" className="md:hidden">
+              <Button size="sm" className="h-8 px-3 text-xs font-semibold">
+                Sign In
+              </Button>
+            </Link>
+          )}
+
+          {/* Mobile: Cart + Notifications for logged-in users */}
+          {user && (
+            <div className="flex items-center gap-0.5 md:hidden">
+              <Link to="/cart" className="relative">
+                <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                  <ShoppingCart className="h-4 w-4" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-semibold">
+                      {cartCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
+              <NotificationBell />
+            </div>
+          )}
+          
           {/* Desktop Elements */}
-          {/* Credits - already has "Get More" button inside when low */}
           {user && (
             <div className="hidden md:block">
               <CreditBalance />
             </div>
           )}
           
-          {/* Cart */}
           {user && (
             <Link to="/cart" className="relative hidden md:block">
               <Button variant="ghost" size="sm" className="relative">
@@ -337,22 +336,19 @@ export const Header = () => {
             </Link>
           )}
           
-          {/* Notifications */}
           {user && <div className="hidden md:block"><NotificationBell /></div>}
           
-          {/* Visual separator */}
           <div className="h-6 w-px bg-border/60 hidden lg:block mx-1" />
           
-          {/* Currency - near corner */}
           <div className="hidden md:block">
             <CurrencySelector />
           </div>
           
-          {/* User menu - at the corner */}
+          {/* User menu - desktop only */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
@@ -395,10 +391,10 @@ export const Header = () => {
             </DropdownMenu>
           ) : (
             <>
-              <Link to="/auth">
+              <Link to="/auth" className="hidden md:block">
                 <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
-              <Link to="/design-studio">
+              <Link to="/design-studio" className="hidden md:block">
                 <Button variant="default" size="sm" className="hidden md:inline-flex">Create with AI</Button>
               </Link>
             </>

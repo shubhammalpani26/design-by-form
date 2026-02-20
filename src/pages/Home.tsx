@@ -209,7 +209,7 @@ const Home = () => {
       
       <main className="flex-1">
         {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-12 md:py-16">
+        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-8 md:py-16">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
@@ -221,7 +221,7 @@ const Home = () => {
                   <span className="text-sm font-semibold text-primary">AI-Powered Design Studio</span>
                 </div>
                 
-                <h1 className="text-4xl md:text-6xl font-bold leading-tight text-foreground">
+                <h1 className="text-3xl md:text-6xl font-bold leading-tight text-foreground">
                   From concept to{" "}
                   <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                     creation
@@ -323,7 +323,7 @@ const Home = () => {
         <InstantDesignPreview />
 
         {/* Featured Products */}
-        <section className="container py-20">
+        <section className="container py-10 md:py-20">
           <div className="flex items-center justify-between mb-12">
             <div className="text-center flex-1">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
@@ -382,7 +382,7 @@ const Home = () => {
         </section>
 
         {/* Designer Success Stats */}
-        <section className="py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
+        <section className="py-10 md:py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
               <div className="text-center space-y-2">
@@ -412,7 +412,7 @@ const Home = () => {
         </section>
 
         {/* Designer Testimonials Carousel */}
-        <section className="py-20">
+        <section className="py-10 md:py-20">
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
@@ -512,7 +512,7 @@ const Home = () => {
         </section>
 
         {/* AI Design Showcase */}
-        <section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent py-20">
+        <section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent py-10 md:py-20">
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
@@ -567,7 +567,7 @@ const Home = () => {
         </section>
 
         {/* How It Works */}
-        <section className="py-20">
+        <section className="py-10 md:py-20">
           <div className="container">
             <div className="text-center mb-12">
               <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
@@ -617,8 +617,8 @@ const Home = () => {
         <CommunityFeedPreview />
 
         {/* CTA Section */}
-        <section className="container py-20">
-          <div className="bg-primary rounded-3xl p-12 text-center text-primary-foreground shadow-medium">
+        <section className="container py-10 md:py-20">
+          <div className="bg-primary rounded-3xl p-6 md:p-12 text-center text-primary-foreground shadow-medium">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Ready to Transform Your Space?
             </h2>
