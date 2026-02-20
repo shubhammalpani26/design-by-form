@@ -1,10 +1,21 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const requestSchema = z.object({
+  dimensions: z.object({
+    width: z.number().positive().max(10000),
+    depth: z.number().positive().max(10000),
+    height: z.number().positive().max(10000),
+  }),
+  category: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-&]+$/),
+  productName: z.string().trim().min(1).max(200),
+});
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -12,7 +23,40 @@ serve(async (req) => {
   }
 
   try {
-    const { dimensions, category, productName } = await req.json();
+    // Verify authentication
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL')!,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(authHeader.replace('Bearer ', ''));
+    if (claimsError || !claimsData?.claims) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate input
+    const rawData = await req.json();
+    const validationResult = requestSchema.safeParse(rawData);
+    if (!validationResult.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid input', details: validationResult.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { dimensions, category, productName } = validationResult.data;
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 
     if (!LOVABLE_API_KEY) {
@@ -20,12 +64,11 @@ serve(async (req) => {
     }
 
     // Calculate volume in cubic feet
-    const width = parseFloat(dimensions.width) / 12; // inches to feet
-    const depth = parseFloat(dimensions.depth) / 12;
-    const height = parseFloat(dimensions.height) / 12;
+    const width = parseFloat(String(dimensions.width)) / 12;
+    const depth = parseFloat(String(dimensions.depth)) / 12;
+    const height = parseFloat(String(dimensions.height)) / 12;
     const volumeCubicFeet = width * depth * height;
 
-    // Use AI to estimate weight based on product type and dimensions
     const prompt = `You are a furniture manufacturing expert specializing in FRP (Fibre-Reinforced Polymer) furniture. 
 
 Calculate the realistic weight in kg for a ${category} named "${productName}" with dimensions:
@@ -80,13 +123,10 @@ Be realistic - don't underestimate weight. Larger pieces should be heavier.`;
     const data = await response.json();
     const content = data.choices[0]?.message?.content;
     
-    console.log('AI response content:', content);
-    
     if (!content) {
       throw new Error('No response from AI');
     }
 
-    // Extract JSON from the content (in case AI adds extra text)
     const jsonMatch = content.match(/\{[^}]+\}/);
     if (!jsonMatch) {
       console.error('No JSON found in response:', content);
@@ -107,7 +147,7 @@ Be realistic - don't underestimate weight. Larger pieces should be heavier.`;
     console.error('Error calculating weight:', error);
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: 'Failed to calculate weight',
         weight: 15 // fallback weight
       }),
       { 
