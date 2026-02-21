@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
-import { decode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -55,7 +54,14 @@ serve(async (req) => {
 
       const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
       const base64Data = match[2];
-      const bytes = decode(base64Data);
+      
+      // Decode base64 using built-in atob
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
       const filePath = `products/${productId}/main.${ext}`;
 
       const { error: uploadError } = await supabase.storage
@@ -97,12 +103,13 @@ serve(async (req) => {
 
     // Generate 3 lifestyle images
     const lifestylePrompts = [
-      `Create a wide-angle, ultra-realistic lifestyle interior photograph featuring ${productName} as the natural focal element. Place it in a contemporary living room with soft natural daylight, warm minimal aesthetic, textured plaster walls, and neutral earthy palette. Eye-level camera, wide-angle lens (24-28mm look), editorial interior photography. Calm, timeless, magazine-quality. No text, logos, people.`,
-      `Create an ultra-realistic lifestyle photograph of ${productName} in a modern bedroom or reading nook. Soft morning light through sheer curtains, organic materials like wood and linen, muted earth tones. The furniture should feel naturally placed, not staged. Wide shot with generous negative space, professional interior photography quality. No text, logos, people.`,
-      `Create a cinematic interior photograph featuring ${productName} in a sophisticated open-plan living space. Late afternoon golden light, contemporary architecture with large windows, materials like microcement and natural stone. The piece should be the clear focal point. Wide-angle editorial photography, calm and premium. No text, logos, people.`,
+      `Create a wide-angle, ultra-realistic lifestyle interior photograph featuring ${productName} as the natural focal element. Contemporary living room, soft natural daylight, warm minimal aesthetic, textured plaster walls, neutral earthy palette. Wide-angle lens, editorial interior photography. No text, logos, people.`,
+      `Create an ultra-realistic lifestyle photograph of ${productName} in a modern bedroom or reading nook. Soft morning light, organic materials like wood and linen, muted earth tones. Wide shot, professional interior photography. No text, logos, people.`,
+      `Create a cinematic interior photograph featuring ${productName} in a sophisticated open-plan living space. Late afternoon golden light, contemporary architecture with large windows. Wide-angle editorial photography, calm and premium. No text, logos, people.`,
     ];
 
     const angleViews: { angle: string; url: string }[] = [];
+    const labels = ['Living Room Setting', 'Bedroom / Reading Nook', 'Open Plan Space'];
 
     for (let i = 0; i < lifestylePrompts.length; i++) {
       console.log(`Generating lifestyle image ${i + 1}/3...`);
@@ -128,7 +135,7 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          console.error(`Lifestyle ${i + 1} failed:`, response.status, await response.text());
+          console.error(`Lifestyle ${i + 1} failed:`, response.status);
           continue;
         }
 
@@ -136,17 +143,21 @@ serve(async (req) => {
         const generatedUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (generatedUrl) {
-          // Upload the generated lifestyle image to storage
-          const match = generatedUrl.match(/^data:image\/(\w+);base64,(.+)$/);
-          if (match) {
-            const ext = match[1] === 'jpeg' ? 'jpg' : match[1];
-            const bytes = decode(match[2]);
+          // Upload generated image to storage
+          const imgMatch = generatedUrl.match(/^data:image\/(\w+);base64,(.+)$/);
+          if (imgMatch) {
+            const ext = imgMatch[1] === 'jpeg' ? 'jpg' : imgMatch[1];
+            const binaryStr = atob(imgMatch[2]);
+            const imgBytes = new Uint8Array(binaryStr.length);
+            for (let j = 0; j < binaryStr.length; j++) {
+              imgBytes[j] = binaryStr.charCodeAt(j);
+            }
             const lifestylePath = `products/${productId}/lifestyle-${i + 1}.${ext}`;
 
             const { error: uploadErr } = await supabase.storage
               .from('product-images')
-              .upload(lifestylePath, bytes, {
-                contentType: `image/${match[1]}`,
+              .upload(lifestylePath, imgBytes, {
+                contentType: `image/${imgMatch[1]}`,
                 upsert: true,
               });
 
@@ -155,11 +166,8 @@ serve(async (req) => {
                 .from('product-images')
                 .getPublicUrl(lifestylePath);
               
-              const labels = ['Living Room Setting', 'Bedroom / Reading Nook', 'Open Plan Space'];
               angleViews.push({ angle: labels[i], url: pubUrl.publicUrl });
-              console.log(`Lifestyle ${i + 1} uploaded:`, pubUrl.publicUrl);
-            } else {
-              console.error(`Upload failed for lifestyle ${i + 1}:`, uploadErr);
+              console.log(`Lifestyle ${i + 1} uploaded successfully`);
             }
           }
         }
@@ -176,14 +184,10 @@ serve(async (req) => {
     }
 
     // Update the product with the lifestyle images
-    const { error: updateError } = await supabase
+    await supabase
       .from('designer_products')
       .update({ angle_views: angleViews })
       .eq('id', productId);
-
-    if (updateError) {
-      console.error('Failed to update product:', updateError);
-    }
 
     return new Response(
       JSON.stringify({ success: true, angleViews }),
