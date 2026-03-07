@@ -83,9 +83,6 @@ export const CommunitySidebar = () => {
                 <p className="font-semibold text-sm truncate">{creator.name}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Badge variant="secondary" className="text-xs">New</Badge>
-                  {creator.product_count > 0 && (
-                    <span>{creator.product_count} designs</span>
-                  )}
                 </div>
               </div>
             </Link>
