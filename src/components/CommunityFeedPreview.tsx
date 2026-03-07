@@ -13,7 +13,16 @@ export const CommunityFeedPreview = () => {
       const { data, error } = await supabase
         .from("feed_posts")
         .select(`
-          *,
+          id,
+          title,
+          content,
+          post_type,
+          image_url,
+          likes_count,
+          comments_count,
+          created_at,
+          metadata,
+          designer_id,
           designer_profiles (
             id,
             name,
