@@ -124,15 +124,6 @@ export const CommunitySidebar = () => {
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-sm truncate">{creator.name}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1">
-                    <Users className="h-3 w-3" />
-                    {creator.follower_count}
-                  </span>
-                  {creator.total_sales > 0 && (
-                    <span>• {creator.total_sales} sales</span>
-                  )}
-                </div>
               </div>
             </Link>
           ))}
