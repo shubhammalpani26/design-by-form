@@ -19,29 +19,11 @@ export const CommunitySidebar = () => {
         .order("created_at", { ascending: false })
         .limit(5);
 
-      if (!profiles) return [];
-
-      // Get product count for each
-      const creatorsWithData = await Promise.all(
-        profiles.map(async (profile) => {
-          const { data: products } = await supabase
-            .from("designer_products")
-            .select("id")
-            .eq("designer_id", profile.id)
-            .eq("status", "approved");
-
-          return {
-            ...profile,
-            product_count: products?.length || 0,
-          };
-        })
-      );
-
-      return creatorsWithData;
+      return profiles || [];
     },
   });
 
-  // Fetch trending creators (most followers)
+  // Fetch trending creators (most followers) - simplified without N+1
   const { data: trendingCreators } = useQuery({
     queryKey: ["trending-creators"],
     queryFn: async () => {
@@ -49,35 +31,9 @@ export const CommunitySidebar = () => {
         .from("designer_profiles")
         .select("id, name, profile_picture_url, design_background")
         .eq("status", "approved")
-        .limit(20);
+        .limit(5);
 
-      if (!profiles) return [];
-
-      // Get follower counts for each creator
-      const creatorsWithFollowers = await Promise.all(
-        profiles.map(async (profile) => {
-          const { count: followerCount } = await supabase
-            .from("designer_follows")
-            .select("*", { count: "exact", head: true })
-            .eq("designer_id", profile.id);
-
-          const { data: products } = await supabase
-            .from("designer_products")
-            .select("total_sales")
-            .eq("designer_id", profile.id)
-            .eq("status", "approved");
-
-          return {
-            ...profile,
-            follower_count: followerCount || 0,
-            total_sales: products?.reduce((sum, p) => sum + (p.total_sales || 0), 0) || 0,
-          };
-        })
-      );
-
-      return creatorsWithFollowers
-        .sort((a, b) => b.follower_count - a.follower_count)
-        .slice(0, 5);
+      return profiles || [];
     },
   });
 
