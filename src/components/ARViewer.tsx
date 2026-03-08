@@ -275,6 +275,13 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
+  // Auto-trigger AI Space Preview when room photo is uploaded
+  useEffect(() => {
+    if (uploadedPhoto && imageUrl && !aiPreviewUrl && !isGeneratingAiPreview) {
+      handleGenerateAiPreview();
+    }
+  }, [uploadedPhoto, imageUrl]);
+
   const handleGenerateAiPreview = async () => {
     if (!uploadedPhoto || !imageUrl) return;
     
