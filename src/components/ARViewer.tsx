@@ -40,14 +40,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
   const [showAiPreview, setShowAiPreview] = useState(false);
 
   // Track which URLs have been processed to prevent re-processing
-  const [processedUrls, setProcessedUrls] = useState<Set<string>>(() => {
-    try {
-      const saved = sessionStorage.getItem('ar-processed-urls');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
 
   // Generate storage key based on context (design studio vs product page)
   const getStorageKey = () => {
@@ -213,12 +206,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
         
         // Save both the URL marker and the processed result
         sessionStorage.setItem(cacheKey, processed);
-        setProcessedUrls(prev => {
-          const newSet = new Set(prev).add(urlToProcess);
-          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-          console.log('Saved processed URL to cache:', urlToProcess);
-          return newSet;
-        });
+         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         
         console.log('Background removed from furniture image using AI');
         toast({
@@ -228,11 +216,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       } catch (error) {
         console.error('Failed to remove background:', error);
         setProcessedFurnitureUrl(urlToProcess); // Fallback to original
-        setProcessedUrls(prev => {
-          const newSet = new Set(prev).add(urlToProcess);
-          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-          return newSet;
-        });
+         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         toast({
           title: "Background removal failed",
           description: "Using original image for AR preview.",
