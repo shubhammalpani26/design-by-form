@@ -9,12 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 
 interface ARViewerProps {
   productName: string;
-  productId?: string; // Used to scope AR state per product
+  productId?: string;
   imageUrl?: string;
   modelUrl?: string;
   onStartAR?: () => void;
   roomImage?: File | null;
-  isDesignStudio?: boolean; // Whether this is in design studio (different storage)
+  isDesignStudio?: boolean;
+  category?: string;
 }
 
 export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false }: ARViewerProps) => {
