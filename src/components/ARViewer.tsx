@@ -291,7 +291,51 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
-  // Render model-viewer element for AR with improved controls
+  const handleGenerateAiPreview = async () => {
+    if (!uploadedPhoto || !imageUrl) return;
+    
+    setIsGeneratingAiPreview(true);
+    toast({
+      title: "Generating AI Space Preview",
+      description: "Creating a realistic preview of your furniture in this space...",
+    });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-space-preview', {
+        body: {
+          spaceImageBase64: uploadedPhoto,
+          productImageUrl: imageUrl,
+          productName,
+          category: category || 'furniture',
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          toast({ title: "Please wait", description: data.error, variant: "destructive" });
+        } else {
+          throw new Error(data.error);
+        }
+        return;
+      }
+
+      if (data?.imageUrl) {
+        setAiPreviewUrl(data.imageUrl);
+        setShowAiPreview(true);
+        toast({ title: "Space preview ready!", description: "See how your furniture looks in your space" });
+      }
+    } catch (error: any) {
+      console.error('AI space preview error:', error);
+      toast({
+        title: "Preview generation failed",
+        description: "You can still use the manual positioning tool",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAiPreview(false);
+    }
+  };
   const renderModelViewer = (inRoom: boolean = false) => {
     if (!proxiedModelUrl) return null;
     
