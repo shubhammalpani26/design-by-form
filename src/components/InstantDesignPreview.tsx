@@ -46,6 +46,8 @@ const InstantDesignPreview = () => {
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
   const [roomImage, setRoomImage] = useState<File | null>(null);
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
+  const [spacePreviewUrl, setSpacePreviewUrl] = useState<string | null>(null);
+  const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
 
   useEffect(() => {
     fetchShowcaseDesigns();
