@@ -691,7 +691,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
                 ) : (
                   <>
                     <Sparkles className="w-3 h-3" />
-                    AI Space Preview
+                    {aiPreviewUrl ? 'Regenerate Preview' : 'AI Space Preview'}
                   </>
                 )}
               </Button>
