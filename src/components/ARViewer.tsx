@@ -216,11 +216,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       } catch (error) {
         console.error('Failed to remove background:', error);
         setProcessedFurnitureUrl(urlToProcess); // Fallback to original
-        setProcessedUrls(prev => {
-          const newSet = new Set(prev).add(urlToProcess);
-          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-          return newSet;
-        });
+         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         toast({
           title: "Background removal failed",
           description: "Using original image for AR preview.",
