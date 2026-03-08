@@ -637,6 +637,33 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             </div>
           )}
 
+          {/* AI Space Preview Result */}
+          {showAiPreview && aiPreviewUrl && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  AI-Generated Space Preview
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAiPreview(false)}
+                  className="text-xs"
+                >
+                  Show Manual View
+                </Button>
+              </div>
+              <div className="rounded-lg overflow-hidden border">
+                <img
+                  src={aiPreviewUrl}
+                  alt={`${productName} in your space`}
+                  className="w-full object-contain"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -644,15 +671,39 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
               onClick={() => fileInputRef.current?.click()}
               className="flex-1"
             >
-              {uploadedPhoto ? 'Change Room Photo' : 'Upload Room Photo'}
+              {uploadedPhoto ? 'Change Space Photo' : 'Upload Space Photo'}
             </Button>
             
+            {uploadedPhoto && imageUrl && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleGenerateAiPreview}
+                disabled={isGeneratingAiPreview}
+                className="flex-1 gap-1"
+              >
+                {isGeneratingAiPreview ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    AI Space Preview
+                  </>
+                )}
+              </Button>
+            )}
+
             {uploadedPhoto && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setUploadedPhoto(null);
+                  setAiPreviewUrl(null);
+                  setShowAiPreview(false);
                   setFurniturePosition({ x: 50, y: 50 });
                   setFurnitureScale(50);
                   setFurnitureRotation(0);
@@ -668,8 +719,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           <div className="text-xs text-muted-foreground bg-accent/50 p-3 rounded-lg">
             <p>
-              <strong>How it works:</strong> Upload a photo of your room, then position the furniture using drag or controls.
-              {proxiedModelUrl ? ' Rotate the 3D model with your mouse.' : ''}
+              <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
+              {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
             </p>
           </div>
         </div>
