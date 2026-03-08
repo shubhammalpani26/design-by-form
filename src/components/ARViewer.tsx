@@ -35,6 +35,9 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerElementRef = useRef<HTMLElement | null>(null);
   const { toast } = useToast();
+  const [aiPreviewUrl, setAiPreviewUrl] = useState<string | null>(null);
+  const [isGeneratingAiPreview, setIsGeneratingAiPreview] = useState(false);
+  const [showAiPreview, setShowAiPreview] = useState(false);
 
   // Track which URLs have been processed to prevent re-processing
   const [processedUrls, setProcessedUrls] = useState<Set<string>>(() => {
