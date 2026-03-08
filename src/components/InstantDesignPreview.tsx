@@ -925,6 +925,33 @@ const InstantDesignPreview = () => {
                   </div>
                 )}
 
+                {/* AI Space Preview - shown when room image was provided */}
+                {hasGeneratedImages && roomImagePreview && (
+                  <div className="p-3 bg-primary/5 border-t border-border">
+                    {isGeneratingSpacePreview ? (
+                      <div className="flex items-center justify-center gap-2 py-3">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Generating space preview...</span>
+                      </div>
+                    ) : spacePreviewUrl ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-medium text-foreground">In Your Space</span>
+                        </div>
+                        <div className="rounded-lg overflow-hidden border border-border">
+                          <img
+                            src={spacePreviewUrl}
+                            alt="Design in your space"
+                            className="w-full object-contain cursor-pointer"
+                            onClick={() => setFullscreenImage(spacePreviewUrl)}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
                 {/* Bottom CTA bar */}
                 <div className="p-3 bg-accent/50 border-t border-border">
                   <div className="flex items-center justify-between">
