@@ -413,6 +413,7 @@ const ProductDetail = () => {
                   productId={product.id}
                   imageUrl={product.image_url}
                   modelUrl={product.model_url}
+                  category={product.category}
                 />
               </TabsContent>
             </Tabs>

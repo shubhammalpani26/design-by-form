@@ -3,20 +3,22 @@ import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Move, RotateCw, ZoomIn, Loader2 } from "lucide-react";
+import { Move, RotateCw, ZoomIn, Loader2, Sparkles } from "lucide-react";
 import { processImageUrl } from "@/lib/backgroundRemoval";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ARViewerProps {
   productName: string;
-  productId?: string; // Used to scope AR state per product
+  productId?: string;
   imageUrl?: string;
   modelUrl?: string;
   onStartAR?: () => void;
   roomImage?: File | null;
-  isDesignStudio?: boolean; // Whether this is in design studio (different storage)
+  isDesignStudio?: boolean;
+  category?: string;
 }
 
-export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false }: ARViewerProps) => {
+export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false, category }: ARViewerProps) => {
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
@@ -33,6 +35,9 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerElementRef = useRef<HTMLElement | null>(null);
   const { toast } = useToast();
+  const [aiPreviewUrl, setAiPreviewUrl] = useState<string | null>(null);
+  const [isGeneratingAiPreview, setIsGeneratingAiPreview] = useState(false);
+  const [showAiPreview, setShowAiPreview] = useState(false);
 
   // Track which URLs have been processed to prevent re-processing
   const [processedUrls, setProcessedUrls] = useState<Set<string>>(() => {
@@ -286,7 +291,51 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
-  // Render model-viewer element for AR with improved controls
+  const handleGenerateAiPreview = async () => {
+    if (!uploadedPhoto || !imageUrl) return;
+    
+    setIsGeneratingAiPreview(true);
+    toast({
+      title: "Generating AI Space Preview",
+      description: "Creating a realistic preview of your furniture in this space...",
+    });
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-space-preview', {
+        body: {
+          spaceImageBase64: uploadedPhoto,
+          productImageUrl: imageUrl,
+          productName,
+          category: category || 'furniture',
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) {
+        if (data.error.includes("Rate limit")) {
+          toast({ title: "Please wait", description: data.error, variant: "destructive" });
+        } else {
+          throw new Error(data.error);
+        }
+        return;
+      }
+
+      if (data?.imageUrl) {
+        setAiPreviewUrl(data.imageUrl);
+        setShowAiPreview(true);
+        toast({ title: "Space preview ready!", description: "See how your furniture looks in your space" });
+      }
+    } catch (error: any) {
+      console.error('AI space preview error:', error);
+      toast({
+        title: "Preview generation failed",
+        description: "You can still use the manual positioning tool",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingAiPreview(false);
+    }
+  };
   const renderModelViewer = (inRoom: boolean = false) => {
     if (!proxiedModelUrl) return null;
     
@@ -588,6 +637,33 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             </div>
           )}
 
+          {/* AI Space Preview Result */}
+          {showAiPreview && aiPreviewUrl && (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  AI-Generated Space Preview
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAiPreview(false)}
+                  className="text-xs"
+                >
+                  Show Manual View
+                </Button>
+              </div>
+              <div className="rounded-lg overflow-hidden border">
+                <img
+                  src={aiPreviewUrl}
+                  alt={`${productName} in your space`}
+                  className="w-full object-contain"
+                />
+              </div>
+            </div>
+          )}
+
           <div className="flex flex-wrap gap-2">
             <Button
               variant="outline"
@@ -595,15 +671,39 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
               onClick={() => fileInputRef.current?.click()}
               className="flex-1"
             >
-              {uploadedPhoto ? 'Change Room Photo' : 'Upload Room Photo'}
+              {uploadedPhoto ? 'Change Space Photo' : 'Upload Space Photo'}
             </Button>
             
+            {uploadedPhoto && imageUrl && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={handleGenerateAiPreview}
+                disabled={isGeneratingAiPreview}
+                className="flex-1 gap-1"
+              >
+                {isGeneratingAiPreview ? (
+                  <>
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3 h-3" />
+                    AI Space Preview
+                  </>
+                )}
+              </Button>
+            )}
+
             {uploadedPhoto && (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => {
                   setUploadedPhoto(null);
+                  setAiPreviewUrl(null);
+                  setShowAiPreview(false);
                   setFurniturePosition({ x: 50, y: 50 });
                   setFurnitureScale(50);
                   setFurnitureRotation(0);
@@ -619,8 +719,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           <div className="text-xs text-muted-foreground bg-accent/50 p-3 rounded-lg">
             <p>
-              <strong>How it works:</strong> Upload a photo of your room, then position the furniture using drag or controls.
-              {proxiedModelUrl ? ' Rotate the 3D model with your mouse.' : ''}
+              <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
+              {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
             </p>
           </div>
         </div>
