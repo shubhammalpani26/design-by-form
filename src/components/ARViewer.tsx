@@ -275,6 +275,13 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
+  // Auto-trigger AI Space Preview when room photo is uploaded
+  useEffect(() => {
+    if (uploadedPhoto && imageUrl && !aiPreviewUrl && !isGeneratingAiPreview) {
+      handleGenerateAiPreview();
+    }
+  }, [uploadedPhoto, imageUrl]);
+
   const handleGenerateAiPreview = async () => {
     if (!uploadedPhoto || !imageUrl) return;
     
@@ -621,8 +628,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             </div>
           )}
 
-          {/* AI Space Preview Result */}
-          {showAiPreview && aiPreviewUrl && (
+          {/* AI Space Preview Result - shown by default */}
+          {aiPreviewUrl && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-sm font-medium text-foreground">
@@ -632,19 +639,29 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowAiPreview(false)}
+                  onClick={() => setShowAiPreview(!showAiPreview)}
                   className="text-xs"
                 >
-                  Show Manual View
+                  {showAiPreview ? 'Hide Preview' : 'Show Preview'}
                 </Button>
               </div>
-              <div className="rounded-lg overflow-hidden border">
-                <img
-                  src={aiPreviewUrl}
-                  alt={`${productName} in your space`}
-                  className="w-full object-contain"
-                />
-              </div>
+              {showAiPreview && (
+                <div className="rounded-lg overflow-hidden border">
+                  <img
+                    src={aiPreviewUrl}
+                    alt={`${productName} in your space`}
+                    className="w-full object-contain"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AI Preview Loading Indicator */}
+          {isGeneratingAiPreview && !aiPreviewUrl && (
+            <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/10">
+              <Loader2 className="w-4 h-4 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Generating AI space preview...</span>
             </div>
           )}
 
@@ -674,7 +691,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
                 ) : (
                   <>
                     <Sparkles className="w-3 h-3" />
-                    AI Space Preview
+                    {aiPreviewUrl ? 'Regenerate Preview' : 'AI Space Preview'}
                   </>
                 )}
               </Button>

@@ -46,6 +46,8 @@ const InstantDesignPreview = () => {
   const [uploadedImagePreview, setUploadedImagePreview] = useState<string | null>(null);
   const [roomImage, setRoomImage] = useState<File | null>(null);
   const [roomImagePreview, setRoomImagePreview] = useState<string | null>(null);
+  const [spacePreviewUrl, setSpacePreviewUrl] = useState<string | null>(null);
+  const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
 
   useEffect(() => {
     fetchShowcaseDesigns();
@@ -180,6 +182,7 @@ const InstantDesignPreview = () => {
   const clearRoomImage = () => {
     setRoomImage(null);
     setRoomImagePreview(null);
+    setSpacePreviewUrl(null);
     if (roomInputRef.current) {
       roomInputRef.current.value = '';
     }
@@ -270,6 +273,49 @@ const InstantDesignPreview = () => {
     } finally {
       setIsGenerating(false);
       setGenerationProgress(0);
+    }
+  };
+
+  // Auto-generate space preview when designs are ready and room image exists
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && !spacePreviewUrl && !isGeneratingSpacePreview) {
+      generateSpacePreview(generatedVariations[selectedVariationIndex]?.imageUrl);
+    }
+  }, [generatedVariations, roomImagePreview]);
+
+  // Regenerate space preview when user selects a different variation
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && spacePreviewUrl) {
+      generateSpacePreview(generatedVariations[selectedVariationIndex]?.imageUrl);
+    }
+  }, [selectedVariationIndex]);
+
+  const generateSpacePreview = async (productImageUrl: string) => {
+    if (!roomImagePreview || !productImageUrl) return;
+    
+    setIsGeneratingSpacePreview(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-space-preview', {
+        body: {
+          spaceImageBase64: roomImagePreview,
+          productImageUrl,
+          productName: prompt || 'furniture design',
+          category: category || 'furniture',
+        },
+      });
+
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
+
+      if (data?.imageUrl) {
+        setSpacePreviewUrl(data.imageUrl);
+        toast.success("Space preview ready! See your design in your room ✨");
+      }
+    } catch (error: any) {
+      console.error('Space preview error:', error);
+      // Silent fail - don't interrupt the flow
+    } finally {
+      setIsGeneratingSpacePreview(false);
     }
   };
 
@@ -877,6 +923,33 @@ const InstantDesignPreview = () => {
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* AI Space Preview - shown when room image was provided */}
+                {hasGeneratedImages && roomImagePreview && (
+                  <div className="p-3 bg-primary/5 border-t border-border">
+                    {isGeneratingSpacePreview ? (
+                      <div className="flex items-center justify-center gap-2 py-3">
+                        <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                        <span className="text-sm text-muted-foreground">Generating space preview...</span>
+                      </div>
+                    ) : spacePreviewUrl ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          <span className="text-xs font-medium text-foreground">In Your Space</span>
+                        </div>
+                        <div className="rounded-lg overflow-hidden border border-border">
+                          <img
+                            src={spacePreviewUrl}
+                            alt="Design in your space"
+                            className="w-full object-contain cursor-pointer"
+                            onClick={() => setFullscreenImage(spacePreviewUrl)}
+                          />
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
                 )}
 
