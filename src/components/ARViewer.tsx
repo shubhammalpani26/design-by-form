@@ -18,7 +18,7 @@ interface ARViewerProps {
   category?: string;
 }
 
-export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false }: ARViewerProps) => {
+export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false, category }: ARViewerProps) => {
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
