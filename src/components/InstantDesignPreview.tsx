@@ -182,6 +182,7 @@ const InstantDesignPreview = () => {
   const clearRoomImage = () => {
     setRoomImage(null);
     setRoomImagePreview(null);
+    setSpacePreviewUrl(null);
     if (roomInputRef.current) {
       roomInputRef.current.value = '';
     }
