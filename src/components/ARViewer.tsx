@@ -40,14 +40,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
   const [showAiPreview, setShowAiPreview] = useState(false);
 
   // Track which URLs have been processed to prevent re-processing
-  const [processedUrls, setProcessedUrls] = useState<Set<string>>(() => {
-    try {
-      const saved = sessionStorage.getItem('ar-processed-urls');
-      return saved ? new Set(JSON.parse(saved)) : new Set();
-    } catch {
-      return new Set();
-    }
-  });
+  const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
 
   // Generate storage key based on context (design studio vs product page)
   const getStorageKey = () => {
