@@ -206,12 +206,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
         
         // Save both the URL marker and the processed result
         sessionStorage.setItem(cacheKey, processed);
-        setProcessedUrls(prev => {
-          const newSet = new Set(prev).add(urlToProcess);
-          sessionStorage.setItem('ar-processed-urls', JSON.stringify([...newSet]));
-          console.log('Saved processed URL to cache:', urlToProcess);
-          return newSet;
-        });
+         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         
         console.log('Background removed from furniture image using AI');
         toast({
