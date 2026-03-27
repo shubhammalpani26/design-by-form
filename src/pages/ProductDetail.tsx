@@ -368,8 +368,8 @@ const ProductDetail = () => {
       )}
       <Header />
       
-      <main className="flex-1 container py-4 lg:py-6">
-        <div className="grid md:grid-cols-2 gap-3 lg:gap-4">
+      <main className="flex-1 container px-3 sm:px-4 lg:px-8 py-4 lg:py-6 overflow-x-hidden">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           {/* Left Column - Image and AR Viewer */}
           <div className="space-y-2">
             <Tabs defaultValue="image" value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
