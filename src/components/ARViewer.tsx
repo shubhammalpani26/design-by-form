@@ -422,20 +422,20 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
   return (
     <Card className="border-secondary/20 shadow-medium bg-secondary/5">
-      <CardContent className="p-6">
-        <div className="space-y-4">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-secondary/20 flex items-center justify-center">
-              <svg className="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="space-y-3 sm:space-y-4">
+        <div className="flex items-center gap-2">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
+              <svg className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
               </svg>
             </div>
-            <h3 className="text-lg font-semibold text-foreground">AR Preview</h3>
+            <h3 className="text-base sm:text-lg font-semibold text-foreground">AR Preview</h3>
           </div>
 
           <div 
             ref={containerRef}
-            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            className="w-full min-h-[280px] sm:min-h-[350px] max-h-[50vh] sm:max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
             style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
@@ -569,7 +569,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           {/* Control Panel - Show for both 2D and 3D models */}
           {uploadedPhoto && (processedFurnitureUrl || proxiedModelUrl) && (
-            <div className="space-y-4 p-4 bg-accent/50 rounded-lg">
+            <div className="space-y-3 p-3 sm:p-4 bg-accent/50 rounded-lg">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Move className="w-4 h-4" />
                 Position Controls
@@ -680,7 +680,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -733,8 +733,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             )}
           </div>
 
-          <div className="text-xs text-muted-foreground bg-accent/50 p-3 rounded-lg">
-            <p>
+          <div className="text-xs text-muted-foreground bg-accent/50 p-2.5 sm:p-3 rounded-lg">
+            <p className="leading-relaxed">
               <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
               {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
             </p>
