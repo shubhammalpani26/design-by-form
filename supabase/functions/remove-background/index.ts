@@ -7,7 +7,7 @@ const corsHeaders = {
 
 const BG_REMOVAL_MODELS = [
   "google/gemini-3.1-flash-image-preview",
-  "google/gemini-2.5-flash-image",
+  "google/gemini-3-pro-image-preview",
 ];
 
 const extractImageFromResponse = (data: any): string | null => {
@@ -26,9 +26,11 @@ const extractImageFromResponse = (data: any): string | null => {
   const content = message?.content;
   if (Array.isArray(content)) {
     for (const part of content) {
-      const partUrl = part?.image_url?.url;
-      if (typeof partUrl === "string" && partUrl.length > 0) {
-        return partUrl;
+      if (part?.type === "image_url" || part?.image_url?.url) {
+        const partUrl = part?.image_url?.url;
+        if (typeof partUrl === "string" && partUrl.length > 0) {
+          return partUrl;
+        }
       }
     }
   }
@@ -43,38 +45,37 @@ const extractImageFromResponse = (data: any): string | null => {
   return null;
 };
 
-const callBackgroundRemovalModel = async (
-  model: string,
-  imageUrl: string,
-  prompt: string,
-  apiKey: string,
-) => {
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            {
-              type: "image_url",
-              image_url: { url: imageUrl },
-            },
-          ],
-        },
-      ],
-      modalities: ["image", "text"],
-    }),
-  });
+/** Download image from URL and return as base64 data URL */
+async function imageUrlToBase64(imageUrl: string): Promise<string> {
+  // Already a data URL
+  if (imageUrl.startsWith("data:image/")) {
+    return imageUrl;
+  }
 
-  return response;
-};
+  const resp = await fetch(imageUrl);
+  if (!resp.ok) {
+    throw new Error(`Failed to fetch image: ${resp.status} ${resp.statusText}`);
+  }
+
+  const arrayBuffer = await resp.arrayBuffer();
+  const uint8 = new Uint8Array(arrayBuffer);
+
+  // Manual base64 encoding (no std lib dependency)
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+  let result = "";
+  for (let i = 0; i < uint8.length; i += 3) {
+    const a = uint8[i];
+    const b = i + 1 < uint8.length ? uint8[i + 1] : 0;
+    const c = i + 2 < uint8.length ? uint8[i + 2] : 0;
+    result += chars[a >> 2];
+    result += chars[((a & 3) << 4) | (b >> 4)];
+    result += i + 1 < uint8.length ? chars[((b & 15) << 2) | (c >> 6)] : "=";
+    result += i + 2 < uint8.length ? chars[c & 63] : "=";
+  }
+
+  const contentType = resp.headers.get("content-type") || "image/png";
+  return `data:${contentType};base64,${result}`;
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -96,14 +97,40 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const prompt = `Remove the background from this furniture/product image completely. Return ONLY a PNG image with a true transparent alpha channel. Do not return text. Do not keep any white or colored backdrop. Remove all shadows, floor planes, halos, fringes, and artifacts. Preserve the furniture shape, texture, and colors exactly.`;
+    // Download image and convert to base64 so AI model doesn't need to fetch URLs
+    console.log("Downloading image for background removal...");
+    const base64Image = await imageUrlToBase64(imageUrl);
+    console.log("Image converted to base64, sending to AI...");
 
-    console.log("Removing background with AI...");
+    const prompt = `Remove the background from this furniture/product image completely. Return ONLY a PNG image with a true transparent alpha channel. Do not return text. Do not keep any white or colored backdrop. Remove all shadows, floor planes, halos, fringes, and artifacts. Preserve the furniture shape, texture, and colors exactly.`;
 
     let lastError: string | null = null;
 
     for (const model of BG_REMOVAL_MODELS) {
-      const response = await callBackgroundRemovalModel(model, imageUrl, prompt, LOVABLE_API_KEY);
+      console.log(`Trying model: ${model}`);
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                {
+                  type: "image_url",
+                  image_url: { url: base64Image },
+                },
+              ],
+            },
+          ],
+          modalities: ["image", "text"],
+        }),
+      });
 
       if (!response.ok) {
         if (response.status === 429) {
