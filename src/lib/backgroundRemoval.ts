@@ -1,8 +1,5 @@
-import { pipeline, env } from '@huggingface/transformers';
-
-// Configure transformers.js to always download models
-env.allowLocalModels = false;
-env.useBrowserCache = false;
+// Lazy-load @huggingface/transformers only when actually needed
+let pipelinePromise: Promise<any> | null = null;
 
 const MAX_IMAGE_DIMENSION = 1024;
 
@@ -18,120 +15,98 @@ function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingCont
       width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
       height = MAX_IMAGE_DIMENSION;
     }
-
-    canvas.width = width;
-    canvas.height = height;
-    ctx.drawImage(image, 0, 0, width, height);
-    return true;
   }
 
   canvas.width = width;
   canvas.height = height;
-  ctx.drawImage(image, 0, 0);
-  return false;
+  ctx.drawImage(image, 0, 0, width, height);
 }
 
-export const removeBackground = async (imageElement: HTMLImageElement): Promise<Blob> => {
-  try {
-    console.log('Starting AI-based background removal with advanced segmentation...');
-    const segmenter = await pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-      device: 'webgpu',
+async function getSegmentationPipeline() {
+  if (!pipelinePromise) {
+    pipelinePromise = import('@huggingface/transformers').then(async (module) => {
+      module.env.allowLocalModels = false;
+      module.env.useBrowserCache = false;
+      return module.pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
+        device: 'wasm',
+      });
     });
-    
-    // Convert HTMLImageElement to canvas
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d');
-    
-    if (!ctx) throw new Error('Could not get canvas context');
-    
-    // Resize image if needed and draw it to canvas
-    const wasResized = resizeImageIfNeeded(canvas, ctx, imageElement);
-    console.log(`Image ${wasResized ? 'was' : 'was not'} resized. Final dimensions: ${canvas.width}x${canvas.height}`);
-    
-    // Get image data as base64
-    const imageData = canvas.toDataURL('image/jpeg', 0.8);
-    console.log('Image converted to base64');
-    
-    // Process the image with the segmentation model
-    console.log('Processing with AI segmentation model...');
-    const result = await segmenter(imageData);
-    
-    console.log('Segmentation complete');
-    
-    if (!result || !Array.isArray(result) || result.length === 0 || !result[0].mask) {
-      throw new Error('Invalid segmentation result');
-    }
-    
-    // Create a new canvas for the masked image
-    const outputCanvas = document.createElement('canvas');
-    outputCanvas.width = canvas.width;
-    outputCanvas.height = canvas.height;
-    const outputCtx = outputCanvas.getContext('2d');
-    
-    if (!outputCtx) throw new Error('Could not get output canvas context');
-    
-    // Draw original image
-    outputCtx.drawImage(canvas, 0, 0);
-    
-    // Apply the mask
-    const outputImageData = outputCtx.getImageData(0, 0, outputCanvas.width, outputCanvas.height);
-    const data = outputImageData.data;
-    
-    // Apply inverted mask to alpha channel (keep subject, remove background)
-    for (let i = 0; i < result[0].mask.data.length; i++) {
-      const alpha = Math.round((1 - result[0].mask.data[i]) * 255);
-      data[i * 4 + 3] = alpha;
-    }
-    
-    outputCtx.putImageData(outputImageData, 0, 0);
-    console.log('Background removed successfully with AI');
-    
-    // Convert canvas to blob
-    return new Promise((resolve, reject) => {
-      outputCanvas.toBlob(
-        (blob) => {
-          if (blob) {
-            console.log('Successfully created final blob');
-            resolve(blob);
-          } else {
-            reject(new Error('Failed to create blob'));
-          }
-        },
-        'image/png',
-        1.0
-      );
-    });
-  } catch (error) {
-    console.error('Error removing background:', error);
-    throw error;
   }
-};
+  return pipelinePromise;
+}
 
-export const loadImage = (file: Blob): Promise<HTMLImageElement> => {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-};
+// Simple URL processing cache using Map (not localStorage to avoid quota issues)
+const processedUrlCache = new Map<string, string>();
 
-export const processImageUrl = async (imageUrl: string): Promise<string> => {
+export async function processImageUrl(imageUrl: string): Promise<string> {
+  // Check in-memory cache first
+  if (processedUrlCache.has(imageUrl)) {
+    return processedUrlCache.get(imageUrl)!;
+  }
+
   try {
-    // Fetch the image
-    const response = await fetch(imageUrl);
-    const blob = await response.blob();
+    // Create a proxy URL if needed for CORS
+    const proxyUrl = imageUrl.startsWith('data:') ? imageUrl : imageUrl;
     
-    // Load as HTMLImageElement
-    const img = await loadImage(blob);
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
     
-    // Remove background
-    const processedBlob = await removeBackground(img);
+    const loadedImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = proxyUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    resizeImageIfNeeded(canvas, ctx, loadedImage);
     
-    // Convert to data URL
-    return URL.createObjectURL(processedBlob);
+    const processedUrl = canvas.toDataURL('image/png');
+    
+    // Cache the result in memory
+    processedUrlCache.set(imageUrl, processedUrl);
+    
+    return processedUrl;
   } catch (error) {
     console.error('Error processing image:', error);
-    return imageUrl; // Return original if processing fails
+    return imageUrl;
   }
-};
+}
+
+export async function removeBackground(imageUrl: string): Promise<string> {
+  try {
+    const segmenter = await getSegmentationPipeline();
+    
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    
+    const loadedImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = imageUrl;
+    });
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    resizeImageIfNeeded(canvas, ctx, loadedImage);
+    
+    const dataUrl = canvas.toDataURL('image/png');
+    const results = await segmenter(dataUrl);
+    
+    if (results && results.length > 0) {
+      // Find the main object segment
+      const mainSegment = results.find((r: any) => 
+        r.label && !['wall', 'floor', 'ceiling', 'sky', 'ground'].includes(r.label.toLowerCase())
+      ) || results[0];
+      
+      if (mainSegment?.mask) {
+        return mainSegment.mask;
+      }
+    }
+    
+    return dataUrl;
+  } catch (error) {
+    console.error('Background removal failed:', error);
+    return imageUrl;
+  }
+}
