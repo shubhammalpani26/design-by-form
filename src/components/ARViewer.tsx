@@ -422,8 +422,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
   return (
     <Card className="border-secondary/20 shadow-medium bg-secondary/5">
-      <CardContent className="p-6">
-        <div className="space-y-4">
+      <CardContent className="p-3 sm:p-4 md:p-6">
+        <div className="space-y-3 sm:space-y-4">
         <div className="flex items-center gap-2">
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-secondary/20 flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4 sm:w-5 sm:h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -435,7 +435,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           <div 
             ref={containerRef}
-            className="w-full min-h-[350px] max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
+            className="w-full min-h-[280px] sm:min-h-[350px] max-h-[50vh] sm:max-h-[55vh] bg-accent rounded-xl flex items-center justify-center relative overflow-hidden cursor-move"
             style={{ perspective: '1000px' }}
             onMouseDown={handleMouseDown}
             onMouseMove={handleMouseMove}
