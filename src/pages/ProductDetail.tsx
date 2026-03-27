@@ -44,14 +44,12 @@ const ProductDetail = () => {
       let data: any = null;
       let error: any = null;
 
-      const { data: slugData } = await (supabase
+      const slugQuery = supabase
         .from('designer_products')
-        .select(`
-          *,
-          designer_profiles!inner(name, email)
-        `)
-        .eq('slug' as any, slug as string)
-        .eq('status', 'approved') as any)
+        .select('*, designer_profiles!inner(name, email)');
+      const { data: slugData } = await (slugQuery as any)
+        .eq('slug', slug)
+        .eq('status', 'approved')
         .maybeSingle();
 
       if (slugData) {
