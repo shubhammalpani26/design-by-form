@@ -56,3 +56,6 @@ verify_jwt = false
 
 [functions.generate-space-preview]
 verify_jwt = false
+
+[functions.remove-background]
+verify_jwt = false
