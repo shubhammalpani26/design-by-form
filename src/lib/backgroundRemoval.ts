@@ -171,10 +171,10 @@ export async function removeBackgroundAI(imageUrl: string): Promise<string> {
     }
 
     // No processed URL returned; fallback to original
-    return imageUrl;
+    return await stripEdgeWhiteBackground(imageUrl);
   } catch (error) {
     console.error('AI background removal failed:', error);
-    return imageUrl;
+    return await stripEdgeWhiteBackground(imageUrl);
   }
 }
 
