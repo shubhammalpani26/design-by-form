@@ -44,14 +44,14 @@ const ProductDetail = () => {
       let data: any = null;
       let error: any = null;
 
-      const { data: slugData } = await supabase
+      const { data: slugData } = await (supabase
         .from('designer_products')
         .select(`
           *,
           designer_profiles!inner(name, email)
         `)
-        .eq('slug' as any, slug)
-        .eq('status', 'approved')
+        .eq('slug' as any, slug as string)
+        .eq('status', 'approved') as any)
         .maybeSingle();
 
       if (slugData) {
@@ -71,8 +71,6 @@ const ProductDetail = () => {
       }
 
       if (!data) throw error || new Error('Product not found');
-
-      if (error) throw error;
 
       const dims = data.dimensions as any;
       
