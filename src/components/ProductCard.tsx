@@ -7,6 +7,7 @@ import { useState } from "react";
 import { useComparison } from "@/contexts/ComparisonContext";
 import { Check } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { slugify } from "@/lib/slugify";
 
 interface ProductCardProps {
   id: string;
@@ -36,7 +37,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
 
   return (
     <>
-      <Link to={`/product/${id}`} className="group block">
+      <Link to={`/product/${slugify(name)}`} className="group block">
         <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300 relative">
           <div className="aspect-square overflow-hidden bg-accent relative">
             <img
@@ -92,7 +93,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  window.location.href = `/designer/${designerId}`;
+                  window.location.href = `/designer/${slugify(designer)}`;
                 }}
               >
                 {designer}

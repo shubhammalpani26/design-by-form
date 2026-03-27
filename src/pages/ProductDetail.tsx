@@ -16,8 +16,10 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
 
+import { slugify } from "@/lib/slugify";
+
 const ProductDetail = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"image" | "360" | "ar">("image");
@@ -31,22 +33,45 @@ const ProductDetail = () => {
   const { formatPrice } = useCurrency();
 
   useEffect(() => {
-    if (id) {
+    if (slug) {
       fetchProduct();
     }
-  }, [id]);
+  }, [slug]);
 
   const fetchProduct = async () => {
     try {
-      const { data, error } = await supabase
+      // Try fetching by slug first, fallback to UUID for backward compatibility
+      let data: any = null;
+      let error: any = null;
+
+      const { data: slugData, error: slugError } = await supabase
         .from('designer_products')
         .select(`
           *,
-          designer_profiles!inner(name, email)
+          designer_profiles!inner(name, email, slug)
         `)
-        .eq('id', id)
+        .eq('slug' as any, slug)
         .eq('status', 'approved')
         .single();
+
+      if (slugData) {
+        data = slugData;
+      } else {
+        // Fallback: try by UUID (for old URLs)
+        const { data: idData, error: idError } = await supabase
+          .from('designer_products')
+          .select(`
+            *,
+            designer_profiles!inner(name, email, slug)
+          `)
+          .eq('id', slug)
+          .eq('status', 'approved')
+          .single();
+        data = idData;
+        error = idError;
+      }
+
+      if (!data) throw error || new Error('Product not found');
 
       if (error) throw error;
 
@@ -77,7 +102,7 @@ const ProductDetail = () => {
             await supabase
               .from('designer_products')
               .update({ weight: productWeight })
-              .eq('id', id);
+              .eq('id', data.id);
           } else {
             console.error('Weight calculation error:', weightError);
           }
@@ -107,6 +132,7 @@ const ProductDetail = () => {
         name: data.name,
         designer: data.designer_profiles?.name || 'Unknown Designer',
         designerId: data.designer_id,
+        designerSlug: (data.designer_profiles as any)?.slug || slugify(data.designer_profiles?.name || ''),
         price: Number(data.designer_price),
         weight: productWeight,
         image: data.image_url || '',
@@ -424,7 +450,7 @@ const ProductDetail = () => {
             <div>
               <h1 className="text-2xl font-bold text-foreground mb-1">{product.name}</h1>
               <Link
-                to={`/designer/${product.designerId}`}
+                to={`/designer/${product.designerSlug}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
               >
                 Designed by {product.designer}
@@ -608,7 +634,7 @@ const ProductDetail = () => {
               <CardContent className="p-4 lg:p-5">
                 <h3 className="font-semibold text-lg mb-2">About the Designer</h3>
                 <p className="text-muted-foreground mb-4">{product.designerBio}</p>
-                <Link to={`/designer/${product.designerId}`}>
+                <Link to={`/designer/${product.designerSlug}`}>
                   <Button variant="link" className="p-0 h-auto">
                     View {product.designer}'s Collection →
                   </Button>
