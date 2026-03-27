@@ -1,112 +1,88 @@
-// Lazy-load @huggingface/transformers only when actually needed
-let pipelinePromise: Promise<any> | null = null;
+import { supabase } from "@/integrations/supabase/client";
 
-const MAX_IMAGE_DIMENSION = 1024;
-
-function resizeImageIfNeeded(canvas: HTMLCanvasElement, ctx: CanvasRenderingContext2D, image: HTMLImageElement) {
-  let width = image.naturalWidth;
-  let height = image.naturalHeight;
-
-  if (width > MAX_IMAGE_DIMENSION || height > MAX_IMAGE_DIMENSION) {
-    if (width > height) {
-      height = Math.round((height * MAX_IMAGE_DIMENSION) / width);
-      width = MAX_IMAGE_DIMENSION;
-    } else {
-      width = Math.round((width * MAX_IMAGE_DIMENSION) / height);
-      height = MAX_IMAGE_DIMENSION;
-    }
-  }
-
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(image, 0, 0, width, height);
-}
-
-async function getSegmentationPipeline() {
-  if (!pipelinePromise) {
-    pipelinePromise = import('@huggingface/transformers').then(async (module) => {
-      module.env.allowLocalModels = false;
-      module.env.useBrowserCache = false;
-      return module.pipeline('image-segmentation', 'Xenova/segformer-b0-finetuned-ade-512-512', {
-        device: 'wasm',
-      });
-    });
-  }
-  return pipelinePromise;
-}
-
-// Simple URL processing cache using Map (not localStorage to avoid quota issues)
+// In-memory cache for processed URLs
 const processedUrlCache = new Map<string, string>();
 
-export async function processImageUrl(imageUrl: string): Promise<string> {
-  // Check in-memory cache first
+/**
+ * Remove background from a furniture image using server-side AI.
+ * Returns a data URL of the furniture with transparent background.
+ */
+export async function removeBackgroundAI(imageUrl: string): Promise<string> {
+  // Check in-memory cache
   if (processedUrlCache.has(imageUrl)) {
     return processedUrlCache.get(imageUrl)!;
   }
 
   try {
-    // Create a proxy URL if needed for CORS
-    const proxyUrl = imageUrl.startsWith('data:') ? imageUrl : imageUrl;
-    
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    
-    const loadedImage = await new Promise<HTMLImageElement>((resolve, reject) => {
-      img.onload = () => resolve(img);
-      img.onerror = reject;
-      img.src = proxyUrl;
+    // If the image is not a data URL, we can send the URL directly
+    // If it IS a data URL, send it as-is (the edge function handles both)
+    const { data, error } = await supabase.functions.invoke('remove-background', {
+      body: { imageUrl },
     });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    resizeImageIfNeeded(canvas, ctx, loadedImage);
-    
-    const processedUrl = canvas.toDataURL('image/png');
-    
-    // Cache the result in memory
-    processedUrlCache.set(imageUrl, processedUrl);
-    
-    return processedUrl;
+    if (error) throw error;
+    if (data?.error) throw new Error(data.error);
+
+    if (data?.imageUrl) {
+      // Cache and return the result (it's a base64 data URL from the AI)
+      const resultUrl = data.imageUrl.startsWith('data:') 
+        ? data.imageUrl 
+        : `data:image/png;base64,${data.imageUrl}`;
+      processedUrlCache.set(imageUrl, resultUrl);
+      return resultUrl;
+    }
+
+    // Fallback to original
+    return imageUrl;
   } catch (error) {
-    console.error('Error processing image:', error);
+    console.error('AI background removal failed:', error);
     return imageUrl;
   }
 }
 
-export async function removeBackground(imageUrl: string): Promise<string> {
+/**
+ * Simple image processing (resize only) - kept for non-AR uses.
+ */
+export async function processImageUrl(imageUrl: string): Promise<string> {
+  if (processedUrlCache.has(imageUrl)) {
+    return processedUrlCache.get(imageUrl)!;
+  }
+
   try {
-    const segmenter = await getSegmentationPipeline();
-    
     const img = new Image();
     img.crossOrigin = 'anonymous';
-    
+
     const loadedImage = await new Promise<HTMLImageElement>((resolve, reject) => {
       img.onload = () => resolve(img);
       img.onerror = reject;
       img.src = imageUrl;
     });
 
-    const canvas = document.createElement('canvas');
-    const ctx = canvas.getContext('2d')!;
-    resizeImageIfNeeded(canvas, ctx, loadedImage);
-    
-    const dataUrl = canvas.toDataURL('image/png');
-    const results = await segmenter(dataUrl);
-    
-    if (results && results.length > 0) {
-      // Find the main object segment
-      const mainSegment = results.find((r: any) => 
-        r.label && !['wall', 'floor', 'ceiling', 'sky', 'ground'].includes(r.label.toLowerCase())
-      ) || results[0];
-      
-      if (mainSegment?.mask) {
-        return mainSegment.mask;
+    const MAX_DIM = 1024;
+    let width = loadedImage.naturalWidth;
+    let height = loadedImage.naturalHeight;
+
+    if (width > MAX_DIM || height > MAX_DIM) {
+      if (width > height) {
+        height = Math.round((height * MAX_DIM) / width);
+        width = MAX_DIM;
+      } else {
+        width = Math.round((width * MAX_DIM) / height);
+        height = MAX_DIM;
       }
     }
-    
-    return dataUrl;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d')!;
+    ctx.drawImage(loadedImage, 0, 0, width, height);
+
+    const processedUrl = canvas.toDataURL('image/png');
+    processedUrlCache.set(imageUrl, processedUrl);
+    return processedUrl;
   } catch (error) {
-    console.error('Background removal failed:', error);
+    console.error('Error processing image:', error);
     return imageUrl;
   }
 }
