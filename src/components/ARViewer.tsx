@@ -4,7 +4,7 @@ import { Slider } from "@/components/ui/slider";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Move, RotateCw, ZoomIn, Loader2, Sparkles } from "lucide-react";
-import { processImageUrl } from "@/lib/backgroundRemoval";
+import { removeBackgroundAI } from "@/lib/backgroundRemoval";
 import { supabase } from "@/integrations/supabase/client";
 
 interface ARViewerProps {
