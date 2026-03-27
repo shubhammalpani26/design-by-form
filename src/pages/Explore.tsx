@@ -5,6 +5,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
+import { slugify } from "@/lib/slugify";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -142,7 +143,7 @@ const Explore = () => {
               {trendingProducts.map((product) => (
                 <Link
                   key={product.id}
-                  to={`/product/${product.id}`}
+                  to={`/product/${slugify(product.name)}`}
                   className="group relative aspect-square rounded-xl overflow-hidden bg-muted"
                 >
                   <img
@@ -178,7 +179,7 @@ const Explore = () => {
               {newProducts.map((product) => (
                 <Link
                   key={product.id}
-                  to={`/product/${product.id}`}
+                  to={`/product/${slugify(product.name)}`}
                   className="group relative aspect-square rounded-xl overflow-hidden bg-muted"
                 >
                   <img
@@ -240,7 +241,7 @@ const Explore = () => {
               {products.map((product) => (
                 <Link
                   key={product.id}
-                  to={`/product/${product.id}`}
+                  to={`/product/${slugify(product.name)}`}
                   className="group relative aspect-square rounded-xl overflow-hidden bg-muted"
                 >
                   <img

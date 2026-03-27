@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { slugify } from "@/lib/slugify";
 
 interface HomeProductCardProps {
   id: string;
@@ -16,7 +17,7 @@ export const HomeProductCard = ({ id, name, designer, designerId, price, weight,
   const { formatPrice } = useCurrency();
 
   return (
-    <Link to={`/product/${id}`} className="group block">
+    <Link to={`/product/${slugify(name)}`} className="group block">
       <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300">
         <div className="aspect-square overflow-hidden bg-accent">
           <img
@@ -36,7 +37,7 @@ export const HomeProductCard = ({ id, name, designer, designerId, price, weight,
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                window.location.href = `/designer/${designerId}`;
+                window.location.href = `/designer/${slugify(designer)}`;
               }}
             >
               {designer}

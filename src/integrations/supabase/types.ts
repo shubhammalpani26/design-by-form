@@ -501,6 +501,7 @@ export type Database = {
           pricing_per_cubic_foot: number | null
           pricing_reasoning: string | null
           rejection_reason: string | null
+          slug: string | null
           status: string
           total_sales: number
           updated_at: string
@@ -532,6 +533,7 @@ export type Database = {
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
           rejection_reason?: string | null
+          slug?: string | null
           status?: string
           total_sales?: number
           updated_at?: string
@@ -563,6 +565,7 @@ export type Database = {
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
           rejection_reason?: string | null
+          slug?: string | null
           status?: string
           total_sales?: number
           updated_at?: string
@@ -590,6 +593,7 @@ export type Database = {
           phone_number: string | null
           portfolio_url: string | null
           profile_picture_url: string | null
+          slug: string | null
           status: string
           terms_accepted: boolean
           terms_accepted_at: string | null
@@ -607,6 +611,7 @@ export type Database = {
           phone_number?: string | null
           portfolio_url?: string | null
           profile_picture_url?: string | null
+          slug?: string | null
           status?: string
           terms_accepted?: boolean
           terms_accepted_at?: string | null
@@ -624,6 +629,7 @@ export type Database = {
           phone_number?: string | null
           portfolio_url?: string | null
           profile_picture_url?: string | null
+          slug?: string | null
           status?: string
           terms_accepted?: boolean
           terms_accepted_at?: string | null
@@ -1297,6 +1303,7 @@ export type Database = {
         Returns: undefined
       }
       generate_invoice_number: { Args: never; Returns: string }
+      generate_slug: { Args: { input_text: string }; Returns: string }
       get_public_designer_profile: {
         Args: { profile_id: string }
         Returns: {

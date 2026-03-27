@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
+import { slugify } from "@/lib/slugify";
 
 export const StoriesBar = () => {
   const { data: creators, isLoading } = useQuery({
@@ -78,7 +79,7 @@ export const StoriesBar = () => {
       {creators?.map((creator) => (
         <Link
           key={creator.id}
-          to={`/designer/${creator.id}`}
+          to={`/designer/${slugify(creator.name)}`}
           className="flex flex-col items-center gap-2 flex-shrink-0 group"
         >
           <div className="relative">

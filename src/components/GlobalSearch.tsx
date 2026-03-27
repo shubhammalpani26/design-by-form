@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
 import { Search } from "lucide-react";
+import { slugify } from "@/lib/slugify";
 
 interface SearchResult {
   type: 'product' | 'creator' | 'page';
@@ -60,7 +61,7 @@ export const GlobalSearch = () => {
               id: product.id,
               title: product.name,
               subtitle: `by ${product.designer_profiles.name}`,
-              path: `/product/${product.id}`,
+              path: `/product/${slugify(product.name)}`,
               image: product.image_url
             });
           });
@@ -79,7 +80,7 @@ export const GlobalSearch = () => {
               id: creator.id,
               title: creator.name,
               subtitle: creator.email,
-              path: `/designer/${creator.id}`
+              path: `/designer/${slugify(creator.name)}`
             });
           });
         }

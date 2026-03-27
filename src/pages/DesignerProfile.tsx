@@ -1,4 +1,5 @@
 import { useParams } from "react-router-dom";
+import { slugify } from "@/lib/slugify";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -36,31 +37,45 @@ interface Designer {
 }
 
 const DesignerProfile = () => {
-  const { id } = useParams();
+  const { slug } = useParams();
   const [designer, setDesigner] = useState<Designer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchDesignerData();
-  }, [id]);
+  }, [slug]);
 
   const fetchDesignerData = async () => {
     try {
-      // Fetch designer profile
-      const { data: profile, error: profileError } = await supabase
+      // Try fetching by slug first, fallback to UUID
+      const slugQuery = supabase
         .from('designer_profiles')
-        .select('*')
-        .eq('id', id)
+        .select('*');
+      const { data: slugProfile } = await (slugQuery as any)
+        .eq('slug', slug)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
 
-      if (profileError) throw profileError;
+      let profile = slugProfile;
+      if (!profile) {
+        const { data: idProfile, error: profileError } = await supabase
+          .from('designer_profiles')
+          .select('*')
+          .eq('id', slug!)
+          .eq('status', 'approved')
+          .single();
+        if (profileError) throw profileError;
+        profile = idProfile;
+      }
+
+      if (!profile) throw new Error('Designer not found');
+      const designerId = profile.id;
 
       // Fetch designer's products
       const { data: products } = await supabase
         .from('designer_products')
         .select('*')
-        .eq('designer_id', id)
+        .eq('designer_id', designerId)
         .eq('status', 'approved');
 
       // Calculate stats
@@ -70,7 +85,7 @@ const DesignerProfile = () => {
       const { count: followerCount } = await supabase
         .from("designer_follows")
         .select("*", { count: "exact", head: true })
-        .eq("designer_id", id);
+        .eq("designer_id", designerId);
 
       setDesigner({
         id: profile.id,

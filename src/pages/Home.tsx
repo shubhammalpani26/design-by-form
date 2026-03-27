@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
+import { slugify } from "@/lib/slugify";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
@@ -273,7 +274,7 @@ const Home = () => {
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   {heroProduct ? (
                     <Link 
-                      to={`/product/${heroProduct.id}`}
+                      to={`/product/${slugify(heroProduct.name)}`}
                       className="block w-full h-full cursor-pointer"
                     >
                       <img
