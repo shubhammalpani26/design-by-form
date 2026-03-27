@@ -3,6 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 // In-memory cache for processed URLs
 const processedUrlCache = new Map<string, string>();
 
+function normalizeReturnedImageUrl(rawValue: string): string {
+  const value = rawValue.trim();
+
+  if (value.startsWith("data:image/")) return value;
+  if (value.startsWith("http://") || value.startsWith("https://")) return value;
+
+  // If backend returned base64 payload directly, normalize to PNG data URL.
+  const base64Like = /^[A-Za-z0-9+/=\s]+$/.test(value) && value.length > 100;
+  if (base64Like) {
+    return `data:image/png;base64,${value.replace(/\s+/g, "")}`;
+  }
+
+  return value;
+}
+
 /**
  * Remove background from a furniture image using server-side AI.
  * Returns a data URL of the furniture with transparent background.
@@ -24,15 +39,17 @@ export async function removeBackgroundAI(imageUrl: string): Promise<string> {
     if (data?.error) throw new Error(data.error);
 
     if (data?.imageUrl) {
-      // Cache and return the result (it's a base64 data URL from the AI)
-      const resultUrl = data.imageUrl.startsWith('data:') 
-        ? data.imageUrl 
-        : `data:image/png;base64,${data.imageUrl}`;
-      processedUrlCache.set(imageUrl, resultUrl);
+      const resultUrl = normalizeReturnedImageUrl(data.imageUrl);
+
+      // Don't cache fallback/original output as a "processed" result.
+      if (resultUrl !== imageUrl) {
+        processedUrlCache.set(imageUrl, resultUrl);
+      }
+
       return resultUrl;
     }
 
-    // Fallback to original
+    // No processed URL returned; fallback to original
     return imageUrl;
   } catch (error) {
     console.error('AI background removal failed:', error);
