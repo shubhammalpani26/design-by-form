@@ -569,7 +569,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           {/* Control Panel - Show for both 2D and 3D models */}
           {uploadedPhoto && (processedFurnitureUrl || proxiedModelUrl) && (
-            <div className="space-y-4 p-4 bg-accent/50 rounded-lg">
+            <div className="space-y-3 p-3 sm:p-4 bg-accent/50 rounded-lg">
               <div className="flex items-center gap-2 text-sm font-medium text-foreground">
                 <Move className="w-4 h-4" />
                 Position Controls
@@ -680,7 +680,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Button
               variant="outline"
               size="sm"
@@ -733,8 +733,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             )}
           </div>
 
-          <div className="text-xs text-muted-foreground bg-accent/50 p-3 rounded-lg">
-            <p>
+          <div className="text-xs text-muted-foreground bg-accent/50 p-2.5 sm:p-3 rounded-lg">
+            <p className="leading-relaxed">
               <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
               {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
             </p>
