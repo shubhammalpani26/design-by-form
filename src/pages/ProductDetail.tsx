@@ -44,29 +44,28 @@ const ProductDetail = () => {
       let data: any = null;
       let error: any = null;
 
-      const { data: slugData, error: slugError } = await supabase
+      const { data: slugData } = await supabase
         .from('designer_products')
         .select(`
           *,
-          designer_profiles!inner(name, email, slug)
+          designer_profiles!inner(name, email)
         `)
         .eq('slug' as any, slug)
         .eq('status', 'approved')
-        .single();
+        .maybeSingle();
 
       if (slugData) {
         data = slugData;
       } else {
-        // Fallback: try by UUID (for old URLs)
         const { data: idData, error: idError } = await supabase
           .from('designer_products')
           .select(`
             *,
-            designer_profiles!inner(name, email, slug)
+            designer_profiles!inner(name, email)
           `)
-          .eq('id', slug)
+          .eq('id', slug!)
           .eq('status', 'approved')
-          .single();
+          .maybeSingle();
         data = idData;
         error = idError;
       }
@@ -155,7 +154,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = async () => {
-    if (!id) return;
+    if (!product?.id) return;
     
     try {
       const customizations: any = {
@@ -163,7 +162,7 @@ const ProductDetail = () => {
         size: selectedSize
       };
       
-      await addToCart(id, customizations);
+      await addToCart(product.id, customizations);
     } catch (error) {
       console.error('Add to cart error:', error);
     }
