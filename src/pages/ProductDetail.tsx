@@ -408,7 +408,7 @@ const ProductDetail = () => {
 
               <TabsContent value="360" className="mt-2">
                 {product.model_url ? (
-                  <div className="h-[450px] overflow-hidden rounded-xl">
+                  <div className="h-[300px] sm:h-[400px] lg:h-[450px] overflow-hidden rounded-xl">
                     <ModelViewer3D
                       modelUrl={product.model_url}
                       productName={product.name}
@@ -443,7 +443,7 @@ const ProductDetail = () => {
           {/* Right Column - Product Details */}
           <div className="space-y-3">
             <div>
-              <h1 className="text-2xl font-bold text-foreground mb-1">{product.name}</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{product.name}</h1>
               <Link
                 to={`/designer/${product.designerSlug}`}
                 className="text-sm text-muted-foreground hover:text-primary transition-colors"
@@ -452,7 +452,7 @@ const ProductDetail = () => {
               </Link>
             </div>
 
-            <p className="text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
+            <p className="text-xl sm:text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
 
             <p className="text-sm text-muted-foreground leading-relaxed">
               {product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '')}
