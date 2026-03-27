@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Plus } from "lucide-react";
+import { slugify } from "@/lib/slugify";
 
 export const StoriesBar = () => {
   const { data: creators, isLoading } = useQuery({

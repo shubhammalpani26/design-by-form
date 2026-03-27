@@ -6,6 +6,7 @@ import { Footer } from "@/components/Footer";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
+import { slugify } from "@/lib/slugify";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Carousel,
