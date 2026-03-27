@@ -201,7 +201,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       });
       
       try {
-        const processed = await processImageUrl(urlToProcess);
+        const processed = await removeBackgroundAI(urlToProcess);
         setProcessedFurnitureUrl(processed);
         
         // Save both the URL marker and the processed result
