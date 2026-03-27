@@ -114,7 +114,7 @@ const Creators = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {creators.map((creator) => (
-                <Link key={creator.id} to={`/designer/${creator.id}`}>
+                <Link key={creator.id} to={`/designer/${slugify(creator.name)}`}>
                   <Card className="border-border hover:shadow-medium transition-all duration-300 group h-full">
                     <CardContent className="p-6">
                       <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-white mb-4 group-hover:scale-110 transition-transform">

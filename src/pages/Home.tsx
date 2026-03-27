@@ -273,7 +273,7 @@ const Home = () => {
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   {heroProduct ? (
                     <Link 
-                      to={`/product/${heroProduct.id}`}
+                      to={`/product/${slugify(heroProduct.name)}`}
                       className="block w-full h-full cursor-pointer"
                     >
                       <img
