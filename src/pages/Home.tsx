@@ -158,45 +158,37 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      // Fetch multiple products from each category for carousel
-      const categories = ['tables', 'benches', 'installations', 'vases', 'home-decor'];
-      const allProducts: Product[] = [];
+      // Single query to fetch featured products across all categories
+      const { data: allData, error } = await supabase
+        .from('designer_products')
+        .select(`
+          id,
+          name,
+          designer_price,
+          weight,
+          image_url,
+          designer_id,
+          category,
+          designer_profiles!inner(name)
+        `)
+        .eq('status', 'approved')
+        .in('category', ['tables', 'benches', 'installations', 'vases', 'home-decor'])
+        .not('image_url', 'is', null)
+        .order('created_at', { ascending: false })
+        .limit(10);
 
-      for (const category of categories) {
-        const { data: categoryData, error } = await supabase
-          .from('designer_products')
-          .select(`
-            id,
-            name,
-            designer_price,
-            weight,
-            image_url,
-            designer_id,
-            category,
-            designer_profiles!inner(name)
-          `)
-          .eq('status', 'approved')
-          .eq('category', category)
-          .order('created_at', { ascending: false })
-          .limit(2);
-
-        if (!error && categoryData) {
-          categoryData.forEach(product => {
-            allProducts.push({
-              id: product.id,
-              name: product.name,
-              designer: product.designer_profiles?.name || 'Unknown Designer',
-              designerId: product.designer_id,
-              price: Number(product.designer_price),
-              weight: Number(product.weight || 5),
-              image: product.image_url || ''
-            });
-          });
-        }
+      if (!error && allData) {
+        const products = allData.map(product => ({
+          id: product.id,
+          name: product.name,
+          designer: product.designer_profiles?.name || 'Unknown Designer',
+          designerId: product.designer_id,
+          price: Number(product.designer_price),
+          weight: Number(product.weight || 5),
+          image: product.image_url || ''
+        }));
+        setFeaturedProducts(products);
       }
-
-      // Keep up to 10 products for carousel scrolling
-      setFeaturedProducts(allProducts.slice(0, 10));
     } catch (error) {
       console.error('Error fetching featured products:', error);
     } finally {
