@@ -19,6 +19,7 @@ interface ARViewerProps {
 }
 
 export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR, roomImage, isDesignStudio = false, category }: ARViewerProps) => {
+  const BG_REMOVAL_CACHE_VERSION = "v2";
   const [isARSupported, setIsARSupported] = useState(true);
   const [uploadedPhoto, setUploadedPhoto] = useState<string | null>(null);
   const [processedFurnitureUrl, setProcessedFurnitureUrl] = useState<string | null>(null);
@@ -177,14 +178,18 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       const urlToProcess = imageUrl;
       
       // Check cache first - see if we have the processed result stored
-      const cacheKey = `ar-processed-${urlToProcess}`;
+      const cacheKey = `ar-processed-${BG_REMOVAL_CACHE_VERSION}-${urlToProcess}`;
       const cachedResult = sessionStorage.getItem(cacheKey);
       
       if (cachedResult) {
+        if (cachedResult === urlToProcess) {
+          sessionStorage.removeItem(cacheKey);
+        } else {
         console.log('Using cached processed furniture image');
         setProcessedFurnitureUrl(cachedResult);
         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         return;
+        }
       }
 
       // Check if we've already processed this URL in this session
@@ -202,11 +207,21 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       
       try {
         const processed = await removeBackgroundAI(urlToProcess);
+
+        if (!processed || processed === urlToProcess) {
+          throw new Error('Background removal returned original image');
+        }
+
         setProcessedFurnitureUrl(processed);
         
         // Save both the URL marker and the processed result
-        sessionStorage.setItem(cacheKey, processed);
-         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
+        try {
+          sessionStorage.setItem(cacheKey, processed);
+        } catch (storageError) {
+          console.warn('Could not cache processed AR image in sessionStorage:', storageError);
+        }
+
+        setProcessedUrls(prev => new Set(prev).add(urlToProcess));
         
         console.log('Background removed from furniture image using AI');
         toast({
@@ -216,10 +231,10 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       } catch (error) {
         console.error('Failed to remove background:', error);
         setProcessedFurnitureUrl(urlToProcess); // Fallback to original
-         setProcessedUrls(prev => new Set(prev).add(urlToProcess));
+        sessionStorage.removeItem(cacheKey);
         toast({
           title: "Background removal failed",
-          description: "Using original image for AR preview.",
+          description: "Could not isolate furniture cleanly. Try a different product image.",
           variant: "destructive",
         });
       } finally {
