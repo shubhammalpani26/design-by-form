@@ -63,7 +63,7 @@ const CreatorLeaderboard = () => {
         if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
         return b.totalProducts - a.totalProducts;
       });
-      setCreators(creatorsWithStats);
+      setCreators(creatorsWithStats.filter(c => c.totalProducts > 0));
     } catch (error) {
       console.error('Error fetching creators:', error);
     } finally {
