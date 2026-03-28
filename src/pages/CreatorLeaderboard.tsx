@@ -58,7 +58,11 @@ const CreatorLeaderboard = () => {
         })
       );
 
-      creatorsWithStats.sort((a, b) => b.totalSales - a.totalSales);
+      // Sort by sales first, then by products listed as tiebreaker
+      creatorsWithStats.sort((a, b) => {
+        if (b.totalSales !== a.totalSales) return b.totalSales - a.totalSales;
+        return b.totalProducts - a.totalProducts;
+      });
       setCreators(creatorsWithStats);
     } catch (error) {
       console.error('Error fetching creators:', error);
