@@ -12,6 +12,7 @@ interface Creator {
   design_background: string;
   furniture_interests: string;
   portfolio_url: string;
+  slug: string | null;
   totalSales: number;
   totalProducts: number;
 }
@@ -28,7 +29,7 @@ const CreatorLeaderboard = () => {
     try {
       const { data: profiles } = await supabase
         .from('designer_profiles')
-        .select('id, name, email, design_background, furniture_interests, portfolio_url, profile_picture_url')
+        .select('id, name, email, design_background, furniture_interests, portfolio_url, profile_picture_url, slug')
         .eq('status', 'approved');
 
       if (!profiles) return;
