@@ -17,6 +17,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
 
 import { slugify } from "@/lib/slugify";
+import { applyColorTransformToFurniture } from "@/lib/colorTransform";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -27,6 +28,8 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [isSaved, setIsSaved] = useState(false);
   const [mainImage, setMainImage] = useState<string>("");
+  const [finishImage, setFinishImage] = useState<string>("");
+  const [isApplyingFinish, setIsApplyingFinish] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
@@ -302,30 +305,50 @@ const ProductDetail = () => {
     }
   };
 
-  const getFinishImageStyle = (finish: string): React.CSSProperties => {
-    switch (finish) {
-      case 'Matte Black':
-        return { filter: 'brightness(0.35) contrast(1.1) saturate(0.2)' };
-      case 'Glossy White':
-        return { filter: 'brightness(1.4) contrast(0.9) saturate(0.15)' };
-      case 'Walnut':
-        return { filter: 'sepia(0.6) brightness(0.7) contrast(1.05) saturate(1.2)' };
-      case 'Concrete':
-        return { filter: 'saturate(0.1) brightness(0.95) contrast(0.95)' };
-      default:
-        return {};
-    }
+  const finishToColorMap: Record<string, string> = {
+    'Matte Black': 'black',
+    'Glossy White': 'white',
+    'Walnut': 'wood finish',
+    'Concrete': 'gray',
+    'Natural': '',
   };
 
-  const getFinishOverlayColor = (finish: string): string => {
-    switch (finish) {
-      case 'Matte Black': return 'rgba(20, 20, 20, 0.25)';
-      case 'Glossy White': return 'rgba(245, 245, 245, 0.15)';
-      case 'Walnut': return 'rgba(90, 50, 20, 0.2)';
-      case 'Concrete': return 'rgba(160, 160, 155, 0.2)';
-      default: return 'transparent';
-    }
+  const finishToFinishMap: Record<string, string> = {
+    'Matte Black': 'matte',
+    'Glossy White': 'glossy',
+    'Walnut': 'natural',
+    'Concrete': 'matte',
+    'Natural': 'natural',
   };
+
+  useEffect(() => {
+    if (selectedFinish === 'Natural' || !mainImage) {
+      setFinishImage('');
+      return;
+    }
+
+    let cancelled = false;
+    setIsApplyingFinish(true);
+
+    const color = finishToColorMap[selectedFinish] || '';
+    const finish = finishToFinishMap[selectedFinish] || 'natural';
+
+    applyColorTransformToFurniture(mainImage, color, finish)
+      .then((dataUrl) => {
+        if (!cancelled) {
+          setFinishImage(dataUrl);
+          setIsApplyingFinish(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setFinishImage('');
+          setIsApplyingFinish(false);
+        }
+      });
+
+    return () => { cancelled = true; };
+  }, [selectedFinish, mainImage]);
 
   if (loading) {
     return (
@@ -407,18 +430,19 @@ const ProductDetail = () => {
               <TabsContent value="image" className="mt-2">
                 <div className="aspect-square rounded-xl overflow-hidden bg-accent relative">
                   <img
-                    src={mainImage}
+                    src={finishImage || mainImage}
                     alt={product.name}
                     className="w-full h-full object-cover transition-all duration-500"
-                    style={getFinishImageStyle(selectedFinish)}
                   />
-                  {selectedFinish !== 'Natural' && (
-                    <div 
-                      className="absolute inset-0 pointer-events-none rounded-xl mix-blend-multiply transition-all duration-500"
-                      style={{ backgroundColor: getFinishOverlayColor(selectedFinish) }}
-                    />
+                  {isApplyingFinish && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
+                      <div className="flex items-center gap-2 bg-background/90 px-3 py-2 rounded-full border border-border shadow-sm">
+                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                        <span className="text-xs font-medium text-foreground">Applying finish...</span>
+                      </div>
+                    </div>
                   )}
-                  {selectedFinish !== 'Natural' && (
+                  {selectedFinish !== 'Natural' && !isApplyingFinish && (
                     <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm text-xs font-medium px-2.5 py-1 rounded-full border border-border shadow-sm">
                       Preview: {selectedFinish} finish
                     </div>
