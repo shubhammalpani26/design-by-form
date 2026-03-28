@@ -499,41 +499,68 @@ const ProductDetail = () => {
             <Card className="bg-accent/50 border-primary/20">
               <CardContent className="p-3 lg:p-4 space-y-3">
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Finish</label>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Finish</label>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Select a finish to preview how it looks</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {['Natural', 'Matte Black', 'Glossy White', 'Walnut', 'Concrete'].map((finish) => (
+                    {[
+                      { name: 'Natural', color: '#D4A574', desc: 'Original material tone' },
+                      { name: 'Matte Black', color: '#2D2D2D', desc: 'Sleek, non-reflective dark' },
+                      { name: 'Glossy White', color: '#F5F5F0', desc: 'Clean, reflective bright' },
+                      { name: 'Walnut', color: '#5C3A1E', desc: 'Rich, warm brown wood' },
+                      { name: 'Concrete', color: '#A0A09B', desc: 'Industrial raw grey' },
+                    ].map((finish) => (
                       <button
-                        key={finish}
-                        onClick={() => setSelectedFinish(finish)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                          selectedFinish === finish
+                        key={finish.name}
+                        onClick={() => setSelectedFinish(finish.name)}
+                        className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-all ${
+                          selectedFinish === finish.name
                             ? 'bg-primary text-primary-foreground shadow-sm'
                             : 'bg-background border border-border hover:border-primary'
                         }`}
+                        title={finish.desc}
                       >
-                        {finish}
+                        <span
+                          className="w-3 h-3 rounded-full border border-border/50 flex-shrink-0"
+                          style={{ backgroundColor: finish.color }}
+                        />
+                        {finish.name}
                       </button>
                     ))}
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-foreground mb-1.5 block">Size</label>
+                  <label className="text-xs font-semibold text-foreground mb-1 block">Size</label>
+                  <p className="text-[10px] text-muted-foreground mb-1.5">Affects overall dimensions proportionally</p>
                   <div className="flex flex-wrap gap-1.5">
-                    {['Standard', 'Large', 'Extra Large'].map((size) => (
+                    {[
+                      { name: 'Standard', scale: '1×', desc: 'Original designer dimensions' },
+                      { name: 'Large', scale: '1.2×', desc: '20% larger than standard' },
+                      { name: 'Extra Large', scale: '1.5×', desc: '50% larger than standard' },
+                    ].map((size) => (
                       <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
-                          selectedSize === size
+                        key={size.name}
+                        onClick={() => setSelectedSize(size.name)}
+                        className={`flex flex-col items-center px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                          selectedSize === size.name
                             ? 'bg-primary text-primary-foreground shadow-sm'
                             : 'bg-background border border-border hover:border-primary'
                         }`}
                       >
-                        {size}
+                        <span>{size.name}</span>
+                        <span className={`text-[10px] font-normal ${
+                          selectedSize === size.name ? 'text-primary-foreground/70' : 'text-muted-foreground'
+                        }`}>{size.scale} scale</span>
                       </button>
                     ))}
                   </div>
+                  {product.dimensionsObj && (
+                    <p className="text-[10px] text-muted-foreground mt-1.5">
+                      {selectedSize === 'Standard' && `Approx. ${product.dimensionsObj.length || '—'}L × ${product.dimensionsObj.width || '—'}W × ${product.dimensionsObj.height || '—'}H cm`}
+                      {selectedSize === 'Large' && `Approx. ${Math.round((product.dimensionsObj.length || 0) * 1.2)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.2)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.2)}H cm`}
+                      {selectedSize === 'Extra Large' && `Approx. ${Math.round((product.dimensionsObj.length || 0) * 1.5)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.5)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.5)}H cm`}
+                    </p>
+                  )}
                 </div>
 
                 <Button variant="outline" className="w-full text-xs h-8" onClick={handleRequestCustomization}>
