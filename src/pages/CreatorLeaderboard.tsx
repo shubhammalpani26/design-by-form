@@ -104,55 +104,55 @@ const CreatorLeaderboard = () => {
                   to={`/designer/${creator.slug || creator.id}`}
                   className="block"
                 >
-                  <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/30">
-                    {index < 3 && (
-                      <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-                        #{index + 1}
-                      </div>
-                    )}
+                  <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/30 h-full">
                     <CardContent className="p-6">
                       <div className="flex items-center gap-4 mb-4">
-                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
-                          {creator.name.charAt(0)}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-14 h-14 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-xl font-bold text-white">
+                            {creator.name.charAt(0)}
+                          </div>
+                          {index < 3 && (
+                            <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-[10px] font-bold text-white border-2 border-background">
+                              {index + 1}
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <h3 className="font-bold text-lg text-foreground">{creator.name}</h3>
-                          
+                        <div className="min-w-0">
+                          <h3 className="font-bold text-lg text-foreground truncate">{creator.name}</h3>
+                          <p className="text-xs text-muted-foreground">
+                            {creator.totalProducts} {creator.totalProducts === 1 ? 'product' : 'products'} listed
+                          </p>
                         </div>
                       </div>
 
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Total Sales</span>
-                          <span className="font-bold text-primary">{creator.totalSales}</span>
+                      <div className="grid grid-cols-2 gap-3 mb-4">
+                        <div className="p-3 rounded-lg bg-primary/5 border border-primary/10 text-center">
+                          <p className="text-xl font-bold text-primary">{creator.totalProducts}</p>
+                          <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Products</p>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-sm text-muted-foreground">Products Listed</span>
-                          <span className="font-bold text-secondary">{creator.totalProducts}</span>
-                        </div>
+                        {creator.totalSales > 0 && (
+                          <div className="p-3 rounded-lg bg-secondary/5 border border-secondary/10 text-center">
+                            <p className="text-xl font-bold text-secondary">{creator.totalSales}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Sales</p>
+                          </div>
+                        )}
                       </div>
 
                       {creator.design_background && (
-                        <div className="mb-3">
-                          <p className="text-sm text-muted-foreground line-clamp-2">
-                            {creator.design_background}
-                          </p>
-                        </div>
+                        <p className="text-sm text-muted-foreground line-clamp-2 mb-3">
+                          {creator.design_background}
+                        </p>
                       )}
 
                       {creator.furniture_interests && (
-                        <div className="mb-3">
-                          <p className="text-xs text-muted-foreground">
-                            <strong>Interests:</strong> {creator.furniture_interests}
-                          </p>
-                        </div>
+                        <p className="text-xs text-muted-foreground mb-3">
+                          <strong>Interests:</strong> {creator.furniture_interests}
+                        </p>
                       )}
 
-                      {creator.portfolio_url && (
-                        <span className="text-sm text-primary hover:underline">
-                          View Portfolio →
-                        </span>
-                      )}
+                      <span className="text-sm text-primary font-medium">
+                        View Profile →
+                      </span>
                     </CardContent>
                   </Card>
                 </Link>
