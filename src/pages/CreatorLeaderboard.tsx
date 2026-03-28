@@ -113,7 +113,7 @@ const CreatorLeaderboard = () => {
                         </div>
                         <div>
                           <h3 className="font-bold text-lg text-foreground">{creator.name}</h3>
-                          <p className="text-sm text-muted-foreground">{creator.email}</p>
+                          
                         </div>
                       </div>
 
