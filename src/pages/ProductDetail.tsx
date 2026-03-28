@@ -302,7 +302,31 @@ const ProductDetail = () => {
     }
   };
 
-  if (loading) {
+  const getFinishImageStyle = (finish: string): React.CSSProperties => {
+    switch (finish) {
+      case 'Matte Black':
+        return { filter: 'brightness(0.35) contrast(1.1) saturate(0.2)' };
+      case 'Glossy White':
+        return { filter: 'brightness(1.4) contrast(0.9) saturate(0.15)' };
+      case 'Walnut':
+        return { filter: 'sepia(0.6) brightness(0.7) contrast(1.05) saturate(1.2)' };
+      case 'Concrete':
+        return { filter: 'saturate(0.1) brightness(0.95) contrast(0.95)' };
+      default:
+        return {};
+    }
+  };
+
+  const getFinishOverlayColor = (finish: string): string => {
+    switch (finish) {
+      case 'Matte Black': return 'rgba(20, 20, 20, 0.25)';
+      case 'Glossy White': return 'rgba(245, 245, 245, 0.15)';
+      case 'Walnut': return 'rgba(90, 50, 20, 0.2)';
+      case 'Concrete': return 'rgba(160, 160, 155, 0.2)';
+      default: return 'transparent';
+    }
+  };
+
     return (
       <div className="min-h-screen flex flex-col">
         <Header />
