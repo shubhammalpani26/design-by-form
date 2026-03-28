@@ -327,10 +327,16 @@ const ProductDetail = () => {
 
     const generateFinish = async () => {
       try {
+        // Ensure we have a full URL for the AI gateway
+        let fullImageUrl = mainImage;
+        if (fullImageUrl && !fullImageUrl.startsWith('http')) {
+          fullImageUrl = `${window.location.origin}${fullImageUrl.startsWith('/') ? '' : '/'}${fullImageUrl}`;
+        }
+
         const { data, error } = await supabase.functions.invoke('generate-finish-preview', {
           body: {
             productId: product.id,
-            productImageUrl: mainImage,
+            productImageUrl: fullImageUrl,
             productName: product.name,
             finishName: selectedFinish,
           },

@@ -22,6 +22,13 @@ serve(async (req) => {
       );
     }
 
+    if (!productImageUrl.startsWith('http')) {
+      return new Response(
+        JSON.stringify({ error: "Product image URL must be an absolute URL (starting with http)" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
