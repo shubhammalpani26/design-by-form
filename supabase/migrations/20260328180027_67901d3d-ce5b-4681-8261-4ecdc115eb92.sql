@@ -1,0 +1,1 @@
+UPDATE public.designer_products SET total_sales = 0 WHERE name = 'Intertwined' AND total_sales = 1;
