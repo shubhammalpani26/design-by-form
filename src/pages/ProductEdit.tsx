@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Trash2, Upload } from 'lucide-react';
+import { PriceCalculator } from '@/components/PriceCalculator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 
 interface ProductData {
@@ -279,18 +280,11 @@ const ProductEdit = () => {
                 />
               </div>
 
-              <div>
-                <Label htmlFor="designer_price">Your Price (₹)</Label>
-                <Input
-                  id="designer_price"
-                  type="number"
-                  value={product.designer_price}
-                  onChange={(e) => setProduct({ ...product, designer_price: parseFloat(e.target.value) })}
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Base price: ₹{product.base_price.toLocaleString('en-IN')}
-                </p>
-              </div>
+              <PriceCalculator
+                basePrice={product.base_price}
+                designerPrice={product.designer_price}
+                onPriceChange={(newPrice) => setProduct({ ...product, designer_price: newPrice })}
+              />
 
               {product.image_url && (
                 <div>
