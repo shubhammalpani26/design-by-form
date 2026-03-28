@@ -99,8 +99,8 @@ const Cart = () => {
     <div className="min-h-screen flex flex-col">
       <Header />
       
-      <main className="flex-1 container py-12">
-        <h1 className="text-4xl font-bold mb-8">Shopping Cart</h1>
+      <main className="flex-1 container px-4 sm:px-6 py-6 sm:py-12">
+        <h1 className="text-2xl sm:text-4xl font-bold mb-4 sm:mb-8">Shopping Cart</h1>
 
         {cart.length === 0 ? (
           <div className="text-center py-16">
@@ -118,16 +118,16 @@ const Cart = () => {
             <div className="lg:col-span-2 space-y-4">
               {cart.map((item) => (
                 <Card key={item.id}>
-                  <CardContent className="p-6">
-                    <div className="flex gap-6">
+                  <CardContent className="p-3 sm:p-6">
+                    <div className="flex gap-3 sm:gap-6">
                       <img
                         src={item.product.image_url}
                         alt={item.product.name}
-                        className="w-32 h-32 object-cover rounded-lg"
+                        className="w-20 h-20 sm:w-32 sm:h-32 object-cover rounded-lg flex-shrink-0"
                       />
-                      <div className="flex-1">
-                        <h3 className="text-xl font-semibold mb-2">{item.product.name}</h3>
-                        <p className="text-lg text-primary font-semibold mb-4">
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm sm:text-xl font-semibold mb-1 sm:mb-2 truncate">{item.product.name}</h3>
+                        <p className="text-sm sm:text-lg text-primary font-semibold mb-2 sm:mb-4">
                           {formatPrice(item.product.designer_price)}
                         </p>
                         
@@ -138,8 +138,8 @@ const Cart = () => {
                           </div>
                         )}
 
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-4">
+                          <div className="flex items-center gap-1 sm:gap-2">
                             <Button
                               variant="outline"
                               size="sm"
@@ -174,7 +174,7 @@ const Cart = () => {
             <div className="lg:col-span-1">
               <Card className="sticky top-20">
                 <CardContent className="p-6">
-                  <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Order Summary</h2>
                   
                   <div className="space-y-3 mb-6">
                     <div className="flex justify-between">
@@ -197,13 +197,13 @@ const Cart = () => {
                         Proceed to Checkout
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                       <DialogHeader>
                         <DialogTitle>Checkout - Shipping Details</DialogTitle>
                       </DialogHeader>
                       
                       <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="name">Full Name *</Label>
                             <Input
@@ -235,7 +235,7 @@ const Cart = () => {
                           />
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                           <div className="space-y-2">
                             <Label htmlFor="city">City *</Label>
                             <Input
