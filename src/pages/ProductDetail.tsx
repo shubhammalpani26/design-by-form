@@ -17,7 +17,7 @@ import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
 
 import { slugify } from "@/lib/slugify";
-import { applyColorTransformToFurniture } from "@/lib/colorTransform";
+
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -305,50 +305,72 @@ const ProductDetail = () => {
     }
   };
 
-  const finishToColorMap: Record<string, string> = {
-    'Matte Black': 'black',
-    'Glossy White': 'white',
-    'Walnut': 'wood finish',
-    'Concrete': 'gray',
-    'Natural': '',
-  };
-
-  const finishToFinishMap: Record<string, string> = {
-    'Matte Black': 'matte',
-    'Glossy White': 'glossy',
-    'Walnut': 'natural',
-    'Concrete': 'matte',
-    'Natural': 'natural',
-  };
+  // In-memory cache for finish images within this session
+  const finishCacheRef = React.useRef<Record<string, string>>({});
 
   useEffect(() => {
-    if (selectedFinish === 'Natural' || !mainImage) {
+    if (selectedFinish === 'Natural' || !product?.id) {
       setFinishImage('');
+      return;
+    }
+
+    const cacheKey = `${product.id}_${selectedFinish}`;
+
+    // Check in-memory cache first
+    if (finishCacheRef.current[cacheKey]) {
+      setFinishImage(finishCacheRef.current[cacheKey]);
       return;
     }
 
     let cancelled = false;
     setIsApplyingFinish(true);
 
-    const color = finishToColorMap[selectedFinish] || '';
-    const finish = finishToFinishMap[selectedFinish] || 'natural';
+    const generateFinish = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('generate-finish-preview', {
+          body: {
+            productId: product.id,
+            productImageUrl: mainImage,
+            productName: product.name,
+            finishName: selectedFinish,
+          },
+        });
 
-    applyColorTransformToFurniture(mainImage, color, finish)
-      .then((dataUrl) => {
-        if (!cancelled) {
-          setFinishImage(dataUrl);
-          setIsApplyingFinish(false);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) {
+        if (cancelled) return;
+
+        if (error) {
+          console.error('Finish generation error:', error);
+          toast({
+            title: "Finish preview unavailable",
+            description: "Could not generate finish preview. Try again later.",
+            variant: "destructive",
+          });
           setFinishImage('');
-          setIsApplyingFinish(false);
+        } else if (data?.imageUrl) {
+          finishCacheRef.current[cacheKey] = data.imageUrl;
+          setFinishImage(data.imageUrl);
+          if (!data.cached) {
+            toast({
+              title: "Finish preview generated",
+              description: `${selectedFinish} finish preview is now cached for all visitors.`,
+            });
+          }
+        } else {
+          setFinishImage('');
         }
-      });
+      } catch (err) {
+        if (!cancelled) {
+          console.error('Finish preview error:', err);
+          setFinishImage('');
+        }
+      } finally {
+        if (!cancelled) setIsApplyingFinish(false);
+      }
+    };
 
+    generateFinish();
     return () => { cancelled = true; };
-  }, [selectedFinish, mainImage]);
+  }, [selectedFinish, product?.id, mainImage]);
 
   if (loading) {
     return (
