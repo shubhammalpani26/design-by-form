@@ -12,6 +12,7 @@ interface Creator {
   design_background: string;
   furniture_interests: string;
   portfolio_url: string;
+  slug: string | null;
   totalSales: number;
   totalProducts: number;
 }
@@ -28,7 +29,7 @@ const CreatorLeaderboard = () => {
     try {
       const { data: profiles } = await supabase
         .from('designer_profiles')
-        .select('id, name, email, design_background, furniture_interests, portfolio_url, profile_picture_url')
+        .select('id, name, email, design_background, furniture_interests, portfolio_url, profile_picture_url, slug')
         .eq('status', 'approved');
 
       if (!profiles) return;
@@ -50,6 +51,7 @@ const CreatorLeaderboard = () => {
             design_background: profile.design_background,
             furniture_interests: profile.furniture_interests,
             portfolio_url: profile.portfolio_url,
+            slug: profile.slug,
             totalSales,
             totalProducts: products?.length || 0,
           };
@@ -93,62 +95,63 @@ const CreatorLeaderboard = () => {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {creators.map((creator, index) => (
-                <Card key={creator.id} className="relative overflow-hidden hover:shadow-lg transition-shadow">
-                  {index < 3 && (
-                    <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
-                      #{index + 1}
-                    </div>
-                  )}
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
-                        {creator.name.charAt(0)}
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-foreground">{creator.name}</h3>
-                        <p className="text-sm text-muted-foreground">{creator.email}</p>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 mb-4">
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Total Sales</span>
-                        <span className="font-bold text-primary">{creator.totalSales}</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-muted-foreground">Products Listed</span>
-                        <span className="font-bold text-secondary">{creator.totalProducts}</span>
-                      </div>
-                    </div>
-
-                    {creator.design_background && (
-                      <div className="mb-3">
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {creator.design_background}
-                        </p>
+                <Link
+                  key={creator.id}
+                  to={`/designer/${creator.slug || creator.id}`}
+                  className="block"
+                >
+                  <Card className="relative overflow-hidden hover:shadow-lg transition-shadow cursor-pointer hover:border-primary/30">
+                    {index < 3 && (
+                      <div className="absolute top-4 right-4 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white font-bold text-lg">
+                        #{index + 1}
                       </div>
                     )}
-
-                    {creator.furniture_interests && (
-                      <div className="mb-3">
-                        <p className="text-xs text-muted-foreground">
-                          <strong>Interests:</strong> {creator.furniture_interests}
-                        </p>
+                    <CardContent className="p-6">
+                      <div className="flex items-center gap-4 mb-4">
+                        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-2xl font-bold text-white flex-shrink-0">
+                          {creator.name.charAt(0)}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-lg text-foreground">{creator.name}</h3>
+                          <p className="text-sm text-muted-foreground">{creator.email}</p>
+                        </div>
                       </div>
-                    )}
 
-                    {creator.portfolio_url && (
-                      <a
-                        href={creator.portfolio_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm text-primary hover:underline"
-                      >
-                        View Portfolio →
-                      </a>
-                    )}
-                  </CardContent>
-                </Card>
+                      <div className="space-y-3 mb-4">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Total Sales</span>
+                          <span className="font-bold text-primary">{creator.totalSales}</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm text-muted-foreground">Products Listed</span>
+                          <span className="font-bold text-secondary">{creator.totalProducts}</span>
+                        </div>
+                      </div>
+
+                      {creator.design_background && (
+                        <div className="mb-3">
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {creator.design_background}
+                          </p>
+                        </div>
+                      )}
+
+                      {creator.furniture_interests && (
+                        <div className="mb-3">
+                          <p className="text-xs text-muted-foreground">
+                            <strong>Interests:</strong> {creator.furniture_interests}
+                          </p>
+                        </div>
+                      )}
+
+                      {creator.portfolio_url && (
+                        <span className="text-sm text-primary hover:underline">
+                          View Portfolio →
+                        </span>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
