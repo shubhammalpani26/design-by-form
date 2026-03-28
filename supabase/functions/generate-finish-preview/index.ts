@@ -7,6 +7,36 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const extractGeneratedImageUrl = (result: any): string | null => {
+  const choices = Array.isArray(result?.choices) ? result.choices : [];
+
+  for (const choice of choices) {
+    const message = choice?.message ?? {};
+
+    // Newer image models often return image payloads here
+    const images = Array.isArray(message.images) ? message.images : [];
+    for (const image of images) {
+      const imageUrl = image?.image_url?.url;
+      if (typeof imageUrl === "string" && imageUrl.length > 0) {
+        return imageUrl;
+      }
+    }
+
+    // Backward-compatible format
+    const content = message?.content;
+    if (Array.isArray(content)) {
+      for (const part of content) {
+        const imageUrl = part?.image_url?.url;
+        if (part?.type === "image_url" && typeof imageUrl === "string" && imageUrl.length > 0) {
+          return imageUrl;
+        }
+      }
+    }
+  }
+
+  return null;
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -77,67 +107,69 @@ CRITICAL RULES:
 - The result should look like a professional product photo of the same piece in the new finish
 - Product name: ${productName || "furniture piece"}`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "text", text: prompt },
-              { type: "image_url", image_url: { url: productImageUrl } },
-            ],
-          },
-        ],
-      }),
-    });
+    const generationModels = [
+      "google/gemini-3.1-flash-image-preview",
+      "google/gemini-3-pro-image-preview",
+      "google/gemini-2.5-flash-image",
+    ];
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limited. Please try again in a moment." }),
-          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
-      const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
-      return new Response(
-        JSON.stringify({ error: "Failed to generate finish preview" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const result = await response.json();
     let generatedImageUrl: string | null = null;
+    let lastGatewayError: string | null = null;
 
-    // Extract image URL from response
-    const choices = result.choices || [];
-    for (const choice of choices) {
-      const content = choice.message?.content;
-      if (Array.isArray(content)) {
-        for (const part of content) {
-          if (part.type === "image_url" && part.image_url?.url) {
-            generatedImageUrl = part.image_url.url;
-            break;
-          }
+    for (const model of generationModels) {
+      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${LOVABLE_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model,
+          modalities: ["image", "text"],
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                { type: "image_url", image_url: { url: productImageUrl } },
+              ],
+            },
+          ],
+        }),
+      });
+
+      if (!response.ok) {
+        if (response.status === 429) {
+          return new Response(
+            JSON.stringify({ error: "Rate limited. Please try again in a moment." }),
+            { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
+        if (response.status === 402) {
+          return new Response(
+            JSON.stringify({ error: "AI credits exhausted. Please add funds." }),
+            { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+
+        const errorText = await response.text();
+        lastGatewayError = `${model} -> ${response.status}: ${errorText.slice(0, 500)}`;
+        console.error(`AI gateway error for ${model}:`, response.status, errorText);
+        continue;
       }
-      if (generatedImageUrl) break;
+
+      const result = await response.json();
+      generatedImageUrl = extractGeneratedImageUrl(result);
+
+      if (generatedImageUrl) {
+        break;
+      }
+
+      console.error(`No image in AI response for ${model}:`, JSON.stringify(result).slice(0, 800));
     }
 
     if (!generatedImageUrl) {
-      console.error("No image in AI response:", JSON.stringify(result).slice(0, 500));
+      console.error("Finish generation failed for all models", lastGatewayError);
       return new Response(
         JSON.stringify({ error: "AI did not return an image. Try again." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
