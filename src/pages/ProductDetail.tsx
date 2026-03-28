@@ -380,12 +380,24 @@ const ProductDetail = () => {
               </TabsList>
 
               <TabsContent value="image" className="mt-2">
-                <div className="aspect-square rounded-xl overflow-hidden bg-accent">
+                <div className="aspect-square rounded-xl overflow-hidden bg-accent relative">
                   <img
                     src={mainImage}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-all duration-500"
+                    style={getFinishImageStyle(selectedFinish)}
                   />
+                  {selectedFinish !== 'Natural' && (
+                    <div 
+                      className="absolute inset-0 pointer-events-none rounded-xl mix-blend-multiply transition-all duration-500"
+                      style={{ backgroundColor: getFinishOverlayColor(selectedFinish) }}
+                    />
+                  )}
+                  {selectedFinish !== 'Natural' && (
+                    <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm text-xs font-medium px-2.5 py-1 rounded-full border border-border shadow-sm">
+                      Preview: {selectedFinish} finish
+                    </div>
+                  )}
                 </div>
                 {product.angle_views && product.angle_views.length > 0 && (
                   <div className="mt-2 flex gap-2 overflow-x-auto">
