@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { DollarSign, TrendingUp, Package, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrency } from '@/contexts/CurrencyContext';
+import { EarningsProjector } from '@/components/EarningsProjector';
 
 interface EarningsData {
   totalEarnings: number;
