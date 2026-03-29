@@ -23,7 +23,7 @@ const ProductDetail = () => {
   const { slug } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [viewMode, setViewMode] = useState<"image" | "360" | "ar">("image");
+  const [viewMode, setViewMode] = useState<"image" | "ar">("image");
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
   const [isSaved, setIsSaved] = useState(false);
@@ -449,9 +449,8 @@ const ProductDetail = () => {
           {/* Left Column - Image and AR Viewer */}
           <div className="space-y-2">
             <Tabs defaultValue="image" value={viewMode} onValueChange={(v) => setViewMode(v as any)} className="w-full">
-              <TabsList className="grid w-full grid-cols-3 h-9">
+              <TabsList className="grid w-full grid-cols-2 h-9">
                 <TabsTrigger value="image" className="text-xs">Gallery</TabsTrigger>
-                <TabsTrigger value="360" className="text-xs">360° View</TabsTrigger>
                 <TabsTrigger value="ar" className="text-xs">AR Preview</TabsTrigger>
               </TabsList>
 
@@ -476,45 +475,38 @@ const ProductDetail = () => {
                     </div>
                   )}
                 </div>
-                {product.angle_views && product.angle_views.length > 0 && (
-                  <div className="mt-2 flex gap-2 overflow-x-auto">
-                    {product.angle_views.map((view: any, idx: number) => (
-                      <button
-                        key={idx}
-                        onClick={() => setMainImage(view.url)}
-                        className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 border-border hover:border-primary transition-colors"
-                      >
-                        <img
-                          src={view.url}
-                          alt={view.angle}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="360" className="mt-2">
-                {product.model_url ? (
-                  <div className="h-[300px] sm:h-[400px] lg:h-[450px] overflow-hidden rounded-xl">
-                    <ModelViewer3D
-                      modelUrl={product.model_url}
-                      productName={product.name}
-                    />
-                  </div>
-                ) : product.angle_views && product.angle_views.length > 1 ? (
-                  <AngleRotator images={product.angle_views} />
-                ) : (
-                  <div className="aspect-square rounded-xl bg-accent flex items-center justify-center">
-                    <div className="text-center p-8">
-                      <p className="text-muted-foreground">360° view not available</p>
-                      <p className="text-xs text-muted-foreground mt-2">
-                        Designer needs to generate angle views
-                      </p>
+                {/* Thumbnail gallery - main image + angle views */}
+                {(() => {
+                  const allImages: { url: string; label: string }[] = [];
+                  if (product.image_url) allImages.push({ url: product.image_url, label: 'Main' });
+                  if (product.angle_views && Array.isArray(product.angle_views)) {
+                    product.angle_views.forEach((view: any, i: number) => {
+                      const url = view.url || view;
+                      if (url && url !== product.image_url) {
+                        allImages.push({ url, label: view.angle || `View ${i + 1}` });
+                      }
+                    });
+                  }
+                  return allImages.length > 1 ? (
+                    <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                      {allImages.map((img, idx) => (
+                        <button
+                          key={idx}
+                          onClick={() => setMainImage(img.url)}
+                          className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                            mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'
+                          }`}
+                        >
+                          <img
+                            src={img.url}
+                            alt={img.label}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
                     </div>
-                  </div>
-                )}
+                  ) : null;
+                })()}
               </TabsContent>
 
               <TabsContent value="ar" className="mt-2">
