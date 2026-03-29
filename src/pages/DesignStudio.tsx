@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ZoomIn, Sparkles, Shuffle, Download, Maximize2 } from "lucide-react";
+import { ChevronDown, ZoomIn, Sparkles, Shuffle, Download, Maximize2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
