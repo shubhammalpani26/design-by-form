@@ -175,7 +175,11 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       }
       
       // Only run background removal if we have BOTH room photo AND image, but NO 3D model
-      const urlToProcess = imageUrl;
+      let urlToProcess = imageUrl;
+      // Ensure absolute URL for the edge function
+      if (urlToProcess && !urlToProcess.startsWith('http') && !urlToProcess.startsWith('data:')) {
+        urlToProcess = `${window.location.origin}${urlToProcess.startsWith('/') ? '' : '/'}${urlToProcess}`;
+      }
       
       // Check cache first - see if we have the processed result stored
       const cacheKey = `ar-processed-${BG_REMOVAL_CACHE_VERSION}-${urlToProcess}`;
