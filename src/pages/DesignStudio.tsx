@@ -349,7 +349,51 @@ const DesignStudio = () => {
     checkSubscription();
   }, [user]);
 
-  const handleSurpriseMe = async () => {
+  // Auto-generate space preview when room image + generated variations are available
+  const generateSpacePreview = async (productImageUrl: string) => {
+    if (!roomImagePreview || !productImageUrl) return;
+    setIsGeneratingSpacePreview(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-space-preview', {
+        body: {
+          spaceImageBase64: roomImagePreview,
+          productImageUrl,
+          productName: submissionData.name || prompt || 'Custom Furniture',
+          category: designCategory || 'furniture',
+        }
+      });
+      if (error) throw error;
+      if (data?.imageUrl) {
+        setSpacePreviewUrl(data.imageUrl);
+      }
+    } catch (err) {
+      console.warn('Space preview generation failed:', err);
+    } finally {
+      setIsGeneratingSpacePreview(false);
+    }
+  };
+
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && !spacePreviewUrl && !isGeneratingSpacePreview) {
+      const currentVariation = generatedVariations[selectedVariation ?? 0];
+      if (currentVariation?.imageUrl) {
+        generateSpacePreview(currentVariation.imageUrl);
+      }
+    }
+  }, [generatedVariations, roomImagePreview]);
+
+  // Regenerate space preview when user selects a different variation
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && spacePreviewUrl && selectedVariation !== null) {
+      const currentVariation = generatedVariations[selectedVariation];
+      if (currentVariation?.imageUrl) {
+        setSpacePreviewUrl(null);
+        generateSpacePreview(currentVariation.imageUrl);
+      }
+    }
+  }, [selectedVariation]);
+
+
     setIsGeneratingSurprise(true);
     
     try {
