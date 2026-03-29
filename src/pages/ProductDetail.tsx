@@ -328,8 +328,8 @@ const ProductDetail = () => {
 
     const generateFinish = async () => {
       try {
-        // Ensure we have a full URL for the AI gateway
-        let fullImageUrl = mainImage;
+        // Always use the original product image for finish generation, not the current angle view
+        let fullImageUrl = product.image_url || product.image;
         if (fullImageUrl && !fullImageUrl.startsWith('http')) {
           fullImageUrl = `${window.location.origin}${fullImageUrl.startsWith('/') ? '' : '/'}${fullImageUrl}`;
         }
@@ -377,7 +377,7 @@ const ProductDetail = () => {
 
     generateFinish();
     return () => { cancelled = true; };
-  }, [selectedFinish, product?.id, mainImage]);
+  }, [selectedFinish, product?.id]);
 
   if (loading) {
     return (
@@ -477,7 +477,7 @@ const ProductDetail = () => {
                         <img
                           src={finishImage || mainImage}
                           alt={product.name}
-                          className="w-full h-full object-cover transition-all duration-500"
+                          className="w-full h-full object-cover transition-opacity duration-200"
                         />
                         {/* Navigation arrows */}
                         {allImages.length > 1 && (
