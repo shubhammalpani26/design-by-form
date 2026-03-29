@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -373,24 +373,27 @@ const DesignStudio = () => {
     }
   };
 
+  // Generate space preview only when user explicitly selects a variation (not on initial load)
+  const hasInitializedSpacePreview = useRef(false);
+  
   useEffect(() => {
-    if (generatedVariations.length > 0 && roomImagePreview && !spacePreviewUrl && !isGeneratingSpacePreview) {
-      const currentVariation = generatedVariations[selectedVariation ?? 0];
-      if (currentVariation?.imageUrl) {
-        generateSpacePreview(currentVariation.imageUrl);
-      }
-    }
-  }, [generatedVariations, roomImagePreview]);
+    if (generatedVariations.length === 0 || !roomImagePreview || selectedVariation === null) return;
+    
+    const currentVariation = generatedVariations[selectedVariation];
+    if (!currentVariation?.imageUrl) return;
 
-  // Regenerate space preview when user selects a different variation
-  useEffect(() => {
-    if (generatedVariations.length > 0 && roomImagePreview && spacePreviewUrl && selectedVariation !== null) {
-      const currentVariation = generatedVariations[selectedVariation];
-      if (currentVariation?.imageUrl) {
-        setSpacePreviewUrl(null);
+    // On first load with carried-over data, auto-generate once
+    if (!hasInitializedSpacePreview.current) {
+      hasInitializedSpacePreview.current = true;
+      if (!spacePreviewUrl && !isGeneratingSpacePreview) {
         generateSpacePreview(currentVariation.imageUrl);
       }
+      return;
     }
+
+    // On subsequent variation changes, regenerate
+    setSpacePreviewUrl(null);
+    generateSpacePreview(currentVariation.imageUrl);
   }, [selectedVariation]);
 
   const handleSurpriseMe = async () => {
