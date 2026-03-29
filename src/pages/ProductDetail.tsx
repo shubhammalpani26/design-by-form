@@ -608,9 +608,9 @@ const ProductDetail = () => {
                   </div>
                   {product.dimensionsObj && (
                     <p className="text-[10px] text-muted-foreground mt-1.5">
-                      {selectedSize === 'Standard' && `Approx. ${product.dimensionsObj.length || '—'}L × ${product.dimensionsObj.width || '—'}W × ${product.dimensionsObj.height || '—'}H cm`}
-                      {selectedSize === 'Large' && `Approx. ${Math.round((product.dimensionsObj.length || 0) * 1.2)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.2)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.2)}H cm`}
-                      {selectedSize === 'Extra Large' && `Approx. ${Math.round((product.dimensionsObj.length || 0) * 1.5)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.5)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.5)}H cm`}
+                      {selectedSize === 'Standard' && `Approx. ${product.dimensionsObj.depth || '—'}L × ${product.dimensionsObj.width || '—'}W × ${product.dimensionsObj.height || '—'}H cm`}
+                      {selectedSize === 'Large' && `Approx. ${Math.round((product.dimensionsObj.depth || 0) * 1.2)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.2)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.2)}H cm`}
+                      {selectedSize === 'Extra Large' && `Approx. ${Math.round((product.dimensionsObj.depth || 0) * 1.5)}L × ${Math.round((product.dimensionsObj.width || 0) * 1.5)}W × ${Math.round((product.dimensionsObj.height || 0) * 1.5)}H cm`}
                     </p>
                   )}
                 </div>
