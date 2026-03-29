@@ -39,6 +39,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
   const [aiPreviewUrl, setAiPreviewUrl] = useState<string | null>(null);
   const [isGeneratingAiPreview, setIsGeneratingAiPreview] = useState(false);
   const [showAiPreview, setShowAiPreview] = useState(false);
+  const lastAutoPreviewKeyRef = useRef<string | null>(null);
 
   // Track which URLs have been processed to prevent re-processing
   const [processedUrls, setProcessedUrls] = useState<Set<string>>(new Set());
@@ -294,10 +295,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
-  // Don't auto-trigger AI Space Preview - it uses credits
-  // Users can manually trigger it via the button if they want a more polished result
-
-  const handleGenerateAiPreview = async () => {
+  const handleGenerateAiPreview = useCallback(async () => {
     if (!uploadedPhoto || !imageUrl) return;
     
     setIsGeneratingAiPreview(true);
@@ -341,7 +339,19 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     } finally {
       setIsGeneratingAiPreview(false);
     }
-  };
+  }, [uploadedPhoto, imageUrl, productName, category, toast]);
+
+  // Auto-generate AI space preview after user uploads a room photo
+  useEffect(() => {
+    if (!uploadedPhoto || !imageUrl || isGeneratingAiPreview) return;
+
+    const autoPreviewKey = `${productId || productName}-${imageUrl}-${uploadedPhoto.slice(0, 80)}`;
+    if (lastAutoPreviewKeyRef.current === autoPreviewKey) return;
+
+    lastAutoPreviewKeyRef.current = autoPreviewKey;
+    setShowAiPreview(true);
+    void handleGenerateAiPreview();
+  }, [uploadedPhoto, imageUrl, productId, productName, isGeneratingAiPreview, handleGenerateAiPreview]);
   const renderModelViewer = (inRoom: boolean = false) => {
     if (!proxiedModelUrl) return null;
     
@@ -737,7 +747,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
             <p className="leading-relaxed">
               <strong>How it works:</strong> Upload a photo of your space and we'll automatically remove the product background and overlay it. 
               {!proxiedModelUrl ? ' Drag to position, resize, and rotate to see how it fits.' : ''} 
-              Want a more polished result? Use the <strong>AI Space Preview</strong> button.
+              We’ll also auto-generate an <strong>AI Space Preview</strong>; use the button to regenerate.
             </p>
           </div>
         </div>
