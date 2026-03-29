@@ -42,6 +42,19 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
+  // Preload all angle view images for instant switching
+  useEffect(() => {
+    if (!product?.angle_views) return;
+    const views = Array.isArray(product.angle_views) ? product.angle_views : [];
+    views.forEach((view: any) => {
+      const url = view.url || view;
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  }, [product?.angle_views]);
+
   const fetchProduct = async () => {
     try {
       // Try fetching by slug first, fallback to UUID for backward compatibility
