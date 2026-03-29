@@ -75,7 +75,7 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     }
   }, [productId, isDesignStudio]);
 
-  // Save state when it changes (scoped per product or design studio)
+  // Save state when it changes (scoped per product or design studio) — exclude large base64 images to avoid quota errors
   useEffect(() => {
     const storageKey = getStorageKey();
     const state = {
@@ -83,11 +83,13 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       scale: furnitureScale,
       rotation: furnitureRotation,
       lateralRotation: furnitureLateralRotation,
-      uploadedPhoto,
-      processedFurnitureUrl,
     };
-    sessionStorage.setItem(storageKey, JSON.stringify(state));
-  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, uploadedPhoto, processedFurnitureUrl, productId, isDesignStudio]);
+    try {
+      sessionStorage.setItem(storageKey, JSON.stringify(state));
+    } catch {
+      // Quota exceeded — ignore, state is non-critical
+    }
+  }, [furniturePosition, furnitureScale, furnitureRotation, furnitureLateralRotation, productId, isDesignStudio]);
 
   // Create proxied URL for 3D model to avoid CORS issues
   useEffect(() => {
