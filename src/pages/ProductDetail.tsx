@@ -497,7 +497,7 @@ const ProductDetail = () => {
                           <>
                             {hasPrev && (
                               <button
-                                onClick={() => setMainImage(allImages[currentIdx - 1].url)}
+                                onClick={() => { setMainImage(allImages[currentIdx - 1].url); setFinishImage(''); }}
                                 className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                               >
                                 <ChevronLeft className="w-4 h-4 text-foreground" />
@@ -505,7 +505,7 @@ const ProductDetail = () => {
                             )}
                             {hasNext && (
                               <button
-                                onClick={() => setMainImage(allImages[currentIdx + 1].url)}
+                                onClick={() => { setMainImage(allImages[currentIdx + 1].url); setFinishImage(''); }}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                               >
                                 <ChevronRight className="w-4 h-4 text-foreground" />
@@ -537,7 +537,7 @@ const ProductDetail = () => {
                           {allImages.map((img, idx) => (
                             <button
                               key={idx}
-                              onClick={() => setMainImage(img.url)}
+                              onClick={() => { setMainImage(img.url); setFinishImage(''); }}
                               className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
                                 mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'
                               }`}
