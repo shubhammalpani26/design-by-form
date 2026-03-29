@@ -735,8 +735,9 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           <div className="text-xs text-muted-foreground bg-accent/50 p-2.5 sm:p-3 rounded-lg">
             <p className="leading-relaxed">
-              <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
-              {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
+              <strong>How it works:</strong> Upload a photo of your space and we'll automatically remove the product background and overlay it. 
+              {!proxiedModelUrl ? ' Drag to position, resize, and rotate to see how it fits.' : ''} 
+              Want a more polished result? Use the <strong>AI Space Preview</strong> button.
             </p>
           </div>
         </div>
