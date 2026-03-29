@@ -289,6 +289,7 @@ const DesignStudio = () => {
     if (spaceImage) {
       setRoomImagePreview(spaceImage);
       setLastEditedInput('room');
+      setIsRoomSectionOpen(true);
       sessionStorage.removeItem('homepage-space-image');
     }
   }, []);
