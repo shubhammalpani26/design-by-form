@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ZoomIn, Sparkles, Shuffle, Download, Maximize2 } from "lucide-react";
+import { ChevronDown, ZoomIn, Sparkles, Shuffle, Download, Maximize2, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { FullscreenImageViewer } from "@/components/FullscreenImageViewer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
@@ -116,6 +116,8 @@ const DesignStudio = () => {
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const [aiGeneratedDescription, setAiGeneratedDescription] = useState<string | null>(null);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [spacePreviewUrl, setSpacePreviewUrl] = useState<string | null>(null);
+  const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
@@ -346,6 +348,50 @@ const DesignStudio = () => {
     
     checkSubscription();
   }, [user]);
+
+  // Auto-generate space preview when room image + generated variations are available
+  const generateSpacePreview = async (productImageUrl: string) => {
+    if (!roomImagePreview || !productImageUrl) return;
+    setIsGeneratingSpacePreview(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-space-preview', {
+        body: {
+          spaceImageBase64: roomImagePreview,
+          productImageUrl,
+          productName: submissionData.name || prompt || 'Custom Furniture',
+          category: designCategory || 'furniture',
+        }
+      });
+      if (error) throw error;
+      if (data?.imageUrl) {
+        setSpacePreviewUrl(data.imageUrl);
+      }
+    } catch (err) {
+      console.warn('Space preview generation failed:', err);
+    } finally {
+      setIsGeneratingSpacePreview(false);
+    }
+  };
+
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && !spacePreviewUrl && !isGeneratingSpacePreview) {
+      const currentVariation = generatedVariations[selectedVariation ?? 0];
+      if (currentVariation?.imageUrl) {
+        generateSpacePreview(currentVariation.imageUrl);
+      }
+    }
+  }, [generatedVariations, roomImagePreview]);
+
+  // Regenerate space preview when user selects a different variation
+  useEffect(() => {
+    if (generatedVariations.length > 0 && roomImagePreview && spacePreviewUrl && selectedVariation !== null) {
+      const currentVariation = generatedVariations[selectedVariation];
+      if (currentVariation?.imageUrl) {
+        setSpacePreviewUrl(null);
+        generateSpacePreview(currentVariation.imageUrl);
+      }
+    }
+  }, [selectedVariation]);
 
   const handleSurpriseMe = async () => {
     setIsGeneratingSurprise(true);
@@ -1960,6 +2006,7 @@ const DesignStudio = () => {
                                 onClick={() => {
                                   setRoomImage(null);
                                   setRoomImagePreview(null);
+                                  setSpacePreviewUrl(null);
                                   if (lastEditedInput === 'room') {
                                     setLastEditedInput(uploadedImage ? 'sketch' : null);
                                   }
@@ -2273,6 +2320,62 @@ const DesignStudio = () => {
                                 </div>
                                 <span className="text-sm font-bold text-primary">{dimensions.length}" × {dimensions.breadth}" × {dimensions.height}"</span>
                               </div>
+                            )}
+                            {/* AI Space Preview - shown when room image is available */}
+                            {roomImagePreview && (
+                              <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/5 to-secondary/5">
+                                <CardContent className="p-0">
+                                  <div className="flex items-center justify-between px-4 py-3 border-b border-primary/10">
+                                    <div className="flex items-center gap-2">
+                                      <div className="p-1.5 bg-primary/10 rounded-lg">
+                                        <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
+                                      </div>
+                                      <div>
+                                        <h4 className="font-semibold text-sm text-foreground">Your Space Preview</h4>
+                                        <p className="text-xs text-muted-foreground">AI-rendered in your uploaded room</p>
+                                      </div>
+                                    </div>
+                                    {spacePreviewUrl && (
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setSpacePreviewUrl(null);
+                                          const currentVariation = generatedVariations[selectedVariation ?? 0];
+                                          if (currentVariation?.imageUrl) {
+                                            generateSpacePreview(currentVariation.imageUrl);
+                                          }
+                                        }}
+                                        className="text-xs"
+                                      >
+                                        Regenerate
+                                      </Button>
+                                    )}
+                                  </div>
+                                  <div className="p-4">
+                                    {isGeneratingSpacePreview ? (
+                                      <div className="flex items-center justify-center gap-2 py-8">
+                                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                                        <span className="text-sm text-muted-foreground">Rendering your design in the space...</span>
+                                      </div>
+                                    ) : spacePreviewUrl ? (
+                                      <div className="rounded-lg overflow-hidden border border-border cursor-pointer" onClick={() => setFullscreenImage(spacePreviewUrl)}>
+                                        <img
+                                          src={spacePreviewUrl}
+                                          alt="Design in your space"
+                                          className="w-full object-contain"
+                                        />
+                                      </div>
+                                    ) : (
+                                      <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground">
+                                        <span className="text-sm">Space preview will appear here once designs are generated</span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </CardContent>
+                              </Card>
                             )}
                             <div id="variations-grid" className="grid grid-cols-1 gap-4">
                               {generatedVariations.map((variation, index) => (
