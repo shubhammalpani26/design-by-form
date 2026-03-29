@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -374,7 +374,7 @@ const DesignStudio = () => {
   };
 
   // Generate space preview only when user explicitly selects a variation (not on initial load)
-  const hasInitializedSpacePreview = React.useRef(false);
+  const hasInitializedSpacePreview = useRef(false);
   
   useEffect(() => {
     if (generatedVariations.length === 0 || !roomImagePreview || selectedVariation === null) return;
