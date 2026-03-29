@@ -373,28 +373,7 @@ const DesignStudio = () => {
     }
   };
 
-  // Generate space preview only when user explicitly selects a variation (not on initial load)
-  const hasInitializedSpacePreview = useRef(false);
-  
-  useEffect(() => {
-    if (generatedVariations.length === 0 || !roomImagePreview || selectedVariation === null) return;
-    
-    const currentVariation = generatedVariations[selectedVariation];
-    if (!currentVariation?.imageUrl) return;
-
-    // On first load with carried-over data, auto-generate once
-    if (!hasInitializedSpacePreview.current) {
-      hasInitializedSpacePreview.current = true;
-      if (!spacePreviewUrl && !isGeneratingSpacePreview) {
-        generateSpacePreview(currentVariation.imageUrl);
-      }
-      return;
-    }
-
-    // On subsequent variation changes, regenerate
-    setSpacePreviewUrl(null);
-    generateSpacePreview(currentVariation.imageUrl);
-  }, [selectedVariation]);
+  // Space preview is generated only on explicit user variation selection or Regenerate button.
 
   const handleSurpriseMe = async () => {
     setIsGeneratingSurprise(true);
@@ -921,6 +900,11 @@ const DesignStudio = () => {
       title: "Variation Selected",
       description: "Ready to customize dimensions and submit your design.",
     });
+
+    if (roomImagePreview && selectedVar.imageUrl) {
+      setSpacePreviewUrl(null);
+      generateSpacePreview(selectedVar.imageUrl);
+    }
 
     // Auto-generate lifestyle image in background
     generateLifestyleImage(selectedVar.imageUrl, submissionData.name || 'Custom Furniture');
