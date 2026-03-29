@@ -290,12 +290,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
-  // Auto-trigger AI Space Preview when room photo is uploaded
-  useEffect(() => {
-    if (uploadedPhoto && imageUrl && !aiPreviewUrl && !isGeneratingAiPreview) {
-      handleGenerateAiPreview();
-    }
-  }, [uploadedPhoto, imageUrl]);
+  // Don't auto-trigger AI Space Preview - it uses credits
+  // Users can manually trigger it via the button if they want a more polished result
 
   const handleGenerateAiPreview = async () => {
     if (!uploadedPhoto || !imageUrl) return;
