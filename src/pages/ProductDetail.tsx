@@ -42,6 +42,19 @@ const ProductDetail = () => {
     }
   }, [slug]);
 
+  // Preload all angle view images for instant switching
+  useEffect(() => {
+    if (!product?.angle_views) return;
+    const views = Array.isArray(product.angle_views) ? product.angle_views : [];
+    views.forEach((view: any) => {
+      const url = view.url || view;
+      if (url) {
+        const img = new Image();
+        img.src = url;
+      }
+    });
+  }, [product?.angle_views]);
+
   const fetchProduct = async () => {
     try {
       // Try fetching by slug first, fallback to UUID for backward compatibility
@@ -328,8 +341,8 @@ const ProductDetail = () => {
 
     const generateFinish = async () => {
       try {
-        // Ensure we have a full URL for the AI gateway
-        let fullImageUrl = mainImage;
+        // Always use the original product image for finish generation, not the current angle view
+        let fullImageUrl = product.image_url || product.image;
         if (fullImageUrl && !fullImageUrl.startsWith('http')) {
           fullImageUrl = `${window.location.origin}${fullImageUrl.startsWith('/') ? '' : '/'}${fullImageUrl}`;
         }
@@ -377,7 +390,7 @@ const ProductDetail = () => {
 
     generateFinish();
     return () => { cancelled = true; };
-  }, [selectedFinish, product?.id, mainImage]);
+  }, [selectedFinish, product?.id]);
 
   if (loading) {
     return (
@@ -477,14 +490,14 @@ const ProductDetail = () => {
                         <img
                           src={finishImage || mainImage}
                           alt={product.name}
-                          className="w-full h-full object-cover transition-all duration-500"
+                          className="w-full h-full object-cover transition-opacity duration-200"
                         />
                         {/* Navigation arrows */}
                         {allImages.length > 1 && (
                           <>
                             {hasPrev && (
                               <button
-                                onClick={() => setMainImage(allImages[currentIdx - 1].url)}
+                                onClick={() => { setMainImage(allImages[currentIdx - 1].url); setFinishImage(''); }}
                                 className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                               >
                                 <ChevronLeft className="w-4 h-4 text-foreground" />
@@ -492,7 +505,7 @@ const ProductDetail = () => {
                             )}
                             {hasNext && (
                               <button
-                                onClick={() => setMainImage(allImages[currentIdx + 1].url)}
+                                onClick={() => { setMainImage(allImages[currentIdx + 1].url); setFinishImage(''); }}
                                 className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                               >
                                 <ChevronRight className="w-4 h-4 text-foreground" />
@@ -524,7 +537,7 @@ const ProductDetail = () => {
                           {allImages.map((img, idx) => (
                             <button
                               key={idx}
-                              onClick={() => setMainImage(img.url)}
+                              onClick={() => { setMainImage(img.url); setFinishImage(''); }}
                               className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
                                 mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'
                               }`}
