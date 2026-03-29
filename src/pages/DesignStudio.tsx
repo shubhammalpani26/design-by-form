@@ -118,6 +118,8 @@ const DesignStudio = () => {
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
   const [spacePreviewUrl, setSpacePreviewUrl] = useState<string | null>(null);
   const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
+  const spacePreviewInFlightForRef = useRef<string | null>(null);
+  const spacePreviewLastForRef = useRef<string | null>(null);
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
@@ -349,9 +351,16 @@ const DesignStudio = () => {
     checkSubscription();
   }, [user]);
 
-  // Auto-generate space preview when room image + generated variations are available
-  const generateSpacePreview = async (productImageUrl: string) => {
+  // Generate space preview only once per variation unless forced (Regenerate)
+  const generateSpacePreview = async (productImageUrl: string, force = false) => {
     if (!roomImagePreview || !productImageUrl) return;
+
+    if (!force) {
+      if (spacePreviewInFlightForRef.current === productImageUrl) return;
+      if (spacePreviewLastForRef.current === productImageUrl && spacePreviewUrl) return;
+    }
+
+    spacePreviewInFlightForRef.current = productImageUrl;
     setIsGeneratingSpacePreview(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-space-preview', {
@@ -365,36 +374,19 @@ const DesignStudio = () => {
       if (error) throw error;
       if (data?.imageUrl) {
         setSpacePreviewUrl(data.imageUrl);
+        spacePreviewLastForRef.current = productImageUrl;
       }
     } catch (err) {
       console.warn('Space preview generation failed:', err);
     } finally {
+      if (spacePreviewInFlightForRef.current === productImageUrl) {
+        spacePreviewInFlightForRef.current = null;
+      }
       setIsGeneratingSpacePreview(false);
     }
   };
 
-  // Generate space preview only when user explicitly selects a variation (not on initial load)
-  const hasInitializedSpacePreview = useRef(false);
-  
-  useEffect(() => {
-    if (generatedVariations.length === 0 || !roomImagePreview || selectedVariation === null) return;
-    
-    const currentVariation = generatedVariations[selectedVariation];
-    if (!currentVariation?.imageUrl) return;
-
-    // On first load with carried-over data, auto-generate once
-    if (!hasInitializedSpacePreview.current) {
-      hasInitializedSpacePreview.current = true;
-      if (!spacePreviewUrl && !isGeneratingSpacePreview) {
-        generateSpacePreview(currentVariation.imageUrl);
-      }
-      return;
-    }
-
-    // On subsequent variation changes, regenerate
-    setSpacePreviewUrl(null);
-    generateSpacePreview(currentVariation.imageUrl);
-  }, [selectedVariation]);
+  // Space preview is generated only on explicit user variation selection or Regenerate button.
 
   const handleSurpriseMe = async () => {
     setIsGeneratingSurprise(true);
@@ -921,6 +913,13 @@ const DesignStudio = () => {
       title: "Variation Selected",
       description: "Ready to customize dimensions and submit your design.",
     });
+
+    if (roomImagePreview && selectedVar.imageUrl) {
+      if (spacePreviewLastForRef.current !== selectedVar.imageUrl) {
+        setSpacePreviewUrl(null);
+      }
+      generateSpacePreview(selectedVar.imageUrl);
+    }
 
     // Auto-generate lifestyle image in background
     generateLifestyleImage(selectedVar.imageUrl, submissionData.name || 'Custom Furniture');
@@ -2348,7 +2347,7 @@ const DesignStudio = () => {
                                           setSpacePreviewUrl(null);
                                           const currentVariation = generatedVariations[selectedVariation ?? 0];
                                           if (currentVariation?.imageUrl) {
-                                            generateSpacePreview(currentVariation.imageUrl);
+                                            generateSpacePreview(currentVariation.imageUrl, true);
                                           }
                                         }}
                                         className="text-xs"
