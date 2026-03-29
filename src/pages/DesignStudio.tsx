@@ -116,6 +116,8 @@ const DesignStudio = () => {
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const [aiGeneratedDescription, setAiGeneratedDescription] = useState<string | null>(null);
   const [isGeneratingDescription, setIsGeneratingDescription] = useState(false);
+  const [spacePreviewUrl, setSpacePreviewUrl] = useState<string | null>(null);
+  const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
