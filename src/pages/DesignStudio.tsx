@@ -393,7 +393,7 @@ const DesignStudio = () => {
     }
   }, [selectedVariation]);
 
-
+  const handleSurpriseMe = async () => {
     setIsGeneratingSurprise(true);
     
     try {
