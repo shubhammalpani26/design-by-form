@@ -918,7 +918,6 @@ const DesignStudio = () => {
       if (spacePreviewLastForRef.current !== selectedVar.imageUrl) {
         setSpacePreviewUrl(null);
       }
-      setSpacePreviewUrl(null);
       generateSpacePreview(selectedVar.imageUrl);
     }
 
