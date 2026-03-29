@@ -2006,6 +2006,7 @@ const DesignStudio = () => {
                                 onClick={() => {
                                   setRoomImage(null);
                                   setRoomImagePreview(null);
+                                  setSpacePreviewUrl(null);
                                   if (lastEditedInput === 'room') {
                                     setLastEditedInput(uploadedImage ? 'sketch' : null);
                                   }
