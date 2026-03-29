@@ -1,4 +1,5 @@
 import { useParams, Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -455,27 +456,6 @@ const ProductDetail = () => {
               </TabsList>
 
               <TabsContent value="image" className="mt-2">
-                <div className="aspect-square rounded-xl overflow-hidden bg-accent relative">
-                  <img
-                    src={finishImage || mainImage}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-500"
-                  />
-                  {isApplyingFinish && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
-                      <div className="flex items-center gap-2 bg-background/90 px-3 py-2 rounded-full border border-border shadow-sm">
-                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                        <span className="text-xs font-medium text-foreground">Applying finish...</span>
-                      </div>
-                    </div>
-                  )}
-                  {selectedFinish !== 'Natural' && !isApplyingFinish && (
-                    <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm text-xs font-medium px-2.5 py-1 rounded-full border border-border shadow-sm">
-                      Preview: {selectedFinish} finish
-                    </div>
-                  )}
-                </div>
-                {/* Thumbnail gallery - main image + angle views */}
                 {(() => {
                   const allImages: { url: string; label: string }[] = [];
                   if (product.image_url) allImages.push({ url: product.image_url, label: 'Main' });
@@ -487,25 +467,79 @@ const ProductDetail = () => {
                       }
                     });
                   }
-                  return allImages.length > 1 ? (
-                    <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-                      {allImages.map((img, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => setMainImage(img.url)}
-                          className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
-                            mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'
-                          }`}
-                        >
-                          <img
-                            src={img.url}
-                            alt={img.label}
-                            className="w-full h-full object-cover"
-                          />
-                        </button>
-                      ))}
-                    </div>
-                  ) : null;
+                  const currentIdx = allImages.findIndex(img => img.url === mainImage);
+                  const hasPrev = currentIdx > 0;
+                  const hasNext = currentIdx < allImages.length - 1;
+
+                  return (
+                    <>
+                      <div className="aspect-square rounded-xl overflow-hidden bg-accent relative group">
+                        <img
+                          src={finishImage || mainImage}
+                          alt={product.name}
+                          className="w-full h-full object-cover transition-all duration-500"
+                        />
+                        {/* Navigation arrows */}
+                        {allImages.length > 1 && (
+                          <>
+                            {hasPrev && (
+                              <button
+                                onClick={() => setMainImage(allImages[currentIdx - 1].url)}
+                                className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                              >
+                                <ChevronLeft className="w-4 h-4 text-foreground" />
+                              </button>
+                            )}
+                            {hasNext && (
+                              <button
+                                onClick={() => setMainImage(allImages[currentIdx + 1].url)}
+                                className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border shadow-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                              >
+                                <ChevronRight className="w-4 h-4 text-foreground" />
+                              </button>
+                            )}
+                            {/* Image counter */}
+                            <div className="absolute bottom-3 right-3 bg-background/80 backdrop-blur-sm text-[10px] font-medium px-2 py-1 rounded-full border border-border shadow-sm">
+                              {currentIdx + 1} / {allImages.length}
+                            </div>
+                          </>
+                        )}
+                        {isApplyingFinish && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-background/50 backdrop-blur-sm rounded-xl">
+                            <div className="flex items-center gap-2 bg-background/90 px-3 py-2 rounded-full border border-border shadow-sm">
+                              <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                              <span className="text-xs font-medium text-foreground">Applying finish...</span>
+                            </div>
+                          </div>
+                        )}
+                        {selectedFinish !== 'Natural' && !isApplyingFinish && (
+                          <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur-sm text-xs font-medium px-2.5 py-1 rounded-full border border-border shadow-sm">
+                            Preview: {selectedFinish} finish
+                          </div>
+                        )}
+                      </div>
+                      {/* Thumbnail strip */}
+                      {allImages.length > 1 && (
+                        <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                          {allImages.map((img, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setMainImage(img.url)}
+                              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${
+                                mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <img
+                                src={img.url}
+                                alt={img.label}
+                                className="w-full h-full object-cover"
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
                 })()}
               </TabsContent>
 
