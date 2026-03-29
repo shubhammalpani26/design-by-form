@@ -175,7 +175,11 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
       }
       
       // Only run background removal if we have BOTH room photo AND image, but NO 3D model
-      const urlToProcess = imageUrl;
+      let urlToProcess = imageUrl;
+      // Ensure absolute URL for the edge function
+      if (urlToProcess && !urlToProcess.startsWith('http') && !urlToProcess.startsWith('data:')) {
+        urlToProcess = `${window.location.origin}${urlToProcess.startsWith('/') ? '' : '/'}${urlToProcess}`;
+      }
       
       // Check cache first - see if we have the processed result stored
       const cacheKey = `ar-processed-${BG_REMOVAL_CACHE_VERSION}-${urlToProcess}`;
@@ -290,12 +294,8 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
     setIsDragging(false);
   };
 
-  // Auto-trigger AI Space Preview when room photo is uploaded
-  useEffect(() => {
-    if (uploadedPhoto && imageUrl && !aiPreviewUrl && !isGeneratingAiPreview) {
-      handleGenerateAiPreview();
-    }
-  }, [uploadedPhoto, imageUrl]);
+  // Don't auto-trigger AI Space Preview - it uses credits
+  // Users can manually trigger it via the button if they want a more polished result
 
   const handleGenerateAiPreview = async () => {
     if (!uploadedPhoto || !imageUrl) return;
@@ -735,8 +735,9 @@ export const ARViewer = ({ productName, productId, imageUrl, modelUrl, onStartAR
 
           <div className="text-xs text-muted-foreground bg-accent/50 p-2.5 sm:p-3 rounded-lg">
             <p className="leading-relaxed">
-              <strong>How it works:</strong> Upload a photo of your space, then use <strong>AI Space Preview</strong> to see a realistic rendering of the furniture placed in your space.
-              {!proxiedModelUrl ? ' You can also manually position it using drag controls.' : ''}
+              <strong>How it works:</strong> Upload a photo of your space and we'll automatically remove the product background and overlay it. 
+              {!proxiedModelUrl ? ' Drag to position, resize, and rotate to see how it fits.' : ''} 
+              Want a more polished result? Use the <strong>AI Space Preview</strong> button.
             </p>
           </div>
         </div>
