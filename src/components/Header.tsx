@@ -23,7 +23,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Menu, ShoppingCart, User as UserIcon, Sparkles, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export const Header = () => {
