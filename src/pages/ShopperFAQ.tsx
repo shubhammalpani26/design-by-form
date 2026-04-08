@@ -21,7 +21,7 @@ const ShopperFAQ = () => {
               Shopper FAQs
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to know about shopping on Nyzora?
+              Everything you need to know about shopping on Form
             </p>
           </div>
         </section>

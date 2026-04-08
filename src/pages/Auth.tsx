@@ -97,7 +97,7 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogin = async (e: React.Nyzora?Event) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
@@ -124,7 +124,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (e: React.Nyzora?Event) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (signupData.password !== signupData.confirmPassword) {
@@ -175,7 +175,7 @@ const Auth = () => {
     }
   };
 
-  const handleForgotPassword = async (e: React.Nyzora?Event) => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!resetEmail.trim()) {

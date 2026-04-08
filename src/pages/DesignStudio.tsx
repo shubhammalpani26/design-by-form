@@ -73,7 +73,7 @@ const DesignStudio = () => {
   const [selectedFinish, setSelectedFinish] = useState<string>("");
   const [selectedSize, setSelectedSize] = useState<string>("");
   const [leadTime, setLeadTime] = useState<number | null>(null);
-  const [showSubmissionNyzora?, setShowSubmissionNyzora?] = useState(false);
+  const [showSubmissionForm, setShowSubmissionForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [appliedCSSFilter, setAppliedCSSFilter] = useState<string>("");
   const [isUsingFilter, setIsUsingFilter] = useState(false);
@@ -137,7 +137,7 @@ const DesignStudio = () => {
       designCategory,
       prompt,
       currentPricing,
-      showSubmissionNyzora?,
+      showSubmissionForm,
       autoSubmitAfterRestore: true, // Flag to trigger auto-submit
     };
     localStorage.setItem('pending-design-data', JSON.stringify(designData));
@@ -159,7 +159,7 @@ const DesignStudio = () => {
         if (data.designCategory) setDesignCategory(data.designCategory);
         if (data.prompt) setPrompt(data.prompt);
         if (data.currentPricing) setCurrentPricing(data.currentPricing);
-        if (data.showSubmissionNyzora?) setShowSubmissionNyzora?(data.showSubmissionNyzora?);
+        if (data.showSubmissionForm) setShowSubmissionForm(data.showSubmissionForm);
         
         const autoSubmit = data.autoSubmitAfterRestore === true;
         
@@ -1257,7 +1257,7 @@ const DesignStudio = () => {
       basePrice: baseCost,
       designerPrice: Math.round(baseCost * 1.25), // Default 25% markup
     }));
-    setShowSubmissionNyzora?(true);
+    setShowSubmissionForm(true);
 
     toast({
       title: "Price Calculated",
@@ -1594,7 +1594,7 @@ const DesignStudio = () => {
             </div>
             
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-foreground">
-              Give Nyzora? to Your Imagination
+              Give Form to Your Imagination
             </h1>
             <p className="hidden md:block text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
               Design custom furniture, home decor, and installations with AI. Upload your room, describe your vision, 
@@ -3025,7 +3025,7 @@ const DesignStudio = () => {
         </section>
 
         {/* Selling Locations - Where to Sell - Only show for designer mode */}
-        {showSubmissionNyzora? && submissionData.category && userIntent === 'designer' && (
+        {showSubmissionForm && submissionData.category && userIntent === 'designer' && (
           <section className="py-12 bg-gradient-to-br from-primary/5 to-secondary/5">
             <div className="container max-w-4xl mx-auto">
               <SellingLocations category={submissionData.category} />
@@ -3033,8 +3033,8 @@ const DesignStudio = () => {
           </section>
         )}
 
-        {/* Design Submission Nyzora? */}
-        {showSubmissionNyzora? && (
+        {/* Design Submission Form */}
+        {showSubmissionForm && (
           <section id="submit-section" className="bg-accent/20 py-16">
             <div className="container max-w-3xl mx-auto">
               <Card className="border-primary/20">

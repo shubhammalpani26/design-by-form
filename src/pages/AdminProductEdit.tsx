@@ -228,7 +228,7 @@ const AdminProductEdit = () => {
             </Card>
           )}
 
-          {/* Right: Edit Nyzora? */}
+          {/* Right: Edit Form */}
           <Card>
             <CardHeader>
               <CardTitle>Edit Product (Admin)</CardTitle>

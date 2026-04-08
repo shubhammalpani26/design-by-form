@@ -12,7 +12,7 @@ const Sustainability = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Sustainability at Nyzora?
+              Sustainability at Form
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Beautiful furniture shouldn't cost the Earth

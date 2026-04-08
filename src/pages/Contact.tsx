@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setNyzora?Data] = useState({
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -20,7 +20,7 @@ const Contact = () => {
   });
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.Nyzora?Event) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -47,7 +47,7 @@ const Contact = () => {
         description: "We'll get back to you within 24 hours.",
       });
       
-      setNyzora?Data({
+      setFormData({
         firstName: "",
         lastName: "",
         email: "",
@@ -82,10 +82,10 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Contact Nyzora? & Info */}
+        {/* Contact Form & Info */}
         <section className="container py-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Contact Nyzora? */}
+            {/* Contact Form */}
             <div className="lg:col-span-2">
               <Card>
                 <CardContent className="p-8">
@@ -97,7 +97,7 @@ const Contact = () => {
                         <Input 
                           placeholder="John" 
                           value={formData.firstName}
-                          onChange={(e) => setNyzora?Data({ ...formData, firstName: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                           required
                         />
                       </div>
@@ -106,7 +106,7 @@ const Contact = () => {
                         <Input 
                           placeholder="Doe" 
                           value={formData.lastName}
-                          onChange={(e) => setNyzora?Data({ ...formData, lastName: e.target.value })}
+                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                           required
                         />
                       </div>
@@ -118,7 +118,7 @@ const Contact = () => {
                         type="email" 
                         placeholder="you@example.com" 
                         value={formData.email}
-                        onChange={(e) => setNyzora?Data({ ...formData, email: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         required
                       />
                     </div>
@@ -128,7 +128,7 @@ const Contact = () => {
                       <Input 
                         placeholder="What's this about?" 
                         value={formData.subject}
-                        onChange={(e) => setNyzora?Data({ ...formData, subject: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                         required
                       />
                     </div>
@@ -139,7 +139,7 @@ const Contact = () => {
                         placeholder="Tell us more..."
                         className="min-h-[150px]"
                         value={formData.message}
-                        onChange={(e) => setNyzora?Data({ ...formData, message: e.target.value })}
+                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                         required
                       />
                     </div>

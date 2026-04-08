@@ -16,7 +16,7 @@ export default function DesignerOnboarding() {
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setNyzora?Data] = useState({
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     phoneNumber: "",
@@ -57,7 +57,7 @@ export default function DesignerOnboarding() {
     });
   }, [navigate, toast]);
 
-  const handleSubmit = async (e: React.Nyzora?Event) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.termsAccepted) {
@@ -216,7 +216,7 @@ export default function DesignerOnboarding() {
                 </label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setNyzora?Data({ ...formData, name: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   placeholder="John Doe"
                   required
                 />
@@ -230,7 +230,7 @@ export default function DesignerOnboarding() {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setNyzora?Data({ ...formData, email: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="designer@example.com"
                   required
                 />
@@ -244,7 +244,7 @@ export default function DesignerOnboarding() {
                 <Input
                   type="tel"
                   value={formData.phoneNumber}
-                  onChange={(e) => setNyzora?Data({ ...formData, phoneNumber: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                   placeholder="+91 98765 43210 (include country code)"
                   required
                 />
@@ -259,7 +259,7 @@ export default function DesignerOnboarding() {
                 <Input
                   type="url"
                   value={formData.portfolioUrl}
-                  onChange={(e) => setNyzora?Data({ ...formData, portfolioUrl: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, portfolioUrl: e.target.value })}
                   placeholder="https://yourportfolio.com"
                 />
               </div>
@@ -291,7 +291,7 @@ export default function DesignerOnboarding() {
                 </label>
                 <Textarea
                   value={formData.designBackground}
-                  onChange={(e) => setNyzora?Data({ ...formData, designBackground: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, designBackground: e.target.value })}
                   placeholder="Tell us about your design experience, education, and skills..."
                   className="min-h-[100px]"
                   required
@@ -304,7 +304,7 @@ export default function DesignerOnboarding() {
                 </label>
                 <Textarea
                   value={formData.furnitureInterests}
-                  onChange={(e) => setNyzora?Data({ ...formData, furnitureInterests: e.target.value })}
+                  onChange={(e) => setFormData({ ...formData, furnitureInterests: e.target.value })}
                   placeholder="What types of furniture do you want to design? (chairs, tables, storage, etc.)"
                   className="min-h-[100px]"
                   required
@@ -318,7 +318,7 @@ export default function DesignerOnboarding() {
                       id="terms"
                       checked={formData.termsAccepted}
                       onCheckedChange={(checked) => 
-                        setNyzora?Data({ ...formData, termsAccepted: checked as boolean })
+                        setFormData({ ...formData, termsAccepted: checked as boolean })
                       }
                     />
                     <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">

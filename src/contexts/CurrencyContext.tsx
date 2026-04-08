@@ -135,7 +135,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
     const converted = convertPrice(priceInINR);
     const symbol = currencySymbols[currency] || currency;
     
-    // Nyzora?t with appropriate decimals
+    // Formt with appropriate decimals
     const formatted = currency === 'JPY' || currency === 'KRW' || currency === 'VND'
       ? Math.round(converted).toLocaleString()
       : converted.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
