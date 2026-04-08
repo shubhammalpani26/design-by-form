@@ -216,13 +216,13 @@ const CreatorEarnings = () => {
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">How long do I earn?</h4>
                     <p className="text-sm text-muted-foreground">
-                      Forever. As long as your design is being manufactured and sold on Forma, you continue earning 70% of the markup with no expiration date.
+                      Forever. As long as your design is being manufactured and sold on Nyzora, you continue earning 70% of the markup with no expiration date.
                     </p>
                   </div>
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">Can I sell my designs elsewhere?</h4>
                     <p className="text-sm text-muted-foreground">
-                      Forma requires exclusivity for furniture designs. However, you retain full IP rights and can use design elements in other creative work.
+                      Nyzora requires exclusivity for furniture designs. However, you retain full IP rights and can use design elements in other creative work.
                     </p>
                   </div>
                   <div>
@@ -249,7 +249,7 @@ const CreatorEarnings = () => {
             <CardContent className="p-12 text-center">
               <h2 className="text-3xl font-bold mb-4">Start Earning Today</h2>
               <p className="text-lg mb-6 opacity-90">
-                Join Forma and turn your creativity into perpetual income
+                Join Nyzora and turn your creativity into perpetual income
               </p>
               <Link to="/designer-signup">
                 <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">

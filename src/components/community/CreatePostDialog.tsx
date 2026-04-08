@@ -70,7 +70,7 @@ export const CreatePostDialog = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     setIsSubmitting(true);
 

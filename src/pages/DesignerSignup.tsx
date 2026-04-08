@@ -16,7 +16,7 @@ const DesignerSignup = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setNyzora?Data] = useState({
     name: "",
     email: "",
     phone: "",
@@ -66,7 +66,7 @@ const DesignerSignup = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     setLoading(true);
 
@@ -124,7 +124,7 @@ const DesignerSignup = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome to Formo!",
+        title: "Welcome to Nyzora!",
         description: "Your creator account is ready. Start designing now!",
       });
 
@@ -205,7 +205,7 @@ const DesignerSignup = () => {
             </Card>
           </div>
 
-          {/* Application Form */}
+          {/* Application Nyzora? */}
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-8">
@@ -216,7 +216,7 @@ const DesignerSignup = () => {
                     <Input 
                       placeholder="Your name" 
                       value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, name: e.target.value })}
                       required
                     />
                   </div>
@@ -227,7 +227,7 @@ const DesignerSignup = () => {
                       type="email" 
                       placeholder="designer@example.com"
                       value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, email: e.target.value })}
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -241,7 +241,7 @@ const DesignerSignup = () => {
                       type="tel" 
                       placeholder="+1 234 567 8900"
                       value={formData.phone}
-                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, phone: e.target.value })}
                       required
                     />
                     <p className="text-xs text-muted-foreground mt-1">
@@ -254,7 +254,7 @@ const DesignerSignup = () => {
                     <Input 
                       placeholder="https://yourportfolio.com"
                       value={formData.portfolio}
-                      onChange={(e) => setFormData({ ...formData, portfolio: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, portfolio: e.target.value })}
                     />
                   </div>
 
@@ -286,7 +286,7 @@ const DesignerSignup = () => {
                       placeholder="Share your experience, style, and what inspires your designs..."
                       className="min-h-[120px]"
                       value={formData.background}
-                      onChange={(e) => setFormData({ ...formData, background: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, background: e.target.value })}
                       required
                     />
                   </div>
@@ -297,7 +297,7 @@ const DesignerSignup = () => {
                       placeholder="Chairs, tables, home decor..."
                       className="min-h-[80px]"
                       value={formData.interests}
-                      onChange={(e) => setFormData({ ...formData, interests: e.target.value })}
+                      onChange={(e) => setNyzora?Data({ ...formData, interests: e.target.value })}
                       required
                     />
                   </div>
@@ -307,7 +307,7 @@ const DesignerSignup = () => {
                       id="terms" 
                       checked={formData.termsAccepted}
                       onCheckedChange={(checked) => 
-                        setFormData({ ...formData, termsAccepted: checked as boolean })
+                        setNyzora?Data({ ...formData, termsAccepted: checked as boolean })
                       }
                       required
                     />

@@ -22,7 +22,7 @@ const Cart = () => {
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
   
   // Checkout form state
-  const [checkoutForm, setCheckoutForm] = useState({
+  const [checkoutNyzora?, setCheckoutNyzora?] = useState({
     name: "",
     address: "",
     city: "",
@@ -42,8 +42,8 @@ const Cart = () => {
 
   const handleCheckout = async () => {
     // Validate form
-    if (!checkoutForm.name || !checkoutForm.address || !checkoutForm.city || 
-        !checkoutForm.state || !checkoutForm.zipCode || !checkoutForm.phone) {
+    if (!checkoutNyzora?.name || !checkoutNyzora?.address || !checkoutNyzora?.city || 
+        !checkoutNyzora?.state || !checkoutNyzora?.zipCode || !checkoutNyzora?.phone) {
       toast.error("Please fill in all required fields");
       return;
     }
@@ -54,17 +54,17 @@ const Cart = () => {
       const { data, error } = await supabase.functions.invoke("create-order", {
         body: {
           shippingAddress: {
-            name: checkoutForm.name,
-            address: checkoutForm.address,
-            city: checkoutForm.city,
-            state: checkoutForm.state,
-            zipCode: checkoutForm.zipCode,
-            phone: checkoutForm.phone
+            name: checkoutNyzora?.name,
+            address: checkoutNyzora?.address,
+            city: checkoutNyzora?.city,
+            state: checkoutNyzora?.state,
+            zipCode: checkoutNyzora?.zipCode,
+            phone: checkoutNyzora?.phone
           },
           paymentMethod: "razorpay",
           paymentId: `pay_${Date.now()}`,
-          customerGSTIN: checkoutForm.gstin || undefined,
-          customerState: checkoutForm.state
+          customerGSTIN: checkoutNyzora?.gstin || undefined,
+          customerState: checkoutNyzora?.state
         }
       });
 
@@ -208,8 +208,8 @@ const Cart = () => {
                             <Label htmlFor="name">Full Name *</Label>
                             <Input
                               id="name"
-                              value={checkoutForm.name}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })}
+                              value={checkoutNyzora?.name}
+                              onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, name: e.target.value })}
                               placeholder="John Doe"
                             />
                           </div>
@@ -218,8 +218,8 @@ const Cart = () => {
                             <Label htmlFor="phone">Phone Number *</Label>
                             <Input
                               id="phone"
-                              value={checkoutForm.phone}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
+                              value={checkoutNyzora?.phone}
+                              onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, phone: e.target.value })}
                               placeholder="+91 9876543210"
                             />
                           </div>
@@ -229,8 +229,8 @@ const Cart = () => {
                           <Label htmlFor="address">Address *</Label>
                           <Input
                             id="address"
-                            value={checkoutForm.address}
-                            onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
+                            value={checkoutNyzora?.address}
+                            onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, address: e.target.value })}
                             placeholder="123 Main Street, Apartment 4B"
                           />
                         </div>
@@ -240,8 +240,8 @@ const Cart = () => {
                             <Label htmlFor="city">City *</Label>
                             <Input
                               id="city"
-                              value={checkoutForm.city}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, city: e.target.value })}
+                              value={checkoutNyzora?.city}
+                              onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, city: e.target.value })}
                               placeholder="Mumbai"
                             />
                           </div>
@@ -250,8 +250,8 @@ const Cart = () => {
                             <Label htmlFor="zipCode">Pin Code *</Label>
                             <Input
                               id="zipCode"
-                              value={checkoutForm.zipCode}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, zipCode: e.target.value })}
+                              value={checkoutNyzora?.zipCode}
+                              onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, zipCode: e.target.value })}
                               placeholder="400001"
                             />
                           </div>
@@ -260,8 +260,8 @@ const Cart = () => {
                         <div className="space-y-2">
                           <Label htmlFor="state">State *</Label>
                           <Select
-                            value={checkoutForm.state}
-                            onValueChange={(value) => setCheckoutForm({ ...checkoutForm, state: value })}
+                            value={checkoutNyzora?.state}
+                            onValueChange={(value) => setCheckoutNyzora?({ ...checkoutNyzora?, state: value })}
                           >
                             <SelectTrigger>
                               <SelectValue placeholder="Select State" />
@@ -280,8 +280,8 @@ const Cart = () => {
                           <Label htmlFor="gstin">GSTIN (Optional - for businesses)</Label>
                           <Input
                             id="gstin"
-                            value={checkoutForm.gstin}
-                            onChange={(e) => setCheckoutForm({ ...checkoutForm, gstin: e.target.value })}
+                            value={checkoutNyzora?.gstin}
+                            onChange={(e) => setCheckoutNyzora?({ ...checkoutNyzora?, gstin: e.target.value })}
                             placeholder="22AAAAA0000A1Z5"
                           />
                           <p className="text-sm text-muted-foreground">

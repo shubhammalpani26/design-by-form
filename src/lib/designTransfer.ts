@@ -4,7 +4,7 @@
  * which data-URL images easily exceed).
  */
 
-const DB_NAME = 'formo-design-transfer';
+const DB_NAME = 'nyzora-design-transfer';
 const STORE_NAME = 'images';
 const DB_VERSION = 1;
 

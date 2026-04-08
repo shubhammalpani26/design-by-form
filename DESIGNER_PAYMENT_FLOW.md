@@ -1,7 +1,7 @@
 # Designer Payment Flow Documentation
 
 ## Overview
-This document explains how designers receive payments for their furniture designs sold through the Forma platform.
+This document explains how designers receive payments for their furniture designs sold through the Nyzora platform.
 
 ## Payment Setup Process
 
@@ -114,8 +114,8 @@ Manages withdrawal requests:
 ## Contact for Payment Issues
 
 **Admin Team:**
-- Shubham Malpani: +91 96193 83240, shubham.malpani@cyanique.com
-- Tejal Agawane: +91 87795 18787, tejal.agawane@cyanique.com
+- Shubham Malpani: +91 96193 83240, shubham.malpani@nyzora.ai
+- Tejal Agawane: +91 87795 18787, tejal.agawane@nyzora.ai
 
 **Support Hours:** Mon-Fri: 9 AM - 6 PM IST
 

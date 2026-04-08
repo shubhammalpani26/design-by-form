@@ -87,8 +87,8 @@ export const Header = () => {
               <SheetHeader>
                 <SheetTitle className="text-left">
                   <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
-                    <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-                    <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+                    <span className="text-2xl font-bold text-primary leading-tight">Nyzora</span>
+                    <span className="text-[10px] text-muted-foreground -mt-1"></span>
                   </Link>
                 </SheetTitle>
               </SheetHeader>
@@ -217,17 +217,17 @@ export const Header = () => {
 
           {/* Mobile Logo */}
           <Link to="/" className="flex items-center gap-1.5">
-            <img src={logo} alt="Formo Logo" className="h-6 w-6" />
-            <span className="text-lg font-bold text-primary">Formo</span>
+            <img src={logo} alt="Nyzora Logo" className="h-6 w-6" />
+            <span className="text-lg font-bold text-primary">Nyzora</span>
           </Link>
         </div>
 
         {/* Desktop Logo */}
         <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
-          <img src={logo} alt="Formo Logo" className="h-8 w-8" />
+          <img src={logo} alt="Nyzora Logo" className="h-8 w-8" />
           <div className="flex flex-col">
-            <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-            <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+            <span className="text-2xl font-bold text-primary leading-tight">Nyzora</span>
+            <span className="text-[10px] text-muted-foreground -mt-1"></span>
           </div>
         </Link>
         

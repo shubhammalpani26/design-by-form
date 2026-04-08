@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Contact = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setNyzora?Data] = useState({
     firstName: "",
     lastName: "",
     email: "",
@@ -20,7 +20,7 @@ const Contact = () => {
   });
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -47,7 +47,7 @@ const Contact = () => {
         description: "We'll get back to you within 24 hours.",
       });
       
-      setFormData({
+      setNyzora?Data({
         firstName: "",
         lastName: "",
         email: "",
@@ -82,10 +82,10 @@ const Contact = () => {
           </div>
         </section>
 
-        {/* Contact Form & Info */}
+        {/* Contact Nyzora? & Info */}
         <section className="container py-16">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-            {/* Contact Form */}
+            {/* Contact Nyzora? */}
             <div className="lg:col-span-2">
               <Card>
                 <CardContent className="p-8">
@@ -97,7 +97,7 @@ const Contact = () => {
                         <Input 
                           placeholder="John" 
                           value={formData.firstName}
-                          onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, firstName: e.target.value })}
                           required
                         />
                       </div>
@@ -106,7 +106,7 @@ const Contact = () => {
                         <Input 
                           placeholder="Doe" 
                           value={formData.lastName}
-                          onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, lastName: e.target.value })}
                           required
                         />
                       </div>
@@ -118,7 +118,7 @@ const Contact = () => {
                         type="email" 
                         placeholder="you@example.com" 
                         value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        onChange={(e) => setNyzora?Data({ ...formData, email: e.target.value })}
                         required
                       />
                     </div>
@@ -128,7 +128,7 @@ const Contact = () => {
                       <Input 
                         placeholder="What's this about?" 
                         value={formData.subject}
-                        onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                        onChange={(e) => setNyzora?Data({ ...formData, subject: e.target.value })}
                         required
                       />
                     </div>
@@ -139,7 +139,7 @@ const Contact = () => {
                         placeholder="Tell us more..."
                         className="min-h-[150px]"
                         value={formData.message}
-                        onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                        onChange={(e) => setNyzora?Data({ ...formData, message: e.target.value })}
                         required
                       />
                     </div>
@@ -163,11 +163,11 @@ const Contact = () => {
                       <Mail className="h-5 w-5 text-primary mt-0.5" />
                       <div>
                         <div className="font-medium text-foreground mb-1">Email</div>
-                        <a href="mailto:shubham.malpani@cyanique.com" className="text-primary hover:underline block">
-                          shubham.malpani@cyanique.com
+                        <a href="mailto:shubham.malpani@nyzora.ai" className="text-primary hover:underline block">
+                          shubham.malpani@nyzora.ai
                         </a>
-                        <a href="mailto:tejal.agawane@cyanique.com" className="text-primary hover:underline block">
-                          tejal.agawane@cyanique.com
+                        <a href="mailto:tejal.agawane@nyzora.ai" className="text-primary hover:underline block">
+                          tejal.agawane@nyzora.ai
                         </a>
                       </div>
                     </div>

@@ -97,7 +97,7 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     setLoading(true);
 
@@ -124,7 +124,7 @@ const Auth = () => {
     }
   };
 
-  const handleSignup = async (e: React.FormEvent) => {
+  const handleSignup = async (e: React.Nyzora?Event) => {
     e.preventDefault();
 
     if (signupData.password !== signupData.confirmPassword) {
@@ -162,7 +162,7 @@ const Auth = () => {
 
       toast({
         title: "Account created!",
-        description: "Welcome to Formo. You can now submit creator applications.",
+        description: "Welcome to Nyzora. You can now submit creator applications.",
       });
     } catch (error: any) {
       toast({
@@ -175,7 +175,7 @@ const Auth = () => {
     }
   };
 
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handleForgotPassword = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     
     if (!resetEmail.trim()) {
@@ -244,7 +244,7 @@ const Auth = () => {
             <CardContent className="p-8">
               <div className="text-center mb-8">
                 <h1 className="text-3xl font-bold mb-2 text-foreground">
-                  {forgotPasswordMode ? "Reset Password" : "Welcome to Formo"}
+                  {forgotPasswordMode ? "Reset Password" : "Welcome to Nyzora"}
                 </h1>
                 <p className="text-muted-foreground">
                   {forgotPasswordMode 

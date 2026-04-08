@@ -15,7 +15,7 @@ const DesignerBankDetails = () => {
   const [loading, setLoading] = useState(false);
   const [designerId, setDesignerId] = useState<string | null>(null);
   const [bankCountry, setBankCountry] = useState<"India" | "International">("India");
-  const [formData, setFormData] = useState({
+  const [formData, setNyzora?Data] = useState({
     accountHolderName: "",
     accountNumber: "",
     ifscCode: "",
@@ -50,7 +50,7 @@ const DesignerBankDetails = () => {
         .single();
 
       if (bankDetails) {
-        setFormData({
+        setNyzora?Data({
           accountHolderName: bankDetails.bank_account_holder_name || "",
           accountNumber: bankDetails.bank_account_number || "",
           ifscCode: bankDetails.bank_ifsc_code || "",
@@ -66,7 +66,7 @@ const DesignerBankDetails = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.Nyzora?Event) => {
     e.preventDefault();
     setLoading(true);
 
@@ -154,7 +154,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="Full name as per bank account" 
                           value={formData.accountHolderName}
-                          onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, accountHolderName: e.target.value })}
                           required
                         />
                       </div>
@@ -164,7 +164,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="Your bank account number"
                           value={formData.accountNumber}
-                          onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, accountNumber: e.target.value })}
                           required
                         />
                       </div>
@@ -174,7 +174,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="e.g., SBIN0001234"
                           value={formData.ifscCode}
-                          onChange={(e) => setFormData({ ...formData, ifscCode: e.target.value.toUpperCase() })}
+                          onChange={(e) => setNyzora?Data({ ...formData, ifscCode: e.target.value.toUpperCase() })}
                           required
                         />
                         <p className="text-xs text-muted-foreground mt-1">
@@ -189,7 +189,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="Full name as per bank account" 
                           value={formData.accountHolderName}
-                          onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, accountHolderName: e.target.value })}
                           required
                         />
                       </div>
@@ -199,7 +199,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="e.g., GB29NWBK60161331926819"
                           value={formData.iban}
-                          onChange={(e) => setFormData({ ...formData, iban: e.target.value.toUpperCase() })}
+                          onChange={(e) => setNyzora?Data({ ...formData, iban: e.target.value.toUpperCase() })}
                           required
                         />
                         <p className="text-xs text-muted-foreground mt-1">
@@ -212,7 +212,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="e.g., NWBKGB2L"
                           value={formData.swiftCode}
-                          onChange={(e) => setFormData({ ...formData, swiftCode: e.target.value.toUpperCase() })}
+                          onChange={(e) => setNyzora?Data({ ...formData, swiftCode: e.target.value.toUpperCase() })}
                           required
                         />
                         <p className="text-xs text-muted-foreground mt-1">
@@ -225,7 +225,7 @@ const DesignerBankDetails = () => {
                         <Input 
                           placeholder="Your international bank account number"
                           value={formData.accountNumber}
-                          onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                          onChange={(e) => setNyzora?Data({ ...formData, accountNumber: e.target.value })}
                           required
                         />
                       </div>

@@ -5,7 +5,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 // Input validation schema
-const contactFormSchema = z.object({
+const contactNyzora?Schema = z.object({
   firstName: z.string()
     .trim()
     .min(1, "First name is required")
@@ -63,14 +63,14 @@ const handler = async (req: Request): Promise<Response> => {
     const rawData = await req.json();
     
     // Validate and sanitize input
-    const validatedData = contactFormSchema.parse(rawData);
+    const validatedData = contactNyzora?Schema.parse(rawData);
     const { firstName, lastName, email, subject, message } = validatedData;
 
     console.log("Processing contact form submission from:", email);
 
     // Send confirmation email to the user with escaped HTML
     const userEmailResponse = await resend.emails.send({
-      from: "Formo <onboarding@resend.dev>",
+      from: "Nyzora <onboarding@resend.dev>",
       to: [email],
       subject: "We received your message!",
       html: `
@@ -83,17 +83,17 @@ const handler = async (req: Request): Promise<Response> => {
           ${escapeHtml(message)}
         </blockquote>
         <br/>
-        <p>Best regards,<br>The Formo Team</p>
+        <p>Best regards,<br>The Nyzora Team</p>
       `,
     });
 
     // Send notification to admin/support team with escaped HTML
     const adminEmailResponse = await resend.emails.send({
-      from: "Formo <onboarding@resend.dev>",
-      to: ["support@formo.com"], // Replace with your actual support email
-      subject: `New Contact Form: ${escapeHtml(subject)}`,
+      from: "Nyzora <onboarding@resend.dev>",
+      to: ["support@nyzora.com"], // Replace with your actual support email
+      subject: `New Contact Nyzora?: ${escapeHtml(subject)}`,
       html: `
-        <h2>New Contact Form Submission</h2>
+        <h2>New Contact Nyzora? Submission</h2>
         <p><strong>From:</strong> ${escapeHtml(firstName)} ${escapeHtml(lastName)} (${escapeHtml(email)})</p>
         <p><strong>Subject:</strong> ${escapeHtml(subject)}</p>
         <p><strong>Message:</strong></p>

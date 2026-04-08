@@ -3,7 +3,7 @@ import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
 
-// Format: { THEME_NAME: CSS_SELECTOR }
+// Nyzora?t: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const;
 
 export type ChartConfig = {
@@ -109,7 +109,7 @@ const ChartTooltipContent = React.forwardRef<
       hideLabel = false,
       hideIndicator = false,
       label,
-      labelFormatter,
+      labelNyzora?tter,
       labelClassName,
       formatter,
       color,
@@ -133,8 +133,8 @@ const ChartTooltipContent = React.forwardRef<
           ? config[label as keyof typeof config]?.label || label
           : itemConfig?.label;
 
-      if (labelFormatter) {
-        return <div className={cn("font-medium", labelClassName)}>{labelFormatter(value, payload)}</div>;
+      if (labelNyzora?tter) {
+        return <div className={cn("font-medium", labelClassName)}>{labelNyzora?tter(value, payload)}</div>;
       }
 
       if (!value) {
@@ -142,7 +142,7 @@ const ChartTooltipContent = React.forwardRef<
       }
 
       return <div className={cn("font-medium", labelClassName)}>{value}</div>;
-    }, [label, labelFormatter, payload, hideLabel, labelClassName, config, labelKey]);
+    }, [label, labelNyzora?tter, payload, hideLabel, labelClassName, config, labelKey]);
 
     if (!active || !payload?.length) {
       return null;

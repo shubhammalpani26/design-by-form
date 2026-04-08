@@ -21,7 +21,7 @@ const CreatorFAQ = () => {
               Creator FAQs
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to know about becoming a Forma creator
+              Everything you need to know about becoming a Nyzora creator
             </p>
           </div>
         </section>
@@ -30,7 +30,7 @@ const CreatorFAQ = () => {
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-left font-semibold">
-                Who can become a Forma creator?
+                Who can become a Nyzora creator?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 Anyone with creative ideas! We welcome students, architects, hobbyists, and professional designers from around the world. No formal design degree required—just creativity and passion for furniture design.
@@ -78,7 +78,7 @@ const CreatorFAQ = () => {
                 How long do I earn?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Forever! As long as your design is being manufactured and sold on Forma, you continue earning 70% of the markup with no expiration date. This creates a true perpetual income stream from your creative work.
+                Forever! As long as your design is being manufactured and sold on Nyzora, you continue earning 70% of the markup with no expiration date. This creates a true perpetual income stream from your creative work.
               </AccordionContent>
             </AccordionItem>
 
@@ -87,7 +87,7 @@ const CreatorFAQ = () => {
                 Can I sell my designs on other platforms?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Forma requires exclusivity for furniture designs listed on our platform. However, you retain full intellectual property rights and can use design elements in other creative work like prints, renders, or portfolios.
+                Nyzora requires exclusivity for furniture designs listed on our platform. However, you retain full intellectual property rights and can use design elements in other creative work like prints, renders, or portfolios.
               </AccordionContent>
             </AccordionItem>
 

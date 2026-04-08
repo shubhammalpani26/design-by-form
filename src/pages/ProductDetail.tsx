@@ -277,7 +277,7 @@ const ProductDetail = () => {
     setIsSharing(true);
     const shareUrl = window.location.href;
     const shareTitle = product?.name || 'Check out this product';
-    const shareText = `${shareTitle} on Formo`;
+    const shareText = `${shareTitle} on Nyzora`;
 
     try {
       if (navigator.share) {
