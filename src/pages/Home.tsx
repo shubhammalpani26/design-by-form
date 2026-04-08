@@ -23,6 +23,7 @@ import testimonialArjun from "@/assets/testimonial-arjun.jpg";
 import InstantDesignPreview from "@/components/InstantDesignPreview";
 import testimonialMeera from "@/assets/testimonial-meera.jpg";
 import testimonialKaran from "@/assets/testimonial-karan.jpg";
+import { ScrollReveal, StaggerReveal, useCountUp } from "@/hooks/useScrollReveal";
 
 const testimonials = [
   {
@@ -95,6 +96,14 @@ const truncateDescription = (description: string | undefined, maxLength: number 
   return description.substring(0, maxLength).trim() + "...";
 };
 
+// Marquee brands/features strip
+const marqueeItems = [
+  "AI-Powered Design", "Sustainable Manufacturing", "Global Creators", 
+  "On-Demand Production", "3D Visualization", "AR Preview",
+  "Perpetual Royalties", "Zero Inventory", "Eco-Friendly",
+  "Custom Furniture", "Designer Community", "Smart Pricing"
+];
+
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,6 +112,9 @@ const Home = () => {
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
+
+  // Animated counters
+  const creatorsCounter = useCountUp(creatorStats.activeCreators, 1500);
 
   useEffect(() => {
     fetchFeaturedProducts();
@@ -113,14 +125,12 @@ const Home = () => {
   useEffect(() => {
     const testimonialInterval = setInterval(() => {
       setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 10000); // 10 seconds for easier reading
+    }, 10000);
     return () => clearInterval(testimonialInterval);
   }, []);
 
-
   const fetchCreatorStats = async () => {
     try {
-      // Count approved designer profiles (active creators on the platform)
       const { count, error } = await supabase
         .from('designer_profiles')
         .select('id', { count: 'exact', head: true })
@@ -129,8 +139,6 @@ const Home = () => {
       if (error) throw error;
 
       const total = count ?? 0;
-
-      // Round down to nearest 5 (1-4 shows 1, 5-9 shows 5, 10-14 shows 10, etc.)
       const roundedCount = total < 5 ? Math.max(total, 1) : Math.floor(total / 5) * 5;
 
       setCreatorStats({
@@ -160,7 +168,6 @@ const Home = () => {
 
   const fetchFeaturedProducts = async () => {
     try {
-      // Single query to fetch featured products across all categories
       const { data: allData, error } = await supabase
         .from('designer_products')
         .select(`
@@ -197,6 +204,7 @@ const Home = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
@@ -207,7 +215,9 @@ const Home = () => {
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-fade-in">
+                <div 
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-slide-down"
+                >
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
@@ -215,19 +225,22 @@ const Home = () => {
                   <span className="text-sm font-semibold text-primary">AI-Powered Design Studio</span>
                 </div>
                 
-                <h1 className="text-3xl md:text-6xl font-bold leading-tight text-foreground">
+                <h1 className="text-3xl md:text-6xl font-bold leading-tight text-foreground animate-slide-up">
                   From concept to{" "}
-                  <span className="text-primary bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                  <span className="gradient-text-animated">
                     creation
                   </span>
                 </h1>
                 
-                <p className="text-lg text-muted-foreground max-w-xl">
+                <p className="text-lg text-muted-foreground max-w-xl animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
                   Just imagine, and we bring it to life. From concept to creation, transform your vision into tangible masterpieces.
                 </p>
                 
-                <div className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 rounded-2xl p-4 sm:p-6 max-w-xl backdrop-blur-sm shadow-lg">
-                  <p className="text-base sm:text-lg font-semibold text-foreground mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+                <div 
+                  className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 rounded-2xl p-4 sm:p-6 max-w-xl backdrop-blur-sm shadow-lg animate-fade-in hover-lift"
+                  style={{ animationDelay: '300ms', animationFillMode: 'both' }}
+                >
+                  <p className="text-base sm:text-lg font-semibold text-foreground mb-2 gradient-text">
                     For Creators: Your Vision, Our Craftsmanship
                   </p>
                   <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
@@ -235,7 +248,10 @@ const Home = () => {
                   </p>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+                <div 
+                  className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-fade-in"
+                  style={{ animationDelay: '400ms', animationFillMode: 'both' }}
+                >
                   <Link to="/design-studio" className="w-full sm:w-auto">
                     <Button variant="hero" size="lg" className="group w-full sm:w-auto">
                       Start Designing with AI
@@ -270,7 +286,7 @@ const Home = () => {
                 </div>
               </div>
               
-              <div className="relative">
+              <div className="relative animate-fade-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-2xl blur-3xl animate-pulse"></div>
                 <div className="relative aspect-square rounded-2xl overflow-hidden shadow-medium border-2 border-primary/10 group">
                   {heroProduct ? (
@@ -286,8 +302,7 @@ const Home = () => {
                         className="w-full h-full object-contain bg-muted/30 transition-all duration-700 group-hover:scale-105"
                       />
                       
-                      {/* Simple overlay badge */}
-                      <div className="absolute bottom-4 left-4 right-4 bg-background/95 backdrop-blur-sm rounded-lg border border-primary/20 shadow-lg overflow-hidden">
+                      <div className="absolute bottom-4 left-4 right-4 glass rounded-lg shadow-lg overflow-hidden">
                         <div className="p-3">
                           <div className="flex items-center gap-2">
                             <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
@@ -313,19 +328,33 @@ const Home = () => {
           </div>
         </section>
 
+        {/* Scrolling Marquee Strip */}
+        <div className="overflow-hidden bg-foreground py-3 marquee-container">
+          <div className="flex animate-marquee whitespace-nowrap">
+            {[...marqueeItems, ...marqueeItems].map((item, i) => (
+              <span key={i} className="mx-6 text-sm font-medium text-background/90 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Instant Design Preview - Try AI Section */}
         <InstantDesignPreview />
 
         {/* Featured Products */}
         <section className="container py-10 md:py-20">
-          <div className="flex items-center justify-between mb-12">
-            <div className="text-center flex-1">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                Discover pieces crafted by our community of talented designers
-              </p>
+          <ScrollReveal animation="fade-up">
+            <div className="flex items-center justify-between mb-12">
+              <div className="text-center flex-1">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Discover pieces crafted by our community of talented designers
+                </p>
+              </div>
             </div>
-          </div>
+          </ScrollReveal>
           
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
@@ -338,57 +367,68 @@ const Home = () => {
               ))}
             </div>
           ) : featuredProducts.length > 0 ? (
-            <Carousel
-              opts={{ align: "start", loop: false }}
-              className="relative px-10"
-            >
-              <CarouselContent>
-                {featuredProducts.map((product) => (
-                  <CarouselItem
-                    key={product.id}
-                    className="basis-full sm:basis-1/2 lg:basis-1/5"
-                  >
-                    <HomeProductCard {...product} />
-                  </CarouselItem>
-                ))}
-              </CarouselContent>
+            <ScrollReveal animation="fade-up" delay={200}>
+              <Carousel
+                opts={{ align: "start", loop: false }}
+                className="relative px-10"
+              >
+                <CarouselContent>
+                  {featuredProducts.map((product) => (
+                    <CarouselItem
+                      key={product.id}
+                      className="basis-full sm:basis-1/2 lg:basis-1/5"
+                    >
+                      <HomeProductCard {...product} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
 
-              <CarouselPrevious
-                className="left-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
-              />
-              <CarouselNext
-                className="right-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
-              />
-            </Carousel>
+                <CarouselPrevious
+                  className="left-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
+                />
+                <CarouselNext
+                  className="right-0 h-10 w-10 bg-background/95 backdrop-blur-sm shadow-lg"
+                />
+              </Carousel>
+            </ScrollReveal>
           ) : (
             <div className="text-center py-12">
               <p className="text-muted-foreground">No featured products available yet.</p>
             </div>
           )}
 
-          <div className="text-center mt-12">
-            <Link to="/browse">
-              <Button variant="outline" size="lg">
-                View All Products
-              </Button>
-            </Link>
-          </div>
+          <ScrollReveal animation="zoom-in" delay={300}>
+            <div className="text-center mt-12">
+              <Link to="/browse">
+                <Button variant="outline" size="lg">
+                  View All Products
+                </Button>
+              </Link>
+            </div>
+          </ScrollReveal>
         </section>
 
         {/* Designer Success Stats */}
-        <section className="py-10 md:py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
+        <section className="py-10 md:py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent overflow-hidden">
           <div className="container">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+            <StaggerReveal 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
+              staggerDelay={150}
+              animation="fade-up"
+            >
               <div className="text-center space-y-2">
-                <div className="text-4xl md:text-5xl font-bold text-primary">
-                  {creatorStats.activeCreators}+
+                <div 
+                  ref={creatorsCounter.ref}
+                  className="text-4xl md:text-5xl font-bold text-primary animate-counter-glow"
+                >
+                  {creatorsCounter.isVisible ? creatorsCounter.count : 0}+
                 </div>
                 <div className="text-lg font-semibold text-foreground">Active Creators</div>
                 <div className="text-sm text-muted-foreground">Designers earning worldwide</div>
               </div>
               
               <div className="text-center space-y-2">
-                <div className="text-3xl md:text-4xl font-bold text-secondary leading-tight">
+                <div className="text-3xl md:text-4xl font-bold gradient-text leading-tight">
                   Early Creator Benefits
                 </div>
                 <div className="text-base font-semibold text-foreground">Priority Exposure & Higher Royalties</div>
@@ -396,132 +436,148 @@ const Home = () => {
               </div>
               
               <div className="text-center space-y-2">
-                <div className="text-3xl md:text-4xl font-bold text-green-600 leading-tight">
+                <div className="text-3xl md:text-4xl font-bold text-secondary leading-tight">
                   Curated Quality
                 </div>
                 <div className="text-base font-semibold text-foreground">Vibe-Matched Designs</div>
               </div>
-            </div>
+            </StaggerReveal>
           </div>
         </section>
 
         {/* Designer Testimonials Carousel */}
         <section className="py-10 md:py-20">
           <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                Real Designers, Real Success
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto mb-2">
-                Join thousands of designers earning from physical product sales
-              </p>
-              <p className="text-xs text-muted-foreground/70 italic">
-                *Testimonials represent illustrative success scenarios
-              </p>
-            </div>
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                  Real Designers, Real Success
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto mb-2">
+                  Join thousands of designers earning from physical product sales
+                </p>
+                <p className="text-xs text-muted-foreground/70 italic">
+                  *Testimonials represent illustrative success scenarios
+                </p>
+              </div>
+            </ScrollReveal>
             
-            <div className="max-w-4xl mx-auto">
-              <div className="bg-background rounded-3xl p-8 md:p-12 shadow-medium border border-border/50 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32"></div>
-                
-                <div className="relative">
-                  <div className="flex flex-col md:flex-row items-center gap-8">
-                    <img
-                      src={testimonials[currentTestimonial].image}
-                      alt={testimonials[currentTestimonial].name}
-                      className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary/20 shadow-soft"
-                    />
-                    
-                    <div className="flex-1 text-center md:text-left space-y-4">
-                      <div className="text-5xl text-primary/20 font-serif">"</div>
-                      <p className="text-lg md:text-xl text-foreground leading-relaxed -mt-8">
-                        {testimonials[currentTestimonial].quote}
-                      </p>
+            <ScrollReveal animation="zoom-in" delay={100}>
+              <div className="max-w-4xl mx-auto">
+                <div className="bg-background rounded-3xl p-8 md:p-12 shadow-medium border border-border/50 relative overflow-hidden hover-lift">
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32"></div>
+                  
+                  <div className="relative">
+                    <div className="flex flex-col md:flex-row items-center gap-8">
+                      <img
+                        src={testimonials[currentTestimonial].image}
+                        alt={testimonials[currentTestimonial].name}
+                        className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary/20 shadow-soft transition-all duration-500"
+                        key={currentTestimonial}
+                      />
                       
-                      <div className="pt-4">
-                        <div className="font-semibold text-foreground text-lg">
-                          {testimonials[currentTestimonial].name}
-                        </div>
-                        <div className="text-muted-foreground text-sm">
-                          {testimonials[currentTestimonial].role}
-                        </div>
-                        <div className="text-primary font-bold text-lg mt-2">
-                          Earned: {testimonials[currentTestimonial].earnings}
+                      <div className="flex-1 text-center md:text-left space-y-4">
+                        <div className="text-5xl text-primary/20 font-serif">"</div>
+                        <p 
+                          className="text-lg md:text-xl text-foreground leading-relaxed -mt-8 transition-opacity duration-500"
+                          key={`quote-${currentTestimonial}`}
+                        >
+                          {testimonials[currentTestimonial].quote}
+                        </p>
+                        
+                        <div className="pt-4">
+                          <div className="font-semibold text-foreground text-lg">
+                            {testimonials[currentTestimonial].name}
+                          </div>
+                          <div className="text-muted-foreground text-sm">
+                            {testimonials[currentTestimonial].role}
+                          </div>
+                          <div className="text-primary font-bold text-lg mt-2 gradient-text">
+                            Earned: {testimonials[currentTestimonial].earnings}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-center gap-4 mt-8">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
-                      className="rounded-full"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </Button>
                     
-                    <div className="flex gap-2">
-                      {testimonials.map((_, index) => (
-                        <button
-                          key={index}
-                          onClick={() => setCurrentTestimonial(index)}
-                          className={`w-2 h-2 rounded-full transition-all ${
-                            index === currentTestimonial 
-                              ? 'bg-primary w-8' 
-                              : 'bg-muted-foreground/30'
-                          }`}
-                          aria-label={`Go to testimonial ${index + 1}`}
-                        />
-                      ))}
+                    <div className="flex items-center justify-center gap-4 mt-8">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
+                        className="rounded-full"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </Button>
+                      
+                      <div className="flex gap-2">
+                        {testimonials.map((_, index) => (
+                          <button
+                            key={index}
+                            onClick={() => setCurrentTestimonial(index)}
+                            className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                              index === currentTestimonial 
+                                ? 'bg-primary w-8' 
+                                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
+                            }`}
+                            aria-label={`Go to testimonial ${index + 1}`}
+                          />
+                        ))}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
+                        className="rounded-full"
+                      >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </Button>
                     </div>
-                    
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
-                      className="rounded-full"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </Button>
                   </div>
                 </div>
               </div>
-            </div>
+            </ScrollReveal>
             
-            <div className="text-center mt-12">
-              <Link to="/designer-signup">
-                <Button variant="hero" size="lg" className="group">
-                  Start Earning as a Designer
-                  <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
-                </Button>
-              </Link>
-            </div>
+            <ScrollReveal animation="fade-up" delay={200}>
+              <div className="text-center mt-12">
+                <Link to="/designer-signup">
+                  <Button variant="hero" size="lg" className="group">
+                    Start Earning as a Designer
+                    <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+                  </Button>
+                </Link>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
         {/* AI Design Showcase */}
         <section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent py-10 md:py-20">
           <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                From Idea to Reality in Minutes
-              </h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto mb-3">
-                Our AI design studio turns sketches, photos, or text descriptions into production-ready furniture designs
-              </p>
-              <p className="text-sm font-medium text-primary">
-                3 unique variations in ~30 seconds • Manufacturing-ready constraints built-in
-              </p>
-            </div>
+            <ScrollReveal animation="blur-in">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+                  From Idea to Reality in <span className="gradient-text-animated">Minutes</span>
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto mb-3">
+                  Our AI design studio turns sketches, photos, or text descriptions into production-ready furniture designs
+                </p>
+                <p className="text-sm font-medium text-primary">
+                  3 unique variations in ~30 seconds • Manufacturing-ready constraints built-in
+                </p>
+              </div>
+            </ScrollReveal>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group">
+            <StaggerReveal 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto"
+              staggerDelay={150}
+              animation="fade-up"
+            >
+              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group hover-lift">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -533,7 +589,7 @@ const Home = () => {
                 </p>
               </div>
               
-              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group">
+              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group hover-lift">
                 <div className="w-14 h-14 rounded-xl bg-secondary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <svg className="w-7 h-7 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -545,7 +601,7 @@ const Home = () => {
                 </p>
               </div>
               
-              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group">
+              <div className="bg-background rounded-2xl p-8 shadow-soft hover:shadow-medium transition-all group hover-lift">
                 <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -556,23 +612,29 @@ const Home = () => {
                   List your design and earn commissions on every sale, perpetually
                 </p>
               </div>
-            </div>
+            </StaggerReveal>
           </div>
         </section>
 
         {/* How It Works */}
         <section className="py-10 md:py-20">
           <div className="container">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
-              <p className="text-muted-foreground max-w-2xl mx-auto">
-                A collaborative loop where everyone wins
-              </p>
-            </div>
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  A collaborative loop where everyone wins
+                </p>
+              </div>
+            </ScrollReveal>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <StaggerReveal 
+              className="grid grid-cols-1 md:grid-cols-3 gap-8"
+              staggerDelay={200}
+              animation="fade-up"
+            >
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft">
+                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft animate-float">
                   1
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">Designers Create</h3>
@@ -583,7 +645,7 @@ const Home = () => {
               </div>
               
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft">
+                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft animate-float" style={{ animationDelay: '0.5s' }}>
                   2
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">We Manufacture</h3>
@@ -594,16 +656,16 @@ const Home = () => {
               </div>
               
               <div className="text-center space-y-4">
-                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft">
+                <div className="w-16 h-16 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-bold mx-auto shadow-soft animate-float" style={{ animationDelay: '1s' }}>
                   3
                 </div>
                 <h3 className="text-xl font-semibold text-foreground">Customers Discover</h3>
                 <p className="text-muted-foreground">
                   Get unique, story-backed furniture made just for you
                 </p>
-                <p className="text-sm font-medium text-green-600">One-of-a-kind pieces, sustainably made</p>
+                <p className="text-sm font-medium text-secondary">One-of-a-kind pieces, sustainably made</p>
               </div>
-            </div>
+            </StaggerReveal>
           </div>
         </section>
 
@@ -612,19 +674,27 @@ const Home = () => {
 
         {/* CTA Section */}
         <section className="container py-10 md:py-20">
-          <div className="bg-primary rounded-3xl p-6 md:p-12 text-center text-primary-foreground shadow-medium">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Ready to Transform Your Space?
-            </h2>
-            <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-              Join thousands of customers who've discovered the perfect blend of style, sustainability, and story
-            </p>
-            <Link to="/browse">
-              <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">
-                Start Shopping
-              </Button>
-            </Link>
-          </div>
+          <ScrollReveal animation="zoom-in">
+            <div className="bg-primary rounded-3xl p-6 md:p-12 text-center text-primary-foreground shadow-medium relative overflow-hidden">
+              {/* Animated background accents */}
+              <div className="absolute top-0 left-0 w-72 h-72 bg-secondary/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse" />
+              <div className="absolute bottom-0 right-0 w-72 h-72 bg-accent/20 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+              
+              <div className="relative">
+                <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                  Ready to Transform Your Space?
+                </h2>
+                <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
+                  Join thousands of customers who've discovered the perfect blend of style, sustainability, and story
+                </p>
+                <Link to="/browse">
+                  <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">
+                    Start Shopping
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </ScrollReveal>
         </section>
       </main>
       
