@@ -140,7 +140,7 @@ export const Header = () => {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Button variant="outline" className="w-full" size="lg">
-                        <Sparkles className="h-5 w-5 mr-2" />
+                        <Wand2 className="h-5 w-5 mr-2" />
                         Try AI Design Studio
                       </Button>
                     </Link>
@@ -169,7 +169,7 @@ export const Header = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
                   >
-                    <Sparkles className="h-4 w-4" />
+                    <Wand2 className="h-4 w-4" />
                     AI Design Studio
                   </Link>
                   {[
@@ -253,7 +253,7 @@ export const Header = () => {
           </DropdownMenu>
           <Link to="/design-studio">
             <Button variant="ghost" size="sm" className="text-sm font-medium flex items-center gap-1.5 whitespace-nowrap">
-              <Sparkles className="h-4 w-4" />
+              <Wand2 className="h-4 w-4" />
               AI Design Studio
             </Button>
           </Link>
