@@ -224,10 +224,7 @@ export const Header = () => {
         {/* Desktop Logo */}
         <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
           <img src={logo} alt="Nyzora Logo" className="h-8 w-8" />
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-primary leading-tight">Nyzora</span>
-            <span className="text-[10px] text-muted-foreground -mt-1"></span>
-          </div>
+          <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
         </Link>
         
         {/* Desktop Navigation */}
