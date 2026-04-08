@@ -86,9 +86,8 @@ export const Header = () => {
             <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="text-left">
-                  <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
-                    <span className="text-2xl font-bold text-primary leading-tight">Nyzora</span>
-                    <span className="text-[10px] text-muted-foreground -mt-1"></span>
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
                   </Link>
                 </SheetTitle>
               </SheetHeader>
