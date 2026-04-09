@@ -104,7 +104,7 @@ export const Header = () => {
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
                     >
-                      <Sparkles className="h-5 w-5" />
+                      <Wand2 className="h-5 w-5" />
                       Create with AI
                     </Link>
                     <Link
