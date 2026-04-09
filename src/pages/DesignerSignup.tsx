@@ -124,7 +124,7 @@ const DesignerSignup = () => {
       if (error) throw error;
 
       toast({
-        title: "Welcome to Formo!",
+        title: "Welcome to Nyzora!",
         description: "Your creator account is ready. Start designing now!",
       });
 

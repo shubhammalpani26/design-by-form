@@ -88,7 +88,7 @@ const Creators = () => {
               Meet Our Creators
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Talented designers from around the world bringing unique visions to life through Formo
+              Talented designers from around the world bringing unique visions to life through Nyzora
             </p>
           </div>
         </section>

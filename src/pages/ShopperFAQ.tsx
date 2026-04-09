@@ -21,7 +21,7 @@ const ShopperFAQ = () => {
               Shopper FAQs
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Everything you need to know about shopping on Forma
+              Everything you need to know about shopping on Form
             </p>
           </div>
         </section>
@@ -30,16 +30,16 @@ const ShopperFAQ = () => {
           <Accordion type="single" collapsible className="space-y-4">
             <AccordionItem value="item-1">
               <AccordionTrigger className="text-left font-semibold">
-                What makes Forma furniture unique?
+                What makes Nyzora furniture unique?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Every piece on Forma is designed by independent creators and crafted using high-grade resin reinforced with composite fibre, engineered for lasting strength and a refined finish. Produced through a hybrid fabrication process with meticulous hand-finishing. Each piece is unique and directly supports creative talent worldwide.
+                Every piece on Nyzora is designed by independent creators and crafted using high-grade resin reinforced with composite fibre, engineered for lasting strength and a refined finish. Produced through a hybrid fabrication process with meticulous hand-finishing. Each piece is unique and directly supports creative talent worldwide.
               </AccordionContent>
             </AccordionItem>
 
             <AccordionItem value="item-2">
               <AccordionTrigger className="text-left font-semibold">
-                How is Forma furniture manufactured?
+                How is Nyzora furniture manufactured?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 Produced through a hybrid fabrication process and completed with meticulous hand-finishing, ensuring every piece has its own distinct character.
@@ -48,7 +48,7 @@ const ShopperFAQ = () => {
 
             <AccordionItem value="item-3">
               <AccordionTrigger className="text-left font-semibold">
-                Is Forma furniture durable and weather-resistant?
+                Is Nyzora furniture durable and weather-resistant?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 Yes! All our pieces are made from high-strength composite materials that are UV-stable and weather-resistant. They're designed for both indoor and outdoor use, withstanding rain, sun, and temperature variations while maintaining their beauty.
@@ -102,10 +102,10 @@ const ShopperFAQ = () => {
 
             <AccordionItem value="item-9">
               <AccordionTrigger className="text-left font-semibold">
-                How do I care for my Forma furniture?
+                How do I care for my Nyzora furniture?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Forma furniture is very low-maintenance. Simply wipe with a damp cloth and mild soap for cleaning. Avoid abrasive cleaners or harsh chemicals. While weather-resistant, storing outdoor pieces indoors during extreme weather extends their lifespan. Detailed care instructions come with each piece.
+                Nyzora furniture is very low-maintenance. Simply wipe with a damp cloth and mild soap for cleaning. Avoid abrasive cleaners or harsh chemicals. While weather-resistant, storing outdoor pieces indoors during extreme weather extends their lifespan. Detailed care instructions come with each piece.
               </AccordionContent>
             </AccordionItem>
 
@@ -132,7 +132,7 @@ const ShopperFAQ = () => {
                 Who designed the furniture I'm buying?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Each product page displays the creator's name and profile. Click through to learn about their design philosophy, see their other work, and read their story. By purchasing from Forma, you directly support independent designers earning from every sale.
+                Each product page displays the creator's name and profile. Click through to learn about their design philosophy, see their other work, and read their story. By purchasing from Nyzora, you directly support independent designers earning from every sale.
               </AccordionContent>
             </AccordionItem>
 
@@ -159,7 +159,7 @@ const ShopperFAQ = () => {
                 How can I stay updated on new designs?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Follow us on social media (@formo.design), subscribe to our newsletter, or check the "Browse" page regularly. We add new creator designs weekly and send curated design drops to subscribers first.
+                Follow us on social media (@nyzora.design), subscribe to our newsletter, or check the "Browse" page regularly. We add new creator designs weekly and send curated design drops to subscribers first.
               </AccordionContent>
             </AccordionItem>
           </Accordion>

@@ -12,7 +12,7 @@ const Sustainability = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Sustainability at Forma
+              Sustainability at Form
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Beautiful furniture shouldn't cost the Earth
@@ -39,7 +39,7 @@ const Sustainability = () => {
                   <h3 className="text-2xl font-bold mb-3 text-foreground">On-Demand Manufacturing</h3>
                   <p className="text-muted-foreground mb-4">
                     Traditional furniture manufacturing creates massive waste through overproduction. 
-                    Formo eliminates this entirely—we only manufacture what customers order.
+                    Nyzora eliminates this entirely—we only manufacture what customers order.
                   </p>
                   <Card className="bg-accent border-border">
                     <CardContent className="p-4">

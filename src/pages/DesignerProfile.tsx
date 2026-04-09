@@ -202,7 +202,7 @@ const DesignerProfile = () => {
                   <div className="mt-4">
                     <ShareButton
                       url={window.location.href}
-                      title={`Check out ${designer.name}'s designs on Formo`}
+                      title={`Check out ${designer.name}'s designs on Nyzora`}
                       description={`Browse ${designer.totalProducts} unique furniture designs by ${designer.name}`}
                     />
                   </div>

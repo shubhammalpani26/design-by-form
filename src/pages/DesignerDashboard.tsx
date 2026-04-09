@@ -230,7 +230,7 @@ const DesignerDashboard = () => {
         {designerProfileId && products.filter(p => p.status === 'approved').length > 0 && (
           <ShareButton
             url={`${window.location.origin}/designer/${designerProfileId}`}
-            title="Check out my designer shop on Formo"
+            title="Check out my designer shop on Nyzora"
             description={`Browse my unique furniture designs. ${products.filter(p => p.status === 'approved').length} products available.`}
           />
         )}

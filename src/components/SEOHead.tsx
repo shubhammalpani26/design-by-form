@@ -21,7 +21,7 @@ export const SEOHead = ({
 }: SEOHeadProps) => {
   useEffect(() => {
     // Update document title
-    document.title = `${title} | Formo`;
+    document.title = `${title} | Nyzora`;
 
     // Helper function to set or update meta tags
     const setMetaTag = (property: string, content: string, isName = false) => {
@@ -52,7 +52,7 @@ export const SEOHead = ({
     setMetaTag('og:image', image);
     setMetaTag('og:url', url);
     setMetaTag('og:type', type);
-    setMetaTag('og:site_name', 'Formo');
+    setMetaTag('og:site_name', 'Nyzora');
 
     // Twitter Card meta tags
     setMetaTag('twitter:card', 'summary_large_image', true);

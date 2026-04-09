@@ -189,17 +189,17 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
               
               <center>
-                <a href="https://formo.co.in/designer-dashboard" class="button">
+                <a href="https://nyzora.co.in/designer-dashboard" class="button">
                   View Dashboard
                 </a>
               </center>
               
-              <p>Need help? Check out our <a href="https://formo.co.in/creator-faq">Creator FAQ</a> or contact our support team.</p>
+              <p>Need help? Check out our <a href="https://nyzora.co.in/creator-faq">Creator FAQ</a> or contact our support team.</p>
               
-              <p>Happy selling!<br>The Formo Team</p>
+              <p>Happy selling!<br>The Nyzora Team</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Formo. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} Nyzora. All rights reserved.</p>
             </div>
           </body>
         </html>
@@ -291,17 +291,17 @@ const handler = async (req: Request): Promise<Response> => {
               </ul>
               
               <center>
-                <a href="https://formo.co.in/product-edit/${productId}" class="button">
+                <a href="https://nyzora.co.in/product-edit/${productId}" class="button">
                   Edit & Resubmit Product
                 </a>
               </center>
               
               <p>If you have any questions about this feedback, please don't hesitate to reach out to our support team.</p>
               
-              <p>Best regards,<br>The Formo Team</p>
+              <p>Best regards,<br>The Nyzora Team</p>
             </div>
             <div class="footer">
-              <p>© ${new Date().getFullYear()} Formo. All rights reserved.</p>
+              <p>© ${new Date().getFullYear()} Nyzora. All rights reserved.</p>
             </div>
           </body>
         </html>

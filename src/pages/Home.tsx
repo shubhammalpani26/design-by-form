@@ -37,7 +37,7 @@ const testimonials = [
     name: "Rajesh Kumar",
     role: "Architecture Student",
     image: testimonialRajesh,
-    quote: "I design, Formo manufactures and ships actual products. Seeing my chair design manufactured and sold to 47 customers is incredible!",
+    quote: "I design, Nyzora manufactures and ships actual products. Seeing my chair design manufactured and sold to 47 customers is incredible!",
     earnings: "₹1,85,000"
   },
   {
@@ -65,7 +65,7 @@ const testimonials = [
     name: "Karan Singh",
     role: "Industrial Designer",
     image: testimonialKaran,
-    quote: "I focus on creating innovative designs while Formo handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
+    quote: "I focus on creating innovative designs while Nyzora handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
     earnings: "₹3,75,000"
   }
 ];
@@ -621,7 +621,7 @@ const Home = () => {
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Formo Ecosystem</h2>
+                <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">The Nyzora Ecosystem</h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
                   A collaborative loop where everyone wins
                 </p>
@@ -652,7 +652,7 @@ const Home = () => {
                 <p className="text-muted-foreground">
                   Each piece is crafted on-demand through our verified sustainable network
                 </p>
-                <p className="text-sm font-medium text-secondary">Formo handles production & shipping</p>
+                <p className="text-sm font-medium text-secondary">Nyzora handles production & shipping</p>
               </div>
               
               <div className="text-center space-y-4">

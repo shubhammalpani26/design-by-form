@@ -163,11 +163,11 @@ const Contact = () => {
                       <Mail className="h-5 w-5 text-primary mt-0.5" />
                       <div>
                         <div className="font-medium text-foreground mb-1">Email</div>
-                        <a href="mailto:shubham.malpani@cyanique.com" className="text-primary hover:underline block">
-                          shubham.malpani@cyanique.com
+                        <a href="mailto:shubham.malpani@nyzora.ai" className="text-primary hover:underline block">
+                          shubham.malpani@nyzora.ai
                         </a>
-                        <a href="mailto:tejal.agawane@cyanique.com" className="text-primary hover:underline block">
-                          tejal.agawane@cyanique.com
+                        <a href="mailto:tejal.agawane@nyzora.ai" className="text-primary hover:underline block">
+                          tejal.agawane@nyzora.ai
                         </a>
                       </div>
                     </div>

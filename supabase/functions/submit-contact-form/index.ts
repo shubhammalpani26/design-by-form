@@ -57,7 +57,7 @@ serve(async (req) => {
     if (admins && admins.length > 0) {
       const notifications = admins.map((admin) => ({
         user_id: admin.user_id,
-        title: "New Contact Form Submission",
+        title: "New Contact Nyzora? Submission",
         message: `${firstName} ${lastName} (${email}) — ${subject}`,
         type: "contact_submission",
         link: "/admin?tab=contacts",

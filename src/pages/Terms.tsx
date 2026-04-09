@@ -32,8 +32,8 @@ const Terms = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href="mailto:shubham.malpani@cyanique.com" className="hover:underline">
-                        shubham.malpani@cyanique.com
+                      <a href="mailto:shubham.malpani@nyzora.ai" className="hover:underline">
+                        shubham.malpani@nyzora.ai
                       </a>
                     </div>
                   </div>
@@ -47,8 +47,8 @@ const Terms = () => {
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href="mailto:tejal.agawane@cyanique.com" className="hover:underline">
-                        tejal.agawane@cyanique.com
+                      <a href="mailto:tejal.agawane@nyzora.ai" className="hover:underline">
+                        tejal.agawane@nyzora.ai
                       </a>
                     </div>
                   </div>
@@ -121,7 +121,7 @@ const Terms = () => {
 
               <h3 className="text-xl font-semibold mb-3">3.6 Product Quality and Listing Management</h3>
               <p className="text-muted-foreground">
-                Creator acknowledges that Formo has authority to pause listings if product issues cause excessive 
+                Creator acknowledges that Nyzora has authority to pause listings if product issues cause excessive 
                 support requests or returns. This measure ensures quality standards are maintained across the platform 
                 and protects both customers and the platform's reputation.
               </p>
@@ -239,12 +239,12 @@ const Terms = () => {
                 <div>
                   <p className="font-semibold">Shubham Malpani</p>
                   <p className="text-sm text-muted-foreground">Phone: +91 90825 82002</p>
-                  <p className="text-sm text-muted-foreground">Email: shubham.malpani@cyanique.com</p>
+                  <p className="text-sm text-muted-foreground">Email: shubham.malpani@nyzora.ai</p>
                 </div>
                 <div className="border-t pt-3">
                   <p className="font-semibold">Tejal Agawane</p>
                   <p className="text-sm text-muted-foreground">Phone: +91 87795 18787</p>
-                  <p className="text-sm text-muted-foreground">Email: tejal.agawane@cyanique.com</p>
+                  <p className="text-sm text-muted-foreground">Email: tejal.agawane@nyzora.ai</p>
                 </div>
               </div>
             </section>

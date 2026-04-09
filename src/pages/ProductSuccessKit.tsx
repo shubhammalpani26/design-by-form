@@ -242,7 +242,7 @@ const ProductSuccessKit = () => {
     {
       category: 'Product Launch',
       captions: [
-        `🎉 Introducing ${product?.name}! Now available on Formo Marketplace.\n\nBuy now: ${productUrl}\n\n#FormoDesign #FurnitureDesign #ModernLiving`,
+        `🎉 Introducing ${product?.name}! Now available on Nyzora Marketplace.\n\nBuy now: ${productUrl}\n\n#NyzoraDesign #FurnitureDesign #ModernLiving`,
         `✨ ${product?.name} is here! Transform your space with this stunning piece.\n\n🛒 Shop now: ${productUrl}\n\n#InteriorDesign #HomeDecor #ShopNow`,
       ],
     },
@@ -256,14 +256,14 @@ const ProductSuccessKit = () => {
     {
       category: 'Social Proof',
       captions: [
-        `⭐️ Customers are loving ${product?.name}!\n\nJoin the Formo community and elevate your space.\n\nOrder yours: ${productUrl}\n\n#CustomerLove #QualityFurniture`,
+        `⭐️ Customers are loving ${product?.name}!\n\nJoin the Nyzora community and elevate your space.\n\nOrder yours: ${productUrl}\n\n#CustomerLove #QualityFurniture`,
         `Why people choose ${product?.name}:\n✓ Premium quality\n✓ Unique design\n✓ Sustainable materials\n\nShop now: ${productUrl}\n\n#SustainableDesign #QualityMatters`,
       ],
     },
     {
       category: 'Call to Action',
       captions: [
-        `🔥 Don't miss out on ${product?.name}!\n\n👉 Buy now: ${productUrl}\n\nLimited availability. Free shipping on orders over ₹50,000!\n\n#ShopNow #FreeShipping #FormoMarketplace`,
+        `🔥 Don't miss out on ${product?.name}!\n\n👉 Buy now: ${productUrl}\n\nLimited availability. Free shipping on orders over ₹50,000!\n\n#ShopNow #FreeShipping #NyzoraMarketplace`,
         `Ready to transform your space? 🏡\n\n${product?.name} is waiting for you!\n\n🛍️ Get it now: ${productUrl}\n\n#HomeTransformation #ShopTheLook`,
       ],
     },
@@ -467,7 +467,7 @@ const ProductSuccessKit = () => {
                   Product Link
                 </CardTitle>
                 <CardDescription>
-                  Direct link to your product on Formo Marketplace
+                  Direct link to your product on Nyzora Marketplace
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">

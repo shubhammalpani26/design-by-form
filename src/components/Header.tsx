@@ -23,7 +23,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Menu, ShoppingCart, User as UserIcon, Sparkles, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut } from "lucide-react";
 import logo from "@/assets/logo.png";
 
 export const Header = () => {
@@ -86,9 +86,8 @@ export const Header = () => {
             <SheetContent side="left" className="w-[300px] sm:w-[350px] overflow-y-auto">
               <SheetHeader>
                 <SheetTitle className="text-left">
-                  <Link to="/" onClick={() => setMobileMenuOpen(false)} className="flex flex-col">
-                    <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-                    <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
+                  <Link to="/" onClick={() => setMobileMenuOpen(false)}>
+                    <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
                   </Link>
                 </SheetTitle>
               </SheetHeader>
@@ -105,7 +104,7 @@ export const Header = () => {
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
                     >
-                      <Sparkles className="h-5 w-5" />
+                      <Wand2 className="h-5 w-5" />
                       Create with AI
                     </Link>
                     <Link
@@ -141,7 +140,7 @@ export const Header = () => {
                       onClick={() => setMobileMenuOpen(false)}
                     >
                       <Button variant="outline" className="w-full" size="lg">
-                        <Sparkles className="h-5 w-5 mr-2" />
+                        <Wand2 className="h-5 w-5 mr-2" />
                         Try AI Design Studio
                       </Button>
                     </Link>
@@ -170,7 +169,7 @@ export const Header = () => {
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
                   >
-                    <Sparkles className="h-4 w-4" />
+                    <Wand2 className="h-4 w-4" />
                     AI Design Studio
                   </Link>
                   {[
@@ -217,18 +216,15 @@ export const Header = () => {
 
           {/* Mobile Logo */}
           <Link to="/" className="flex items-center gap-1.5">
-            <img src={logo} alt="Formo Logo" className="h-6 w-6" />
-            <span className="text-lg font-bold text-primary">Formo</span>
+            <img src={logo} alt="Nyzora Logo" className="h-6 w-6" />
+            <span className="text-lg font-bold text-primary">Nyzora</span>
           </Link>
         </div>
 
         {/* Desktop Logo */}
         <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
-          <img src={logo} alt="Formo Logo" className="h-8 w-8" />
-          <div className="flex flex-col">
-            <span className="text-2xl font-bold text-primary leading-tight">Formo</span>
-            <span className="text-[10px] text-muted-foreground -mt-1">By Cyanique</span>
-          </div>
+          <img src={logo} alt="Nyzora Logo" className="h-8 w-8" />
+          <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
         </Link>
         
         {/* Desktop Navigation */}
@@ -257,7 +253,7 @@ export const Header = () => {
           </DropdownMenu>
           <Link to="/design-studio">
             <Button variant="ghost" size="sm" className="text-sm font-medium flex items-center gap-1.5 whitespace-nowrap">
-              <Sparkles className="h-4 w-4" />
+              <Wand2 className="h-4 w-4" />
               AI Design Studio
             </Button>
           </Link>

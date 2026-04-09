@@ -3444,7 +3444,7 @@ const DesignStudio = () => {
                 {[
                   { step: 1, title: "Design Refinement", desc: "We'll review and optimize your design for manufacturing feasibility" },
                   { step: 2, title: "Manufacturing", desc: "Your piece is produced through hybrid fabrication and hand-finished by artisans" },
-                  { step: 3, title: "Listing & Sales", desc: "We list your design on Forma marketplace and handle all sales" },
+                  { step: 3, title: "Listing & Sales", desc: "We list your design on Nyzora marketplace and handle all sales" },
                   { step: 4, title: "You Earn", desc: "You'll receive notifications when orders are placed and earn income automatically" }
                 ].map((item) => (
                   <Card key={item.step} className="relative overflow-hidden">
