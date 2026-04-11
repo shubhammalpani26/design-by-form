@@ -87,7 +87,7 @@ export const Header = () => {
               <SheetHeader>
                 <SheetTitle className="text-left">
                   <Link to="/" onClick={() => setMobileMenuOpen(false)}>
-                    <img src={wordmark} alt="Nyzora" className="h-4 w-auto object-contain dark:invert" />
+                    <img src={wordmark} alt="Nyzora" className="h-3 w-auto object-contain dark:invert" />
                   </Link>
                 </SheetTitle>
               </SheetHeader>
@@ -222,7 +222,7 @@ export const Header = () => {
 
         {/* Desktop Logo */}
         <Link to="/" className="hidden md:flex items-center shrink-0">
-          <img src={wordmark} alt="Nyzora" className="h-5 w-auto object-contain dark:invert" />
+          <img src={wordmark} alt="Nyzora" className="h-3.5 w-auto object-contain dark:invert" />
         </Link>
         
         {/* Desktop Navigation */}
