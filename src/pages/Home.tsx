@@ -3,13 +3,18 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slugify";
+import { useToast } from "@/hooks/use-toast";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import categoryLinen from "@/assets/category-linen.jpg";
+import categoryJewelry from "@/assets/category-jewelry.jpg";
+import categoryDecor from "@/assets/category-decor.jpg";
+import categoryAccessories from "@/assets/category-accessories.jpg";
 import {
   Carousel,
   CarouselContent,
@@ -99,11 +104,38 @@ const truncateDescription = (description: string | undefined, maxLength: number 
 
 // Marquee brands/features strip
 const marqueeItems = [
-  "AI-Powered Design", "Vetted Makers", "Full-Stack Customization", 
-  "On-Demand Production", "3D Visualization", "AR Preview",
-  "Perpetual Royalties", "Zero Inventory", "Design the Object Itself",
-  "Custom Furniture", "Designer Community", "Expanding to Decor & Beyond",
-  "High-Ticket Craftsmanship", "Form · Function · Manufacturing"
+  "Vetted Makers"
+];
+
+const expansionCategories = [
+  {
+    id: "linen",
+    name: "Linen & Soft Furnishings",
+    description: "Custom patterns designed for your space",
+    image: categoryLinen,
+    tag: "Launching Soon",
+  },
+  {
+    id: "jewelry",
+    name: "Jewelry",
+    description: "Personal pieces crafted with AI and precision",
+    image: categoryJewelry,
+    tag: "Coming Soon",
+  },
+  {
+    id: "decor-lighting",
+    name: "Decor & Lighting",
+    description: "Sculptural objects and ambient lighting, designed by you",
+    image: categoryDecor,
+    tag: "Coming Soon",
+  },
+  {
+    id: "accessories",
+    name: "Accessories",
+    description: "Tote bags, scarves & more — your pattern, your product",
+    image: categoryAccessories,
+    tag: "Coming Soon",
+  },
 ];
 
 const styleBubbles = [
@@ -116,6 +148,7 @@ const styleBubbles = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatorStats, setCreatorStats] = useState({
@@ -124,6 +157,12 @@ const Home = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
   const [heroPrompt, setHeroPrompt] = useState("");
+  
+  // Early access modal state
+  const [earlyAccessCategory, setEarlyAccessCategory] = useState<string | null>(null);
+  const [earlyAccessEmail, setEarlyAccessEmail] = useState("");
+  const [earlyAccessWhatsapp, setEarlyAccessWhatsapp] = useState("");
+  const [earlyAccessSubmitting, setEarlyAccessSubmitting] = useState(false);
 
   // Animated counters
   const creatorsCounter = useCountUp(creatorStats.activeCreators, 1500);
@@ -214,6 +253,32 @@ const Home = () => {
       console.error('Error fetching featured products:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEarlyAccessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!earlyAccessEmail && !earlyAccessWhatsapp) {
+      toast({ title: "Please enter email or WhatsApp number", variant: "destructive" });
+      return;
+    }
+    setEarlyAccessSubmitting(true);
+    try {
+      const { error } = await supabase.from("early_access_signups" as any).insert({
+        email: earlyAccessEmail || null,
+        whatsapp: earlyAccessWhatsapp || null,
+        category: earlyAccessCategory,
+      } as any);
+      if (error) throw error;
+      toast({ title: "You're on the list! 🎉", description: "We'll notify you when this category launches." });
+      setEarlyAccessCategory(null);
+      setEarlyAccessEmail("");
+      setEarlyAccessWhatsapp("");
+    } catch (error) {
+      console.error("Early access signup error:", error);
+      toast({ title: "Something went wrong", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setEarlyAccessSubmitting(false);
     }
   };
 
@@ -616,11 +681,126 @@ const Home = () => {
         {/* Community Feed Preview */}
         <CommunityFeedPreview />
 
+        {/* Expanding Beyond Furniture */}
+        <section className="py-16 md:py-24 bg-muted/30">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-14">
+                <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
+                  Expanding Beyond <span className="gradient-text-animated">Furniture</span>
+                </h2>
+                <p className="text-muted-foreground max-w-xl mx-auto">
+                  We're building the future of custom-designed products — starting with furniture.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <StaggerReveal
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto"
+              staggerDelay={120}
+              animation="fade-up"
+            >
+              {expansionCategories.map((cat) => (
+                <div
+                  key={cat.id}
+                  className="group relative rounded-2xl overflow-hidden border border-border/50 bg-card shadow-soft hover:shadow-medium transition-all duration-500 cursor-pointer"
+                  onClick={() => setEarlyAccessCategory(cat.id)}
+                >
+                  <div className="aspect-[4/5] relative overflow-hidden">
+                    <img
+                      src={cat.image}
+                      alt={cat.name}
+                      loading="lazy"
+                      width={640}
+                      height={800}
+                      className="w-full h-full object-cover brightness-[0.85] group-hover:brightness-100 group-hover:scale-105 transition-all duration-700"
+                    />
+                    {/* Overlay gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
+                    
+                    {/* Tag */}
+                    <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur-sm text-[10px] font-semibold uppercase tracking-wider text-foreground/80 border border-border/40">
+                      {cat.tag}
+                    </span>
+                  </div>
+
+                  {/* Text overlay at bottom */}
+                  <div className="absolute bottom-0 left-0 right-0 p-4 space-y-1.5">
+                    <h3 className="text-base font-semibold text-background leading-tight">{cat.name}</h3>
+                    <p className="text-xs text-background/70 leading-snug">{cat.description}</p>
+                    <button
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground bg-primary/90 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-primary transition-colors"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEarlyAccessCategory(cat.id);
+                      }}
+                    >
+                      Get Early Access <ArrowRight className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+
+        {/* Early Access Modal */}
+        {earlyAccessCategory && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/60 backdrop-blur-sm" onClick={() => setEarlyAccessCategory(null)}>
+            <div
+              className="relative bg-background rounded-2xl shadow-lg border border-border w-full max-w-md mx-4 p-8 animate-zoom-in"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setEarlyAccessCategory(null)}
+                className="absolute top-4 right-4 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <h3 className="text-xl font-bold text-foreground mb-1">
+                Get Early Access
+              </h3>
+              <p className="text-sm text-muted-foreground mb-6">
+                Be the first to know when{" "}
+                <span className="font-medium text-foreground">
+                  {expansionCategories.find((c) => c.id === earlyAccessCategory)?.name}
+                </span>{" "}
+                launches on Nyzora.
+              </p>
+              <form onSubmit={handleEarlyAccessSubmit} className="space-y-4">
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Email</label>
+                  <input
+                    type="email"
+                    value={earlyAccessEmail}
+                    onChange={(e) => setEarlyAccessEmail(e.target.value)}
+                    placeholder="you@email.com"
+                    className="w-full mt-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">WhatsApp (optional)</label>
+                  <input
+                    type="tel"
+                    value={earlyAccessWhatsapp}
+                    onChange={(e) => setEarlyAccessWhatsapp(e.target.value)}
+                    placeholder="+91 98765 43210"
+                    className="w-full mt-1 h-10 px-3 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={earlyAccessSubmitting}>
+                  {earlyAccessSubmitting ? "Submitting..." : "Notify Me"}
+                </Button>
+                <p className="text-[10px] text-muted-foreground text-center">We'll only use this to notify you. No spam.</p>
+              </form>
+            </div>
+          </div>
+        )}
+
         {/* CTA Section */}
         <section className="container py-10 md:py-20">
           <ScrollReveal animation="zoom-in">
             <div className="bg-primary rounded-3xl p-6 md:p-12 text-center text-primary-foreground shadow-medium relative overflow-hidden">
-              {/* Animated background accents */}
               <div className="absolute top-0 left-0 w-72 h-72 bg-secondary/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse" />
               <div className="absolute bottom-0 right-0 w-72 h-72 bg-accent/20 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
               
