@@ -222,7 +222,7 @@ const Home = () => {
       
       <main className="flex-1">
         {/* Hero Section — Clean, editorial style */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-12 md:py-20">
+        <section className="relative overflow-hidden bg-background py-12 md:py-20">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
@@ -337,11 +337,11 @@ const Home = () => {
         </section>
 
         {/* Scrolling Marquee Strip */}
-        <div className="overflow-hidden bg-foreground py-3 marquee-container">
+        <div className="overflow-hidden bg-primary py-3 marquee-container">
           <div className="flex animate-marquee whitespace-nowrap">
             {[...marqueeItems, ...marqueeItems].map((item, i) => (
-              <span key={i} className="mx-6 text-sm font-medium text-background/90 flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+              <span key={i} className="mx-6 text-sm font-medium tracking-wide uppercase text-primary-foreground/80 flex items-center gap-3">
+                <span className="w-1 h-1 rounded-full bg-primary-foreground/40 shrink-0" />
                 {item}
               </span>
             ))}
@@ -417,27 +417,27 @@ const Home = () => {
         </section>
 
         {/* Social Proof Strip */}
-        <section className="py-8 md:py-12 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
+        <section className="py-8 md:py-12 bg-muted/50">
           <div className="container">
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
               <div className="text-center">
                 <div 
                   ref={creatorsCounter.ref}
-                  className="text-4xl md:text-5xl font-bold text-primary"
+                  className="text-4xl md:text-5xl font-bold text-foreground"
                 >
                   {creatorsCounter.isVisible ? creatorsCounter.count : 0}+
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">Active Creators</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Active Creators</div>
               </div>
               <div className="hidden md:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-secondary">~30s</div>
-                <div className="text-sm text-muted-foreground mt-1">Design Generation</div>
+                <div className="text-4xl md:text-5xl font-bold text-foreground">~30s</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Design Generation</div>
               </div>
               <div className="hidden md:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-primary">70%</div>
-                <div className="text-sm text-muted-foreground mt-1">Creator Royalty</div>
+                <div className="text-4xl md:text-5xl font-bold text-foreground">70%</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Creator Royalty</div>
               </div>
             </div>
           </div>
@@ -554,7 +554,7 @@ const Home = () => {
         </section>
 
         {/* How It Works — Compact 3-step */}
-        <section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent py-12 md:py-20">
+        <section className="bg-accent py-12 md:py-20">
           <div className="container">
             <ScrollReveal animation="blur-in">
               <div className="text-center mb-12">
