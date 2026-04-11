@@ -110,8 +110,8 @@ const DesignStudio = () => {
   const [is3DGenerating, setIs3DGenerating] = useState(false);
   const [uploadedModelFile, setUploadedModelFile] = useState<File | null>(null);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
-  const [lifestyleImage, setLifestyleImage] = useState<string | null>(null);
-  const [isGeneratingLifestyle, setIsGeneratingLifestyle] = useState(false);
+  const [lifestyleImagesByVariation, setLifestyleImagesByVariation] = useState<Record<number, string>>({});
+  const [lifestyleGenerationIndex, setLifestyleGenerationIndex] = useState<number | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const [aiGeneratedDescription, setAiGeneratedDescription] = useState<string | null>(null);
@@ -120,6 +120,8 @@ const DesignStudio = () => {
   const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
   const spacePreviewInFlightForRef = useRef<string | null>(null);
   const spacePreviewLastForRef = useRef<string | null>(null);
+  const lifestyleImage = selectedVariation !== null ? lifestyleImagesByVariation[selectedVariation] ?? null : null;
+  const isGeneratingLifestyle = selectedVariation !== null && lifestyleGenerationIndex === selectedVariation;
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
