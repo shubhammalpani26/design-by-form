@@ -3,13 +3,18 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slugify";
+import { useToast } from "@/hooks/use-toast";
 
 import { Skeleton } from "@/components/ui/skeleton";
+import categoryLinen from "@/assets/category-linen.jpg";
+import categoryJewelry from "@/assets/category-jewelry.jpg";
+import categoryDecor from "@/assets/category-decor.jpg";
+import categoryAccessories from "@/assets/category-accessories.jpg";
 import {
   Carousel,
   CarouselContent,
@@ -99,11 +104,38 @@ const truncateDescription = (description: string | undefined, maxLength: number 
 
 // Marquee brands/features strip
 const marqueeItems = [
-  "AI-Powered Design", "Vetted Makers", "Full-Stack Customization", 
-  "On-Demand Production", "3D Visualization", "AR Preview",
-  "Perpetual Royalties", "Zero Inventory", "Design the Object Itself",
-  "Custom Furniture", "Designer Community", "Expanding to Decor & Beyond",
-  "High-Ticket Craftsmanship", "Form · Function · Manufacturing"
+  "Vetted Makers"
+];
+
+const expansionCategories = [
+  {
+    id: "linen",
+    name: "Linen & Soft Furnishings",
+    description: "Custom patterns designed for your space",
+    image: categoryLinen,
+    tag: "Launching Soon",
+  },
+  {
+    id: "jewelry",
+    name: "Jewelry",
+    description: "Personal pieces crafted with AI and precision",
+    image: categoryJewelry,
+    tag: "Coming Soon",
+  },
+  {
+    id: "decor-lighting",
+    name: "Decor & Lighting",
+    description: "Sculptural objects and ambient lighting, designed by you",
+    image: categoryDecor,
+    tag: "Coming Soon",
+  },
+  {
+    id: "accessories",
+    name: "Accessories",
+    description: "Tote bags, scarves & more — your pattern, your product",
+    image: categoryAccessories,
+    tag: "Coming Soon",
+  },
 ];
 
 const styleBubbles = [
