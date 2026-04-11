@@ -293,8 +293,8 @@ const Home = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
                 <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] text-foreground animate-slide-up">
-                  Design anything.{" "}
-                  <span className="gradient-text-animated">We make them real.</span>
+                  Design Anything.{" "}
+                  <span className="gradient-text-animated">We Make It Real.</span>
                 </h1>
                 
                 <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
