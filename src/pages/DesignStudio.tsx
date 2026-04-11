@@ -578,6 +578,8 @@ const DesignStudio = () => {
     setVariationDimensions({});
     setVariationSelectedSize({});
     setPolling3DStatus({});
+    setLifestyleImagesByVariation({});
+    setLifestyleGenerationIndex(null);
     
     // Deduct credits after successful generation start
     const deductCreditsAfterGeneration = async () => {
