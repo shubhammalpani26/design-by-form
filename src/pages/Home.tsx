@@ -210,79 +210,50 @@ const Home = () => {
       <Header />
       
       <main className="flex-1">
-        {/* Hero Section */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-8 md:py-16">
+        {/* Hero Section — Clean, editorial style */}
+        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-12 md:py-20">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
-                <div 
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4 animate-slide-down"
-                >
-                  <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-                  </span>
-                  <span className="text-sm font-semibold text-primary">AI-Powered Design Studio</span>
-                </div>
-                
-                <h1 className="text-3xl md:text-6xl font-bold leading-tight text-foreground animate-slide-up">
-                  From concept to{" "}
-                  <span className="gradient-text-animated">
-                    creation
-                  </span>
+                <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] text-foreground animate-slide-up">
+                  Create real furniture{" "}
+                  <span className="gradient-text-animated">with AI</span>
                 </h1>
                 
-                <p className="text-lg text-muted-foreground max-w-xl animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-                  Just imagine, and we bring it to life. From concept to creation, transform your vision into tangible masterpieces.
+                <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+                  Design, manufacture, and sell unique furniture — crafted by our community of creators and makers.
                 </p>
                 
                 <div 
-                  className="bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 border border-primary/20 rounded-2xl p-4 sm:p-6 max-w-xl backdrop-blur-sm shadow-lg animate-fade-in hover-lift"
-                  style={{ animationDelay: '300ms', animationFillMode: 'both' }}
-                >
-                  <p className="text-base sm:text-lg font-semibold text-foreground mb-2 gradient-text">
-                    For Creators: Your Vision, Our Craftsmanship
-                  </p>
-                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 leading-relaxed">
-                    Transform your ideas into real furniture and earn royalties as your designs come to life—without the burden of production or logistics.
-                  </p>
-                </div>
-                
-                <div 
-                  className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4 animate-fade-in"
+                  className="flex flex-col sm:flex-row gap-3 animate-fade-in"
                   style={{ animationDelay: '400ms', animationFillMode: 'both' }}
                 >
                   <Link to="/design-studio" className="w-full sm:w-auto">
-                    <Button variant="hero" size="lg" className="group w-full sm:w-auto">
-                      Start Designing with AI
+                    <Button variant="hero" size="lg" className="group w-full sm:w-auto text-base">
+                      Start Creating
                       <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
                     </Button>
                   </Link>
-                  <Link to="/community" className="w-full sm:w-auto">
-                    <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                      Creator Community
-                    </Button>
-                  </Link>
                   <Link to="/browse" className="w-full sm:w-auto">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                      Browse Products
+                    <Button variant="outline" size="lg" className="w-full sm:w-auto text-base">
+                      Explore Designs
                     </Button>
                   </Link>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row sm:items-center flex-wrap gap-3 sm:gap-4 pt-4 text-xs sm:text-sm text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                    </svg>
-                    <span>Unique designs from creators worldwide</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <svg className="w-4 h-4 sm:w-5 sm:h-5 text-secondary shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span>Sustainable on-demand manufacturing</span>
-                  </div>
+                <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    AI-powered
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="w-2 h-2 rounded-full bg-secondary" />
+                    On-demand manufacturing
+                  </span>
+                  <span className="flex items-center gap-1.5 hidden sm:flex">
+                    <span className="w-2 h-2 rounded-full bg-primary" />
+                    Perpetual royalties
+                  </span>
                 </div>
               </div>
               
