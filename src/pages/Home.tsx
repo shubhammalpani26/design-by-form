@@ -222,7 +222,7 @@ const Home = () => {
       
       <main className="flex-1">
         {/* Hero Section — Clean, editorial style */}
-        <section className="relative overflow-hidden bg-gradient-to-b from-accent to-background py-12 md:py-20">
+        <section className="relative overflow-hidden bg-background py-12 md:py-20">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
@@ -554,7 +554,7 @@ const Home = () => {
         </section>
 
         {/* How It Works — Compact 3-step */}
-        <section className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent py-12 md:py-20">
+        <section className="bg-accent py-12 md:py-20">
           <div className="container">
             <ScrollReveal animation="blur-in">
               <div className="text-center mb-12">
