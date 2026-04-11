@@ -24,7 +24,7 @@ import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
 import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut } from "lucide-react";
-import logo from "@/assets/logo.png";
+import wordmark from "@/assets/nyzora-wordmark.png";
 
 export const Header = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -215,16 +215,14 @@ export const Header = () => {
           </Sheet>
 
           {/* Mobile Logo */}
-          <Link to="/" className="flex items-center gap-1.5">
-            <img src={logo} alt="Nyzora Logo" className="h-6 w-6" />
-            <span className="text-lg font-bold text-primary">Nyzora</span>
+          <Link to="/" className="flex items-center">
+            <img src={wordmark} alt="Nyzora" className="h-5 object-contain" />
           </Link>
         </div>
 
         {/* Desktop Logo */}
-        <Link to="/" className="hidden md:flex items-center gap-2 shrink-0">
-          <img src={logo} alt="Nyzora Logo" className="h-8 w-8" />
-          <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
+        <Link to="/" className="hidden md:flex items-center shrink-0">
+          <img src={wordmark} alt="Nyzora" className="h-7 object-contain" />
         </Link>
         
         {/* Desktop Navigation */}
