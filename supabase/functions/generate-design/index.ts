@@ -161,9 +161,9 @@ serve(async (req) => {
 
     // Create variations by adding different style hints
     const variationHints = [
-      "Focus on bold, sculptural forms with dramatic curves",
-      "Emphasize minimalist elegance with refined proportions", 
-      "Create organic, flowing lines with nature-inspired shapes"
+      "Focus on bold, sculptural forms with dramatic curves and commanding presence",
+      "Emphasize minimalist elegance with refined proportions and subtle tension", 
+      "Create organic, flowing lines inspired by natural geological or botanical forms"
     ];
 
     // Manufacturing constraints applied to EVERY generation
@@ -180,19 +180,35 @@ CRITICAL MANUFACTURING CONSTRAINTS — every design MUST follow these rules:
 - Structurally sound: the piece must support its intended load (seating, tabletop, etc.)
 The design must be manufacturable via large-format 3D printing and hand-finishing.`;
 
+    // Photography direction for premium output
+    const photographyDirection = `
+PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
+- Photorealistic studio photograph, NOT a 3D render or illustration or cartoon
+- Shot on a medium-format camera with shallow depth of field
+- Professional product photography lighting: key light from upper-left, soft fill, subtle rim light
+- Clean, neutral backdrop (light grey seamless paper or concrete floor)
+- Subtle contact shadows and ambient occlusion grounding the piece
+- Material should read as real: show surface texture, subtle reflections, material grain
+- The furniture must look like it physically exists — real weight, real presence
+- Color palette: sophisticated and muted — think concrete grey, warm sand, matte black, ivory, terracotta
+- NO flat colors, NO plastic-looking surfaces, NO CGI/video-game aesthetic
+- Reference aesthetic: Zaha Hadid Design, Ross Lovegrove, Neri Oxman furniture pieces`;
 
     // Build message content based on whether room image or sketch is provided
     let messages: any[];
     
     if (sketchImageBase64) {
-      // Sketch-based generation
-      const sketchPrompt = `Based on this sketch/reference image, create a refined, photorealistic furniture design. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
+      const sketchPrompt = `You are a world-class furniture designer and product photographer. Based on this sketch/reference image, create a refined, photorealistic furniture design.
 
-${prompt || 'Improve and refine this design'}
+Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
+
+${prompt || 'Refine and elevate this design into a premium, gallery-worthy furniture piece'}
 
 ${manufacturingConstraints}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
+${photographyDirection}
+
+Generate a single photorealistic product photograph of this furniture piece.`;
 
       messages = [{
         role: 'user',
@@ -202,14 +218,17 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
         ]
       }];
     } else if (roomImageBase64) {
-      // Room-aware generation with multimodal input
-      const roomAwarePrompt = `Design a photorealistic furniture piece. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
+      const roomAwarePrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece that would complement this space.
+
+Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
 ${prompt}
 
 ${manufacturingConstraints}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
+${photographyDirection}
+
+Generate a single photorealistic product photograph of this furniture piece — shown on its own against a clean backdrop, NOT placed in the room.`;
 
       messages = [{
         role: 'user',
@@ -219,14 +238,17 @@ Create a single beautiful furniture design shown from a 3/4 view with profession
         ]
       }];
     } else {
-      // Standard generation without room context
-      const refinedPrompt = `Design a photorealistic furniture piece. Style variation: ${variationHints[variationNumber - 1] || variationHints[0]}
+      const refinedPrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece.
+
+Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
 ${prompt}
 
 ${manufacturingConstraints}
 
-Create a single beautiful furniture design shown from a 3/4 view with professional lighting on a clean white background.`;
+${photographyDirection}
+
+Generate a single photorealistic product photograph of this furniture piece.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }
