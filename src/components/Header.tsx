@@ -87,7 +87,7 @@ export const Header = () => {
               <SheetHeader>
                 <SheetTitle className="text-left">
                   <Link to="/" onClick={() => setMobileMenuOpen(false)}>
-                    <span className="text-2xl font-bold text-primary leading-tight">Nyzora<span className="text-secondary">.ai</span></span>
+                    <img src={wordmark} alt="Nyzora" className="h-6 object-contain" />
                   </Link>
                 </SheetTitle>
               </SheetHeader>

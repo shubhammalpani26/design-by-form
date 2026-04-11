@@ -1,5 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import wordmark from "@/assets/nyzora-wordmark.png";
 
 export const Footer = () => {
   const navigate = useNavigate();
@@ -14,7 +15,7 @@ export const Footer = () => {
       <div className="container py-8 sm:py-12 px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
-            <h3 className="font-bold text-lg mb-4 text-primary">Nyzora<span className="text-secondary">.ai</span></h3>
+            <img src={wordmark} alt="Nyzora" className="h-6 object-contain mb-2" />
             <p className="text-sm text-muted-foreground">
               Empowering creators to design the future of sustainable furniture.
             </p>
