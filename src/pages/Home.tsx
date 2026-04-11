@@ -113,7 +113,7 @@ const expansionCategories = [
     name: "Linen & Soft Furnishings",
     description: "Custom patterns designed for your space",
     image: categoryLinen,
-    tag: "Launching Soon",
+    tag: "Coming Soon",
   },
   {
     id: "jewelry",
@@ -685,14 +685,17 @@ const Home = () => {
         <section className="py-16 md:py-24 bg-muted/30">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="text-center mb-14">
+              <div className="text-center mb-4">
                 <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
                   Expanding Beyond <span className="gradient-text-animated">Furniture</span>
                 </h2>
                 <p className="text-muted-foreground max-w-xl mx-auto">
-                  We're building the future of custom-designed products — starting with furniture.
+                  The future of custom design starts with furniture.
                 </p>
               </div>
+              <p className="text-center text-sm font-medium text-primary tracking-wide uppercase mb-10">
+                Furniture is live. Everything else is next.
+              </p>
             </ScrollReveal>
 
             <StaggerReveal
@@ -703,7 +706,7 @@ const Home = () => {
               {expansionCategories.map((cat) => (
                 <div
                   key={cat.id}
-                  className="group relative rounded-2xl overflow-hidden border border-border/50 bg-card shadow-soft hover:shadow-medium transition-all duration-500 cursor-pointer"
+                  className="group relative rounded-2xl overflow-hidden border border-border/50 bg-card shadow-soft hover:shadow-medium hover:border-primary/30 transition-all duration-500 cursor-pointer"
                   onClick={() => setEarlyAccessCategory(cat.id)}
                 >
                   <div className="aspect-[4/5] relative overflow-hidden">
@@ -718,6 +721,9 @@ const Home = () => {
                     {/* Overlay gradient */}
                     <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-foreground/20 to-transparent" />
                     
+                    {/* Glow on hover */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-primary/20 via-transparent to-transparent pointer-events-none" />
+                    
                     {/* Tag */}
                     <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-background/90 backdrop-blur-sm text-[10px] font-semibold uppercase tracking-wider text-foreground/80 border border-border/40">
                       {cat.tag}
@@ -729,13 +735,13 @@ const Home = () => {
                     <h3 className="text-base font-semibold text-background leading-tight">{cat.name}</h3>
                     <p className="text-xs text-background/70 leading-snug">{cat.description}</p>
                     <button
-                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground bg-primary/90 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-primary transition-colors"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary-foreground bg-primary/90 backdrop-blur-sm px-3 py-1.5 rounded-full hover:bg-primary group-hover:translate-x-0.5 transition-all duration-300"
                       onClick={(e) => {
                         e.stopPropagation();
                         setEarlyAccessCategory(cat.id);
                       }}
                     >
-                      Get Early Access <ArrowRight className="h-3 w-3" />
+                      Get Priority Access <ArrowRight className="h-3 w-3 group-hover:translate-x-0.5 transition-transform" />
                     </button>
                   </div>
                 </div>
