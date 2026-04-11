@@ -15,7 +15,7 @@ export const Footer = () => {
       <div className="container py-8 sm:py-12 px-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
-            <img src={wordmark} alt="Nyzora" className="h-6 object-contain mb-2" />
+            <img src={wordmark} alt="Nyzora" className="h-6 object-contain invert dark:invert-0 mb-2" />
             <p className="text-sm text-muted-foreground">
               Empowering creators to design the future of sustainable furniture.
             </p>
