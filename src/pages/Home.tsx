@@ -610,7 +610,7 @@ const Home = () => {
               <div className="text-center mt-12">
                 <Link to="/designer-signup">
                   <Button variant="hero" size="lg" className="group">
-                    Start Earning as a Designer
+                    Start Earning as a Creator
                     <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
                   </Button>
                 </Link>
@@ -678,8 +678,8 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Community Feed Preview */}
-        <CommunityFeedPreview />
+
+
 
         {/* Expanding Beyond Furniture */}
         <section className="py-16 md:py-24 bg-muted/30">
@@ -693,9 +693,6 @@ const Home = () => {
                   The future of custom design starts with furniture.
                 </p>
               </div>
-              <p className="text-center text-sm font-medium text-primary tracking-wide uppercase mb-10">
-                Furniture is live. Everything else is next.
-              </p>
             </ScrollReveal>
 
             <StaggerReveal
