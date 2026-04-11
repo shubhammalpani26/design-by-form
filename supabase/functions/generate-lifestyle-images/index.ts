@@ -111,9 +111,9 @@ serve(async (req) => {
     const angleViews: { angle: string; url: string }[] = [];
     const labels = ['Living Room Setting', 'Bedroom / Reading Nook', 'Open Plan Space'];
 
-    for (let i = 0; i < lifestylePrompts.length; i++) {
+    // Generate all 3 lifestyle images IN PARALLEL
+    const generateOne = async (i: number): Promise<{ angle: string; url: string } | null> => {
       console.log(`Generating lifestyle image ${i + 1}/3...`);
-
       try {
         const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
@@ -136,14 +136,13 @@ serve(async (req) => {
 
         if (!response.ok) {
           console.error(`Lifestyle ${i + 1} failed:`, response.status);
-          continue;
+          return null;
         }
 
         const data = await response.json();
         const generatedUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
         if (generatedUrl) {
-          // Upload generated image to storage
           const imgMatch = generatedUrl.match(/^data:image\/(\w+);base64,(.+)$/);
           if (imgMatch) {
             const ext = imgMatch[1] === 'jpeg' ? 'jpg' : imgMatch[1];
@@ -165,15 +164,22 @@ serve(async (req) => {
               const { data: pubUrl } = supabase.storage
                 .from('product-images')
                 .getPublicUrl(lifestylePath);
-              
-              angleViews.push({ angle: labels[i], url: pubUrl.publicUrl });
               console.log(`Lifestyle ${i + 1} uploaded successfully`);
+              return { angle: labels[i], url: pubUrl.publicUrl };
             }
           }
         }
+        return null;
       } catch (err) {
         console.error(`Error generating lifestyle ${i + 1}:`, err);
+        return null;
       }
+    };
+
+    const results = await Promise.allSettled([generateOne(0), generateOne(1), generateOne(2)]);
+    const angleViews: { angle: string; url: string }[] = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) angleViews.push(r.value);
     }
 
     if (angleViews.length === 0) {
