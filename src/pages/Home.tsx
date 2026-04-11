@@ -256,6 +256,32 @@ const Home = () => {
     }
   };
 
+  const handleEarlyAccessSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!earlyAccessEmail && !earlyAccessWhatsapp) {
+      toast({ title: "Please enter email or WhatsApp number", variant: "destructive" });
+      return;
+    }
+    setEarlyAccessSubmitting(true);
+    try {
+      const { error } = await supabase.from("early_access_signups" as any).insert({
+        email: earlyAccessEmail || null,
+        whatsapp: earlyAccessWhatsapp || null,
+        category: earlyAccessCategory,
+      } as any);
+      if (error) throw error;
+      toast({ title: "You're on the list! 🎉", description: "We'll notify you when this category launches." });
+      setEarlyAccessCategory(null);
+      setEarlyAccessEmail("");
+      setEarlyAccessWhatsapp("");
+    } catch (error) {
+      console.error("Early access signup error:", error);
+      toast({ title: "Something went wrong", description: "Please try again.", variant: "destructive" });
+    } finally {
+      setEarlyAccessSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
