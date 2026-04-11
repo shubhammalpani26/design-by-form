@@ -105,7 +105,16 @@ const marqueeItems = [
   "Custom Furniture", "Designer Community", "Smart Pricing"
 ];
 
+const styleBubbles = [
+  { label: "Minimalist Tokyo coffee table", icon: "☕" },
+  { label: "Sculptural lounge chair", icon: "🪑" },
+  { label: "Live-edge dining table for 8", icon: "🪵" },
+  { label: "Floating wall shelf in walnut", icon: "📚" },
+  { label: "Brutalist concrete side table", icon: "🗿" },
+];
+
 const Home = () => {
+  const navigate = useNavigate();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatorStats, setCreatorStats] = useState({
@@ -113,6 +122,7 @@ const Home = () => {
   });
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
+  const [heroPrompt, setHeroPrompt] = useState("");
 
   // Animated counters
   const creatorsCounter = useCountUp(creatorStats.activeCreators, 1500);
