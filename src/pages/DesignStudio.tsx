@@ -834,15 +834,14 @@ const DesignStudio = () => {
     setTimeout(checkStatus, 5000);
   };
 
-  const generateLifestyleImage = async (imageUrl: string, productName: string) => {
-    setIsGeneratingLifestyle(true);
-    setLifestyleImage(null);
-    
+  const generateLifestyleImage = async (variationIndex: number, imageUrl: string, productName: string, force = false) => {
+    if (!force && lifestyleImagesByVariation[variationIndex]) {
+      return;
+    }
+
+    setLifestyleGenerationIndex(variationIndex);
+
     try {
-      // Add timeout of 30 seconds for lifestyle generation
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
       const { data, error } = await supabase.functions.invoke('generate-angle-view', {
         body: {
           imageUrl,
@@ -851,22 +850,19 @@ const DesignStudio = () => {
         }
       });
 
-      clearTimeout(timeoutId);
-      
       if (error) throw error;
-      
-      // Edge function returns { imageUrl: ... }
+
       if (data?.imageUrl) {
-        setLifestyleImage(data.imageUrl);
+        setLifestyleImagesByVariation(prev => ({
+          ...prev,
+          [variationIndex]: data.imageUrl,
+        }));
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Lifestyle image generation failed:', error);
-      if (error?.name === 'AbortError') {
-        console.log('Lifestyle generation timed out');
-      }
       // Silent fail - lifestyle is optional enhancement
     } finally {
-      setIsGeneratingLifestyle(false);
+      setLifestyleGenerationIndex(current => current === variationIndex ? null : current);
     }
   };
 
@@ -878,7 +874,6 @@ const DesignStudio = () => {
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
     setPreviewMode("2d"); // Reset to 2D view when selecting new variation
-    setLifestyleImage(null); // Reset lifestyle image for new selection
     
     // Store the pricing data for this variation
     const pricingData = selectedVar.pricing || {
@@ -922,9 +917,6 @@ const DesignStudio = () => {
       }
       generateSpacePreview(selectedVar.imageUrl);
     }
-
-    // Auto-generate lifestyle image in background
-    generateLifestyleImage(selectedVar.imageUrl, submissionData.name || 'Custom Furniture');
   };
 
   const applyColorFinishToSelected = async (color?: string, finish?: string) => {
