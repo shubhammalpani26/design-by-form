@@ -293,12 +293,16 @@ const Home = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
                 <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] text-foreground animate-slide-up">
-                  Create real furniture{" "}
-                  <span className="gradient-text-animated">with AI</span>
+                  Design furniture.{" "}
+                  <span className="gradient-text-animated">We make it real.</span>
                 </h1>
                 
                 <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-                  Design, manufacture, and sell unique furniture — crafted by our community of creators and makers.
+                  A new way to create custom physical products—starting with furniture.
+                </p>
+
+                <p className="text-sm text-muted-foreground/70 max-w-lg animate-blur-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+                  From idea to reality—powered by AI and built by real manufacturers.
                 </p>
                 
                 {/* Smart Prompt Bar */}
@@ -323,8 +327,8 @@ const Home = () => {
                         type="text"
                         value={heroPrompt}
                         onChange={(e) => setHeroPrompt(e.target.value)}
-                        placeholder="What are we making today?"
-                        className="w-full h-12 pl-10 pr-24 rounded-full border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm md:text-base shadow-soft"
+                        placeholder="What do you want to create?"
+                        className="w-full h-12 pl-10 pr-28 rounded-full border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm md:text-base shadow-soft"
                       />
                     </div>
                     <Button 
@@ -333,7 +337,7 @@ const Home = () => {
                       size="sm" 
                       className="absolute right-1.5 rounded-full h-9 px-4 text-sm"
                     >
-                      Create <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      Start Designing <ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   </form>
 
@@ -350,6 +354,11 @@ const Home = () => {
                       </button>
                     ))}
                   </div>
+
+                  {/* Trust indicator */}
+                  <p className="text-xs text-muted-foreground/60 mt-3">
+                    Built with real manufacturers. Delivered to your space.
+                  </p>
                 </div>
                 
                 <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
