@@ -693,8 +693,7 @@ const Home = () => {
                   The future of custom design starts with furniture.
                 </p>
               </div>
-              </div>
-              <div className="mb-10" />
+            </ScrollReveal>
             </ScrollReveal>
 
             <StaggerReveal
