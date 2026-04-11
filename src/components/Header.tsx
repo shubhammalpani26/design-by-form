@@ -251,12 +251,6 @@ export const Header = () => {
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Link to="/design-studio">
-            <Button variant="ghost" size="sm" className="text-sm font-medium flex items-center gap-1.5 whitespace-nowrap">
-              <Wand2 className="h-4 w-4" />
-              AI Design Studio
-            </Button>
-          </Link>
           <Link to="/creators" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Creators
           </Link>
@@ -390,9 +384,7 @@ export const Header = () => {
               <Link to="/auth" className="hidden md:block">
                 <Button variant="ghost" size="sm">Sign In</Button>
               </Link>
-              <Link to="/design-studio" className="hidden md:block">
-                <Button variant="default" size="sm" className="hidden md:inline-flex">Create with AI</Button>
-              </Link>
+            
             </>
           )}
         </div>
