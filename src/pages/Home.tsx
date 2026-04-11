@@ -379,40 +379,30 @@ const Home = () => {
           </ScrollReveal>
         </section>
 
-        {/* Designer Success Stats */}
-        <section className="py-10 md:py-16 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent overflow-hidden">
+        {/* Social Proof Strip */}
+        <section className="py-8 md:py-12 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
           <div className="container">
-            <StaggerReveal 
-              className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto"
-              staggerDelay={150}
-              animation="fade-up"
-            >
-              <div className="text-center space-y-2">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
+              <div className="text-center">
                 <div 
                   ref={creatorsCounter.ref}
-                  className="text-4xl md:text-5xl font-bold text-primary animate-counter-glow"
+                  className="text-4xl md:text-5xl font-bold text-primary"
                 >
                   {creatorsCounter.isVisible ? creatorsCounter.count : 0}+
                 </div>
-                <div className="text-lg font-semibold text-foreground">Active Creators</div>
-                <div className="text-sm text-muted-foreground">Designers earning worldwide</div>
+                <div className="text-sm text-muted-foreground mt-1">Active Creators</div>
               </div>
-              
-              <div className="text-center space-y-2">
-                <div className="text-3xl md:text-4xl font-bold gradient-text leading-tight">
-                  Early Creator Benefits
-                </div>
-                <div className="text-base font-semibold text-foreground">Priority Exposure & Higher Royalties</div>
-                <div className="text-sm text-muted-foreground">Join now for maximum visibility</div>
+              <div className="hidden md:block w-px h-12 bg-border" />
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-secondary">~30s</div>
+                <div className="text-sm text-muted-foreground mt-1">Design Generation</div>
               </div>
-              
-              <div className="text-center space-y-2">
-                <div className="text-3xl md:text-4xl font-bold text-secondary leading-tight">
-                  Curated Quality
-                </div>
-                <div className="text-base font-semibold text-foreground">Vibe-Matched Designs</div>
+              <div className="hidden md:block w-px h-12 bg-border" />
+              <div className="text-center">
+                <div className="text-4xl md:text-5xl font-bold text-primary">70%</div>
+                <div className="text-sm text-muted-foreground mt-1">Creator Royalty</div>
               </div>
-            </StaggerReveal>
+            </div>
           </div>
         </section>
 
