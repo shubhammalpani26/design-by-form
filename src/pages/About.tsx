@@ -14,10 +14,10 @@ const About = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
           <div className="container text-center">
             <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Reimagining Furniture Design
+              Where Digital Ideas Become Physical Objects
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              A premium manufacturing partner powering the product journeys of new-age designers
+              A new era of creation—where the tools of design and the engines of manufacturing finally speak the same language
             </p>
           </div>
         </section>
@@ -27,12 +27,11 @@ const About = () => {
           <div className="max-w-3xl mx-auto text-center mb-16">
             <h2 className="text-3xl font-bold mb-6 text-foreground">Our Mission</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              We believe everyone has the potential to create beautiful, functional furniture. 
-              Nyzora democratizes furniture design by combining AI technology with sustainable manufacturing, 
-              enabling creators worldwide to bring their visions to life without the traditional barriers 
-              of capital, expertise, or manufacturing connections. We carefully curate every design to ensure 
-              quality, craftsmanship, and uniqueness—empowering creators while delighting customers with 
-              exceptional pieces.
+              Nyzora was built to bridge the gap between a digital idea and a physical object. 
+              We democratize furniture design by combining AI-powered tools with sustainable, on-demand 
+              manufacturing—enabling creators worldwide to bring their visions to life without capital, 
+              expertise, or factory connections. Every design is carefully curated for quality, 
+              craftsmanship, and uniqueness.
             </p>
           </div>
 
@@ -91,25 +90,25 @@ const About = () => {
             <div className="max-w-3xl mx-auto">
               <h2 className="text-3xl font-bold mb-6 text-foreground">The Story</h2>
               <div className="space-y-4 text-muted-foreground">
-              <p>
-                  Nyzora was born from a simple frustration: talented creators were creating 
-                  beautiful furniture concepts that never made it to production. The barriers 
-                  were too high—manufacturing minimums, upfront capital, complex logistics.
+                <p>
+                  Our name reflects a new era of creation. "Nyzora" is the idea that design 
+                  and manufacturing should finally speak the same language—that a sketch on a 
+                  screen deserves a clear, affordable path to becoming a real object in someone's home.
                 </p>
                 <p>
-                  Meanwhile, consumers were stuck choosing between mass-produced furniture that 
-                  lacked character or expensive custom pieces they couldn't afford. The market 
-                  needed a middle ground.
+                  The gap was clear: talented creators had beautiful concepts that never made it 
+                  to production. Manufacturing minimums, upfront capital, complex logistics—the 
+                  barriers were too high. Meanwhile, consumers chose between mass-produced 
+                  furniture that lacked character or custom pieces they couldn't afford.
                 </p>
                 <p>
-                  We built Nyzora to solve both problems. By combining AI-powered design tools 
-                  with on-demand manufacturing, we created a platform where anyone can design 
-                  furniture and earn from it, while customers get unique, sustainably-made pieces 
-                  at accessible prices.
+                  We built Nyzora to close that gap. AI-powered design tools meet on-demand 
+                  manufacturing, so anyone can design furniture and earn from it—while customers 
+                  get unique, sustainably-made pieces at accessible prices.
                 </p>
-              <p className="font-semibold text-foreground">
-                  Today, we're building a community of talented creators, carefully curating their designs 
-                  and helping them earn perpetual income while bringing fresh creativity to the furniture industry.
+                <p className="font-semibold text-foreground">
+                  Today, we're curating a community of creators and helping them earn perpetual 
+                  income—bringing fresh creativity to an industry ready for change.
                 </p>
               </div>
             </div>
