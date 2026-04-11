@@ -12,6 +12,7 @@ import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { NotificationsManagement } from "@/components/admin/NotificationsManagement";
 import { CreditsManagement } from "@/components/admin/CreditsManagement";
 import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
+import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
 
 export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -83,12 +84,13 @@ export default function AdminPanel() {
         <h1 className="text-3xl font-bold mb-8">Admin Control Panel</h1>
         
         <Tabs defaultValue="designers" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-8">
-            <TabsTrigger value="designers">Designers</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-8 mb-8">
+            <TabsTrigger value="designers">Creators</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="credits">Credits</TabsTrigger>
             <TabsTrigger value="orders">Orders</TabsTrigger>
+            <TabsTrigger value="early-access">Early Access</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
           </TabsList>
@@ -111,6 +113,10 @@ export default function AdminPanel() {
 
           <TabsContent value="orders">
             <OrdersManagement />
+          </TabsContent>
+
+          <TabsContent value="early-access">
+            <EarlyAccessManagement />
           </TabsContent>
 
           <TabsContent value="contacts">

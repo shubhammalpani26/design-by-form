@@ -34,7 +34,7 @@ import { ScrollReveal, StaggerReveal, useCountUp } from "@/hooks/useScrollReveal
 const testimonials = [
   {
     name: "Priya Sharma",
-    role: "Furniture Designer",
+    role: "Furniture Creator",
     image: testimonialPriya,
     quote: "My virtual designs became real furniture in customers' homes! The perpetual commission from each physical sale is amazing. I earned ₹2.5 lakhs in my first 6 months.",
     earnings: "₹2,50,000"
@@ -48,14 +48,14 @@ const testimonials = [
   },
   {
     name: "Ananya Desai",
-    role: "Product Designer",
+    role: "Product Creator",
     image: testimonialAnanya,
     quote: "From digital concept to physical furniture - the platform handles manufacturing and shipping while I keep earning from every piece sold. It's like having my own furniture factory!",
     earnings: "₹3,20,000"
   },
   {
     name: "Arjun Mehta",
-    role: "Interior Designer",
+    role: "Interior Creator",
     image: testimonialArjun,
     quote: "Every table I design gets manufactured and delivered to actual customers. I earn royalties on every physical piece sold. No inventory, no manufacturing headaches!",
     earnings: "₹4,10,000"
@@ -69,7 +69,7 @@ const testimonials = [
   },
   {
     name: "Karan Singh",
-    role: "Industrial Designer",
+    role: "Industrial Creator",
     image: testimonialKaran,
     quote: "I focus on creating innovative designs while Nyzora handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
     earnings: "₹3,75,000"
@@ -424,7 +424,7 @@ const Home = () => {
               <div className="text-center flex-1">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Discover pieces crafted by our community of talented designers
+                  Discover pieces crafted by our community of talented creators
                 </p>
               </div>
             </div>
@@ -515,10 +515,10 @@ const Home = () => {
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                  Real Designers, Real Success
+                  Real Creators, Real Success
                 </h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto mb-2">
-                  Join thousands of designers earning from physical product sales
+                  Join thousands of creators earning from physical product sales
                 </p>
                 <p className="text-xs text-muted-foreground/70 italic">
                   *Testimonials represent illustrative success scenarios
@@ -690,7 +690,7 @@ const Home = () => {
                   Expanding Beyond <span className="gradient-text-animated">Furniture</span>
                 </h2>
                 <p className="text-muted-foreground max-w-xl mx-auto">
-                  The future of custom design starts with furniture.
+                  Custom products, designed by you — starting with furniture.
                 </p>
               </div>
             </ScrollReveal>
