@@ -110,8 +110,8 @@ const DesignStudio = () => {
   const [is3DGenerating, setIs3DGenerating] = useState(false);
   const [uploadedModelFile, setUploadedModelFile] = useState<File | null>(null);
   const [isUploadingModel, setIsUploadingModel] = useState(false);
-  const [lifestyleImage, setLifestyleImage] = useState<string | null>(null);
-  const [isGeneratingLifestyle, setIsGeneratingLifestyle] = useState(false);
+  const [lifestyleImagesByVariation, setLifestyleImagesByVariation] = useState<Record<number, string>>({});
+  const [lifestyleGenerationIndex, setLifestyleGenerationIndex] = useState<number | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const [lastEditedInput, setLastEditedInput] = useState<'sketch' | 'room' | null>(null);
   const [aiGeneratedDescription, setAiGeneratedDescription] = useState<string | null>(null);
@@ -120,6 +120,8 @@ const DesignStudio = () => {
   const [isGeneratingSpacePreview, setIsGeneratingSpacePreview] = useState(false);
   const spacePreviewInFlightForRef = useRef<string | null>(null);
   const spacePreviewLastForRef = useRef<string | null>(null);
+  const lifestyleImage = selectedVariation !== null ? lifestyleImagesByVariation[selectedVariation] ?? null : null;
+  const isGeneratingLifestyle = selectedVariation !== null && lifestyleGenerationIndex === selectedVariation;
   const { toast } = useToast();
 
   // Flag to track if we should auto-submit after restoration
@@ -576,6 +578,8 @@ const DesignStudio = () => {
     setVariationDimensions({});
     setVariationSelectedSize({});
     setPolling3DStatus({});
+    setLifestyleImagesByVariation({});
+    setLifestyleGenerationIndex(null);
     
     // Deduct credits after successful generation start
     const deductCreditsAfterGeneration = async () => {
@@ -832,15 +836,14 @@ const DesignStudio = () => {
     setTimeout(checkStatus, 5000);
   };
 
-  const generateLifestyleImage = async (imageUrl: string, productName: string) => {
-    setIsGeneratingLifestyle(true);
-    setLifestyleImage(null);
-    
+  const generateLifestyleImage = async (variationIndex: number, imageUrl: string, productName: string, force = false) => {
+    if (!force && lifestyleImagesByVariation[variationIndex]) {
+      return;
+    }
+
+    setLifestyleGenerationIndex(variationIndex);
+
     try {
-      // Add timeout of 30 seconds for lifestyle generation
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000);
-      
       const { data, error } = await supabase.functions.invoke('generate-angle-view', {
         body: {
           imageUrl,
@@ -849,22 +852,19 @@ const DesignStudio = () => {
         }
       });
 
-      clearTimeout(timeoutId);
-      
       if (error) throw error;
-      
-      // Edge function returns { imageUrl: ... }
+
       if (data?.imageUrl) {
-        setLifestyleImage(data.imageUrl);
+        setLifestyleImagesByVariation(prev => ({
+          ...prev,
+          [variationIndex]: data.imageUrl,
+        }));
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('Lifestyle image generation failed:', error);
-      if (error?.name === 'AbortError') {
-        console.log('Lifestyle generation timed out');
-      }
       // Silent fail - lifestyle is optional enhancement
     } finally {
-      setIsGeneratingLifestyle(false);
+      setLifestyleGenerationIndex(current => current === variationIndex ? null : current);
     }
   };
 
@@ -876,7 +876,6 @@ const DesignStudio = () => {
     setGenerated3DModel(selectedVar.modelUrl || null);
     setShowWorkflow(true);
     setPreviewMode("2d"); // Reset to 2D view when selecting new variation
-    setLifestyleImage(null); // Reset lifestyle image for new selection
     
     // Store the pricing data for this variation
     const pricingData = selectedVar.pricing || {
@@ -920,9 +919,6 @@ const DesignStudio = () => {
       }
       generateSpacePreview(selectedVar.imageUrl);
     }
-
-    // Auto-generate lifestyle image in background
-    generateLifestyleImage(selectedVar.imageUrl, submissionData.name || 'Custom Furniture');
   };
 
   const applyColorFinishToSelected = async (color?: string, finish?: string) => {
@@ -2641,21 +2637,22 @@ const DesignStudio = () => {
                                          <p className="text-xs text-muted-foreground">See how it looks in a room setting</p>
                                        </div>
                                      </div>
-                                     {!lifestyleImage && !isGeneratingLifestyle && (
-                                       <Button 
-                                         variant="outline" 
-                                         size="sm"
-                                         onClick={() => generateLifestyleImage(
-                                           generatedVariations[selectedVariation].imageUrl,
-                                           submissionData.name || 'Custom Furniture'
-                                         )}
-                                       >
-                                         <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                                         </svg>
-                                         Regenerate
-                                       </Button>
-                                     )}
+                                      {!lifestyleImage && !isGeneratingLifestyle && (
+                                        <Button 
+                                          variant="outline" 
+                                          size="sm"
+                                          onClick={() => generateLifestyleImage(
+                                            selectedVariation,
+                                            generatedVariations[selectedVariation].imageUrl,
+                                            submissionData.name || 'Custom Furniture'
+                                          )}
+                                        >
+                                          <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                          </svg>
+                                          Generate Preview
+                                        </Button>
+                                      )}
                                    </div>
                                    
                                    {isGeneratingLifestyle ? (
@@ -2695,8 +2692,10 @@ const DesignStudio = () => {
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 generateLifestyleImage(
+                                                  selectedVariation,
                                                   generatedVariations[selectedVariation].imageUrl,
-                                                  submissionData.name || 'Custom Furniture'
+                                                  submissionData.name || 'Custom Furniture',
+                                                  true
                                                 );
                                               }}
                                               className="bg-white/20 hover:bg-white/30 text-white border-0"
