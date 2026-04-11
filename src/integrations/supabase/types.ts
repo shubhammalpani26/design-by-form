@@ -671,6 +671,30 @@ export type Database = {
         }
         Relationships: []
       }
+      early_access_signups: {
+        Row: {
+          category: string
+          created_at: string
+          email: string | null
+          id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          email?: string | null
+          id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       feed_post_likes: {
         Row: {
           created_at: string
