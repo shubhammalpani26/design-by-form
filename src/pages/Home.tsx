@@ -417,27 +417,27 @@ const Home = () => {
         </section>
 
         {/* Social Proof Strip */}
-        <section className="py-8 md:py-12 bg-gradient-to-br from-primary/10 via-secondary/5 to-accent">
+        <section className="py-8 md:py-12 bg-muted/50">
           <div className="container">
             <div className="flex flex-col md:flex-row items-center justify-center gap-8 md:gap-16">
               <div className="text-center">
                 <div 
                   ref={creatorsCounter.ref}
-                  className="text-4xl md:text-5xl font-bold text-primary"
+                  className="text-4xl md:text-5xl font-bold text-foreground"
                 >
                   {creatorsCounter.isVisible ? creatorsCounter.count : 0}+
                 </div>
-                <div className="text-sm text-muted-foreground mt-1">Active Creators</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Active Creators</div>
               </div>
               <div className="hidden md:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-secondary">~30s</div>
-                <div className="text-sm text-muted-foreground mt-1">Design Generation</div>
+                <div className="text-4xl md:text-5xl font-bold text-foreground">~30s</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Design Generation</div>
               </div>
               <div className="hidden md:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-primary">70%</div>
-                <div className="text-sm text-muted-foreground mt-1">Creator Royalty</div>
+                <div className="text-4xl md:text-5xl font-bold text-foreground">70%</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Creator Royalty</div>
               </div>
             </div>
           </div>
