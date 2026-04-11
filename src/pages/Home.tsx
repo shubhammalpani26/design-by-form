@@ -99,10 +99,11 @@ const truncateDescription = (description: string | undefined, maxLength: number 
 
 // Marquee brands/features strip
 const marqueeItems = [
-  "AI-Powered Design", "Sustainable Manufacturing", "Global Creators", 
+  "AI-Powered Design", "Vetted Makers", "Full-Stack Customization", 
   "On-Demand Production", "3D Visualization", "AR Preview",
-  "Perpetual Royalties", "Zero Inventory", "Eco-Friendly",
-  "Custom Furniture", "Designer Community", "Smart Pricing"
+  "Perpetual Royalties", "Zero Inventory", "Design the Object Itself",
+  "Custom Furniture", "Designer Community", "Expanding to Decor & Beyond",
+  "High-Ticket Craftsmanship", "Form · Function · Manufacturing"
 ];
 
 const styleBubbles = [
