@@ -148,6 +148,7 @@ const styleBubbles = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatorStats, setCreatorStats] = useState({
@@ -156,6 +157,12 @@ const Home = () => {
   const [currentTestimonial, setCurrentTestimonial] = useState(0);
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
   const [heroPrompt, setHeroPrompt] = useState("");
+  
+  // Early access modal state
+  const [earlyAccessCategory, setEarlyAccessCategory] = useState<string | null>(null);
+  const [earlyAccessEmail, setEarlyAccessEmail] = useState("");
+  const [earlyAccessWhatsapp, setEarlyAccessWhatsapp] = useState("");
+  const [earlyAccessSubmitting, setEarlyAccessSubmitting] = useState(false);
 
   // Animated counters
   const creatorsCounter = useCountUp(creatorStats.activeCreators, 1500);
