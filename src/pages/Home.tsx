@@ -293,13 +293,16 @@ const Home = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
                 <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] text-foreground animate-slide-up">
-                  Design furniture.{" "}
-                  <span className="gradient-text-animated">We make it real.</span>
+                  Design anything.{" "}
+                  <span className="gradient-text-animated">We make them real.</span>
                 </h1>
                 
-                <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-                  A new way to create custom physical products—starting with furniture.
-                </p>
+                <div className="flex items-center gap-2 animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-sm font-semibold text-primary">
+                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                    Live with Furniture
+                  </span>
+                </div>
 
                 <p className="text-sm text-muted-foreground/70 max-w-lg animate-blur-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
                   From idea to reality—powered by AI and built by real manufacturers.
