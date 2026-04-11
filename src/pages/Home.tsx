@@ -235,36 +235,62 @@ const Home = () => {
                   Design, manufacture, and sell unique furniture — crafted by our community of creators and makers.
                 </p>
                 
+                {/* Smart Prompt Bar */}
                 <div 
-                  className="flex flex-col sm:flex-row gap-3 animate-fade-in"
+                  className="animate-fade-in"
                   style={{ animationDelay: '400ms', animationFillMode: 'both' }}
                 >
-                  <Link to="/design-studio" className="w-full sm:w-auto">
-                    <Button variant="hero" size="lg" className="group w-full sm:w-auto text-base">
-                      Start Creating
-                      <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+                  <form 
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      if (heroPrompt.trim()) {
+                        navigate(`/design-studio?prompt=${encodeURIComponent(heroPrompt.trim())}`);
+                      } else {
+                        navigate('/design-studio');
+                      }
+                    }}
+                    className="relative flex items-center w-full max-w-lg"
+                  >
+                    <div className="relative flex-1">
+                      <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
+                      <input
+                        type="text"
+                        value={heroPrompt}
+                        onChange={(e) => setHeroPrompt(e.target.value)}
+                        placeholder="What are we making today?"
+                        className="w-full h-12 pl-10 pr-24 rounded-full border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm md:text-base shadow-soft"
+                      />
+                    </div>
+                    <Button 
+                      type="submit" 
+                      variant="hero" 
+                      size="sm" 
+                      className="absolute right-1.5 rounded-full h-9 px-4 text-sm"
+                    >
+                      Create <ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
-                  </Link>
-                  <Link to="/browse" className="w-full sm:w-auto">
-                    <Button variant="outline" size="lg" className="w-full sm:w-auto text-base">
-                      Explore Designs
-                    </Button>
-                  </Link>
+                  </form>
+
+                  {/* Click-to-Try Bubbles */}
+                  <div className="flex flex-wrap gap-2 mt-3">
+                    {styleBubbles.map((bubble) => (
+                      <button
+                        key={bubble.label}
+                        onClick={() => navigate(`/design-studio?prompt=${encodeURIComponent(bubble.label)}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 hover:bg-primary/10 border border-border/50 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
+                      >
+                        <span>{bubble.icon}</span>
+                        {bubble.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 
                 <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    AI-powered
-                  </span>
-                  <span className="flex items-center gap-1.5">
+                  <Link to="/browse" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                     <span className="w-2 h-2 rounded-full bg-secondary" />
-                    On-demand manufacturing
-                  </span>
-                  <span className="flex items-center gap-1.5 hidden sm:flex">
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                    Perpetual royalties
-                  </span>
+                    Explore Designs
+                  </Link>
                 </div>
               </div>
               
