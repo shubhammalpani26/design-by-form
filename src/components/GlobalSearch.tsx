@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Search } from "lucide-react";
+import { Search, Wand2, Camera } from "lucide-react";
 import { slugify } from "@/lib/slugify";
 
 interface SearchResult {
@@ -128,19 +128,27 @@ export const GlobalSearch = () => {
 
   return (
     <>
-      {/* Desktop: full search bar */}
-      <Button
-        variant="outline"
-        size="sm"
-        className="hidden md:flex relative w-64 justify-start text-sm text-muted-foreground"
-        onClick={() => setIsOpen(true)}
-      >
-        <Search className="mr-2 h-4 w-4" />
-        Search...
-        <kbd className="pointer-events-none absolute right-2 top-2 hidden h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium opacity-100 sm:flex">
-          <span className="text-xs">⌘</span>K
-        </kbd>
-      </Button>
+      {/* Desktop: Search + Create combo bar */}
+      <div className="hidden md:flex items-center gap-0 rounded-full border border-border bg-muted/40 hover:bg-muted/60 transition-colors h-9 overflow-hidden">
+        <button
+          onClick={() => setIsOpen(true)}
+          className="flex items-center gap-2 px-3 h-full text-sm text-muted-foreground hover:text-foreground transition-colors min-w-[160px]"
+        >
+          <Search className="h-3.5 w-3.5 shrink-0" />
+          <span className="text-sm">Search...</span>
+          <kbd className="pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </button>
+        <div className="w-px h-5 bg-border/60" />
+        <button
+          onClick={() => navigate('/design-studio')}
+          className="flex items-center gap-1.5 px-3 h-full text-sm font-semibold text-primary hover:text-primary/80 transition-colors whitespace-nowrap"
+        >
+          <Wand2 className="h-3.5 w-3.5" />
+          Create
+        </button>
+      </div>
 
       {/* Mobile: icon-only search button */}
       <Button
@@ -212,8 +220,18 @@ export const GlobalSearch = () => {
             )}
 
             {!query && (
-              <div className="text-center text-sm text-muted-foreground py-8">
-                Start typing to search products, creators, or pages
+              <div className="text-center text-sm text-muted-foreground py-4">
+                <p className="mb-4">Start typing to search products, creators, or pages</p>
+                <button
+                  onClick={() => {
+                    setIsOpen(false);
+                    navigate('/design-studio');
+                  }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary font-medium text-sm hover:bg-primary/20 transition-colors"
+                >
+                  <Wand2 className="h-4 w-4" />
+                  Or create something new with AI
+                </button>
               </div>
             )}
           </div>
