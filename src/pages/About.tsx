@@ -80,8 +80,40 @@ const About = () => {
           </div>
         </section>
 
-        {/* Story */}
+        {/* Deep Tech */}
         <section className="py-20 md:py-28">
+          <div className="container">
+            <div className="max-w-2xl mx-auto">
+              <ScrollReveal animation="fade-up">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Deep Tech</p>
+                <div className="space-y-6 text-base text-muted-foreground leading-relaxed">
+                  <p>
+                    Nyzora is not just a marketplace — it's a deep tech platform. Our AI doesn't stop at generating 
+                    beautiful designs. It learns how our makers work — their materials, techniques, tolerances, 
+                    and craftsmanship nuances.
+                  </p>
+                  <p>
+                    With every production cycle, our models get smarter — building a systematic understanding 
+                    of how manufacturing actually happens, from raw material to finished product.
+                  </p>
+                  <p className="text-foreground font-medium text-lg leading-snug tracking-tight">
+                    The result: AI that can predict what can be manufactured, by whom, at what cost — 
+                    before production ever begins.
+                  </p>
+                </div>
+                <Link
+                  to="/technology"
+                  className="inline-flex items-center gap-2 mt-6 text-xs text-muted-foreground/50 hover:text-primary transition-colors uppercase tracking-[0.2em]"
+                >
+                  Learn more about our technology <ArrowRight className="h-3 w-3" />
+                </Link>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Story */}
+        <section className="py-20 md:py-28 border-t border-border">
           <div className="container">
             <div className="max-w-2xl mx-auto">
               <ScrollReveal animation="fade-up">
