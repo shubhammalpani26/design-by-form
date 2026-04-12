@@ -59,6 +59,7 @@ const Explore = lazy(() => import("./pages/Explore"));
 const VerifiedMakers = lazy(() => import("./pages/VerifiedMakers"));
 const MakerProfile = lazy(() => import("./pages/MakerProfile"));
 const MakerFAQ = lazy(() => import("./pages/MakerFAQ"));
+const Technology = lazy(() => import("./pages/Technology"));
 
 // Lazy load layout
 const CreatorLayout = lazy(() => import("./layouts/CreatorLayout").then(m => ({ default: m.CreatorLayout })));
@@ -148,6 +149,7 @@ const App = () => (
               <Route path="/creator-faq" element={<CreatorFAQ />} />
               <Route path="/plans" element={<Plans />} />
               <Route path="/maker-faq" element={<MakerFAQ />} />
+              <Route path="/technology" element={<Technology />} />
               <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
