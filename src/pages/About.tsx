@@ -11,7 +11,7 @@ const About = () => {
       <SEOHead
         title="About Nyzora — AI-Powered Custom Manufacturing Platform"
         description="Nyzora connects creators with verified manufacturers using deep AI that learns how things are made. Design anything, we make it real."
-        keywords="about Nyzora, AI manufacturing platform, custom furniture, creator platform, verified makers, deep tech startup"
+        keywords={["about Nyzora", "AI manufacturing platform", "custom furniture", "creator platform", "verified makers", "deep tech startup"]}
         url="https://nyzora.ai/about"
       />
       <Header />

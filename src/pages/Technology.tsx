@@ -44,7 +44,7 @@ const Technology = () => {
       <SEOHead
         title="AI Manufacturing Technology | Deep Process Learning — Nyzora"
         description="Discover how Nyzora's AI learns from real manufacturing processes — encoding materials, techniques, and constraints to predict what can be manufactured before production begins."
-        keywords="AI manufacturing, deep process learning, manufacturing intelligence, predictive manufacturing, AI furniture design, smart manufacturing platform"
+        keywords={["AI manufacturing", "deep process learning", "manufacturing intelligence", "predictive manufacturing", "AI furniture design", "smart manufacturing platform"]}
         url="https://nyzora.ai/technology"
       />
       <Header />
