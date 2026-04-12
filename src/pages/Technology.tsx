@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowRight, Brain, Factory, TrendingUp, Layers, Cpu, BarChart3 } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 
