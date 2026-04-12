@@ -36,7 +36,6 @@ const PrivacyPolicy = () => {
                     </div>
                   </div>
                 </div>
-              </div>
             </CardContent>
           </Card>
 

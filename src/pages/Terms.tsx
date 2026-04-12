@@ -36,7 +36,6 @@ const Terms = () => {
                     </div>
                   </div>
                 </div>
-              </div>
             </CardContent>
           </Card>
 
