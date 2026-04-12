@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -34,11 +34,22 @@ const CuratedShowcase = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const active = showcases[activeIndex];
 
+  useEffect(() => {
+    showcases.forEach(({ productImage, roomImage }) => {
+      [productImage, roomImage].forEach((src) => {
+        const image = new Image();
+        image.src = src;
+        image.decoding = "async";
+        void image.decode?.().catch(() => undefined);
+      });
+    });
+  }, []);
+
   return (
-    <section className="py-16 md:py-28">
+    <section className="pt-8 pb-16 md:pt-14 md:pb-24">
       <div className="container">
         <ScrollReveal animation="fade-up">
-          <div className="text-center mb-12 md:mb-16">
+          <div className="text-center mb-10 md:mb-12">
             <p className="text-[10px] tracking-[0.25em] uppercase text-muted-foreground/60 mb-3">
               From Idea to Reality
             </p>
@@ -51,31 +62,28 @@ const CuratedShowcase = () => {
           </div>
         </ScrollReveal>
 
-        {/* Showcase selector pills */}
         <ScrollReveal animation="fade-up" delay={50}>
-          <div className="flex justify-center gap-3 mb-10 md:mb-14">
-            {showcases.map((s, i) => (
+          <div className="flex justify-center gap-3 mb-8 md:mb-10">
+            {showcases.map((showcase, index) => (
               <button
-                key={s.id}
-                onClick={() => setActiveIndex(i)}
+                key={showcase.id}
+                type="button"
+                onClick={() => setActiveIndex(index)}
                 className={`px-5 py-2 rounded-full text-xs tracking-[0.15em] uppercase transition-all duration-300 border ${
-                  i === activeIndex
+                  index === activeIndex
                     ? "bg-foreground text-background border-foreground"
                     : "bg-transparent text-muted-foreground border-border/50 hover:border-foreground/30"
                 }`}
               >
-                {s.category}
+                {showcase.category}
               </button>
             ))}
           </div>
         </ScrollReveal>
 
-        {/* Main showcase — 2-row editorial layout */}
-        <div className="space-y-6 md:space-y-8">
-          {/* Row 1: Prompt → Product */}
+        <div className="space-y-5 md:space-y-6">
           <ScrollReveal animation="fade-up" delay={100}>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-border/30 rounded-2xl overflow-hidden bg-card">
-              {/* Prompt side */}
               <div className="flex flex-col justify-center p-8 md:p-12 lg:p-16 border-b md:border-b-0 md:border-r border-border/30">
                 <p className="text-[9px] tracking-[0.25em] uppercase text-primary/70 mb-4">
                   The Prompt
@@ -94,13 +102,14 @@ const CuratedShowcase = () => {
                 </div>
               </div>
 
-              {/* Product image */}
               <div className="aspect-square md:aspect-auto relative bg-muted/10">
                 <img
+                  key={`${active.id}-product`}
                   src={active.productImage}
                   alt={`${active.category} — AI generated design`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
+                  className="w-full h-full object-cover transition-opacity duration-300"
+                  loading="eager"
+                  decoding="async"
                   width={1024}
                   height={1024}
                 />
@@ -113,18 +122,21 @@ const CuratedShowcase = () => {
             </div>
           </ScrollReveal>
 
-          {/* Row 2: Product in space — full bleed */}
           <ScrollReveal animation="fade-up" delay={200}>
             <div className="rounded-2xl overflow-hidden border border-border/30 bg-card">
               <div className="relative">
-                <div className="aspect-[16/9] md:aspect-[21/9]">
+                <div className="aspect-[5/4] sm:aspect-[16/10] lg:aspect-[16/9]">
                   <img
+                    key={`${active.id}-room`}
                     src={active.roomImage}
                     alt={`${active.category} placed in a curated interior space`}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                    width={1280}
-                    height={832}
+                    className={`w-full h-full object-cover transition-opacity duration-300 ${
+                      active.id === "console" ? "object-[center_58%]" : "object-center"
+                    }`}
+                    loading="eager"
+                    decoding="async"
+                    width={1920}
+                    height={1080}
                   />
                 </div>
                 <div className="absolute top-4 left-4 md:top-6 md:left-6">
@@ -135,12 +147,12 @@ const CuratedShowcase = () => {
               </div>
 
               <div className="border-t border-border/20 px-5 py-5 md:px-8 md:py-6 bg-background">
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 md:gap-6">
                   <div className="space-y-2">
-                    <p className="text-sm md:text-base font-medium text-foreground">
+                    <p className="text-base md:text-lg font-medium text-foreground">
                       Upload your space photo
                     </p>
-                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-2xl">
                       Our AI can optimise this design to match your room's style, lighting & dimensions — or generate a completely new piece tailored to your space.
                     </p>
                   </div>
@@ -159,9 +171,8 @@ const CuratedShowcase = () => {
           </ScrollReveal>
         </div>
 
-        {/* Bottom CTA */}
         <ScrollReveal animation="fade-up" delay={300}>
-          <div className="text-center mt-10 md:mt-14">
+          <div className="text-center mt-10 md:mt-12">
             <p className="text-xs text-muted-foreground/50 mb-4">
               Go from prompt to manufactured product in minutes
             </p>
