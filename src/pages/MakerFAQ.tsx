@@ -60,7 +60,7 @@ const MakerFAQ = () => {
                 How am I paid for production orders?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You are paid the Manufacturing Base Price (MBP) for each order. Payment is released within 7 days of the customer confirming delivery and quality. We support bank transfer and UPI for Indian makers, and international wire transfers for global workshops.
+                The Manufacturing Base Price (MBP) is agreed upon during your onboarding process, based on your production capabilities, material costs, and craftsmanship level. Payment is released within 7 days of the customer confirming delivery and quality. We support bank transfer and UPI for Indian makers, and international wire transfers for global workshops.
               </AccordionContent>
             </AccordionItem>
 
