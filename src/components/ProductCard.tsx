@@ -45,7 +45,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
               alt={name}
               loading="lazy"
               decoding="async"
-              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-105"
             />
             
             {/* Action Buttons - positioned over image */}
