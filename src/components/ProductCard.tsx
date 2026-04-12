@@ -39,9 +39,9 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
     <>
       <Link to={`/product/${slugify(name)}`} className="group block">
         <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300 relative">
-          <div className="aspect-square overflow-hidden bg-accent relative">
+          <div className="aspect-square overflow-hidden bg-accent relative max-h-[400px]">
             <img
-              src={image}
+              src={image && image.length < 50000 ? image : "/placeholder.svg"}
               alt={name}
               loading="lazy"
               decoding="async"
