@@ -166,6 +166,15 @@
   animation: marquee 30s linear infinite;
 }
 
+@media (max-width: 640px) {
+  .animate-marquee {
+    animation: marquee 12s linear infinite;
+  }
+  .animate-marquee-reverse {
+    animation: marquee-reverse 12s linear infinite;
+  }
+}
+
 .animate-marquee-reverse {
   animation: marquee-reverse 30s linear infinite;
 }

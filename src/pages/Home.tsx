@@ -318,7 +318,7 @@ const Home = () => {
                         navigate('/design-studio');
                       }
                     }}
-                    className="relative flex items-center w-full max-w-lg"
+                    className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-0 w-full max-w-lg sm:relative"
                   >
                     <div className="relative flex-1">
                       <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary" />
@@ -327,14 +327,14 @@ const Home = () => {
                         value={heroPrompt}
                         onChange={(e) => setHeroPrompt(e.target.value)}
                         placeholder="What do you want to create?"
-                        className="w-full h-12 pl-10 pr-28 rounded-full border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm md:text-base shadow-soft"
+                        className="w-full h-12 pl-10 pr-4 sm:pr-28 rounded-full border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm md:text-base shadow-soft"
                       />
                     </div>
                     <Button 
                       type="submit" 
                       variant="hero" 
                       size="sm" 
-                      className="absolute right-1.5 rounded-full h-9 px-3.5 text-xs font-medium"
+                      className="sm:absolute sm:right-1.5 rounded-full h-10 sm:h-9 px-5 sm:px-3.5 text-xs font-medium w-full sm:w-auto"
                     >
                       Start Designing <ArrowRight className="h-3 w-3 ml-1" />
                     </Button>
