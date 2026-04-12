@@ -437,7 +437,7 @@ const InstantDesignPreview = () => {
               See AI Create Furniture in Real-Time
             </h2>
             <p className="text-sm md:text-lg text-muted-foreground max-w-2xl mx-auto">
-              Describe your dream furniture and watch AI bring it to life. No signup needed.
+              Describe what you want to create and watch AI bring it to life. No signup needed.
             </p>
           </div>
 
@@ -447,7 +447,7 @@ const InstantDesignPreview = () => {
               <div className="bg-card border border-border rounded-2xl p-5 shadow-lg">
                 <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-primary" />
-                  Describe your dream furniture
+                  Describe what you want to create
                 </h3>
                 
                 <div className="space-y-3">
@@ -724,21 +724,24 @@ const InstantDesignPreview = () => {
                   <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>AI-powered</span>
+                  <span>AI-generated designs</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-secondary" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Manufacturable</span>
+                  <span>Built by real manufacturers</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Earn royalties</span>
+                  <span>Sell & earn from your creations</span>
                 </div>
               </div>
+              <p className="text-xs text-muted-foreground/70 text-center mt-2">
+                Takes you to the full design studio after generation →
+              </p>
             </div>
 
             {/* Preview Gallery */}
