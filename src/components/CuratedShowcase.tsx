@@ -46,7 +46,7 @@ const CuratedShowcase = () => {
   }, []);
 
   return (
-    <section className="pt-2 pb-16 md:pt-4 md:pb-24">
+    <section className="pt-2 pb-8 md:pt-4 md:pb-14">
       <div className="container">
         <ScrollReveal animation="fade-up">
           <div className="text-center mb-10 md:mb-12">
@@ -172,8 +172,8 @@ const CuratedShowcase = () => {
         </div>
 
         <ScrollReveal animation="fade-up" delay={300}>
-          <div className="text-center mt-10 md:mt-12">
-            <p className="text-xs text-muted-foreground/50 mb-4">
+          <div className="text-center mt-6 md:mt-8">
+            <p className="text-xs text-muted-foreground/50 mb-3">
               Go from prompt to manufactured product in minutes
             </p>
             <Link to="/design-studio">
