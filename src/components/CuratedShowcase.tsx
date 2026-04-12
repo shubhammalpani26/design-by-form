@@ -172,8 +172,8 @@ const CuratedShowcase = () => {
         </div>
 
         <ScrollReveal animation="fade-up" delay={300}>
-          <div className="text-center mt-10 md:mt-12">
-            <p className="text-xs text-muted-foreground/50 mb-4">
+          <div className="text-center mt-6 md:mt-8">
+            <p className="text-xs text-muted-foreground/50 mb-3">
               Go from prompt to manufactured product in minutes
             </p>
             <Link to="/design-studio">

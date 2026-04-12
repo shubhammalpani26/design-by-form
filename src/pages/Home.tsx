@@ -410,7 +410,7 @@ const Home = () => {
         {/* Featured Products */}
         <section className="container py-10 md:py-16">
           <ScrollReveal animation="fade-up">
-            <div className="flex items-center justify-between mb-12">
+            <div className="flex items-center justify-between mb-8">
               <div className="text-center flex-1">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">Featured Designs</h2>
                 <p className="text-muted-foreground max-w-2xl mx-auto">
@@ -462,7 +462,7 @@ const Home = () => {
           )}
 
           <ScrollReveal animation="zoom-in" delay={300}>
-            <div className="text-center mt-12">
+             <div className="text-center mt-8">
               <Link to="/browse">
                 <Button variant="outline" size="lg">
                   View All Products
@@ -503,7 +503,7 @@ const Home = () => {
         <section className="py-10 md:py-16">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="text-center mb-12">
+               <div className="text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
                   Real Creators, Real Success
                 </h2>
@@ -597,7 +597,7 @@ const Home = () => {
             </ScrollReveal>
             
             <ScrollReveal animation="fade-up" delay={200}>
-              <div className="text-center mt-12">
+              <div className="text-center mt-8">
                 <Link to="/designer-signup">
                   <Button variant="hero" size="lg" className="group">
                     Start Earning as a Creator
@@ -613,7 +613,7 @@ const Home = () => {
         <section className="bg-accent py-12 md:py-16">
           <div className="container">
             <ScrollReveal animation="blur-in">
-              <div className="text-center mb-12">
+              <div className="text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold mb-3 text-foreground">
                   How it <span className="gradient-text-animated">works</span>
                 </h2>
@@ -792,7 +792,7 @@ const Home = () => {
         <section className="py-12 md:py-16 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="max-w-2xl mx-auto text-center mb-12">
+               <div className="max-w-2xl mx-auto text-center mb-8">
                 <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">Trust & Quality</p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
                   Crafted by <span className="gradient-text-animated">Verified Makers</span>
@@ -830,7 +830,7 @@ const Home = () => {
         <section className="py-12 md:py-16">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="max-w-2xl mx-auto text-center mb-12">
+               <div className="max-w-2xl mx-auto text-center mb-8">
                 <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">Creator Economy</p>
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
                   Designed by Creators <span className="gradient-text-animated">Worldwide</span>
@@ -863,7 +863,7 @@ const Home = () => {
         <section className="py-12 md:py-16 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="max-w-2xl mx-auto text-center mb-12">
+              <div className="max-w-2xl mx-auto text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">
                   Why <span className="gradient-text-animated">Nyzora</span>?
                 </h2>
