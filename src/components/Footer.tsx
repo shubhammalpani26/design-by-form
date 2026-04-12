@@ -17,7 +17,7 @@ export const Footer = () => {
           <div>
             <img src={wordmark} alt="Nyzora" className="h-4 w-auto object-contain dark:invert mb-2" />
             <p className="text-sm text-muted-foreground mb-3">
-              Design Anything Physical. We Make It Real.
+              Design Anything. We Make It Real.
             </p>
             <div className="space-y-1 text-sm text-muted-foreground">
               <a href="mailto:contact@nyzora.ai" className="hover:text-primary transition-colors block">contact@nyzora.ai</a>
