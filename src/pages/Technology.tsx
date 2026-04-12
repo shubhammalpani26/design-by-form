@@ -3,41 +3,8 @@ import { Header } from "@/components/Header";
 import LearningLoopDiagram from "@/components/LearningLoopDiagram";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
-import { ArrowRight, Brain, Factory, TrendingUp, Layers, Cpu, BarChart3 } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
-
-const pillars = [
-  {
-    icon: Factory,
-    title: "Manufacturing Intelligence",
-    desc: "Our AI observes and learns from every production cycle — material behaviour, machine tolerances, finishing techniques, lead times. Over time, it builds a living model of how things are actually made.",
-  },
-  {
-    icon: Brain,
-    title: "Deep Process Learning",
-    desc: "We don't just match orders to makers. Our system understands the why behind each fabrication step — from wood grain orientation to weld sequencing — creating institutional knowledge that compounds with every order.",
-  },
-  {
-    icon: Layers,
-    title: "Maker-Specific Training",
-    desc: "Each verified maker's capabilities, pricing structures, and craftsmanship nuances are encoded into personalised AI models. The result: accurate pricing, better order matching, and fewer production surprises.",
-  },
-  {
-    icon: TrendingUp,
-    title: "Predictive Manufacturability",
-    desc: "Before a design is ever submitted, our AI can predict whether it can be manufactured, by whom, at what cost, and how long it will take — based on patterns learned across our entire maker network.",
-  },
-  {
-    icon: Cpu,
-    title: "Design-to-Production Pipeline",
-    desc: "From the moment a creator describes an idea to the moment it ships, AI orchestrates the entire journey — generating designs constrained by real manufacturing limits, not just aesthetics.",
-  },
-  {
-    icon: BarChart3,
-    title: "Continuous Optimisation",
-    desc: "Every delivered product feeds back into the system. Quality scores, delivery timelines, material efficiency — all refine our models, making each subsequent production cycle smarter than the last.",
-  },
-];
 
 const Technology = () => {
   return (
@@ -65,8 +32,8 @@ const Technology = () => {
                   <span className="font-light italic">How Things Are Made</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  We're building deep manufacturing intelligence — AI that doesn't just generate designs, 
-                  but systematically understands how real-world production works.
+                  Not another design generator. We're building AI that systematically 
+                  understands real-world manufacturing — from materials to machines.
                 </p>
               </div>
             </ScrollReveal>
@@ -78,44 +45,49 @@ const Technology = () => {
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">The Thesis</p>
-                <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-8">
+                <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-6">
                   Most AI generates images.<br />
                   <span className="font-semibold">Ours understands manufacturing.</span>
                 </blockquote>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-                  Every order, every maker interaction, every production cycle trains our models to better understand 
-                  materials, processes, and constraints — creating a compounding intelligence layer 
-                  that makes the entire platform smarter over time.
+                  Every production cycle trains our models — materials, processes, constraints. 
+                  A compounding intelligence layer that gets smarter with every order.
                 </p>
               </div>
             </ScrollReveal>
           </div>
         </section>
 
-        {/* Pillars */}
+        {/* What it does — 3 concise points */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
-            <ScrollReveal animation="fade-up">
-              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-10 text-center">
-                How It Works
-              </p>
-            </ScrollReveal>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-px bg-border max-w-5xl mx-auto rounded-xl overflow-hidden">
-              {pillars.map((pillar) => (
-                <div key={pillar.title} className="bg-background p-8 md:p-10">
-                  <pillar.icon className="h-5 w-5 text-muted-foreground/40 mb-4" />
-                  <h3 className="text-lg font-semibold text-foreground mb-3 tracking-tight">
-                    {pillar.title}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-4xl mx-auto rounded-xl overflow-hidden">
+              {[
+                {
+                  title: "Learns from Makers",
+                  desc: "Our AI encodes each maker's capabilities, techniques, and craftsmanship into personalised models.",
+                },
+                {
+                  title: "Predicts Before Production",
+                  desc: "Can it be made? By whom? At what cost? Our system answers these before a design is ever submitted.",
+                },
+                {
+                  title: "Compounds Over Time",
+                  desc: "Every delivered product refines the system. The more we make, the smarter the platform becomes.",
+                },
+              ].map((item) => (
+                <div key={item.title} className="bg-background p-8 md:p-10">
+                  <h3 className="text-base font-semibold text-foreground mb-2 tracking-tight">
+                    {item.title}
                   </h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">{pillar.desc}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
             </div>
           </div>
         </section>
 
-        {/* Learning Loop */}
+        {/* Learning Loop — visual diagram */}
         <section className="py-20 md:py-28">
           <div className="container">
             <ScrollReveal animation="fade-up">
@@ -126,43 +98,18 @@ const Technology = () => {
             </ScrollReveal>
 
             <LearningLoopDiagram />
-
-            {/* Detailed descriptions below the diagram */}
-            <div className="max-w-2xl mx-auto mt-16 space-y-6">
-              {[
-                { step: "01", title: "Observe", desc: "Every production order generates data — material usage, processing times, quality outcomes, maker feedback." },
-                { step: "02", title: "Encode", desc: "Our AI models absorb these signals, building rich representations of how each material, technique, and maker behaves." },
-                { step: "03", title: "Predict", desc: "With enough data, the system begins predicting outcomes — cost estimates, lead times, manufacturability scores — before production begins." },
-                { step: "04", title: "Compound", desc: "Each cycle makes the next one smarter. The network effect means every new maker and every new order improves the entire system." },
-              ].map((item) => (
-                <div key={item.step} className="flex gap-6">
-                  <span className="text-3xl font-light text-muted-foreground/15 tabular-nums tracking-tight shrink-0">
-                    {item.step}
-                  </span>
-                  <div>
-                    <h3 className="text-base font-semibold text-foreground tracking-tight mb-1">{item.title}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </section>
 
-        {/* Vision */}
+        {/* Vision — one strong line */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">The Vision</p>
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-6">
-                  Predict what can be manufactured — before it's designed.
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Where We're Going</p>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                  Predict what can be manufactured —<br className="hidden md:block" /> before it's designed.
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-                  As our AI deepens its understanding of manufacturing processes across our global maker network, 
-                  we move toward a future where the system can proactively suggest what's possible — 
-                  matching creative intent with manufacturing reality in real time.
-                </p>
               </div>
             </ScrollReveal>
           </div>
@@ -177,7 +124,7 @@ const Technology = () => {
                   Experience It
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Try our AI Design Studio — powered by deep manufacturing intelligence.
+                  Try the AI Design Studio — powered by manufacturing intelligence.
                 </p>
               </div>
               <div className="flex gap-3">
