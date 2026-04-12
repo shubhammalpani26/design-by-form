@@ -141,10 +141,10 @@ const CuratedShowcase = () => {
                       Manufactured & delivered to your door
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                      <span className="text-foreground font-medium">Upload your space photo</span> — our AI optimises the design to fit your space's style, lighting & dimensions.
+                      <span className="text-foreground font-medium">Upload your space photo</span> — our AI can optimise this design to match your room's style, lighting & dimensions, or generate a completely new piece tailored to your space.
                     </p>
                   </div>
-                  <Link to="/design-studio" className="w-full md:w-auto">
+                  <Link to="/design-studio" className="w-full md:w-auto shrink-0">
                     <Button
                       variant="outline"
                       className="rounded-full px-6 text-xs tracking-[0.1em] uppercase w-full md:w-auto"
