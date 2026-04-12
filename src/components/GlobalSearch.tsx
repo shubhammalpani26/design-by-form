@@ -129,14 +129,14 @@ export const GlobalSearch = () => {
   return (
     <>
       {/* Desktop: Search + Create combo bar */}
-      <div className="hidden md:flex items-center gap-0 rounded-full border border-border bg-muted/40 hover:bg-muted/60 transition-colors h-9 overflow-hidden">
+      <div className="hidden md:flex items-center gap-0 rounded-full border border-border bg-muted/40 hover:bg-muted/60 transition-colors h-9 overflow-hidden flex-shrink min-w-0">
         <button
           onClick={() => setIsOpen(true)}
-          className="flex items-center gap-2 px-3 h-full text-sm text-muted-foreground hover:text-foreground transition-colors min-w-[160px]"
+          className="flex items-center gap-1.5 px-2.5 h-full text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-sm">Search...</span>
-          <kbd className="pointer-events-none hidden lg:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+          <span className="text-sm hidden lg:inline">Search...</span>
+          <kbd className="pointer-events-none hidden xl:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
             <span className="text-xs">⌘</span>K
           </kbd>
         </button>
