@@ -8,6 +8,12 @@ import { ScrollReveal } from "@/hooks/useScrollReveal";
 const About = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="About Nyzora — AI-Powered Custom Manufacturing Platform"
+        description="Nyzora connects creators with verified manufacturers using deep AI that learns how things are made. Design anything, we make it real."
+        keywords="about Nyzora, AI manufacturing platform, custom furniture, creator platform, verified makers, deep tech startup"
+        url="https://nyzora.ai/about"
+      />
       <Header />
       
       <main className="flex-1">
