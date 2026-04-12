@@ -29,6 +29,7 @@ const ProductDetail = () => {
   const [mainImage, setMainImage] = useState<string>("");
   const [finishImage, setFinishImage] = useState<string>("");
   const [isApplyingFinish, setIsApplyingFinish] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
@@ -325,16 +326,15 @@ const ProductDetail = () => {
               const fullDesc = product.description.replace(/Made from premium Fibre-Reinforced Polymer with 75% post-consumer recycled content\. |Crafted from luxury-grade Fibre-Reinforced Polymer with 75% recycled content\. |Made from premium Fibre-Reinforced Polymer with 75% recycled content\. /g, '');
               const SHORT_LIMIT = 150;
               const isLong = fullDesc.length > SHORT_LIMIT;
-              const [expanded, setExpanded] = React.useState(false);
               return (
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  {isLong && !expanded ? fullDesc.slice(0, SHORT_LIMIT).trimEnd() + '… ' : fullDesc + ' '}
+                  {isLong && !descExpanded ? fullDesc.slice(0, SHORT_LIMIT).trimEnd() + '… ' : fullDesc + ' '}
                   {isLong && (
                     <button
-                      onClick={() => setExpanded(!expanded)}
+                      onClick={() => setDescExpanded(!descExpanded)}
                       className="text-primary font-medium hover:underline"
                     >
-                      {expanded ? 'less' : 'more'}
+                      {descExpanded ? 'less' : 'more'}
                     </button>
                   )}
                 </p>
