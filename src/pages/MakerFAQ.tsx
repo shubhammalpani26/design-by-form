@@ -138,10 +138,10 @@ const MakerFAQ = () => {
 
             <AccordionItem value="item-13">
               <AccordionTrigger className="text-left font-semibold">
-                Does Nyzora take a commission on sales?
+                How does the revenue model work for makers?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Yes, Nyzora earns a commission on each sale to cover platform operations, marketing, logistics coordination, and customer acquisition. The exact commission structure is discussed and agreed upon during the onboarding and partnership agreement — ensuring full transparency before you start receiving orders.
+                Nyzora operates on a shared-success model. A small commission is included in each sale to support platform operations, marketing, logistics coordination, and customer acquisition on your behalf. The exact terms are discussed and mutually agreed upon during onboarding — ensuring full transparency before you start receiving orders.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
