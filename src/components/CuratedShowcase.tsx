@@ -115,32 +115,39 @@ const CuratedShowcase = () => {
 
           {/* Row 2: Product in space — full bleed */}
           <ScrollReveal animation="fade-up" delay={200}>
-            <div className="relative rounded-2xl overflow-hidden border border-border/30">
-              <div className="aspect-[4/3] md:aspect-[21/9]">
-                <img
-                  src={active.roomImage}
-                  alt={`${active.category} placed in a curated interior space`}
-                  className="w-full h-full object-cover"
-                  loading="lazy"
-                  width={1280}
-                  height={832}
-                />
+            <div className="rounded-2xl overflow-hidden border border-border/30 bg-card">
+              <div className="relative">
+                <div className="aspect-[4/3] md:aspect-[21/9]">
+                  <img
+                    src={active.roomImage}
+                    alt={`${active.category} placed in a curated interior space`}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                    width={1280}
+                    height={832}
+                  />
+                </div>
+                <div className="absolute top-4 left-4 md:top-6 md:left-6">
+                  <span className="text-[8px] tracking-[0.2em] uppercase bg-background/80 backdrop-blur-sm text-foreground px-3 py-1.5 rounded-full border border-border/20">
+                    In Your Space
+                  </span>
+                </div>
               </div>
-              {/* Overlay label */}
-              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent p-5 md:p-10">
-                <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-                  <div>
-                    <p className="text-[9px] tracking-[0.25em] uppercase text-white/60 mb-1">
-                      In Your Space
-                    </p>
-                    <p className="text-white text-sm md:text-base font-light">
+
+              <div className="border-t border-border/20 px-5 py-5 md:px-8 md:py-6 bg-background">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+                  <div className="space-y-2">
+                    <p className="text-sm md:text-base font-light text-foreground">
                       Manufactured & delivered to your door
                     </p>
+                    <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
+                      <span className="text-foreground font-medium">Upload your space photo</span> — our AI optimises the design to fit your space's style, lighting & dimensions.
+                    </p>
                   </div>
-                  <Link to="/design-studio">
+                  <Link to="/design-studio" className="w-full md:w-auto">
                     <Button
                       variant="outline"
-                      className="border-white/30 text-white hover:bg-white hover:text-black text-xs tracking-[0.1em] uppercase rounded-full px-6 backdrop-blur-sm w-full md:w-auto"
+                      className="rounded-full px-6 text-xs tracking-[0.1em] uppercase w-full md:w-auto"
                     >
                       Start Designing
                       <ArrowRight className="w-3.5 h-3.5 ml-2" />
@@ -148,16 +155,6 @@ const CuratedShowcase = () => {
                   </Link>
                 </div>
               </div>
-            </div>
-          </ScrollReveal>
-
-          {/* Space-aware optimization callout */}
-          <ScrollReveal animation="fade-up" delay={250}>
-            <div className="flex items-center justify-center gap-3 px-6 py-4 rounded-xl border border-border/20 bg-muted/30">
-              <div className="w-1 h-8 bg-primary/40 rounded-full shrink-0" />
-              <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                <span className="text-foreground font-medium">Upload your space photo</span> — our AI optimises the design to fit your room's style, lighting & dimensions.
-              </p>
             </div>
           </ScrollReveal>
         </div>
