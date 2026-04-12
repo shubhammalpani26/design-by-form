@@ -287,7 +287,7 @@ const Home = () => {
       
       <main className="flex-1">
         {/* Hero Section — Clean, editorial style */}
-        <section className="relative overflow-hidden bg-background py-12 md:py-20">
+        <section className="relative overflow-hidden bg-background pt-10 pb-6 md:pt-16 md:pb-10">
           <div className="container">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
@@ -408,7 +408,7 @@ const Home = () => {
         <CuratedShowcase />
 
         {/* Featured Products */}
-        <section className="container py-10 md:py-20">
+        <section className="container py-10 md:py-16">
           <ScrollReveal animation="fade-up">
             <div className="flex items-center justify-between mb-12">
               <div className="text-center flex-1">
@@ -500,7 +500,7 @@ const Home = () => {
         </section>
 
         {/* Designer Testimonials Carousel */}
-        <section className="py-10 md:py-20">
+        <section className="py-10 md:py-16">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-12">
@@ -610,7 +610,7 @@ const Home = () => {
         </section>
 
         {/* How It Works — Compact 3-step */}
-        <section className="bg-accent py-12 md:py-20">
+        <section className="bg-accent py-12 md:py-16">
           <div className="container">
             <ScrollReveal animation="blur-in">
               <div className="text-center mb-12">
@@ -669,10 +669,8 @@ const Home = () => {
         </section>
 
 
-
-
         {/* Expanding Beyond Furniture */}
-        <section className="py-16 md:py-24 bg-muted/30">
+        <section className="py-12 md:py-16 bg-muted/30">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="text-center mb-4">
@@ -791,7 +789,7 @@ const Home = () => {
         )}
 
         {/* Crafted by Verified Makers */}
-        <section className="py-16 md:py-24 bg-accent">
+        <section className="py-12 md:py-16 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center mb-12">
@@ -829,7 +827,7 @@ const Home = () => {
         </section>
 
         {/* Designed by Creators Worldwide */}
-        <section className="py-16 md:py-24">
+        <section className="py-12 md:py-16">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center mb-12">
@@ -862,7 +860,7 @@ const Home = () => {
         </section>
 
         {/* Why Nyzora */}
-        <section className="py-16 md:py-24 bg-accent">
+        <section className="py-12 md:py-16 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center mb-12">
@@ -890,9 +888,9 @@ const Home = () => {
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-20 border-t border-border">
+        <section className="py-10 md:py-14 border-t border-border">
           <div className="container">
-            <div className="relative py-16 md:py-20 px-8 md:px-16 rounded-2xl overflow-hidden">
+            <div className="relative py-12 md:py-16 px-8 md:px-16 rounded-2xl overflow-hidden">
               <div className="absolute inset-0 bg-[hsl(var(--primary))]" />
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div>
