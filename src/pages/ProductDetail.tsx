@@ -29,6 +29,7 @@ const ProductDetail = () => {
   const [mainImage, setMainImage] = useState<string>("");
   const [finishImage, setFinishImage] = useState<string>("");
   const [isApplyingFinish, setIsApplyingFinish] = useState(false);
+  const [descExpanded, setDescExpanded] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
