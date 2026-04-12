@@ -57,6 +57,7 @@ const AdminPanel = lazy(() => import("./pages/AdminPanel"));
 const Community = lazy(() => import("./pages/Community"));
 const Explore = lazy(() => import("./pages/Explore"));
 const VerifiedMakers = lazy(() => import("./pages/VerifiedMakers"));
+const MakerProfile = lazy(() => import("./pages/MakerProfile"));
 
 // Lazy load layout
 const CreatorLayout = lazy(() => import("./layouts/CreatorLayout").then(m => ({ default: m.CreatorLayout })));
@@ -100,6 +101,7 @@ const App = () => (
               <Route path="/community" element={<Community />} />
               <Route path="/explore" element={<Explore />} />
               <Route path="/verified-makers" element={<VerifiedMakers />} />
+              <Route path="/maker/:slug" element={<MakerProfile />} />
               <Route path="/designer-signup" element={<DesignerSignup />} />
               <Route path="/designer-dashboard" element={<DesignerDashboard />} />
               <Route path="/designer-bank-details" element={<DesignerBankDetails />} />
