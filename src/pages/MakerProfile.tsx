@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CheckCircle2, ArrowLeft, Factory } from "lucide-react";
 import { ScrollReveal, StaggerReveal } from "@/hooks/useScrollReveal";
-import { getMakerBySlug, Maker } from "@/data/makers";
+import { getMakerBySlug, getMakerForProduct, Maker } from "@/data/makers";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { slugify } from "@/lib/slugify";
@@ -18,7 +18,6 @@ const MakerProfile = () => {
   const maker = slug ? getMakerBySlug(slug) : undefined;
   const { formatPrice } = useCurrency();
 
-  // Fetch products - for now show all approved products as associated with makers
   const { data: products, isLoading } = useQuery({
     queryKey: ["maker-products", slug],
     queryFn: async () => {
@@ -26,9 +25,10 @@ const MakerProfile = () => {
         .from("designer_products")
         .select("id, name, image_url, designer_price, slug, designer_id, designer_profiles!inner(name)")
         .eq("status", "approved")
-        .limit(12);
+        .limit(50);
       if (error) throw error;
-      return data;
+      // Filter to only products assigned to this maker
+      return (data || []).filter((p) => getMakerForProduct(p.id).slug === slug);
     },
     enabled: !!maker,
   });
