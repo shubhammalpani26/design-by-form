@@ -403,17 +403,6 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Scrolling Marquee Strip */}
-        <div className="overflow-hidden bg-primary py-3 marquee-container">
-          <div className="flex animate-marquee whitespace-nowrap">
-            {[...marqueeItems, ...marqueeItems].map((item, i) => (
-              <span key={i} className="mx-6 text-sm font-medium tracking-wide uppercase text-primary-foreground/80 flex items-center gap-3">
-                <span className="w-1 h-1 rounded-full bg-primary-foreground/40 shrink-0" />
-                {item}
-              </span>
-            ))}
-          </div>
-        </div>
 
         {/* Curated Showcase — Prompt → Product → Space */}
         <CuratedShowcase />
