@@ -175,6 +175,7 @@ export const Header = () => {
                   {[
                     { name: "Creators", path: "/creators" },
                     { name: "Community", path: "/community" },
+                    { name: "Technology", path: "/technology" },
                     { name: "Verified Makers", path: "/verified-makers" },
                     { name: "Leaderboard", path: "/creator-leaderboard" },
                     { name: "Pricing", path: "/plans" },
