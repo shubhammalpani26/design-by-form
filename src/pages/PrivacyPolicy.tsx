@@ -22,33 +22,16 @@ const PrivacyPolicy = () => {
               <p className="text-muted-foreground">
                 For any questions or concerns regarding this Privacy Policy, please contact our team:
               </p>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="border rounded-lg p-4">
-                  <p className="font-semibold mb-2">Shubham Malpani</p>
+              <div className="border rounded-lg p-4">
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href="tel:+919619383240" className="hover:underline">+91 96193 83240</a>
+                      <a href="tel:+919082582002" className="hover:underline">+91 90825 82002</a>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href="mailto:shubham.malpani@nyzora.ai" className="hover:underline">
-                        shubham.malpani@nyzora.ai
-                      </a>
-                    </div>
-                  </div>
-                </div>
-                <div className="border rounded-lg p-4">
-                  <p className="font-semibold mb-2">Tejal Agawane</p>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href="tel:+918779518787" className="hover:underline">+91 87795 18787</a>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <a href="mailto:tejal.agawane@nyzora.ai" className="hover:underline">
-                        tejal.agawane@nyzora.ai
+                      <a href="mailto:contact@nyzora.ai" className="hover:underline">
+                        contact@nyzora.ai
                       </a>
                     </div>
                   </div>
@@ -243,14 +226,8 @@ const PrivacyPolicy = () => {
               </p>
               <div className="bg-muted/50 rounded-lg p-6 space-y-3">
                 <div>
-                  <p className="font-semibold">Shubham Malpani</p>
+                  <p className="text-sm text-muted-foreground">Email: contact@nyzora.ai</p>
                   <p className="text-sm text-muted-foreground">Phone: +91 90825 82002</p>
-                  <p className="text-sm text-muted-foreground">Email: shubham.malpani@nyzora.ai</p>
-                </div>
-                <div className="border-t pt-3">
-                  <p className="font-semibold">Tejal Agawane</p>
-                  <p className="text-sm text-muted-foreground">Phone: +91 87795 18787</p>
-                  <p className="text-sm text-muted-foreground">Email: tejal.agawane@nyzora.ai</p>
                 </div>
               </div>
             </section>
