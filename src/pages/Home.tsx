@@ -292,16 +292,16 @@ const Home = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
               <div className="space-y-6">
                 <h1 className="text-4xl md:text-6xl font-bold leading-[1.1] text-foreground animate-slide-up">
-                  Design Anything.{" "}
+                  Design Anything Physical.{" "}
                   <span className="gradient-text-animated">We Make It Real.</span>
                 </h1>
                 
                 <p className="text-lg md:text-xl text-muted-foreground max-w-lg animate-blur-in" style={{ animationDelay: '200ms', animationFillMode: 'both' }}>
-                  A new way to create custom physical products—<span className="text-foreground font-semibold">starting with furniture.</span>
+                  Create custom physical products—<span className="text-foreground font-semibold">starting with furniture.</span>
                 </p>
 
-                <p className="text-sm text-muted-foreground/70 max-w-lg animate-blur-in" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
-                  From idea to reality—powered by AI and built by real manufacturers.
+                <p className="text-sm font-medium text-primary/80 max-w-lg animate-blur-in tracking-wide" style={{ animationDelay: '300ms', animationFillMode: 'both' }}>
+                  AI-powered design. Real-world manufacturing.
                 </p>
                 
                 {/* Smart Prompt Bar */}
@@ -334,14 +334,15 @@ const Home = () => {
                       type="submit" 
                       variant="hero" 
                       size="sm" 
-                      className="absolute right-1.5 rounded-full h-9 px-4 text-sm"
+                      className="absolute right-1.5 rounded-full h-9 px-3.5 text-xs font-medium"
                     >
-                      Start Designing <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      Start Designing <ArrowRight className="h-3 w-3 ml-1" />
                     </Button>
                   </form>
 
                   {/* Click-to-Try Bubbles */}
-                  <div className="flex flex-wrap gap-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
+                    <span className="text-xs text-muted-foreground/50 font-medium">Try:</span>
                     {styleBubbles.map((bubble) => (
                       <button
                         key={bubble.label}
@@ -363,7 +364,7 @@ const Home = () => {
                 <div className="flex items-center gap-6 pt-2 text-sm text-muted-foreground animate-fade-in" style={{ animationDelay: '600ms', animationFillMode: 'both' }}>
                   <Link to="/browse" className="flex items-center gap-1.5 hover:text-foreground transition-colors">
                     <span className="w-2 h-2 rounded-full bg-secondary" />
-                    Explore Designs
+                    Browse created designs →
                   </Link>
                 </div>
               </div>
