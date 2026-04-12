@@ -418,6 +418,63 @@ const Home = () => {
         {/* Instant Design Preview - Try AI Section */}
         <InstantDesignPreview />
 
+        {/* Studio Lite — Pros & Cons */}
+        <section className="container py-12 md:py-20">
+          <ScrollReveal animation="fade-up">
+            <div className="text-center mb-10">
+              <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground/60 mb-2">Transparency</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground">What You Should Know</h2>
+              <p className="text-sm text-muted-foreground mt-2 max-w-md mx-auto">
+                We believe in being upfront — here's what works and what's still evolving.
+              </p>
+            </div>
+          </ScrollReveal>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+            {/* Pros */}
+            <ScrollReveal animation="fade-up" delay={100}>
+              <div className="border border-border/50 rounded-xl p-6 space-y-4 h-full">
+                <p className="text-[10px] tracking-[0.2em] uppercase text-primary font-medium">Advantages</p>
+                <ul className="space-y-3">
+                  {[
+                    "AI generates unique designs in seconds",
+                    "Real manufacturers build your product",
+                    "Earn royalties on every sale — forever",
+                    "No inventory, shipping, or upfront cost",
+                    "3D preview & AR room visualization",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-foreground">
+                      <span className="w-1 h-1 rounded-full bg-primary mt-2 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ScrollReveal>
+
+            {/* Cons */}
+            <ScrollReveal animation="fade-up" delay={200}>
+              <div className="border border-border/50 rounded-xl p-6 space-y-4 h-full">
+                <p className="text-[10px] tracking-[0.2em] uppercase text-muted-foreground font-medium">Limitations</p>
+                <ul className="space-y-3">
+                  {[
+                    "AI designs may need refinement for production",
+                    "Currently limited to furniture category",
+                    "Lead times of 4–8 weeks for manufacturing",
+                    "Pricing depends on materials & complexity",
+                    "Custom edits require the full Design Studio",
+                  ].map((item, i) => (
+                    <li key={i} className="flex items-start gap-3 text-sm text-muted-foreground">
+                      <span className="w-1 h-1 rounded-full bg-muted-foreground/40 mt-2 shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
         {/* Featured Products */}
         <section className="container py-10 md:py-20">
           <ScrollReveal animation="fade-up">
