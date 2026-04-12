@@ -96,7 +96,7 @@ const MakerFAQ = () => {
                 Are there any fees to join as a maker?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                No upfront fees. There are no listing charges, subscription costs, or platform fees for makers. You earn the full Manufacturing Base Price on every order you fulfil. Nyzora earns from the creator markup — your revenue is separate and guaranteed.
+                No upfront fees. There are no listing charges or subscription costs to join as a maker. Nyzora earns a commission on each sale, and the exact commission structure is discussed and agreed upon during your onboarding — ensuring complete transparency before you start receiving orders.
               </AccordionContent>
             </AccordionItem>
 
