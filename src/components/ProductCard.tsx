@@ -8,6 +8,7 @@ import { useComparison } from "@/contexts/ComparisonContext";
 import { Check, Shield } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
+import { getDefaultMaker } from "@/data/makers";
 
 interface ProductCardProps {
   id: string;
@@ -24,6 +25,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
   const { formatPrice } = useCurrency();
   const inComparison = isInComparison(id);
+  const maker = getDefaultMaker();
 
   const toggleComparison = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -105,10 +107,17 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             </p>
             <div className="flex items-center justify-between mt-2">
               <p className="text-primary font-semibold">{formatPrice(price)}</p>
-              <div className="flex items-center gap-1 text-[10px] text-primary/70">
+              <span
+                className="inline-flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary cursor-pointer transition-colors"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/maker/${maker.slug}`;
+                }}
+              >
                 <Shield className="h-3 w-3" />
-                Verified Maker
-              </div>
+                {maker.name}
+              </span>
             </div>
           </CardContent>
         </Card>
