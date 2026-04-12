@@ -123,12 +123,11 @@ const VerifiedMakers = () => {
         {/* Value grid */}
         <section className="py-16 md:py-24">
           <div className="container">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
               {[
                 { number: "50+", label: "Years Combined Experience" },
                 { number: "5", label: "Verified Fabricators" },
-                { number: "100%", label: "Quality Inspected" },
-                { number: "0", label: "Middlemen" },
+                { number: "✓", label: "Nyzora Verified Standards" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-background p-8 md:p-10 text-center">
                   <p className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-2">
