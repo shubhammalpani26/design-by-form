@@ -15,10 +15,17 @@ export const useScrollReveal = (options: ScrollRevealOptions = {}) => {
     const el = ref.current;
     if (!el) return;
 
-    // Safety fallback: if IntersectionObserver doesn't fire within 2s, show content
+    // Check if element is already in viewport on mount
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setIsVisible(true);
+      return;
+    }
+
+    // Safety fallback: ensure content becomes visible even if observer fails
     const fallbackTimer = setTimeout(() => {
       setIsVisible(true);
-    }, 2000);
+    }, 1500);
 
     const observer = new IntersectionObserver(
       ([entry]) => {
