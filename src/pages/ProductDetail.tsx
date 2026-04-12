@@ -309,16 +309,23 @@ const ProductDetail = () => {
               <p className="text-xl sm:text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
             </div>
 
-            {/* Creator + Maker — right below */}
-            <div className="flex items-center gap-4 text-sm">
-              <Link to={`/designer/${product.designerSlug}`} className="text-muted-foreground hover:text-primary transition-colors">
-                by <span className="font-medium text-foreground">{product.designer}</span>
-              </Link>
-              <span className="text-border">|</span>
-              <Link to={`/maker/${maker.slug}`} className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-primary transition-colors">
-                <Shield className="h-3.5 w-3.5" />
-                <span className="font-medium text-foreground">{maker.name}</span>
-              </Link>
+            {/* Creator + Maker — with context labels */}
+            <div className="flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50 font-medium w-16 shrink-0">Creator</span>
+                <Link to={`/designer/${product.designerSlug}`} className="text-sm text-foreground font-medium hover:text-primary transition-colors">
+                  {product.designer}
+                </Link>
+                <span className="text-[10px] text-muted-foreground/40">— the designer behind this piece</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50 font-medium w-16 shrink-0">Maker</span>
+                <Link to={`/maker/${maker.slug}`} className="inline-flex items-center gap-1.5 text-sm text-foreground font-medium hover:text-primary transition-colors">
+                  <Shield className="h-3 w-3 text-primary/60" />
+                  {maker.name}
+                </Link>
+                <span className="text-[10px] text-muted-foreground/40">— verified manufacturer</span>
+              </div>
             </div>
 
             {/* Description — truncated with "more" */}

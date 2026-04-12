@@ -89,12 +89,18 @@ export const getMakerById = (id: string): Maker | undefined => {
 };
 
 // Deterministically assign a maker to a product based on its ID
-// This ensures the same product always maps to the same maker
+// Cyanique gets most products; each other maker gets exactly 1 product
+// by reserving specific hash slots for them
 export const getMakerForProduct = (productId: string): Maker => {
   let hash = 0;
   for (let i = 0; i < productId.length; i++) {
     hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
   }
-  const index = Math.abs(hash) % makers.length;
-  return makers[index];
+  const slot = Math.abs(hash) % 20; // 20 slots total
+  // slots 0-3 → one each for makers 2-5; everything else → Cyanique
+  if (slot === 0) return makers[1]; // TeakWorks
+  if (slot === 1) return makers[2]; // FormCraft
+  if (slot === 2) return makers[3]; // Artisan Resin
+  if (slot === 3) return makers[4]; // Heritage Upholstery
+  return makers[0]; // Cyanique
 };
