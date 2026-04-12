@@ -13,8 +13,8 @@ export const Footer = () => {
   return (
     <footer className="border-t border-border bg-card mt-12 sm:mt-20">
       <div className="container py-8 sm:py-12 px-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
-          <div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-6 sm:gap-8">
+          <div className="col-span-2 sm:col-span-3 md:col-span-1">
             <img src={wordmark} alt="Nyzora" className="h-4 w-auto object-contain dark:invert mb-2" />
             <p className="text-sm text-muted-foreground mb-3">
               Design Anything. We Make It Real.
@@ -47,6 +47,15 @@ export const Footer = () => {
               <li><button onClick={() => handleNavigation("/how-it-works")} className="text-muted-foreground hover:text-primary transition-colors text-left">How It Works</button></li>
               <li><button onClick={() => handleNavigation("/creator-earnings")} className="text-muted-foreground hover:text-primary transition-colors text-left">Your Earnings</button></li>
               <li><button onClick={() => handleNavigation("/creator-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Creator FAQ</button></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="font-semibold mb-4">For Makers</h4>
+            <ul className="space-y-2 text-sm">
+              <li><button onClick={() => handleNavigation("/verified-makers")} className="text-muted-foreground hover:text-primary transition-colors text-left">Verified Makers</button></li>
+              <li><button onClick={() => handleNavigation("/maker-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Maker FAQ</button></li>
+              <li><button onClick={() => handleNavigation("/contact")} className="text-muted-foreground hover:text-primary transition-colors text-left">Apply as Maker</button></li>
             </ul>
           </div>
           
