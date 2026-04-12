@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { slugify } from "@/lib/slugify";
+import { ArrowRight } from "lucide-react";
+import { ScrollReveal } from "@/hooks/useScrollReveal";
 
 interface Creator {
   id: string;
@@ -28,19 +28,12 @@ const Creators = () => {
 
   const fetchCreators = async () => {
     try {
-      // Get all designer profiles with at least one approved product
       const { data: profiles, error: profilesError } = await supabase
         .from('designer_profiles')
-        .select(`
-          id,
-          name,
-          portfolio_url,
-          furniture_interests
-        `);
+        .select(`id, name, portfolio_url, furniture_interests`);
 
       if (profilesError) throw profilesError;
 
-      // For each profile, get their product stats
       const creatorsWithStats = await Promise.all(
         profiles.map(async (profile) => {
           const { data: products } = await supabase
@@ -67,7 +60,6 @@ const Creators = () => {
         })
       );
 
-      // Only show creators with at least one approved design
       const activeCreators = creatorsWithStats.filter(c => c.approved_designs > 0);
       setCreators(activeCreators);
     } catch (error) {
@@ -76,95 +68,126 @@ const Creators = () => {
       setLoading(false);
     }
   };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Header />
       
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
-          <div className="container text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Meet Our Creators
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Talented designers from around the world bringing unique visions to life through Nyzora
-            </p>
+        <section className="relative py-24 md:py-36 overflow-hidden">
+          <div className="absolute inset-0 bg-[hsl(var(--primary))]" />
+          <div className="container relative z-10">
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-3xl">
+                <p className="text-primary-foreground/40 text-xs font-medium uppercase tracking-[0.3em] mb-6">
+                  The People Behind the Pieces
+                </p>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[0.95] tracking-tight mb-8">
+                  Our<br />
+                  <span className="font-light italic">Creators</span>
+                </h1>
+                <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
+                  Talented creators from around the world bringing unique visions to life — each design exclusive to Nyzora.
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
         </section>
 
-        {/* Creators Grid */}
-        <section className="container py-16">
+        {/* Creators — Editorial list */}
+        <section className="py-0">
           {loading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="container py-16 space-y-12">
               {[1, 2, 3].map((i) => (
-                <Card key={i}>
-                  <CardContent className="p-6">
-                    <Skeleton className="w-20 h-20 rounded-full mb-4" />
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2 mb-4" />
-                    <Skeleton className="h-20 w-full" />
-                  </CardContent>
-                </Card>
+                <div key={i} className="flex gap-8">
+                  <Skeleton className="w-16 h-16 rounded-full shrink-0" />
+                  <div className="flex-1 space-y-3">
+                    <Skeleton className="h-6 w-1/3" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </div>
               ))}
             </div>
           ) : creators.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-muted-foreground text-lg">No creators found yet.</p>
+            <div className="container py-20 text-center">
+              <p className="text-muted-foreground text-sm">No creators with live designs yet.</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {creators.map((creator) => (
-                <Link key={creator.id} to={`/designer/${slugify(creator.name)}`}>
-                  <Card className="border-border hover:shadow-medium transition-all duration-300 group h-full">
-                    <CardContent className="p-6">
-                      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-3xl font-bold text-white mb-4 group-hover:scale-110 transition-transform">
-                        {creator.name.charAt(0)}
-                      </div>
-                      
-                      <h3 className="text-2xl font-bold mb-2 text-foreground group-hover:text-primary transition-colors">
+            creators.map((creator, index) => (
+              <Link
+                key={creator.id}
+                to={`/designer/${slugify(creator.name)}`}
+                className="group block border-b border-border last:border-b-0"
+              >
+                <div className="container">
+                  <div className="py-10 md:py-14 flex flex-col md:flex-row md:items-center gap-6 md:gap-12">
+                    {/* Index */}
+                    <div className="hidden md:block">
+                      <span className="text-5xl font-light text-muted-foreground/15 tabular-nums tracking-tight">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                    </div>
+
+                    {/* Avatar */}
+                    <div className="w-14 h-14 rounded-full bg-primary/8 flex items-center justify-center text-xl font-semibold text-primary shrink-0">
+                      {creator.name.charAt(0)}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <h2 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-primary transition-colors duration-300 tracking-tight">
                         {creator.name}
-                      </h3>
+                      </h2>
                       {creator.furniture_interests && (
-                        <p className="text-muted-foreground mb-4 line-clamp-2">{creator.furniture_interests}</p>
+                        <p className="text-sm text-muted-foreground mt-1 line-clamp-1">{creator.furniture_interests}</p>
                       )}
-                      
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Total Sales:</span>
-                          <span className="font-semibold text-primary">{creator.total_sales}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Live Designs:</span>
-                          <span className="font-semibold text-foreground">{creator.approved_designs}</span>
-                        </div>
-                        {creator.portfolio_url && (
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">Portfolio:</span>
-                            <a 
-                              href={creator.portfolio_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline truncate ml-2"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              View
-                            </a>
-                          </div>
-                        )}
+                    </div>
+
+                    {/* Stats */}
+                    <div className="flex items-center gap-6 shrink-0">
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-foreground">{creator.approved_designs}</p>
+                        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Designs</p>
                       </div>
-                      
-                      <Button variant="outline" className="w-full group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                        View Profile
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
+                      <div className="text-center">
+                        <p className="text-lg font-semibold text-foreground">{creator.total_sales}</p>
+                        <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">Sales</p>
+                      </div>
+                    </div>
+
+                    {/* Arrow */}
+                    <div className="hidden md:flex items-center">
+                      <ArrowRight className="h-5 w-5 text-muted-foreground/20 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))
           )}
         </section>
 
+        {/* CTA */}
+        <section className="py-16 md:py-20 border-t border-border">
+          <div className="container">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                  Become a Creator
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Design, list, and earn — we handle everything else.
+                </p>
+              </div>
+              <Link
+                to="/designer-signup"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-full hover:opacity-90 transition-opacity"
+              >
+                Join as Creator <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
+          </div>
+        </section>
       </main>
       
       <Footer />

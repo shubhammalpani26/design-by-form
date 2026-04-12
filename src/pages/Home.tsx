@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Sparkles, X, Shield, CheckCircle2, Globe } from "lucide-react";
+import { ArrowRight, Sparkles, X } from "lucide-react";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
@@ -810,53 +810,37 @@ const Home = () => {
         )}
 
         {/* Crafted by Verified Makers */}
-        <section className="py-12 md:py-20 bg-accent">
+        <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="text-center mb-10">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Shield className="h-5 w-5 text-primary" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">Trust & Quality</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+              <div className="max-w-2xl mx-auto text-center mb-12">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">Trust & Quality</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
                   Crafted by <span className="gradient-text-animated">Verified Makers</span>
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Every product on Nyzora is brought to life by carefully selected and verified manufacturers known for quality craftsmanship and reliability.
+                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Every product is brought to life by carefully vetted artisans and fabricators — selected for craft, consistency, and care.
                 </p>
               </div>
             </ScrollReveal>
 
-            <StaggerReveal
-              className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
-              staggerDelay={120}
-              animation="fade-up"
-            >
+            <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden max-w-3xl mx-auto">
               {[
-                { name: "Solid Wood Experts", location: "Jodhpur", years: "15+", tag: "Wood Specialist" },
-                { name: "Metal Fabricators", location: "Pune", years: "12+", tag: "Metal & Steel" },
-                { name: "Composite Artisans", location: "Bengaluru", years: "8+", tag: "Resin & Composite" },
+                { name: "Solid Wood Experts", location: "Jodhpur", years: "15+" },
+                { name: "Metal Fabricators", location: "Pune", years: "12+" },
+                { name: "Composite Artisans", location: "Bengaluru", years: "8+" },
               ].map((maker) => (
-                <div key={maker.name} className="text-center p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/20 hover:shadow-soft transition-all space-y-3">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
-                    <Shield className="h-5 w-5 text-primary" />
-                  </div>
-                  <h3 className="font-semibold text-foreground">{maker.name}</h3>
-                  <p className="text-xs text-muted-foreground">{maker.location} · {maker.years} years</p>
-                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
-                    <CheckCircle2 className="h-3 w-3" />
-                    {maker.tag}
-                  </div>
+                <div key={maker.name} className="bg-background p-6 md:p-8 text-center space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground">{maker.name}</h3>
+                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">{maker.location} · {maker.years} years</p>
                 </div>
               ))}
-            </StaggerReveal>
+            </div>
 
             <ScrollReveal animation="fade-up" delay={200}>
               <div className="text-center mt-8">
-                <Link to="/verified-makers">
-                  <Button variant="outline" size="sm">
-                    Meet All Verified Makers →
-                  </Button>
+                <Link to="/verified-makers" className="text-xs text-primary font-medium hover:underline uppercase tracking-wider">
+                  Meet All Verified Makers →
                 </Link>
               </div>
             </ScrollReveal>
@@ -864,101 +848,89 @@ const Home = () => {
         </section>
 
         {/* Designed by Creators Worldwide */}
-        <section className="py-12 md:py-20">
+        <section className="py-16 md:py-24">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="text-center mb-10">
-                <div className="flex items-center justify-center gap-2 mb-3">
-                  <Globe className="h-5 w-5 text-primary" />
-                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">Creator Economy</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+              <div className="max-w-2xl mx-auto text-center mb-12">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">Creator Economy</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
                   Designed by Creators <span className="gradient-text-animated">Worldwide</span>
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto">
-                  Discover original designs created by designers across the world. Each piece is exclusive, customizable, and available only on Nyzora.
+                <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
+                  Discover original designs created by creators across the world. Each piece is exclusive, customizable, and available only on Nyzora.
                 </p>
-                <p className="text-sm font-medium text-primary mt-3">
+                <p className="text-xs font-medium text-primary mt-4 uppercase tracking-wider">
                   Creators earn from every product sold.
                 </p>
               </div>
             </ScrollReveal>
 
-            <StaggerReveal
-              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
-              staggerDelay={100}
-              animation="fade-up"
-            >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden max-w-3xl mx-auto">
               {[
-                { label: "Original Designs", icon: "🎨" },
-                { label: "Exclusively on Nyzora", icon: "⭐" },
-                { label: "Custom-Made for You", icon: "🏠" },
-                { label: "Perpetual Royalties", icon: "💰" },
+                { label: "Original Designs" },
+                { label: "Exclusively on Nyzora" },
+                { label: "Custom-Made for You" },
+                { label: "Perpetual Royalties" },
               ].map((item) => (
-                <div key={item.label} className="text-center p-4 rounded-xl bg-muted/50 border border-border/30 space-y-2">
-                  <div className="text-2xl">{item.icon}</div>
-                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                <div key={item.label} className="bg-background p-6 text-center">
+                  <p className="text-xs font-semibold text-foreground tracking-tight">{item.label}</p>
                 </div>
               ))}
-            </StaggerReveal>
+            </div>
           </div>
         </section>
 
         {/* Why Nyzora */}
-        <section className="py-12 md:py-20 bg-muted/30">
+        <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+              <div className="max-w-2xl mx-auto text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-3">
                   Why <span className="gradient-text-animated">Nyzora</span>?
                 </h2>
-                <p className="text-sm text-muted-foreground">Designed. Built. Delivered.</p>
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em]">Designed. Built. Delivered.</p>
               </div>
             </ScrollReveal>
 
-            <StaggerReveal
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto"
-              staggerDelay={100}
-              animation="fade-up"
-            >
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px bg-border rounded-xl overflow-hidden max-w-4xl mx-auto">
               {[
-                { icon: "✨", title: "AI-Powered Design", desc: "Create custom products with intelligent design tools" },
-                { icon: "🛡️", title: "Verified Makers", desc: "Expert manufacturers vetted for quality and reliability" },
-                { icon: "📦", title: "End-to-End Management", desc: "From design to delivery — we manage everything" },
-                { icon: "🎯", title: "Quality & Support", desc: "Every piece inspected and backed by our guarantee" },
+                { title: "AI-Powered Design", desc: "Create custom products with intelligent design tools" },
+                { title: "Verified Makers", desc: "Expert manufacturers vetted for quality and reliability" },
+                { title: "End-to-End", desc: "From design to delivery — we manage everything" },
+                { title: "Quality Assured", desc: "Every piece inspected before it reaches your space" },
               ].map((item) => (
-                <div key={item.title} className="text-center space-y-3 p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/20 hover:shadow-soft transition-all">
-                  <div className="text-3xl">{item.icon}</div>
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                <div key={item.title} className="bg-background p-6 md:p-8 text-center space-y-2">
+                  <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
+                  <p className="text-xs text-muted-foreground leading-relaxed">{item.desc}</p>
                 </div>
               ))}
-            </StaggerReveal>
+            </div>
           </div>
         </section>
 
         {/* CTA Section */}
-        <section className="container py-10 md:py-20">
-          <ScrollReveal animation="zoom-in">
-            <div className="bg-primary rounded-3xl p-6 md:p-12 text-center text-primary-foreground shadow-medium relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-72 h-72 bg-secondary/20 rounded-full -translate-x-1/2 -translate-y-1/2 blur-3xl animate-pulse" />
-              <div className="absolute bottom-0 right-0 w-72 h-72 bg-accent/20 rounded-full translate-x-1/2 translate-y-1/2 blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-              
-              <div className="relative">
-                <h2 className="text-3xl md:text-4xl font-bold mb-4">
-                  Ready to Transform Your Space?
-                </h2>
-                <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                  Custom-made for your space. Built by real manufacturers. Verified by Nyzora.
-                </p>
-                <Link to="/browse">
-                  <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">
-                    Start Shopping
-                  </Button>
+        <section className="py-16 md:py-20 border-t border-border">
+          <div className="container">
+            <div className="relative py-16 md:py-20 px-8 md:px-16 rounded-2xl overflow-hidden">
+              <div className="absolute inset-0 bg-[hsl(var(--primary))]" />
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div>
+                  <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground tracking-tight mb-2">
+                    Ready to Transform<br />Your Space?
+                  </h2>
+                  <p className="text-primary-foreground/50 text-sm">
+                    Custom-made for your space. Built by real manufacturers. Verified by Nyzora.
+                  </p>
+                </div>
+                <Link
+                  to="/browse"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-primary-foreground text-primary text-sm font-medium rounded-full hover:opacity-90 transition-opacity shrink-0"
+                >
+                  Start Shopping <ArrowRight className="h-4 w-4" />
                 </Link>
               </div>
             </div>
-          </ScrollReveal>
+          </div>
         </section>
       </main>
       

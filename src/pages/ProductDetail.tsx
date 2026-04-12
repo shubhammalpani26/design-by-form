@@ -1,7 +1,8 @@
 import { useParams, Link } from "react-router-dom";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, Shield } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
+import { getMakerForProduct } from "@/data/makers";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -780,17 +781,42 @@ const ProductDetail = () => {
               />
             </div>
 
-            <Card className="bg-accent border-border">
-              <CardContent className="p-4 lg:p-5">
-                <h3 className="font-semibold text-lg mb-2">About the Designer</h3>
-                <p className="text-muted-foreground mb-4">{product.designerBio}</p>
-                <Link to={`/designer/${product.designerSlug}`}>
-                  <Button variant="link" className="p-0 h-auto">
-                    View {product.designer}'s Collection →
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+            {/* Crafted by Maker */}
+            {(() => {
+              const maker = getMakerForProduct(product.id);
+              return (
+                <div className="border border-border rounded-xl p-4 lg:p-5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-medium">Crafted by</p>
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/8 text-primary text-[10px] font-semibold uppercase tracking-wider">
+                      <Shield className="h-3 w-3" />
+                      Verified
+                    </span>
+                  </div>
+                  <div>
+                    <Link to={`/maker/${maker.slug}`} className="text-base font-semibold text-foreground hover:text-primary transition-colors">
+                      {maker.name}
+                    </Link>
+                    <p className="text-xs text-muted-foreground/60 mt-0.5">{maker.location}</p>
+                  </div>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{maker.shortDescription}</p>
+                  <Link to={`/maker/${maker.slug}`} className="inline-flex items-center text-xs text-primary font-medium hover:underline">
+                    Learn about the maker →
+                  </Link>
+                </div>
+              );
+            })()}
+
+            {/* About the Creator */}
+            <div className="border border-border rounded-xl p-4 lg:p-5">
+              <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/60 font-medium mb-3">About the Creator</p>
+              <p className="text-sm text-muted-foreground mb-3">{product.designerBio}</p>
+              <Link to={`/designer/${product.designerSlug}`}>
+                <span className="text-xs text-primary font-medium hover:underline">
+                  View {product.designer}'s Collection →
+                </span>
+              </Link>
+            </div>
           </div>
         </div>
       </main>
