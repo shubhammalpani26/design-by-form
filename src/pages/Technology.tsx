@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
+import LearningLoopDiagram from "@/components/LearningLoopDiagram";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import { ArrowRight, Brain, Factory, TrendingUp, Layers, Cpu, BarChart3 } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 
@@ -40,6 +42,12 @@ const pillars = [
 const Technology = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="AI Manufacturing Technology | Deep Process Learning — Nyzora"
+        description="Discover how Nyzora's AI learns from real manufacturing processes — encoding materials, techniques, and constraints to predict what can be manufactured before production begins."
+        keywords={["AI manufacturing", "deep process learning", "manufacturing intelligence", "predictive manufacturing", "AI furniture design", "smart manufacturing platform"]}
+        url="https://nyzora.ai/technology"
+      />
       <Header />
 
       <main className="flex-1">
@@ -110,44 +118,33 @@ const Technology = () => {
         {/* Learning Loop */}
         <section className="py-20 md:py-28">
           <div className="container">
-            <div className="max-w-2xl mx-auto">
-              <ScrollReveal animation="fade-up">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">The Learning Loop</p>
-                <div className="space-y-8">
-                  {[
-                    {
-                      step: "01",
-                      title: "Observe",
-                      desc: "Every production order generates data — material usage, processing times, quality outcomes, maker feedback.",
-                    },
-                    {
-                      step: "02",
-                      title: "Encode",
-                      desc: "Our AI models absorb these signals, building rich representations of how each material, technique, and maker behaves.",
-                    },
-                    {
-                      step: "03",
-                      title: "Predict",
-                      desc: "With enough data, the system begins predicting outcomes — cost estimates, lead times, manufacturability scores — before production begins.",
-                    },
-                    {
-                      step: "04",
-                      title: "Compound",
-                      desc: "Each cycle makes the next one smarter. The network effect means every new maker and every new order improves the entire system.",
-                    },
-                  ].map((item) => (
-                    <div key={item.step} className="flex gap-6">
-                      <span className="text-3xl font-light text-muted-foreground/15 tabular-nums tracking-tight shrink-0">
-                        {item.step}
-                      </span>
-                      <div>
-                        <h3 className="text-base font-semibold text-foreground tracking-tight mb-1">{item.title}</h3>
-                        <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
-                      </div>
-                    </div>
-                  ))}
+            <ScrollReveal animation="fade-up">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4 text-center">The Learning Loop</p>
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-12 text-center">
+                Every cycle makes us smarter
+              </h2>
+            </ScrollReveal>
+
+            <LearningLoopDiagram />
+
+            {/* Detailed descriptions below the diagram */}
+            <div className="max-w-2xl mx-auto mt-16 space-y-6">
+              {[
+                { step: "01", title: "Observe", desc: "Every production order generates data — material usage, processing times, quality outcomes, maker feedback." },
+                { step: "02", title: "Encode", desc: "Our AI models absorb these signals, building rich representations of how each material, technique, and maker behaves." },
+                { step: "03", title: "Predict", desc: "With enough data, the system begins predicting outcomes — cost estimates, lead times, manufacturability scores — before production begins." },
+                { step: "04", title: "Compound", desc: "Each cycle makes the next one smarter. The network effect means every new maker and every new order improves the entire system." },
+              ].map((item) => (
+                <div key={item.step} className="flex gap-6">
+                  <span className="text-3xl font-light text-muted-foreground/15 tabular-nums tracking-tight shrink-0">
+                    {item.step}
+                  </span>
+                  <div>
+                    <h3 className="text-base font-semibold text-foreground tracking-tight mb-1">{item.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                  </div>
                 </div>
-              </ScrollReveal>
+              ))}
             </div>
           </div>
         </section>
