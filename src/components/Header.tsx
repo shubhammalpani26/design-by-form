@@ -175,6 +175,7 @@ export const Header = () => {
                   {[
                     { name: "Creators", path: "/creators" },
                     { name: "Community", path: "/community" },
+                    { name: "Technology", path: "/technology" },
                     { name: "Verified Makers", path: "/verified-makers" },
                     { name: "Leaderboard", path: "/creator-leaderboard" },
                     { name: "Pricing", path: "/plans" },
@@ -260,6 +261,9 @@ export const Header = () => {
           </Link>
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Leaderboard
+          </Link>
+          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+            Technology
           </Link>
           <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Pricing

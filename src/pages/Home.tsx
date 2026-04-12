@@ -657,12 +657,25 @@ const Home = () => {
             </StaggerReveal>
             
             <ScrollReveal animation="fade-up" delay={300}>
-              <div className="text-center mt-10">
-                <Link to="/how-it-works">
-                  <Button variant="outline" size="lg">
-                    Learn More
-                  </Button>
-                </Link>
+              <div className="max-w-2xl mx-auto mt-10 text-center">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/5 border border-primary/10 mb-4">
+                  <span className="text-[10px] uppercase tracking-[0.2em] text-primary font-medium">Powered by Deep AI</span>
+                </div>
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6">
+                  Our AI doesn't just generate designs — it learns how things are made. Every production cycle deepens its understanding of materials, processes, and constraints across our maker network.
+                </p>
+                <div className="flex items-center justify-center gap-3">
+                  <Link to="/how-it-works">
+                    <Button variant="outline" size="lg">
+                      Learn More
+                    </Button>
+                  </Link>
+                  <Link to="/technology">
+                    <Button variant="ghost" size="lg" className="text-muted-foreground hover:text-primary">
+                      Our Technology →
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </ScrollReveal>
           </div>
