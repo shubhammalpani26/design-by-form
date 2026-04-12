@@ -15,9 +15,22 @@ export const useScrollReveal = (options: ScrollRevealOptions = {}) => {
     const el = ref.current;
     if (!el) return;
 
+    // Check if element is already in viewport on mount
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight && rect.bottom > 0) {
+      setIsVisible(true);
+      return;
+    }
+
+    // Safety fallback: ensure content becomes visible even if observer fails
+    const fallbackTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 1500);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          clearTimeout(fallbackTimer);
           setIsVisible(true);
           if (triggerOnce) observer.unobserve(el);
         } else if (!triggerOnce) {
@@ -28,7 +41,10 @@ export const useScrollReveal = (options: ScrollRevealOptions = {}) => {
     );
 
     observer.observe(el);
-    return () => observer.unobserve(el);
+    return () => {
+      clearTimeout(fallbackTimer);
+      observer.unobserve(el);
+    };
   }, [threshold, rootMargin, triggerOnce]);
 
   return { ref, isVisible };
