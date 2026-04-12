@@ -261,6 +261,9 @@ export const Header = () => {
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Leaderboard
           </Link>
+          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+            Technology
+          </Link>
           <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Pricing
           </Link>
