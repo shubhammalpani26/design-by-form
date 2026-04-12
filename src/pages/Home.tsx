@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Sparkles, X } from "lucide-react";
+import { ArrowRight, Sparkles, X, Boxes, ShieldCheck, TrendingUp } from "lucide-react";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
@@ -668,6 +668,69 @@ const Home = () => {
           </div>
         </section>
 
+        {/* For Makers */}
+        <section className="py-12 md:py-16">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-2xl mx-auto text-center mb-8">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">For Makers</p>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-4">
+                  Manufacture Designs. <span className="gradient-text-animated">Grow Your Workshop.</span>
+                </h2>
+                <p className="text-sm text-muted-foreground max-w-lg mx-auto leading-relaxed">
+                  Get a steady stream of verified production orders from creator-designed products — no marketing, no sales, no chasing clients.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <StaggerReveal
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+              staggerDelay={150}
+              animation="fade-up"
+            >
+              <div className="rounded-xl border border-border bg-card p-6 md:p-8 text-center space-y-3 hover:border-primary/30 hover:shadow-soft transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                  <Boxes className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground">Consistent Orders</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Receive on-demand manufacturing orders matched to your expertise — wood, metal, composite, or resin.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-6 md:p-8 text-center space-y-3 hover:border-primary/30 hover:shadow-soft transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                  <ShieldCheck className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground">Verified Badge</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Get featured as a "Verified by Nyzora" maker — building trust with buyers and boosting your reputation.
+                </p>
+              </div>
+
+              <div className="rounded-xl border border-border bg-card p-6 md:p-8 text-center space-y-3 hover:border-primary/30 hover:shadow-soft transition-all duration-300">
+                <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mx-auto">
+                  <TrendingUp className="h-5 w-5" />
+                </div>
+                <h3 className="text-base font-semibold text-foreground">Scale Your Workshop</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Focus on what you do best — crafting. We handle design sourcing, payments, and customer delivery.
+                </p>
+              </div>
+            </StaggerReveal>
+
+            <ScrollReveal animation="fade-up" delay={300}>
+              <div className="text-center mt-8">
+                <Link to="/verified-makers">
+                  <Button variant="outline" size="lg" className="group">
+                    Learn About Becoming a Maker
+                    <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
+                  </Button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
 
         {/* Expanding Beyond Furniture */}
         <section className="py-12 md:py-16 bg-muted/30">
