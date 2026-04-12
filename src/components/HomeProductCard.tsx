@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
 import { Shield } from "lucide-react";
-import { getDefaultMaker } from "@/data/makers";
+import { getMakerForProduct } from "@/data/makers";
 
 interface HomeProductCardProps {
   id: string;
@@ -17,7 +17,7 @@ interface HomeProductCardProps {
 
 export const HomeProductCard = ({ id, name, designer, designerId, price, weight, image }: HomeProductCardProps) => {
   const { formatPrice } = useCurrency();
-  const maker = getDefaultMaker();
+  const maker = getMakerForProduct(id);
 
   return (
     <Link to={`/product/${slugify(name)}`} className="group block">
