@@ -8,7 +8,7 @@ import { useComparison } from "@/contexts/ComparisonContext";
 import { Check, Shield } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
-import { getDefaultMaker } from "@/data/makers";
+import { getMakerForProduct } from "@/data/makers";
 
 interface ProductCardProps {
   id: string;
@@ -25,7 +25,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
   const { formatPrice } = useCurrency();
   const inComparison = isInComparison(id);
-  const maker = getDefaultMaker();
+  const maker = getMakerForProduct(id);
 
   const toggleComparison = (e: React.MouseEvent) => {
     e.preventDefault();
