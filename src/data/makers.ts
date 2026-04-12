@@ -88,7 +88,13 @@ export const getMakerById = (id: string): Maker | undefined => {
   return makers.find((m) => m.id === id);
 };
 
-// Default maker for products that don't have a specific assignment
-export const getDefaultMaker = (): Maker => {
-  return makers[0]; // Cyanique as default
+// Deterministically assign a maker to a product based on its ID
+// This ensures the same product always maps to the same maker
+export const getMakerForProduct = (productId: string): Maker => {
+  let hash = 0;
+  for (let i = 0; i < productId.length; i++) {
+    hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
+  }
+  const index = Math.abs(hash) % makers.length;
+  return makers[index];
 };
