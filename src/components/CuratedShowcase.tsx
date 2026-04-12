@@ -117,7 +117,7 @@ const CuratedShowcase = () => {
           <ScrollReveal animation="fade-up" delay={200}>
             <div className="rounded-2xl overflow-hidden border border-border/30 bg-card">
               <div className="relative">
-                <div className="aspect-[4/3] md:aspect-[21/9]">
+                <div className="aspect-[16/10] md:aspect-[21/9]">
                   <img
                     src={active.roomImage}
                     alt={`${active.category} placed in a curated interior space`}
