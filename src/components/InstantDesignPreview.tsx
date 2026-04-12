@@ -429,10 +429,7 @@ const InstantDesignPreview = () => {
       <section className="py-8 md:py-16 bg-gradient-to-b from-background to-accent/30">
         <div className="container">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-secondary/10 border border-secondary/20 mb-4">
-              <Sparkles className="w-4 h-4 text-secondary" />
-              <span className="text-sm font-medium text-secondary">Try AI Design Magic</span>
-            </div>
+            <p className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground/60 font-medium mb-4">Studio Lite</p>
             <h2 className="text-2xl md:text-4xl font-bold text-foreground mb-3 md:mb-4">
               See AI Create Furniture in Real-Time
             </h2>
@@ -445,8 +442,7 @@ const InstantDesignPreview = () => {
             {/* Input Section - show first on mobile */}
             <div className="space-y-4 order-1 lg:order-1">
               <div className="bg-card border border-border rounded-2xl p-5 shadow-lg">
-                <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-primary" />
+              <h3 className="text-lg font-semibold text-foreground mb-4">
                   Describe what you want to create
                 </h3>
                 
@@ -617,7 +613,7 @@ const InstantDesignPreview = () => {
                     <Button 
                       variant="hero" 
                       size="lg" 
-                      className="flex-1 min-w-0 group"
+                      className="flex-1 min-w-0 group h-12 md:h-11 text-sm"
                       onClick={handleGenerate}
                       disabled={isGenerating || isGeneratingSurprise}
                     >
@@ -628,7 +624,6 @@ const InstantDesignPreview = () => {
                         </>
                       ) : (
                         <>
-                          <Sparkles className="w-4 h-4 mr-2" />
                           Generate
                           <ArrowRight className="w-4 h-4 ml-1 transition-transform group-hover:translate-x-1" />
                         </>
@@ -713,35 +708,19 @@ const InstantDesignPreview = () => {
                   )}
                 </div>
 
-                <p className="text-xs text-muted-foreground mt-3 text-center">
-                  ✨ Free to try • No credit card required
+                <p className="text-[10px] text-muted-foreground/50 mt-3 text-center uppercase tracking-wider">
+                  Free to try · No credit card required
                 </p>
               </div>
 
-              {/* Trust indicators */}
-              <div className="flex flex-wrap justify-center gap-4 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>AI-generated designs</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-secondary" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Built by real manufacturers</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span>Sell & earn from your creations</span>
-                </div>
+              {/* Trust indicators — editorial style */}
+              <div className="flex flex-wrap justify-center gap-x-6 gap-y-1 text-[10px] uppercase tracking-[0.15em] text-muted-foreground/50 font-medium">
+                <span>AI-generated</span>
+                <span className="hidden sm:inline">·</span>
+                <span>Real manufacturers</span>
+                <span className="hidden sm:inline">·</span>
+                <span>Earn royalties</span>
               </div>
-              <p className="text-xs text-muted-foreground/70 text-center mt-2">
-                Takes you to the full design studio after generation →
-              </p>
             </div>
 
             {/* Preview Gallery */}
@@ -805,38 +784,30 @@ const InstantDesignPreview = () => {
                         </Button>
                       </div>
                       
-                      <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-8 h-8 rounded-lg bg-primary/20 backdrop-blur-sm flex items-center justify-center shrink-0">
-                            <Sparkles className="w-4 h-4 text-primary" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="text-xs text-white/70 mb-1">
-                              {hasGeneratedImages ? "Your Design:" : "AI Generated Design:"}
-                            </p>
-                            <p className="text-sm font-medium leading-snug">
-                              {truncateText(displayDescription)}
-                            </p>
-                          </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-5 text-white">
+                        <div className="flex-1 min-w-0 mb-2">
+                          <p className="text-sm font-medium leading-snug line-clamp-2">
+                            {truncateText(displayDescription)}
+                          </p>
                         </div>
                         
                         <div className="flex items-center justify-between">
-                          <p className="text-xs text-white/60">
-                            by <span className="text-white/80 font-medium">{displayDesigner}</span>
+                          <p className="text-[10px] uppercase tracking-wider text-white/50 font-medium">
+                            by {displayDesigner}
                           </p>
                           
                           {!hasGeneratedImages && designs.length > 0 && (
                             <Link 
                               to={`/product/${designs[currentIndex].id}`}
-                              className="text-xs text-primary hover:text-primary/80 font-medium"
+                              className="text-[10px] uppercase tracking-wider text-white/70 hover:text-white font-medium transition-colors"
                             >
-                              View Details →
+                              View →
                             </Link>
                           )}
                         </div>
                       </div>
                       
-                      {/* Navigation arrows - only show when viewing gallery (no generated images) */}
+                      {/* Navigation arrows - always visible on mobile, hover on desktop */}
                       {!hasGeneratedImages && designs.length > 1 && (
                         <>
                           <button
@@ -844,20 +815,20 @@ const InstantDesignPreview = () => {
                               e.stopPropagation();
                               setCurrentIndex((prev) => (prev - 1 + designs.length) % designs.length);
                             }}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all md:opacity-0 md:group-hover:opacity-100 z-10"
                             aria-label="Previous design"
                           >
-                            <ChevronLeft className="w-5 h-5 text-foreground" />
+                            <ChevronLeft className="w-4 h-4 text-foreground" />
                           </button>
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setCurrentIndex((prev) => (prev + 1) % designs.length);
                             }}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white shadow-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-10"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 hover:bg-white shadow-md flex items-center justify-center transition-all md:opacity-0 md:group-hover:opacity-100 z-10"
                             aria-label="Next design"
                           >
-                            <ChevronRight className="w-5 h-5 text-foreground" />
+                            <ChevronRight className="w-4 h-4 text-foreground" />
                           </button>
                         </>
                       )}
@@ -881,8 +852,8 @@ const InstantDesignPreview = () => {
 
                       {/* "Your creation" badge when showing generated image */}
                       {hasGeneratedImages && (
-                        <div className="absolute top-4 right-4 px-3 py-1.5 bg-primary/90 backdrop-blur-sm rounded-full text-white text-xs font-medium">
-                          ✨ Your creation
+                      <div className="absolute top-4 right-4 px-3 py-1.5 bg-primary/90 backdrop-blur-sm rounded-full text-white text-[10px] font-semibold uppercase tracking-wider">
+                          Your creation
                         </div>
                       )}
                     </>
@@ -959,13 +930,11 @@ const InstantDesignPreview = () => {
                 {/* Bottom CTA bar */}
                 <div className="p-3 bg-accent/50 border-t border-border">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-semibold text-foreground">26+ AI designs</span> ready for manufacturing
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">26+ designs</span> ready for manufacturing
                     </p>
-                    <Link to="/browse">
-                      <Button variant="ghost" size="sm" className="text-primary hover:text-primary/80">
-                        Browse All →
-                      </Button>
+                    <Link to="/browse" className="text-[10px] uppercase tracking-wider text-primary font-medium hover:underline">
+                      Browse All →
                     </Link>
                   </div>
                 </div>

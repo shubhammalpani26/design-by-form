@@ -139,10 +139,10 @@ const expansionCategories = [
 ];
 
 const styleBubbles = [
-  { label: "Modern coffee table", icon: "☕" },
-  { label: "Sculptural lounge chair", icon: "🪑" },
-  { label: "Dining table for 8", icon: "🪵" },
-  { label: "Floating wall shelf", icon: "📚" },
+  { label: "Modern coffee table" },
+  { label: "Sculptural lounge chair" },
+  { label: "Dining table for 8" },
+  { label: "Floating wall shelf" },
 ];
 
 const Home = () => {
@@ -349,7 +349,6 @@ const Home = () => {
                         onClick={() => navigate(`/design-studio?prompt=${encodeURIComponent(bubble.label)}`)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 hover:bg-primary/10 border border-border/50 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                       >
-                        <span>{bubble.icon}</span>
                         {bubble.label}
                       </button>
                     ))}
@@ -385,18 +384,11 @@ const Home = () => {
                         className="w-full h-full object-contain bg-muted/30 transition-all duration-700 group-hover:scale-105"
                       />
                       
-                      <div className="absolute bottom-4 left-4 right-4 glass rounded-lg shadow-lg overflow-hidden">
+                       <div className="absolute bottom-4 left-4 right-4 glass rounded-lg shadow-lg overflow-hidden">
                         <div className="p-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-md bg-primary/10 flex items-center justify-center">
-                              <svg className="w-3.5 h-3.5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                              </svg>
-                            </div>
-                            <p className="text-sm font-medium text-foreground">
+                          <p className="text-sm font-medium text-foreground">
                               {heroProduct.name}
-                            </p>
-                          </div>
+                          </p>
                         </div>
                       </div>
                     </Link>
