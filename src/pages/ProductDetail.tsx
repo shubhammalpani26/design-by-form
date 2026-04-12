@@ -379,20 +379,13 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            {/* Key specs — compact inline */}
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm py-2 border-t border-b border-border/50">
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Weight</span>
-                <span className="font-medium text-foreground">{Math.round(product.weight * 10) / 10} kg</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Outdoor</span>
-                <span className="font-medium text-foreground">Yes</span>
-              </div>
-              <div className="col-span-2 flex justify-between">
-                <span className="text-muted-foreground">Dimensions</span>
-                <span className="font-medium text-foreground text-right">{product.dimensions}</span>
-              </div>
+            {/* Key specs — minimal row */}
+            <div className="flex items-center gap-6 text-xs tracking-wide uppercase py-3 border-t border-b border-border/50 text-muted-foreground">
+              <span>{Math.round(product.weight * 10) / 10} kg</span>
+              <span className="w-px h-3 bg-border" />
+              <span>{product.dimensions || 'Dimensions on request'}</span>
+              <span className="w-px h-3 bg-border" />
+              <span>Outdoor</span>
             </div>
 
             {/* Actions */}
