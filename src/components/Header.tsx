@@ -74,7 +74,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 flex h-14 md:h-16 items-center justify-between gap-2">
+      <div className="container mx-auto px-4 flex h-14 md:h-16 items-center justify-between gap-2 overflow-x-hidden">
         {/* Mobile: Left side - Menu + Logo */}
         <div className="flex items-center gap-2 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -226,7 +226,7 @@ export const Header = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-6">
+        <nav className="hidden md:flex items-center space-x-3 lg:space-x-5 min-w-0 flex-shrink">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -255,10 +255,10 @@ export const Header = () => {
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
           </Link>
-          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden lg:block">
             Verified Makers
           </Link>
-          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
             Leaderboard
           </Link>
           <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
@@ -267,7 +267,7 @@ export const Header = () => {
         </nav>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-1 md:gap-2">
+        <div className="flex items-center gap-1 md:gap-1.5 flex-shrink-0">
           {/* Search - compact on mobile */}
           <div className="hidden md:block">
             <GlobalSearch />
