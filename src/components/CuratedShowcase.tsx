@@ -12,21 +12,21 @@ import showcaseRoomConsole from "@/assets/showcase-room-console.jpg";
 const showcases = [
   {
     id: "chair",
-    prompt: "A sculptural accent chair with flowing organic curves in walnut",
+    prompt: "A sculptural accent chair with flowing organic curves in matte black resin",
     category: "Chair",
     productImage: showcaseChair,
     roomImage: showcaseRoomChair,
     designer: "AI-Generated",
-    material: "Walnut Wood",
+    material: "Matte Black Resin",
   },
   {
     id: "console",
-    prompt: "A modern console table with organic form in light oak with brass accents",
+    prompt: "A sculptural console table with sinuous biomorphic form in matte black resin",
     category: "Console",
     productImage: showcaseConsole,
     roomImage: showcaseRoomConsole,
     designer: "AI-Generated",
-    material: "Oak & Brass",
+    material: "Matte Black Resin",
   },
 ];
 
