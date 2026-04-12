@@ -1,10 +1,9 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { useState } from "react";
 import { ArrowRight } from "lucide-react";
-import { ScrollReveal, StaggerReveal } from "@/hooks/useScrollReveal";
+import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { SEOHead } from "@/components/SEOHead";
-import { makers, Maker } from "@/data/makers";
+import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
 
 const VerifiedMakers = () => {
@@ -41,66 +40,64 @@ const VerifiedMakers = () => {
           </div>
         </section>
 
-        {/* Makers — Full-width editorial list */}
-        <section className="py-0">
-          {makers.map((maker, index) => (
-            <Link
-              key={maker.id}
-              to={`/maker/${maker.slug}`}
-              className="group block border-b border-border last:border-b-0"
-            >
-              <div className="container">
-                <div className="py-10 md:py-16 flex flex-col md:flex-row md:items-center gap-6 md:gap-12">
-                  {/* Index number */}
-                  <div className="hidden md:block">
-                    <span className="text-6xl font-light text-muted-foreground/20 tabular-nums tracking-tight">
-                      {String(index + 1).padStart(2, '0')}
-                    </span>
-                  </div>
-
-                  {/* Main content */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h2 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
-                        {maker.name}
-                      </h2>
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/8 text-primary text-[10px] font-semibold uppercase tracking-wider">
+        {/* Makers — Premium grid cards */}
+        <section className="py-16 md:py-24">
+          <div className="container">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {makers.map((maker, index) => (
+                <Link
+                  key={maker.id}
+                  to={`/maker/${maker.slug}`}
+                  className="group relative"
+                >
+                  <div className="relative border border-border rounded-2xl p-8 md:p-10 hover:border-primary/30 transition-all duration-500 hover:shadow-[0_8px_40px_-12px_hsl(var(--primary)/0.15)] bg-background h-full flex flex-col">
+                    {/* Index + Verified */}
+                    <div className="flex items-center justify-between mb-6">
+                      <span className="text-4xl font-extralight text-muted-foreground/15 tabular-nums tracking-tight leading-none">
+                        {String(index + 1).padStart(2, '0')}
+                      </span>
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-primary/8 text-primary text-[9px] font-semibold uppercase tracking-[0.15em]">
                         Verified
                       </span>
                     </div>
-                    <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.15em] mb-3">
+
+                    {/* Name & Location */}
+                    <h2 className="text-xl font-semibold text-foreground group-hover:text-primary transition-colors duration-300 mb-1">
+                      {maker.name}
+                    </h2>
+                    <p className="text-[10px] text-muted-foreground/50 uppercase tracking-[0.2em] mb-4">
                       {maker.location}
                     </p>
-                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+
+                    {/* Description */}
+                    <p className="text-sm text-muted-foreground/70 leading-relaxed mb-6 flex-1">
                       {maker.shortDescription}
                     </p>
-                  </div>
 
-                  {/* Specialties */}
-                  <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
-                    <div className="flex flex-wrap gap-1.5 md:justify-end">
+                    {/* Specialties */}
+                    <div className="flex flex-wrap gap-1.5 mb-6">
                       {maker.specialties.map((specialty) => (
                         <span
                           key={specialty}
-                          className="px-2.5 py-1 rounded-full border border-border text-[10px] font-medium text-muted-foreground"
+                          className="px-2.5 py-1 rounded-full border border-border/60 text-[10px] font-medium text-muted-foreground/60"
                         >
                           {specialty}
                         </span>
                       ))}
                     </div>
-                    <span className="text-xs text-muted-foreground/50">
-                      {maker.yearsActive}+ years of craft
-                    </span>
-                  </div>
 
-                  {/* Arrow */}
-                  <div className="hidden md:flex items-center">
-                    <ArrowRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                    {/* Footer */}
+                    <div className="flex items-center justify-between pt-4 border-t border-border/40">
+                      <span className="text-[11px] text-muted-foreground/40">
+                        {maker.yearsActive}+ years of craft
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground/20 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                    </div>
                   </div>
-                </div>
-              </div>
-            </Link>
-          ))}
+                </Link>
+              ))}
+            </div>
+          </div>
         </section>
 
         {/* Philosophy strip */}
@@ -123,7 +120,7 @@ const VerifiedMakers = () => {
           </div>
         </section>
 
-        {/* Value grid — minimal */}
+        {/* Value grid */}
         <section className="py-16 md:py-24">
           <div className="container">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden">
