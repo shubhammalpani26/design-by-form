@@ -42,10 +42,6 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
       <Link to={`/product/${slugify(name)}`} className="group block">
         <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300 relative">
           <div className="aspect-square overflow-hidden bg-accent relative max-h-[400px]">
-            {/* Exclusive Badge */}
-            <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/90 backdrop-blur-sm text-[9px] font-semibold uppercase tracking-wider text-foreground/80 border border-border/40">
-              Original Design
-            </span>
             <img
               src={image && image.length < 50000 ? image : "/placeholder.svg"}
               alt={name}
@@ -93,22 +89,22 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
           
           <CardContent className="p-4">
             <h3 className="font-semibold text-lg text-foreground mb-1">{name}</h3>
-            <p className="text-sm text-muted-foreground">
-              by <span
-                className="hover:text-primary transition-colors cursor-pointer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  window.location.href = `/designer/${slugify(designer)}`;
-                }}
-              >
-                {designer}
+            <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-2">
+              <span>
+                by{" "}
+                <span
+                  className="hover:text-primary transition-colors cursor-pointer"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.location.href = `/designer/${slugify(designer)}`;
+                  }}
+                >
+                  {designer}
+                </span>
               </span>
-            </p>
-            <div className="flex items-center justify-between mt-2">
-              <p className="text-primary font-semibold">{formatPrice(price)}</p>
               <span
-                className="inline-flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary cursor-pointer transition-colors"
+                className="inline-flex items-center gap-1 text-muted-foreground/60 hover:text-primary cursor-pointer transition-colors"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -119,6 +115,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
                 {maker.name}
               </span>
             </div>
+            <p className="text-primary font-semibold">{formatPrice(price)}</p>
           </CardContent>
         </Card>
       </Link>

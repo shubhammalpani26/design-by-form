@@ -30,30 +30,26 @@ export const HomeProductCard = ({ id, name, designer, designerId, price, weight,
             decoding="async"
             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
-          {/* Exclusive Badge */}
-          <span className="absolute top-2 left-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/90 backdrop-blur-sm text-[9px] font-semibold uppercase tracking-wider text-foreground/80 border border-border/40">
-            Exclusively on Nyzora
-          </span>
         </div>
         
         <CardContent className="p-4">
           <h3 className="font-semibold text-lg text-foreground mb-1">{name}</h3>
-          <p className="text-sm text-muted-foreground">
-            by <span
-              className="hover:text-primary transition-colors cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                window.location.href = `/designer/${slugify(designer)}`;
-              }}
-            >
-              {designer}
+          <div className="flex items-center justify-between text-[11px] text-muted-foreground mb-2">
+            <span>
+              by{" "}
+              <span
+                className="hover:text-primary transition-colors cursor-pointer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  window.location.href = `/designer/${slugify(designer)}`;
+                }}
+              >
+                {designer}
+              </span>
             </span>
-          </p>
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-primary font-semibold">{formatPrice(price)}</p>
             <span
-              className="inline-flex items-center gap-1 text-[10px] text-primary/70 hover:text-primary cursor-pointer transition-colors"
+              className="inline-flex items-center gap-1 text-muted-foreground/60 hover:text-primary cursor-pointer transition-colors"
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -64,6 +60,7 @@ export const HomeProductCard = ({ id, name, designer, designerId, price, weight,
               {maker.name}
             </span>
           </div>
+          <p className="text-primary font-semibold">{formatPrice(price)}</p>
         </CardContent>
       </Card>
     </Link>
