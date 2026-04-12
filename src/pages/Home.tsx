@@ -139,11 +139,10 @@ const expansionCategories = [
 ];
 
 const styleBubbles = [
-  { label: "Minimalist Tokyo coffee table", icon: "☕" },
+  { label: "Modern coffee table", icon: "☕" },
   { label: "Sculptural lounge chair", icon: "🪑" },
-  { label: "Live-edge dining table for 8", icon: "🪵" },
-  { label: "Floating wall shelf in walnut", icon: "📚" },
-  { label: "Brutalist concrete side table", icon: "🗿" },
+  { label: "Dining table for 8", icon: "🪵" },
+  { label: "Floating wall shelf", icon: "📚" },
 ];
 
 const Home = () => {
