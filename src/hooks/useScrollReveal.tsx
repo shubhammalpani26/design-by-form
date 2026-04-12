@@ -15,9 +15,15 @@ export const useScrollReveal = (options: ScrollRevealOptions = {}) => {
     const el = ref.current;
     if (!el) return;
 
+    // Safety fallback: if IntersectionObserver doesn't fire within 2s, show content
+    const fallbackTimer = setTimeout(() => {
+      setIsVisible(true);
+    }, 2000);
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
+          clearTimeout(fallbackTimer);
           setIsVisible(true);
           if (triggerOnce) observer.unobserve(el);
         } else if (!triggerOnce) {
@@ -28,7 +34,10 @@ export const useScrollReveal = (options: ScrollRevealOptions = {}) => {
     );
 
     observer.observe(el);
-    return () => observer.unobserve(el);
+    return () => {
+      clearTimeout(fallbackTimer);
+      observer.unobserve(el);
+    };
   }, [threshold, rootMargin, triggerOnce]);
 
   return { ref, isVisible };
