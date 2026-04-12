@@ -255,10 +255,10 @@ export const Header = () => {
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
           </Link>
-          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden lg:block">
+          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
             Verified Makers
           </Link>
-          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
+          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Leaderboard
           </Link>
           <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
