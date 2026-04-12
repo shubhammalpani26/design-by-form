@@ -46,7 +46,7 @@ const CuratedShowcase = () => {
   }, []);
 
   return (
-    <section className="pt-2 pb-16 md:pt-4 md:pb-24">
+    <section className="pt-2 pb-8 md:pt-4 md:pb-14">
       <div className="container">
         <ScrollReveal animation="fade-up">
           <div className="text-center mb-10 md:mb-12">
