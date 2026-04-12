@@ -161,13 +161,10 @@ const Contact = () => {
                   <div className="space-y-4 text-sm">
                     <div className="flex items-start gap-3">
                       <Mail className="h-5 w-5 text-primary mt-0.5" />
-                      <div>
+                       <div>
                         <div className="font-medium text-foreground mb-1">Email</div>
-                        <a href="mailto:shubham.malpani@nyzora.ai" className="text-primary hover:underline block">
-                          shubham.malpani@nyzora.ai
-                        </a>
-                        <a href="mailto:tejal.agawane@nyzora.ai" className="text-primary hover:underline block">
-                          tejal.agawane@nyzora.ai
+                        <a href="mailto:contact@nyzora.ai" className="text-primary hover:underline block">
+                          contact@nyzora.ai
                         </a>
                       </div>
                     </div>
@@ -176,10 +173,7 @@ const Contact = () => {
                       <div>
                         <div className="font-medium text-foreground mb-1">Phone</div>
                         <a href="tel:+919082582002" className="text-primary hover:underline block">
-                          +91 90825 82002 (Shubham Malpani)
-                        </a>
-                        <a href="tel:+918779518787" className="text-primary hover:underline block">
-                          +91 87795 18787 (Tejal Agawane)
+                          +91 90825 82002
                         </a>
                       </div>
                     </div>

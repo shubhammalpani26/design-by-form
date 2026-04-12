@@ -16,9 +16,13 @@ export const Footer = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8">
           <div>
             <img src={wordmark} alt="Nyzora" className="h-4 w-auto object-contain dark:invert mb-2" />
-            <p className="text-sm text-muted-foreground">
-              Empowering creators to design the future of sustainable furniture.
+            <p className="text-sm text-muted-foreground mb-3">
+              Design Anything Physical. We Make It Real.
             </p>
+            <div className="space-y-1 text-sm text-muted-foreground">
+              <a href="mailto:contact@nyzora.ai" className="hover:text-primary transition-colors block">contact@nyzora.ai</a>
+              <a href="tel:+919082582002" className="hover:text-primary transition-colors block">+91 90825 82002</a>
+            </div>
           </div>
           
           <div>
@@ -86,7 +90,7 @@ export const Footer = () => {
               <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>
               <button onClick={() => handleNavigation("/privacy-policy")} className="hover:text-primary transition-colors">Privacy Policy</button>
             </div>
-            <p>&copy; 2025 Nyzora. All rights reserved.</p>
+            <p>&copy; 2026 Nyzora. All rights reserved.</p>
           </div>
         </div>
       </div>
