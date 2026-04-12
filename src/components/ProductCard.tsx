@@ -5,7 +5,7 @@ import { ARViewer } from "@/components/ARViewer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { useComparison } from "@/contexts/ComparisonContext";
-import { Check } from "lucide-react";
+import { Check, Shield } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
 
@@ -40,6 +40,10 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
       <Link to={`/product/${slugify(name)}`} className="group block">
         <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300 relative">
           <div className="aspect-square overflow-hidden bg-accent relative max-h-[400px]">
+            {/* Exclusive Badge */}
+            <span className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-background/90 backdrop-blur-sm text-[9px] font-semibold uppercase tracking-wider text-foreground/80 border border-border/40">
+              Original Design
+            </span>
             <img
               src={image && image.length < 50000 ? image : "/placeholder.svg"}
               alt={name}
@@ -101,7 +105,10 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
             </p>
             <div className="flex items-center justify-between mt-2">
               <p className="text-primary font-semibold">{formatPrice(price)}</p>
-              <p className="text-xs text-muted-foreground">{weight} kg</p>
+              <div className="flex items-center gap-1 text-[10px] text-primary/70">
+                <Shield className="h-3 w-3" />
+                Verified Maker
+              </div>
             </div>
           </CardContent>
         </Card>
