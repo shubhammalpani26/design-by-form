@@ -60,7 +60,7 @@ const MakerFAQ = () => {
                 How am I paid for production orders?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You are paid the Manufacturing Base Price (MBP) for each order. Payment is released within 7 days of the customer confirming delivery and quality. We support bank transfer and UPI for Indian makers, and international wire transfers for global workshops.
+                The Manufacturing Base Price (MBP) is agreed upon during your onboarding process, based on your production capabilities, material costs, and craftsmanship level. Payment is released within 7 days of the customer confirming delivery and quality. We support bank transfer and UPI for Indian makers, and international wire transfers for global workshops.
               </AccordionContent>
             </AccordionItem>
 
@@ -124,6 +124,24 @@ const MakerFAQ = () => {
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
                 Yes, we're building a global maker network. International makers are welcome, and we support cross-border payments. Logistics for international orders are coordinated on a case-by-case basis depending on the destination market.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-12">
+              <AccordionTrigger className="text-left font-semibold">
+                How is the Manufacturing Base Price (MBP) determined?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                The MBP is mutually agreed upon during your onboarding process. We work with you to understand your material costs, production complexity, and craftsmanship standards. Once finalised, our AI pricing model is trained on your specific customisations, capabilities, and pricing — so future orders are automatically priced accurately based on your workshop's profile.
+              </AccordionContent>
+            </AccordionItem>
+
+            <AccordionItem value="item-13">
+              <AccordionTrigger className="text-left font-semibold">
+                Does Nyzora take a commission on sales?
+              </AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                Yes, Nyzora earns a commission on each sale to cover platform operations, marketing, logistics coordination, and customer acquisition. The exact commission structure is discussed and agreed upon during the onboarding and partnership agreement — ensuring full transparency before you start receiving orders.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
