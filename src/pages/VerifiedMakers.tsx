@@ -1,18 +1,13 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
-import { Shield, CheckCircle2, Award } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { ScrollReveal, StaggerReveal } from "@/hooks/useScrollReveal";
 import { SEOHead } from "@/components/SEOHead";
 import { makers, Maker } from "@/data/makers";
 import { Link } from "react-router-dom";
 
 const VerifiedMakers = () => {
-  const [selectedMaker, setSelectedMaker] = useState<Maker | null>(null);
-
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
@@ -22,128 +17,155 @@ const VerifiedMakers = () => {
       <Header />
 
       <main className="flex-1">
-        {/* Hero */}
-        <section className="relative overflow-hidden bg-accent py-16 md:py-24">
-          <div className="container text-center">
+        {/* Hero — Editorial, typographic-led */}
+        <section className="relative py-24 md:py-36 overflow-hidden">
+          <div className="absolute inset-0 bg-[hsl(var(--primary))]" />
+          <div className="absolute inset-0 opacity-[0.03]" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          }} />
+          <div className="container relative z-10">
             <ScrollReveal animation="fade-up">
-              <div className="flex items-center justify-center gap-2 mb-4">
-                <Shield className="h-6 w-6 text-primary" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-primary">Verified & Vetted</span>
+              <div className="max-w-3xl">
+                <p className="text-primary-foreground/50 text-xs font-medium uppercase tracking-[0.3em] mb-6">
+                  The Makers Behind Every Piece
+                </p>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[0.95] tracking-tight mb-8">
+                  Verified<br />
+                  <span className="font-light italic">Makers</span>
+                </h1>
+                <p className="text-primary-foreground/60 text-base md:text-lg max-w-lg leading-relaxed">
+                  Every Nyzora product is brought to life by carefully vetted artisans and fabricators — selected for craft, consistency, and care.
+                </p>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-4">
-                Crafted by <span className="gradient-text-animated">Verified Makers</span>
-              </h1>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Every product on Nyzora is brought to life by carefully selected and verified manufacturers known for quality craftsmanship and reliability.
-              </p>
             </ScrollReveal>
           </div>
         </section>
 
-        {/* Trust Badges */}
-        <section className="py-10 border-b border-border">
+        {/* Makers — Full-width editorial list */}
+        <section className="py-0">
+          {makers.map((maker, index) => (
+            <Link
+              key={maker.id}
+              to={`/maker/${maker.slug}`}
+              className="group block border-b border-border last:border-b-0"
+            >
+              <div className="container">
+                <div className="py-10 md:py-16 flex flex-col md:flex-row md:items-center gap-6 md:gap-12">
+                  {/* Index number */}
+                  <div className="hidden md:block">
+                    <span className="text-6xl font-light text-muted-foreground/20 tabular-nums tracking-tight">
+                      {String(index + 1).padStart(2, '0')}
+                    </span>
+                  </div>
+
+                  {/* Main content */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h2 className="text-xl md:text-2xl font-semibold text-foreground group-hover:text-primary transition-colors duration-300">
+                        {maker.name}
+                      </h2>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-primary/8 text-primary text-[10px] font-semibold uppercase tracking-wider">
+                        Verified
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.15em] mb-3">
+                      {maker.location}
+                    </p>
+                    <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
+                      {maker.shortDescription}
+                    </p>
+                  </div>
+
+                  {/* Specialties */}
+                  <div className="flex flex-col items-start md:items-end gap-2 shrink-0">
+                    <div className="flex flex-wrap gap-1.5 md:justify-end">
+                      {maker.specialties.map((specialty) => (
+                        <span
+                          key={specialty}
+                          className="px-2.5 py-1 rounded-full border border-border text-[10px] font-medium text-muted-foreground"
+                        >
+                          {specialty}
+                        </span>
+                      ))}
+                    </div>
+                    <span className="text-xs text-muted-foreground/50">
+                      {maker.yearsActive}+ years of craft
+                    </span>
+                  </div>
+
+                  {/* Arrow */}
+                  <div className="hidden md:flex items-center">
+                    <ArrowRight className="h-5 w-5 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-1 transition-all duration-300" />
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </section>
+
+        {/* Philosophy strip */}
+        <section className="py-20 md:py-28 bg-accent">
           <div className="container">
-            <div className="flex flex-wrap items-center justify-center gap-8 md:gap-16">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <CheckCircle2 className="h-5 w-5 text-primary" />
-                <span>Quality Assured</span>
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-2xl mx-auto text-center">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">
+                  Our Standard
+                </p>
+                <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-8">
+                  We don't list makers.<br />
+                  <span className="font-semibold">We select them.</span>
+                </blockquote>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
+                  Each maker goes through a rigorous verification — from material sourcing to finish quality. Only those who meet our standards make it to the platform.
+                </p>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Shield className="h-5 w-5 text-primary" />
-                <span>Verified by Nyzora</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Award className="h-5 w-5 text-primary" />
-                <span>Expert Craftsmen</span>
-              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* Value grid — minimal */}
+        <section className="py-16 md:py-24">
+          <div className="container">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-2xl overflow-hidden">
+              {[
+                { number: "50+", label: "Years Combined Experience" },
+                { number: "5", label: "Verified Fabricators" },
+                { number: "100%", label: "Quality Inspected" },
+                { number: "0", label: "Middlemen" },
+              ].map((stat) => (
+                <div key={stat.label} className="bg-background p-8 md:p-10 text-center">
+                  <p className="text-3xl md:text-4xl font-bold text-foreground tracking-tight mb-2">
+                    {stat.number}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                    {stat.label}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Makers Grid */}
-        <section className="py-12 md:py-20">
+        {/* CTA */}
+        <section className="py-16 md:py-20 border-t border-border">
           <div className="container">
-            <StaggerReveal
-              className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto"
-              staggerDelay={120}
-              animation="fade-up"
-            >
-              {makers.map((maker) => (
-                <Link key={maker.id} to={`/maker/${maker.slug}`} className="group block">
-                  <Card className="border-border hover:border-primary/30 hover:shadow-medium transition-all duration-300 overflow-hidden h-full">
-                    <CardContent className="p-6 space-y-4">
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                            {maker.name}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">{maker.location}</p>
-                        </div>
-                        <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold shrink-0">
-                          <Shield className="h-3 w-3" />
-                          Verified
-                        </div>
-                      </div>
-
-                      <p className="text-sm text-muted-foreground leading-relaxed">
-                        {maker.shortDescription}
-                      </p>
-
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span className="font-semibold text-foreground">{maker.yearsActive} years</span>
-                        <span>·</span>
-                        <span>{maker.specialties.join(", ")}</span>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 pt-1">
-                        {maker.tags.map((tag) => (
-                          <Badge key={tag} variant="secondary" className="text-[10px] font-medium">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-
-                      <p className="text-xs text-primary font-medium group-hover:underline">
-                        View maker profile →
-                      </p>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </StaggerReveal>
-          </div>
-        </section>
-
-        {/* Why Nyzora */}
-        <section className="py-12 md:py-20 bg-muted/50">
-          <div className="container">
-            <ScrollReveal animation="fade-up">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
-                  Why <span className="gradient-text-animated">Nyzora</span>?
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                  Designed. Built. Delivered.
                 </h2>
-                <p className="text-muted-foreground max-w-xl mx-auto">Designed. Built. Delivered.</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Start designing — we handle the rest.
+                </p>
               </div>
-            </ScrollReveal>
-
-            <StaggerReveal
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto"
-              staggerDelay={100}
-              animation="fade-up"
-            >
-              {[
-                { icon: "✨", title: "AI-Powered Design", desc: "Create custom products with intelligent design tools" },
-                { icon: "🛡️", title: "Verified Makers", desc: "Expert manufacturers vetted for quality and reliability" },
-                { icon: "📦", title: "End-to-End", desc: "From design to delivery — we manage everything" },
-                { icon: "🎯", title: "Quality Assured", desc: "Every piece inspected before it reaches your space" },
-              ].map((item) => (
-                <div key={item.title} className="text-center space-y-3 p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/20 transition-colors">
-                  <div className="text-3xl">{item.icon}</div>
-                  <h3 className="font-semibold text-foreground">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground">{item.desc}</p>
-                </div>
-              ))}
-            </StaggerReveal>
+              <Link
+                to="/browse"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground text-sm font-medium rounded-full hover:opacity-90 transition-opacity"
+              >
+                Browse Products
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </div>
           </div>
         </section>
       </main>
