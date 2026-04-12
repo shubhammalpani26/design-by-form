@@ -139,10 +139,10 @@ const expansionCategories = [
 ];
 
 const styleBubbles = [
-  { label: "Modern coffee table", icon: "☕" },
-  { label: "Sculptural lounge chair", icon: "🪑" },
-  { label: "Dining table for 8", icon: "🪵" },
-  { label: "Floating wall shelf", icon: "📚" },
+  { label: "Modern coffee table" },
+  { label: "Sculptural lounge chair" },
+  { label: "Dining table for 8" },
+  { label: "Floating wall shelf" },
 ];
 
 const Home = () => {
@@ -349,7 +349,6 @@ const Home = () => {
                         onClick={() => navigate(`/design-studio?prompt=${encodeURIComponent(bubble.label)}`)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/60 hover:bg-primary/10 border border-border/50 text-xs text-muted-foreground hover:text-primary transition-colors cursor-pointer"
                       >
-                        <span>{bubble.icon}</span>
                         {bubble.label}
                       </button>
                     ))}

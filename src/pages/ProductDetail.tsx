@@ -380,12 +380,12 @@ const ProductDetail = () => {
             </div>
 
             {/* Key specs — minimal row */}
-            <div className="flex items-center gap-6 text-xs tracking-wide uppercase py-3 border-t border-b border-border/50 text-muted-foreground">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] tracking-[0.15em] uppercase py-3 border-t border-b border-border/50 text-muted-foreground/60 font-medium">
               <span>{Math.round(product.weight * 10) / 10} kg</span>
-              <span className="w-px h-3 bg-border" />
+              <span className="w-px h-2.5 bg-border/60" />
               <span>{product.dimensions || 'Dimensions on request'}</span>
-              <span className="w-px h-3 bg-border" />
-              <span>Outdoor</span>
+              <span className="w-px h-2.5 bg-border/60" />
+              <span>Indoor / Outdoor</span>
             </div>
 
             {/* Actions */}
