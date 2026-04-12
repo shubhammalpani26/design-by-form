@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, Sparkles, X } from "lucide-react";
+import { ArrowRight, Sparkles, X, Shield, CheckCircle2, Globe } from "lucide-react";
 import { HomeProductCard } from "@/components/HomeProductCard";
 import { CommunityFeedPreview } from "@/components/CommunityFeedPreview";
 import { supabase } from "@/integrations/supabase/client";
@@ -809,6 +809,134 @@ const Home = () => {
           </div>
         )}
 
+        {/* Crafted by Verified Makers */}
+        <section className="py-12 md:py-20 bg-accent">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-10">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Shield className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">Trust & Quality</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+                  Crafted by <span className="gradient-text-animated">Verified Makers</span>
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Every product on Nyzora is brought to life by carefully selected and verified manufacturers known for quality craftsmanship and reliability.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <StaggerReveal
+              className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-3xl mx-auto"
+              staggerDelay={120}
+              animation="fade-up"
+            >
+              {[
+                { name: "Solid Wood Experts", location: "Jodhpur", years: "15+", tag: "Wood Specialist" },
+                { name: "Metal Fabricators", location: "Pune", years: "12+", tag: "Metal & Steel" },
+                { name: "Composite Artisans", location: "Bengaluru", years: "8+", tag: "Resin & Composite" },
+              ].map((maker) => (
+                <div key={maker.name} className="text-center p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/20 hover:shadow-soft transition-all space-y-3">
+                  <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                    <Shield className="h-5 w-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">{maker.name}</h3>
+                  <p className="text-xs text-muted-foreground">{maker.location} · {maker.years} years</p>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-semibold">
+                    <CheckCircle2 className="h-3 w-3" />
+                    {maker.tag}
+                  </div>
+                </div>
+              ))}
+            </StaggerReveal>
+
+            <ScrollReveal animation="fade-up" delay={200}>
+              <div className="text-center mt-8">
+                <Link to="/verified-makers">
+                  <Button variant="outline" size="sm">
+                    Meet All Verified Makers →
+                  </Button>
+                </Link>
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
+
+        {/* Designed by Creators Worldwide */}
+        <section className="py-12 md:py-20">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-10">
+                <div className="flex items-center justify-center gap-2 mb-3">
+                  <Globe className="h-5 w-5 text-primary" />
+                  <span className="text-xs font-semibold uppercase tracking-wider text-primary">Creator Economy</span>
+                </div>
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+                  Designed by Creators <span className="gradient-text-animated">Worldwide</span>
+                </h2>
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  Discover original designs created by designers across the world. Each piece is exclusive, customizable, and available only on Nyzora.
+                </p>
+                <p className="text-sm font-medium text-primary mt-3">
+                  Creators earn from every product sold.
+                </p>
+              </div>
+            </ScrollReveal>
+
+            <StaggerReveal
+              className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto"
+              staggerDelay={100}
+              animation="fade-up"
+            >
+              {[
+                { label: "Original Designs", icon: "🎨" },
+                { label: "Exclusively on Nyzora", icon: "⭐" },
+                { label: "Custom-Made for You", icon: "🏠" },
+                { label: "Perpetual Royalties", icon: "💰" },
+              ].map((item) => (
+                <div key={item.label} className="text-center p-4 rounded-xl bg-muted/50 border border-border/30 space-y-2">
+                  <div className="text-2xl">{item.icon}</div>
+                  <p className="text-xs font-semibold text-foreground">{item.label}</p>
+                </div>
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+
+        {/* Why Nyzora */}
+        <section className="py-12 md:py-20 bg-muted/30">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-3">
+                  Why <span className="gradient-text-animated">Nyzora</span>?
+                </h2>
+                <p className="text-sm text-muted-foreground">Designed. Built. Delivered.</p>
+              </div>
+            </ScrollReveal>
+
+            <StaggerReveal
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-4xl mx-auto"
+              staggerDelay={100}
+              animation="fade-up"
+            >
+              {[
+                { icon: "✨", title: "AI-Powered Design", desc: "Create custom products with intelligent design tools" },
+                { icon: "🛡️", title: "Verified Makers", desc: "Expert manufacturers vetted for quality and reliability" },
+                { icon: "📦", title: "End-to-End Management", desc: "From design to delivery — we manage everything" },
+                { icon: "🎯", title: "Quality & Support", desc: "Every piece inspected and backed by our guarantee" },
+              ].map((item) => (
+                <div key={item.title} className="text-center space-y-3 p-6 rounded-2xl bg-background border border-border/50 hover:border-primary/20 hover:shadow-soft transition-all">
+                  <div className="text-3xl">{item.icon}</div>
+                  <h3 className="font-semibold text-foreground">{item.title}</h3>
+                  <p className="text-sm text-muted-foreground">{item.desc}</p>
+                </div>
+              ))}
+            </StaggerReveal>
+          </div>
+        </section>
+
         {/* CTA Section */}
         <section className="container py-10 md:py-20">
           <ScrollReveal animation="zoom-in">
@@ -821,7 +949,7 @@ const Home = () => {
                   Ready to Transform Your Space?
                 </h2>
                 <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                  Join thousands of customers who've discovered the perfect blend of style, sustainability, and story
+                  Custom-made for your space. Built by real manufacturers. Verified by Nyzora.
                 </p>
                 <Link to="/browse">
                   <Button variant="outline" size="lg" className="bg-background text-foreground hover:bg-background/90">

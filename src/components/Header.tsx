@@ -175,7 +175,7 @@ export const Header = () => {
                   {[
                     { name: "Creators", path: "/creators" },
                     { name: "Community", path: "/community" },
-                    { name: "Explore", path: "/explore" },
+                    { name: "Verified Makers", path: "/verified-makers" },
                     { name: "Leaderboard", path: "/creator-leaderboard" },
                     { name: "Pricing", path: "/plans" },
                   ].map((item) => (
@@ -255,8 +255,8 @@ export const Header = () => {
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
           </Link>
-          <Link to="/explore" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
-            Explore
+          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+            Verified Makers
           </Link>
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Leaderboard
