@@ -117,7 +117,7 @@ const CuratedShowcase = () => {
           <ScrollReveal animation="fade-up" delay={200}>
             <div className="rounded-2xl overflow-hidden border border-border/30 bg-card">
               <div className="relative">
-                <div className="aspect-[16/10] md:aspect-[21/9]">
+                <div className="aspect-[16/9] md:aspect-[21/9]">
                   <img
                     src={active.roomImage}
                     alt={`${active.category} placed in a curated interior space`}
@@ -137,11 +137,11 @@ const CuratedShowcase = () => {
               <div className="border-t border-border/20 px-5 py-5 md:px-8 md:py-6 bg-background">
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
                   <div className="space-y-2">
-                    <p className="text-sm md:text-base font-light text-foreground">
-                      Manufactured & delivered to your door
+                    <p className="text-sm md:text-base font-medium text-foreground">
+                      Upload your space photo
                     </p>
                     <p className="text-xs md:text-sm text-muted-foreground leading-relaxed">
-                      <span className="text-foreground font-medium">Upload your space photo</span> — our AI can optimise this design to match your room's style, lighting & dimensions, or generate a completely new piece tailored to your space.
+                      Our AI can optimise this design to match your room's style, lighting & dimensions — or generate a completely new piece tailored to your space.
                     </p>
                   </div>
                   <Link to="/design-studio" className="w-full md:w-auto shrink-0">
