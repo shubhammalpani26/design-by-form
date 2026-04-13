@@ -1,27 +1,24 @@
 import { useState } from "react";
-import { Check, Sparkles, Zap, Crown } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { SEOHead } from "@/components/SEOHead";
 import { useNavigate } from "react-router-dom";
+import { ScrollReveal } from "@/hooks/useScrollReveal";
 
 const Plans = () => {
-  const { formatPrice, currency } = useCurrency();
+  const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [billingCycle, setBillingCycle] = useState<"monthly" | "yearly">("monthly");
 
-  // Prices in INR
   const plans = [
     {
       name: "Free",
-      icon: Sparkles,
       priceMonthly: 0,
       priceYearly: 0,
-      description: "Perfect for trying out the platform",
+      description: "Try the platform, no commitment.",
       features: [
         "10 AI designs included",
         "Basic AI design tools",
@@ -33,14 +30,12 @@ const Plans = () => {
       ],
       cta: "Get Started Free",
       popular: false,
-      color: "text-muted-foreground",
     },
     {
       name: "Creator",
-      icon: Zap,
       priceMonthly: 2999,
       priceYearly: 29990,
-      description: "For serious furniture designers",
+      description: "For serious furniture designers.",
       features: [
         "Unlimited designs",
         "5 free listings per month*",
@@ -56,14 +51,12 @@ const Plans = () => {
       ],
       cta: "Start Creating",
       popular: true,
-      color: "text-primary",
     },
     {
       name: "Pro Studio",
-      icon: Crown,
       priceMonthly: 9999,
       priceYearly: 99990,
-      description: "For design studios & agencies",
+      description: "For design studios & agencies.",
       features: [
         "Everything in Creator",
         "Unlimited listings included",
@@ -75,17 +68,14 @@ const Plans = () => {
         "Same-day priority review",
         "Dedicated account manager",
         "Phone & priority support",
-        "Quarterly business reviews",
       ],
       cta: "Get Pro Studio",
       popular: false,
-      color: "text-accent",
     },
   ];
 
   const calculatePrice = (monthlyPrice: number, yearlyPrice: number) => {
     if (monthlyPrice === 0) return formatPrice(0);
-    
     const price = billingCycle === "monthly" ? monthlyPrice : yearlyPrice / 12;
     return formatPrice(price);
   };
@@ -98,227 +88,240 @@ const Plans = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-b from-background to-accent/20">
+    <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Pricing Plans — Nyzora"
+        description="Start free, upgrade as you grow. All plans include AI design tools and access to verified manufacturers."
+        keywords={["pricing", "plans", "AI design pricing", "creator plans", "furniture design subscription"]}
+        url="https://nyzora.ai/plans"
+      />
       <Header />
-      
-      <main className="flex-1 container mx-auto px-4 py-16">
-        {/* Hero Section */}
-        <div className="text-center mb-12 animate-fade-in">
-          <Badge variant="secondary" className="mb-4">
-            Pricing Plans
-          </Badge>
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            Choose Your Perfect Plan
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto mb-8">
-            Start free, upgrade as you grow. All plans include our powerful AI design tools.
-          </p>
 
-          {/* Billing Toggle */}
-          <div className="flex items-center justify-center gap-4 mb-8">
-            <span className={billingCycle === "monthly" ? "font-semibold" : "text-muted-foreground"}>
-              Monthly
-            </span>
-            <button
-              onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
-              className="relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              style={{ backgroundColor: billingCycle === "yearly" ? "hsl(var(--primary))" : "hsl(var(--muted))" }}
-            >
-              <span
-                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                  billingCycle === "yearly" ? "translate-x-7" : "translate-x-1"
-                }`}
-              />
-            </button>
-            <span className={billingCycle === "yearly" ? "font-semibold" : "text-muted-foreground"}>
-              Yearly
-              {billingCycle === "yearly" && (
-                <Badge variant="default" className="ml-2">Save up to 17%</Badge>
-              )}
-            </span>
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="relative py-24 md:py-36 overflow-hidden">
+          <div className="absolute inset-0 bg-[hsl(var(--primary))]" />
+          <div className="container relative z-10">
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-3xl">
+                <p className="text-primary-foreground/40 text-xs font-medium uppercase tracking-[0.3em] mb-6">
+                  Pricing
+                </p>
+                <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[0.95] tracking-tight mb-8">
+                  Simple Plans,<br />
+                  <span className="font-light italic">Real Value</span>
+                </h1>
+                <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
+                  Start free. Upgrade when you're ready. Every plan includes our AI design tools.
+                </p>
+              </div>
+            </ScrollReveal>
           </div>
-        </div>
+        </section>
 
-        {/* Plans Grid */}
-        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto mb-16">
-          {plans.map((plan, index) => {
-            const Icon = plan.icon;
-            const savings = calculateSavings(plan.priceMonthly, plan.priceYearly);
-            
-            return (
-              <Card
-                key={plan.name}
-                className={`relative transition-all hover:shadow-xl border-border`}
-                style={{ animationDelay: `${index * 100}ms` }}
+        {/* Billing toggle */}
+        <section className="py-12">
+          <div className="container">
+            <div className="flex items-center justify-center gap-4">
+              <span className={`text-sm ${billingCycle === "monthly" ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                Monthly
+              </span>
+              <button
+                onClick={() => setBillingCycle(billingCycle === "monthly" ? "yearly" : "monthly")}
+                className="relative inline-flex h-6 w-12 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                style={{ backgroundColor: billingCycle === "yearly" ? "hsl(var(--primary))" : "hsl(var(--muted))" }}
               >
-                {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2">
-                    <Badge className="bg-primary text-primary-foreground">
-                      Most Popular
-                    </Badge>
-                  </div>
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-primary-foreground transition-transform ${
+                    billingCycle === "yearly" ? "translate-x-7" : "translate-x-1"
+                  }`}
+                />
+              </button>
+              <span className={`text-sm ${billingCycle === "yearly" ? "font-semibold text-foreground" : "text-muted-foreground"}`}>
+                Yearly
+                {billingCycle === "yearly" && (
+                  <span className="ml-2 text-xs text-primary font-medium">Save up to 17%</span>
                 )}
+              </span>
+            </div>
+          </div>
+        </section>
 
-                <CardHeader className="text-center pb-8">
-                  <div className={`mx-auto mb-4 p-3 rounded-full bg-primary/10 w-fit ${plan.color}`}>
-                    <Icon className="w-8 h-8" />
-                  </div>
-                  <CardTitle className="text-2xl mb-2">{plan.name}</CardTitle>
-                  <CardDescription className="text-base">{plan.description}</CardDescription>
-                  
-                  <div className="mt-6">
-                    <div className="flex items-baseline justify-center gap-2">
-                      <span className="text-4xl font-bold">
-                        {calculatePrice(plan.priceMonthly, plan.priceYearly)}
-                      </span>
-                      {plan.priceMonthly > 0 && (
-                        <span className="text-muted-foreground">/month</span>
+        {/* Plans grid */}
+        <section className="pb-20 md:pb-28">
+          <div className="container">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-5xl mx-auto rounded-xl overflow-hidden">
+              {plans.map((plan) => {
+                const savings = calculateSavings(plan.priceMonthly, plan.priceYearly);
+
+                return (
+                  <div
+                    key={plan.name}
+                    className={`bg-background p-8 md:p-10 flex flex-col ${
+                      plan.popular ? "relative" : ""
+                    }`}
+                  >
+                    {plan.popular && (
+                      <div className="absolute top-0 left-0 right-0 h-0.5 bg-primary" />
+                    )}
+
+                    <div className="mb-8">
+                      <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] mb-2">
+                        {plan.popular ? "Most Popular" : "\u00A0"}
+                      </p>
+                      <h3 className="text-xl font-semibold text-foreground tracking-tight mb-1">
+                        {plan.name}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">{plan.description}</p>
+                    </div>
+
+                    <div className="mb-8">
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl md:text-4xl font-bold text-foreground tracking-tight">
+                          {calculatePrice(plan.priceMonthly, plan.priceYearly)}
+                        </span>
+                        {plan.priceMonthly > 0 && (
+                          <span className="text-sm text-muted-foreground">/mo</span>
+                        )}
+                      </div>
+                      {billingCycle === "yearly" && savings && (
+                        <p className="text-xs text-primary mt-1">Save {savings}% yearly</p>
                       )}
                     </div>
-                    {billingCycle === "yearly" && plan.priceMonthly > 0 && savings && (
-                      <p className="text-sm text-primary mt-2">
-                        Save {savings}% with yearly billing
-                      </p>
-                    )}
+
+                    <ul className="space-y-3 mb-10 flex-1">
+                      {plan.features.map((feature, i) => (
+                        <li key={i} className="flex items-start gap-2.5">
+                          <Check className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                          <span className="text-sm text-muted-foreground">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <Button
+                      className={`w-full rounded-full ${plan.popular ? "" : ""}`}
+                      variant={plan.popular ? "default" : "outline"}
+                      onClick={() => {
+                        if (plan.name === "Free") {
+                          navigate("/auth");
+                        } else {
+                          const planType = plan.name === "Creator" ? "creator" : "pro";
+                          navigate(`/checkout?plan=${planType}&cycle=${billingCycle}`);
+                        }
+                      }}
+                    >
+                      {plan.cta}
+                    </Button>
                   </div>
-                </CardHeader>
-
-                <CardContent>
-                  <ul className="space-y-3">
-                    {plan.features.map((feature, i) => (
-                      <li key={i} className="flex items-start gap-3">
-                        <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-                        <span className="text-sm">{feature}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </CardContent>
-
-                <CardFooter>
-                  <Button
-                    className="w-full"
-                    variant={plan.popular ? "default" : "outline"}
-                    onClick={() => {
-                      if (plan.name === "Free") {
-                        navigate("/auth");
-                      } else {
-                        // Navigate to checkout with plan and billing cycle
-                        const planType = plan.name === "Creator" ? "creator" : "pro";
-                        navigate(`/checkout?plan=${planType}&cycle=${billingCycle}`);
-                      }
-                    }}
-                  >
-                    {plan.cta}
-                  </Button>
-                </CardFooter>
-              </Card>
-            );
-          })}
-        </div>
-
-        {/* 3D Model Pricing Comparison */}
-        <div className="max-w-4xl mx-auto mb-16">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl">3D Model Generation Pricing</CardTitle>
-              <CardDescription>
-                Compare the cost per 3D model across plans
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row md:items-end gap-6 justify-center">
-                <div className="text-center p-6 rounded-lg bg-muted flex-1 max-w-xs mx-auto">
-                  <p className="text-sm text-muted-foreground mb-2">Free Plan</p>
-                  <p className="text-3xl font-bold mb-1">{formatPrice(500)}</p>
-                  <p className="text-sm text-muted-foreground">per 3D model</p>
-                </div>
-                <div className="text-center p-6 rounded-lg bg-primary/10 border-2 border-primary flex-1 max-w-xs mx-auto">
-                  <p className="text-sm text-primary mb-2">Creator Plan</p>
-                  <p className="text-3xl font-bold mb-1">{formatPrice(300)}</p>
-                  <p className="text-sm text-muted-foreground">after 5 free 3D models/month</p>
-                  <Badge variant="default" className="mt-2">40% savings</Badge>
-                </div>
-                <div className="text-center p-6 rounded-lg bg-accent/10 flex-1 max-w-xs mx-auto">
-                  <p className="text-sm text-muted-foreground mb-2">Pro Studio</p>
-                  <p className="text-3xl font-bold mb-1">{formatPrice(200)}</p>
-                  <p className="text-sm text-muted-foreground">after 20 free 3D models/month</p>
-                  <Badge variant="secondary" className="mt-2">60% savings</Badge>
-                </div>
-              </div>
-              <p className="text-xs text-center text-muted-foreground mt-4">
-                *Listing fees currently waived during our initial phase
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* FAQ Section */}
-        <div className="max-w-3xl mx-auto">
-          <h2 className="text-3xl font-bold text-center mb-8">Frequently Asked Questions</h2>
-          <div className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">What happens when I run out of free 3D models?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  You can purchase additional 3D models at your plan's per-model rate. Creator plan members pay {formatPrice(300)} per model, while Pro Studio members pay {formatPrice(200)} per model.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Can I upgrade or downgrade anytime?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Yes! You can upgrade or downgrade your plan at any time. When upgrading, you'll be charged the prorated amount. When downgrading, your new plan takes effect at the next billing cycle.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Do unused 3D model credits roll over?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  No, unused 3D model credits reset each month. However, any additional models you purchase separately never expire.
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">What payment methods do you accept?</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  We accept all major credit cards, debit cards, and UPI payments for Indian customers. International payments are processed through Stripe.
-                </p>
-              </CardContent>
-            </Card>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        </section>
 
-        {/* CTA Section */}
-        <div className="text-center mt-16">
-          <Card className="max-w-2xl mx-auto bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
-            <CardHeader>
-              <CardTitle className="text-2xl">Still have questions?</CardTitle>
-              <CardDescription>Our team is here to help you choose the right plan</CardDescription>
-            </CardHeader>
-            <CardFooter className="justify-center gap-4">
-              <Button variant="outline" onClick={() => navigate("/contact")}>
-                Contact Sales
-              </Button>
-              <Button onClick={() => navigate("/auth")}>
-                Start Free Trial
-              </Button>
-            </CardFooter>
-          </Card>
-        </div>
+        {/* 3D pricing comparison */}
+        <section className="py-16 md:py-24 bg-accent">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4 text-center">
+                3D Model Pricing
+              </p>
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-12 text-center">
+                Cost per 3D model, by plan
+              </h2>
+            </ScrollReveal>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-3xl mx-auto rounded-xl overflow-hidden">
+              {[
+                { plan: "Free", price: 500, note: "per 3D model", tag: null },
+                { plan: "Creator", price: 300, note: "after 5 free / month", tag: "40% savings" },
+                { plan: "Pro Studio", price: 200, note: "after 20 free / month", tag: "60% savings" },
+              ].map((item) => (
+                <div key={item.plan} className="bg-background p-8 md:p-10 text-center">
+                  <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] mb-3">{item.plan}</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight mb-1">{formatPrice(item.price)}</p>
+                  <p className="text-xs text-muted-foreground mb-2">{item.note}</p>
+                  {item.tag && (
+                    <span className="inline-block text-[10px] uppercase tracking-wider text-primary font-medium">
+                      {item.tag}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-center text-muted-foreground/50 mt-6">
+              *Listing fees currently waived during our initial phase
+            </p>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section className="py-20 md:py-28">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4 text-center">FAQ</p>
+              <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-12 text-center">
+                Common Questions
+              </h2>
+            </ScrollReveal>
+            <div className="max-w-2xl mx-auto space-y-0 border-t border-border">
+              {[
+                {
+                  q: "What happens when I run out of free 3D models?",
+                  a: `You can purchase additional 3D models at your plan's per-model rate. Creator plan members pay ${formatPrice(300)} per model, while Pro Studio members pay ${formatPrice(200)} per model.`,
+                },
+                {
+                  q: "Can I upgrade or downgrade anytime?",
+                  a: "Yes. When upgrading, you're charged the prorated amount. When downgrading, the new plan takes effect at the next billing cycle.",
+                },
+                {
+                  q: "Do unused 3D model credits roll over?",
+                  a: "No, unused credits reset each month. However, any additional models you purchase separately never expire.",
+                },
+                {
+                  q: "What payment methods do you accept?",
+                  a: "We accept all major credit cards, debit cards, and UPI payments for Indian customers. International payments are processed through Stripe.",
+                },
+              ].map((faq) => (
+                <div key={faq.q} className="py-6 border-b border-border">
+                  <h3 className="text-base font-semibold text-foreground tracking-tight mb-2">{faq.q}</h3>
+                  <p className="text-sm text-muted-foreground leading-relaxed">{faq.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* CTA */}
+        <section className="py-16 md:py-20 border-t border-border">
+          <div className="container">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                  Still have questions?
+                </h2>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Our team is here to help you find the right plan.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  variant="default"
+                  className="rounded-full"
+                  onClick={() => navigate("/auth")}
+                >
+                  Start Free <ArrowRight className="h-4 w-4 ml-1" />
+                </Button>
+                <Button
+                  variant="outline"
+                  className="rounded-full"
+                  onClick={() => navigate("/contact")}
+                >
+                  Contact Sales
+                </Button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       <Footer />
