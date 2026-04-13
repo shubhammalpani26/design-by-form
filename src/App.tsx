@@ -31,7 +31,7 @@ const CreatorProfile = lazy(() => import("./pages/CreatorProfile"));
 const CreatorLeaderboard = lazy(() => import("./pages/CreatorLeaderboard"));
 const Terms = lazy(() => import("./pages/Terms"));
 const About = lazy(() => import("./pages/About"));
-const Sustainability = lazy(() => import("./pages/Sustainability"));
+
 const Contact = lazy(() => import("./pages/Contact"));
 const Auth = lazy(() => import("./pages/Auth"));
 const ShopperFAQ = lazy(() => import("./pages/ShopperFAQ"));
@@ -141,7 +141,7 @@ const App = () => (
               <Route path="/terms" element={<Terms />} />
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/about" element={<About />} />
-              <Route path="/sustainability" element={<Sustainability />} />
+              
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
               <Route path="/designer-onboarding" element={<DesignerOnboarding />} />

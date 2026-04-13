@@ -93,7 +93,7 @@ export const GlobalSearch = () => {
           { title: 'Become a Creator', path: '/designer-signup', keywords: ['become', 'join', 'creator', 'signup'] },
           { title: 'Creator Dashboard', path: '/creator/dashboard', keywords: ['dashboard', 'portal'] },
           { title: 'Design Studio', path: '/design-studio', keywords: ['studio', 'create', 'ai', 'generate'] },
-          { title: 'Sustainability', path: '/sustainability', keywords: ['sustainability', 'eco', 'green', 'environment'] },
+          
           { title: 'Contact', path: '/contact', keywords: ['contact', 'support', 'help'] },
         ];
 

@@ -10,8 +10,8 @@ const About = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="About Nyzora — AI-Powered Custom Manufacturing Platform"
-        description="Nyzora connects creators with verified manufacturers using deep AI that learns how things are made. Design anything, we make it real."
-        keywords={["about Nyzora", "AI manufacturing platform", "custom furniture", "creator platform", "verified makers", "deep tech startup"]}
+        description="Nyzora connects creators with verified manufacturers using AI that learns how things are made. Design anything, we make it real."
+        keywords={["about Nyzora", "AI manufacturing platform", "custom furniture", "creator platform", "verified makers"]}
         url="https://nyzora.ai/about"
       />
       <Header />
@@ -38,7 +38,7 @@ const About = () => {
           </div>
         </section>
 
-        {/* Mission — Manifesto style */}
+        {/* Mission */}
         <section className="py-20 md:py-28">
           <div className="container">
             <ScrollReveal animation="fade-up">
@@ -57,7 +57,7 @@ const About = () => {
           </div>
         </section>
 
-        {/* Values — Editorial grid */}
+        {/* Values */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
@@ -87,40 +87,8 @@ const About = () => {
           </div>
         </section>
 
-        {/* Deep Tech */}
+        {/* Story — moved above technology */}
         <section className="py-20 md:py-28">
-          <div className="container">
-            <div className="max-w-2xl mx-auto">
-              <ScrollReveal animation="fade-up">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Deep Tech</p>
-                <div className="space-y-6 text-base text-muted-foreground leading-relaxed">
-                  <p>
-                    Nyzora is not just a marketplace — it's a deep tech platform. Our AI doesn't stop at generating 
-                    beautiful designs. It learns how our makers work — their materials, techniques, tolerances, 
-                    and craftsmanship nuances.
-                  </p>
-                  <p>
-                    With every production cycle, our models get smarter — building a systematic understanding 
-                    of how manufacturing actually happens, from raw material to finished product.
-                  </p>
-                  <p className="text-foreground font-medium text-lg leading-snug tracking-tight">
-                    The result: AI that can predict what can be manufactured, by whom, at what cost — 
-                    before production ever begins.
-                  </p>
-                </div>
-                <Link
-                  to="/technology"
-                  className="inline-flex items-center gap-2 mt-6 text-xs text-muted-foreground/50 hover:text-primary transition-colors uppercase tracking-[0.2em]"
-                >
-                  Learn more about our technology <ArrowRight className="h-3 w-3" />
-                </Link>
-              </ScrollReveal>
-            </div>
-          </div>
-        </section>
-
-        {/* Story */}
-        <section className="py-20 md:py-28 border-t border-border">
           <div className="container">
             <div className="max-w-2xl mx-auto">
               <ScrollReveal animation="fade-up">
@@ -140,6 +108,33 @@ const About = () => {
                     manufacturing — so anyone can create and earn from their designs.
                   </p>
                 </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* Technology — subtle, no "deep tech" label */}
+        <section className="py-20 md:py-28 border-t border-border">
+          <div className="container">
+            <div className="max-w-2xl mx-auto">
+              <ScrollReveal animation="fade-up">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Our Approach</p>
+                <div className="space-y-6 text-base text-muted-foreground leading-relaxed">
+                  <p>
+                    Our AI learns how our makers work — their materials, techniques, tolerances, 
+                    and craftsmanship nuances. With every production cycle, it gets smarter.
+                  </p>
+                  <p className="text-foreground font-medium text-lg leading-snug tracking-tight">
+                    The result: AI that can predict what can be manufactured, by whom, at what cost — 
+                    before production ever begins.
+                  </p>
+                </div>
+                <Link
+                  to="/technology"
+                  className="inline-flex items-center gap-2 mt-6 text-xs text-muted-foreground/50 hover:text-primary transition-colors uppercase tracking-[0.2em]"
+                >
+                  Learn more about our technology <ArrowRight className="h-3 w-3" />
+                </Link>
               </ScrollReveal>
             </div>
           </div>
