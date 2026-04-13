@@ -101,19 +101,14 @@ const Technology = () => {
           </div>
         </section>
 
-        {/* Manufacturing Intelligence — NEW SECTION */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Our Moat</p>
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-4">
-                  Built on Manufacturing Intelligence
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Where We're Going</p>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                  Predict what can be manufactured —<br className="hidden md:block" /> before it's designed.
                 </h2>
-                <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto">
-                  Nyzora connects AI design with real-world manufacturing — matching designs 
-                  to the right makers, materials, and processes to ensure every idea can be built.
-                </p>
               </div>
             </ScrollReveal>
           </div>
