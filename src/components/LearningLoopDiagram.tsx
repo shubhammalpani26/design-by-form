@@ -5,7 +5,7 @@ const steps = [
   {
     id: "observe",
     label: "Observe",
-    desc: "Capture production data",
+    desc: "Capture real production data",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
         <circle cx="12" cy="12" r="3" />
@@ -16,7 +16,7 @@ const steps = [
   {
     id: "encode",
     label: "Encode",
-    desc: "Build maker models",
+    desc: "Map maker capabilities and materials",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
         <path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" />
@@ -26,7 +26,7 @@ const steps = [
   {
     id: "predict",
     label: "Predict",
-    desc: "Forecast outcomes",
+    desc: "Estimate outcomes and feasibility",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
@@ -36,7 +36,7 @@ const steps = [
   {
     id: "compound",
     label: "Compound",
-    desc: "System gets smarter",
+    desc: "Continuously improve with every build",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="w-5 h-5">
         <path d="M23 6l-9.5 9.5-5-5L1 18" />

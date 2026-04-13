@@ -10,9 +10,9 @@ const Technology = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
-        title="AI Manufacturing Technology | Deep Process Learning — Nyzora"
-        description="Discover how Nyzora's AI learns from real manufacturing processes — encoding materials, techniques, and constraints to predict what can be manufactured before production begins."
-        keywords={["AI manufacturing", "deep process learning", "manufacturing intelligence", "predictive manufacturing", "AI furniture design", "smart manufacturing platform"]}
+        title="AI Manufacturing Technology | Manufacturing Intelligence — Nyzora"
+        description="Nyzora learns from real-world production—capturing materials, processes, and outcomes to predict what can be built before production begins."
+        keywords={["AI manufacturing", "manufacturing intelligence", "production data", "maker matching", "feasibility prediction", "smart manufacturing platform"]}
         url="https://nyzora.ai/technology"
       />
       <Header />
@@ -32,8 +32,8 @@ const Technology = () => {
                   <span className="font-light italic">How Things Are Made</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  Not another design generator. We're building AI that systematically 
-                  understands real-world manufacturing — from materials to machines.
+                  Not just generating designs — Nyzora learns from real-world production 
+                  to understand what can actually be built.
                 </p>
               </div>
             </ScrollReveal>
@@ -46,34 +46,34 @@ const Technology = () => {
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
                 <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-6">
-                  Most AI generates images.<br />
-                  <span className="font-semibold">Ours understands manufacturing.</span>
+                  Nyzora doesn't just generate designs —<br />
+                  <span className="font-semibold">it ensures they can be built in the real world.</span>
                 </blockquote>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto">
-                  Every production cycle trains our models — materials, processes, constraints. 
-                  A compounding intelligence layer that gets smarter with every order.
+                  Every completed product strengthens our system — refining how we match 
+                  designs to makers, estimate costs, and anticipate production outcomes.
                 </p>
               </div>
             </ScrollReveal>
           </div>
         </section>
 
-        {/* What it does — 3 concise points */}
+        {/* 3 pillars */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-4xl mx-auto rounded-xl overflow-hidden">
               {[
                 {
-                  title: "Learns from Makers",
-                  desc: "Our AI encodes each maker's capabilities, techniques, and craftsmanship into personalised models.",
+                  title: "Learns from Every Product Built",
+                  desc: "Our system learns from every product manufactured — capturing materials, processes, timelines, and outcomes to understand how things are actually made.",
                 },
                 {
                   title: "Predicts Before Production",
-                  desc: "Can it be made? By whom? At what cost? Our system answers these before a design is ever submitted.",
+                  desc: "Before a design is finalized, Nyzora evaluates feasibility — estimating cost ranges, identifying suitable makers, and anticipating production constraints.",
                 },
                 {
-                  title: "Compounds Over Time",
-                  desc: "Every delivered product refines the system. The more we make, the smarter the platform becomes.",
+                  title: "Improves with Every Order",
+                  desc: "Each completed product strengthens the system — refining maker matching, cost estimation, and production outcomes over time.",
                 },
               ].map((item) => (
                 <div key={item.title} className="bg-background p-8 md:p-10">
@@ -87,13 +87,13 @@ const Technology = () => {
           </div>
         </section>
 
-        {/* Learning Loop — visual diagram */}
+        {/* Learning Loop */}
         <section className="py-20 md:py-28">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4 text-center">The Learning Loop</p>
               <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-12 text-center">
-                Every cycle makes us smarter
+                Every build makes us smarter
               </h2>
             </ScrollReveal>
 
@@ -101,15 +101,19 @@ const Technology = () => {
           </div>
         </section>
 
-        {/* Vision — one strong line */}
+        {/* Manufacturing Intelligence — NEW SECTION */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Where We're Going</p>
-                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-                  Predict what can be manufactured —<br className="hidden md:block" /> before it's designed.
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Our Moat</p>
+                <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-4">
+                  Built on Manufacturing Intelligence
                 </h2>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-lg mx-auto">
+                  Nyzora connects AI design with real-world manufacturing — matching designs 
+                  to the right makers, materials, and processes to ensure every idea can be built.
+                </p>
               </div>
             </ScrollReveal>
           </div>
