@@ -100,19 +100,18 @@ const HowItWorks = () => {
           ))}
         </section>
 
-        {/* Deep Tech callout */}
+        {/* Technology callout */}
         <section className="py-20 md:py-28 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Powered by Deep AI</p>
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">Built on Manufacturing Intelligence</p>
                 <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight mb-4">
                   AI that learns how things are made.
                 </h2>
                 <p className="text-sm text-muted-foreground leading-relaxed max-w-md mx-auto mb-6">
-                  Our AI doesn't just generate designs — it systematically learns from our maker network. 
-                  Every production cycle deepens its understanding of materials, processes, and constraints, 
-                  enabling it to predict what can be manufactured before production begins.
+                  Every production cycle strengthens our system — refining how we match 
+                  designs to makers, estimate costs, and anticipate production outcomes.
                 </p>
                 <Link
                   to="/technology"
