@@ -244,8 +244,8 @@ const InstantDesignPreview = () => {
             prompt: fullPrompt,
             variationNumber,
             generate3D: false,
-            sketchImage: sketchBase64,
-            roomImage: roomBase64
+            sketchImageBase64: sketchBase64,
+            roomImageBase64: roomBase64
           }
         });
 
