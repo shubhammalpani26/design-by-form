@@ -4,7 +4,7 @@ project_id = "rdcfakdhgndnhgzfkuvw"
 verify_jwt = false
 
 [functions.generate-product-description]
-verify_jwt = true
+verify_jwt = false
 
 [functions.generate-product-title]
 verify_jwt = true
