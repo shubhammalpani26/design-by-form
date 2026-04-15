@@ -13,11 +13,12 @@ interface HomeProductCardProps {
   price: number;
   weight: number;
   image: string;
+  category?: string;
 }
 
-export const HomeProductCard = ({ id, name, designer, designerId, price, weight, image }: HomeProductCardProps) => {
+export const HomeProductCard = ({ id, name, designer, designerId, price, weight, image, category }: HomeProductCardProps) => {
   const { formatPrice } = useCurrency();
-  const maker = getMakerForProduct(id);
+  const maker = getMakerForProduct(id, category);
 
   return (
     <Link to={`/product/${slugify(name)}`} className="group block">

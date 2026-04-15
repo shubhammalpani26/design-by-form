@@ -18,14 +18,15 @@ interface ProductCardProps {
   price: number;
   weight: number;
   image: string;
+  category?: string;
 }
 
-export const ProductCard = ({ id, name, designer, designerId, price, weight, image }: ProductCardProps) => {
+export const ProductCard = ({ id, name, designer, designerId, price, weight, image, category }: ProductCardProps) => {
   const [showAR, setShowAR] = useState(false);
   const { addToComparison, removeFromComparison, isInComparison } = useComparison();
   const { formatPrice } = useCurrency();
   const inComparison = isInComparison(id);
-  const maker = getMakerForProduct(id);
+  const maker = getMakerForProduct(id, category);
 
   const toggleComparison = (e: React.MouseEvent) => {
     e.preventDefault();
