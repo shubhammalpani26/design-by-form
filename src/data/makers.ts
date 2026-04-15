@@ -78,6 +78,19 @@ export const makers: Maker[] = [
     specialties: ["Chairs", "Lounge Seating", "Cushioned Benches"],
     categoryMatch: ["chairs", "seating", "lounge", "upholstered-furniture"],
   },
+  {
+    id: "6",
+    slug: "sach-creations",
+    name: "Sach Creations",
+    location: "Vapi, India",
+    shortDescription: "Artisan textile studio crafting premium tote bags and linen fabric goods with meticulous attention to material quality and finish.",
+    expertise: "Specializing in hand-finished textile products using sustainably sourced linen and cotton blends. Known for clean construction, durable stitching, and refined minimalist aesthetics.",
+    process: "Each product begins with carefully selected natural fabrics that are pre-washed and inspected for consistency. Patterns are precision-cut and assembled using reinforced stitching techniques. Every bag and textile piece undergoes quality checks for seam strength, alignment, and finish before final packaging.",
+    tags: ["Verified by Nyzora", "Textile Specialist"],
+    yearsActive: "6+",
+    specialties: ["Tote Bags", "Linen Fabrics", "Textile Accessories"],
+    categoryMatch: ["bags", "tote-bags", "textiles", "fabric-goods", "accessories"],
+  },
 ];
 
 export const getMakerBySlug = (slug: string): Maker | undefined => {
