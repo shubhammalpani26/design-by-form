@@ -91,6 +91,19 @@ export const makers: Maker[] = [
     specialties: ["Tote Bags", "Linen Fabrics", "Textile Accessories"],
     categoryMatch: ["bags", "tote-bags", "textiles", "fabric-goods", "accessories"],
   },
+  {
+    id: "7",
+    slug: "benni-enterprises",
+    name: "Benni Enterprises",
+    location: "Mumbai, India",
+    shortDescription: "Premium woodwork studio crafting refined, design-forward furniture with an emphasis on detail and lasting elegance.",
+    expertise: "Specializing in high-end solid wood furniture with intricate detailing and contemporary silhouettes. Known for blending traditional craftsmanship with modern design sensibilities to create statement pieces for discerning interiors.",
+    process: "Each piece begins with hand-selected premium hardwoods, seasoned and acclimatized for stability. Designs are translated through precision carpentry, detailed hand-carving where required, and a multi-coat finishing process that enhances natural grain while ensuring lasting protection. Every product undergoes rigorous quality inspection before dispatch.",
+    tags: ["Verified by Nyzora", "Premium Woodwork", "Design-Forward"],
+    yearsActive: "10+",
+    specialties: ["Designer Furniture", "Wood Detailing", "Statement Tables", "Custom Woodwork"],
+    categoryMatch: ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "accent-furniture"],
+  },
 ];
 
 export const getMakerBySlug = (slug: string): Maker | undefined => {
