@@ -244,7 +244,8 @@ const Home = () => {
           designerId: product.designer_id,
           price: Number(product.designer_price),
           weight: Number(product.weight || 5),
-          image: product.image_url || ''
+          image: product.image_url || '',
+          category: product.category || ''
         }));
         setFeaturedProducts(products);
       }
