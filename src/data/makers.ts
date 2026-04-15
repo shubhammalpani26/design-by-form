@@ -9,7 +9,7 @@ export interface Maker {
   tags: string[];
   yearsActive: string;
   specialties: string[];
-  categoryMatch: string[]; // product categories this maker handles
+  categoryMatch: string[];
 }
 
 export const makers: Maker[] = [
@@ -24,59 +24,7 @@ export const makers: Maker[] = [
     tags: ["Verified by Nyzora", "Additive Manufacturing", "Premium Fabrication"],
     yearsActive: "5+",
     specialties: ["Statement Pieces", "Accent Furniture", "Indoor & Outdoor", "Sculptural Decor"],
-    categoryMatch: ["vases", "decor", "sculptures", "accent-furniture", "outdoor"],
-  },
-  {
-    id: "2",
-    slug: "teakworks-studio",
-    name: "TeakWorks Studio",
-    location: "Jodhpur",
-    shortDescription: "15+ years in solid wood craftsmanship, specializing in hand-finished premium furniture.",
-    expertise: "Known for intricate joinery techniques and sustainable sourcing of premium hardwoods. Every piece undergoes a 12-step finishing process for lasting beauty.",
-    process: "Starting with carefully selected and seasoned hardwoods, each piece is hand-cut and shaped using traditional joinery methods. The wood is assembled, sanded through multiple grits, and finished with natural oils and lacquers in a meticulous 12-step process that ensures durability and a warm, tactile finish.",
-    tags: ["Verified by Nyzora", "Solid Wood Specialist"],
-    yearsActive: "15+",
-    specialties: ["Dining Tables", "Benches", "Consoles"],
-    categoryMatch: ["tables", "dining-tables", "benches", "consoles", "wood-furniture"],
-  },
-  {
-    id: "3",
-    slug: "formcraft-industries",
-    name: "FormCraft Industries",
-    location: "Pune",
-    shortDescription: "Expert metal fabricators creating sculptural furniture with industrial precision and artistic flair.",
-    expertise: "Combining CNC precision with artisan welding to produce furniture that blurs the line between art and function. Specialists in powder-coated and brushed metal finishes.",
-    process: "Designs are translated into precise CNC cutting files. Raw metal is laser-cut, bent, and welded by skilled artisans. Surfaces are treated with anti-corrosion primers before being powder-coated or hand-brushed to achieve the desired texture. Each weld is inspected for structural integrity.",
-    tags: ["Verified by Nyzora", "Metal Fabrication"],
-    yearsActive: "12+",
-    specialties: ["Coffee Tables", "Installations", "Shelving"],
-    categoryMatch: ["coffee-tables", "shelving", "metal-furniture", "installations"],
-  },
-  {
-    id: "4",
-    slug: "artisan-resin-co",
-    name: "Artisan Resin Co.",
-    location: "Bengaluru",
-    shortDescription: "Pioneers in composite and resin-based furniture, blending modern materials with timeless design.",
-    expertise: "Innovators in high-grade resin and composite fibre construction. Each piece is cast, cured, and hand-finished to achieve museum-quality surfaces.",
-    process: "The process starts with mold creation from the digital design. High-grade resin is mixed with pigments and poured into precision molds, then slow-cured under controlled conditions. After demolding, each piece is hand-sanded, polished, and sealed to reveal deep, luminous surfaces with exceptional clarity.",
-    tags: ["Verified by Nyzora", "Composite & Resin"],
-    yearsActive: "8+",
-    specialties: ["Vases", "Decor", "Statement Pieces"],
-    categoryMatch: ["vases", "decor", "statement-pieces", "resin-furniture"],
-  },
-  {
-    id: "5",
-    slug: "heritage-upholstery-works",
-    name: "Heritage Upholstery Works",
-    location: "Jaipur",
-    shortDescription: "Third-generation upholstery craftsmen delivering world-class comfort with artisanal precision.",
-    expertise: "From hand-tied springs to precision-cut foam and premium fabric selection, every seat is built for decades of comfort and elegance.",
-    process: "Frames are built from kiln-dried hardwood and fitted with hand-tied eight-way spring systems. High-resilience foam is precision-cut and layered for optimal comfort. Premium fabrics are carefully pattern-matched and upholstered by master craftsmen who ensure every seam, tuft, and pleat is flawless.",
-    tags: ["Verified by Nyzora", "Upholstery"],
-    yearsActive: "20+",
-    specialties: ["Chairs", "Lounge Seating", "Cushioned Benches"],
-    categoryMatch: ["chairs", "seating", "lounge", "upholstered-furniture"],
+    categoryMatch: ["vases", "decor", "sculptures", "accent-furniture", "outdoor", "installations", "home-decor", "resin-furniture", "statement-pieces"],
   },
   {
     id: "6",
@@ -102,7 +50,7 @@ export const makers: Maker[] = [
     tags: ["Verified by Nyzora", "Premium Woodwork", "Design-Forward"],
     yearsActive: "10+",
     specialties: ["Designer Furniture", "Wood Detailing", "Statement Tables", "Custom Woodwork"],
-    categoryMatch: ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "accent-furniture"],
+    categoryMatch: ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "benches", "chairs", "seating", "coffee-tables"],
   },
 ];
 
@@ -114,19 +62,18 @@ export const getMakerById = (id: string): Maker | undefined => {
   return makers.find((m) => m.id === id);
 };
 
-// Deterministically assign a maker to a product based on its ID
-// Cyanique gets most products; each other maker gets exactly 1 product
-// by reserving specific hash slots for them
-export const getMakerForProduct = (productId: string): Maker => {
-  let hash = 0;
-  for (let i = 0; i < productId.length; i++) {
-    hash = ((hash << 5) - hash + productId.charCodeAt(i)) | 0;
-  }
-  const slot = Math.abs(hash) % 20; // 20 slots total
-  // slots 0-3 → one each for makers 2-5; everything else → Cyanique
-  if (slot === 0) return makers[1]; // TeakWorks
-  if (slot === 1) return makers[2]; // FormCraft
-  if (slot === 2) return makers[3]; // Artisan Resin
-  if (slot === 3) return makers[4]; // Heritage Upholstery
-  return makers[0]; // Cyanique
+// Assign maker based on product category when possible, otherwise default to Cyanique
+export const getMakerForProduct = (productId: string, category?: string): Maker => {
+  const cat = (category || "").toLowerCase();
+
+  // Wood / traditional furniture → Benni Enterprises
+  const woodCategories = ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "benches", "chairs", "seating", "coffee-tables"];
+  if (woodCategories.some((w) => cat.includes(w))) return makers[2]; // Benni
+
+  // Textile / bags → Sach Creations
+  const textileCategories = ["bags", "tote-bags", "textiles", "fabric-goods", "accessories"];
+  if (textileCategories.some((t) => cat.includes(t))) return makers[1]; // Sach
+
+  // Everything else → Cyanique
+  return makers[0];
 };
