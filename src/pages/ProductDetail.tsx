@@ -196,7 +196,7 @@ const ProductDetail = () => {
     );
   }
 
-  const maker = getMakerForProduct(product.id);
+  const maker = getMakerForProduct(product.id, product.category);
 
   const finishes = [
     { name: 'Natural', color: '#D4A574' },

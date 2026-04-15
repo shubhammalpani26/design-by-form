@@ -23,12 +23,12 @@ const MakerProfile = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("designer_products")
-        .select("id, name, image_url, designer_price, slug, designer_id, designer_profiles!inner(name)")
+        .select("id, name, image_url, designer_price, slug, designer_id, category, designer_profiles!inner(name)")
         .eq("status", "approved")
         .limit(50);
       if (error) throw error;
       // Filter to only products assigned to this maker
-      return (data || []).filter((p) => getMakerForProduct(p.id).slug === slug);
+      return (data || []).filter((p) => getMakerForProduct(p.id, p.category).slug === slug);
     },
     enabled: !!maker,
   });
