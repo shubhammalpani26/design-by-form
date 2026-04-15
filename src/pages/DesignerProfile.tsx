@@ -33,6 +33,7 @@ interface Designer {
     designer_price: number;
     image_url: string;
     weight: number;
+    category: string;
   }>;
 }
 
