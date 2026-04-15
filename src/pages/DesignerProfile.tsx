@@ -276,6 +276,7 @@ const DesignerProfile = () => {
                   price={product.designer_price}
                   image={product.image_url}
                   weight={product.weight || 15}
+                  category={product.category}
                 />
               ))}
             </div>
