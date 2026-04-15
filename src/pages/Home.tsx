@@ -87,6 +87,7 @@ interface Product {
   weight: number;
   image: string;
   description?: string;
+  category?: string;
 }
 
 interface HeroProduct {
