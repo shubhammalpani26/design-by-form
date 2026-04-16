@@ -66,9 +66,9 @@ export const getMakerById = (id: string): Maker | undefined => {
 export const getMakerForProduct = (productId: string, category?: string): Maker => {
   const cat = (category || "").toLowerCase();
 
-  // Wood / traditional furniture → Benni Enterprises
-  const woodCategories = ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "benches", "chairs", "seating", "coffee-tables"];
-  if (woodCategories.some((w) => cat.includes(w))) return makers[2]; // Benni
+  // Wood / traditional furniture → Benni Enterprises (limited to specific categories)
+  const woodCategories = ["dining-tables", "consoles", "coffee-tables"];
+  if (woodCategories.some((w) => cat === w)) return makers[2]; // Benni
 
   // Textile / bags → Sach Creations
   const textileCategories = ["bags", "tote-bags", "textiles", "fabric-goods", "accessories"];
