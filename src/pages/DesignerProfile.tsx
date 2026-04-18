@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { DesignerFeedSection } from "@/components/DesignerFeedSection";
 import { ExternalLink } from "lucide-react";
 
@@ -157,6 +158,22 @@ const DesignerProfile = () => {
         type="profile"
         author={designer.name}
         keywords={['furniture creator', designer.name, 'custom furniture', designer.furniture_interests || 'furniture']}
+      />
+      <JsonLd
+        id="creator"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "ProfilePage",
+          mainEntity: {
+            "@type": "Person",
+            name: designer.name,
+            url: window.location.href,
+            image: designer.profile_picture_url || undefined,
+            description: designer.design_background || `Furniture creator on Nyzora`,
+            ...(designer.portfolio_url ? { sameAs: [designer.portfolio_url] } : {}),
+            worksFor: { "@type": "Organization", name: "Nyzora" },
+          },
+        }}
       />
       <Header />
       

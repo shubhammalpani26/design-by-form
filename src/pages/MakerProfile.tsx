@@ -2,6 +2,7 @@ import { useParams, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, CheckCircle2, ArrowLeft, Factory } from "lucide-react";
@@ -55,6 +56,18 @@ const MakerProfile = () => {
       <SEOHead
         title={`${maker.name} — Verified Maker | Nyzora`}
         description={maker.shortDescription}
+      />
+      <JsonLd
+        id="maker"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: maker.name,
+          url: typeof window !== "undefined" ? window.location.href : undefined,
+          description: maker.shortDescription,
+          address: { "@type": "PostalAddress", addressLocality: maker.location },
+          knowsAbout: maker.tags,
+        }}
       />
       <Header />
 

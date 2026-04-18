@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
 
@@ -216,6 +217,42 @@ const ProductDetail = () => {
         type="product"
         author={product.designer}
         keywords={[product.name, product.designer, product.category, 'furniture']}
+      />
+      <JsonLd
+        id="product"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Product",
+          name: product.name,
+          description: product.description || `${product.name} by ${product.designer}`,
+          image: product.image_url ? [product.image_url] : undefined,
+          sku: product.id,
+          category: product.category,
+          brand: { "@type": "Brand", name: "Nyzora" },
+          ...(product.designer
+            ? { creator: { "@type": "Person", name: product.designer } }
+            : {}),
+          offers: {
+            "@type": "Offer",
+            price: product.price,
+            priceCurrency: "INR",
+            availability: "https://schema.org/InStock",
+            url: window.location.href,
+            seller: { "@type": "Organization", name: "Nyzora" },
+          },
+        }}
+      />
+      <JsonLd
+        id="breadcrumbs"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
+            { "@type": "ListItem", position: 2, name: "Browse", item: `${window.location.origin}/browse` },
+            { "@type": "ListItem", position: 3, name: product.name, item: window.location.href },
+          ],
+        }}
       />
       <Header />
 
