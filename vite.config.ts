@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { componentTagger } from "lovable-tagger";
-// @ts-expect-error - no types shipped
+// @ts-ignore - no types shipped
 import vitePrerender from "vite-plugin-prerender";
 
 const SITEMAP_URL =
@@ -108,9 +108,9 @@ function safePrerenderPlugin(): Plugin {
     apply: "build",
     async closeBundle(this: unknown, ...args: unknown[]) {
       try {
-        // @ts-expect-error - delegate to wrapped plugin
+        // @ts-ignore - delegate to wrapped plugin
         if (typeof inner.closeBundle === "function") {
-          // @ts-expect-error - delegate to wrapped plugin
+          // @ts-ignore - delegate to wrapped plugin
           await inner.closeBundle.call(this, ...args);
           // eslint-disable-next-line no-console
           console.log(
