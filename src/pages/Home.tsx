@@ -819,19 +819,6 @@ const Home = () => {
               </div>
             </ScrollReveal>
 
-            <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden max-w-3xl mx-auto">
-              {[
-                { name: "Solid Wood Experts", location: "Jodhpur", years: "15+" },
-                { name: "Metal Fabricators", location: "Pune", years: "12+" },
-                { name: "Composite Artisans", location: "Bengaluru", years: "8+" },
-              ].map((maker) => (
-                <div key={maker.name} className="bg-background p-6 md:p-8 text-center space-y-2">
-                  <h3 className="text-sm font-semibold text-foreground">{maker.name}</h3>
-                  <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider">{maker.location} · {maker.years} years</p>
-                </div>
-              ))}
-            </div>
-
             <ScrollReveal animation="fade-up" delay={200}>
               <div className="text-center mt-8">
                 <Link to="/verified-makers" className="text-xs text-primary font-medium hover:underline uppercase tracking-wider">
