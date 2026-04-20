@@ -623,7 +623,7 @@ const Home = () => {
             </ScrollReveal>
             
             <StaggerReveal 
-              className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto"
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto"
               staggerDelay={150}
               animation="fade-up"
             >
@@ -641,15 +641,25 @@ const Home = () => {
                 <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto shadow-soft group-hover:scale-110 transition-transform">
                   2
                 </div>
-                <h3 className="text-lg font-semibold text-foreground">We manufacture</h3>
+                <h3 className="text-lg font-semibold text-foreground">List on Nyzora</h3>
                 <p className="text-sm text-muted-foreground">
-                  Each piece is crafted on-demand by our vetted makers. You handle nothing.
+                  Submit your design for review. Once approved, it goes live on the marketplace for shoppers worldwide.
                 </p>
               </div>
               
               <div className="text-center space-y-3 group">
                 <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto shadow-soft group-hover:scale-110 transition-transform">
                   3
+                </div>
+                <h3 className="text-lg font-semibold text-foreground">We manufacture</h3>
+                <p className="text-sm text-muted-foreground">
+                  Each order is crafted on-demand by our vetted makers. You handle nothing.
+                </p>
+              </div>
+
+              <div className="text-center space-y-3 group">
+                <div className="w-14 h-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-xl font-bold mx-auto shadow-soft group-hover:scale-110 transition-transform">
+                  4
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">Earn forever</h3>
                 <p className="text-sm text-muted-foreground">
