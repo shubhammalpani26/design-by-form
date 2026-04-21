@@ -82,7 +82,7 @@ const VerifiedMakers = () => {
         </section>
 
         {/* Makers — Premium grid cards */}
-        <section className="py-16 md:py-24">
+        <section className="py-14 md:py-20">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {makers.map((maker, index) => (
@@ -142,10 +142,10 @@ const VerifiedMakers = () => {
         </section>
 
         {/* In the Pipeline — momentum signal */}
-        <section className="py-16 md:py-24 border-t border-border">
+        <section className="py-14 md:py-20 border-t border-border">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
                 <div className="max-w-xl">
                   <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
                     Coming Soon
@@ -185,14 +185,14 @@ const VerifiedMakers = () => {
         </section>
 
         {/* Philosophy strip */}
-        <section className="py-20 md:py-28 bg-accent">
+        <section className="py-16 md:py-20 bg-accent">
           <div className="container">
             <ScrollReveal animation="fade-up">
               <div className="max-w-2xl mx-auto text-center">
                 <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-6">
                   Our Standard
                 </p>
-                <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-8">
+                <blockquote className="text-2xl md:text-3xl lg:text-4xl font-light text-foreground leading-snug tracking-tight mb-6">
                   We don't list makers.<br />
                   <span className="font-semibold">We select them.</span>
                 </blockquote>
@@ -205,7 +205,7 @@ const VerifiedMakers = () => {
         </section>
 
         {/* Value grid */}
-        <section className="py-16 md:py-24">
+        <section className="py-14 md:py-20">
           <div className="container">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
               {[
