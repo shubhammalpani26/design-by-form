@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +28,29 @@ const initialState = {
   portfolioUrl: "",
   notes: "",
 };
+
+const COUNTRIES = [
+  "India",
+  "United States",
+  "United Kingdom",
+  "United Arab Emirates",
+  "Canada",
+  "Australia",
+  "Singapore",
+  "Germany",
+  "France",
+  "Italy",
+  "Spain",
+  "Netherlands",
+  "Japan",
+  "Indonesia",
+  "Vietnam",
+  "Thailand",
+  "Mexico",
+  "Brazil",
+  "South Africa",
+  "Other",
+];
 
 export const MakerApplicationForm = () => {
   const { toast } = useToast();
