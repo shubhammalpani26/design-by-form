@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
@@ -11,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 
 const Contact = () => {
+  const [searchParams] = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
@@ -20,6 +22,18 @@ const Contact = () => {
     message: "",
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    const subject = searchParams.get("subject");
+    const message = searchParams.get("message");
+    if (subject || message) {
+      setFormData((prev) => ({
+        ...prev,
+        ...(subject ? { subject } : {}),
+        ...(message ? { message } : {}),
+      }));
+    }
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
