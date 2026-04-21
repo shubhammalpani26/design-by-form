@@ -225,6 +225,28 @@ const VerifiedMakers = () => {
             </div>
           </div>
         </section>
+
+        {/* Apply as a Maker */}
+        <section id="apply" className="py-20 md:py-28 border-t border-border bg-accent/30 scroll-mt-24">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-2xl mb-10 md:mb-14">
+                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
+                  Apply as a Maker
+                </p>
+                <h2 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight leading-tight mb-4">
+                  Join the <span className="font-light italic">Nyzora network</span>
+                </h2>
+                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                  Tell us about your craft, your workshop, and the work you're proud of. We partner with a small, growing circle of makers — and personally read every application.
+                </p>
+              </div>
+              <div className="max-w-3xl">
+                <MakerApplicationForm />
+              </div>
+            </ScrollReveal>
+          </div>
+        </section>
       </main>
 
       <Footer />
