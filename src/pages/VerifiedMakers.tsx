@@ -39,7 +39,6 @@ const VerifiedMakers = () => {
   useEffect(() => {
     if (hash) {
       const id = hash.replace("#", "");
-      if (id === "apply") setShowForm(true);
       // Defer until after layout/paint so the anchor section exists.
       setTimeout(() => {
         const el = document.getElementById(id);
