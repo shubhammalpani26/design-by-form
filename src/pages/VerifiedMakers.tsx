@@ -1,13 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { SEOHead } from "@/components/SEOHead";
 import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
 import { MakerApplicationForm } from "@/components/MakerApplicationForm";
+import { Button } from "@/components/ui/button";
 
 // Craft categories where new maker partners are joining the Nyzora network.
 // Shown as crafts (not identities) — we celebrate the disciplines, not anonymize the people.
@@ -28,10 +29,12 @@ const upcomingCrafts = [
 
 const VerifiedMakers = () => {
   const { hash } = useLocation();
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     if (hash) {
       const id = hash.replace("#", "");
+      if (id === "apply") setShowForm(true);
       // Defer until after layout/paint so the anchor section exists.
       setTimeout(() => {
         const el = document.getElementById(id);
@@ -245,20 +248,51 @@ const VerifiedMakers = () => {
         <section id="apply" className="py-20 md:py-28 border-t border-border bg-accent/30 scroll-mt-24">
           <div className="container">
             <ScrollReveal animation="fade-up">
-              <div className="max-w-2xl mb-10 md:mb-14">
-                <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
-                  Apply as a Maker
-                </p>
-                <h2 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight leading-tight mb-4">
-                  Join the <span className="font-light italic">Nyzora network</span>
-                </h2>
-                <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                  Tell us about your craft, your workshop, and the work you're proud of. We partner with a small, growing circle of makers — and personally read every application.
-                </p>
-              </div>
-              <div className="max-w-3xl">
-                <MakerApplicationForm />
-              </div>
+              {!showForm ? (
+                <div className="max-w-3xl mx-auto text-center">
+                  <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-5">
+                    Apply as a Maker
+                  </p>
+                  <h2 className="text-3xl md:text-5xl font-semibold text-foreground tracking-tight leading-[1.05] mb-5">
+                    Join the <span className="font-light italic">Nyzora network</span>
+                  </h2>
+                  <p className="text-sm md:text-base text-muted-foreground leading-relaxed max-w-xl mx-auto mb-10">
+                    Tell us about your craft, your workshop, and the work you're proud of. We partner with a small, growing circle of makers.
+                  </p>
+                  <Button
+                    size="lg"
+                    className="rounded-full px-8 h-12"
+                    onClick={() => setShowForm(true)}
+                  >
+                    Apply as a Maker
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                  <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-3 mt-10 text-[11px] text-muted-foreground/70 uppercase tracking-[0.18em]">
+                    {[
+                      "Reviewed personally",
+                      "Reply within days",
+                      "Curated, not open listing",
+                    ].map((item) => (
+                      <span key={item} className="inline-flex items-center gap-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 text-primary/70" strokeWidth={1.5} />
+                        {item}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="max-w-3xl mx-auto">
+                  <div className="text-center mb-8 md:mb-10">
+                    <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-3">
+                      Maker Application
+                    </p>
+                    <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
+                      Tell us about your <span className="font-light italic">craft</span>
+                    </h2>
+                  </div>
+                  <MakerApplicationForm />
+                </div>
+              )}
             </ScrollReveal>
           </div>
         </section>
