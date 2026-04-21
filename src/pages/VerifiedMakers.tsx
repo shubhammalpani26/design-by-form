@@ -6,21 +6,21 @@ import { SEOHead } from "@/components/SEOHead";
 import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
 
-// Makers currently progressing through Nyzora's verification pipeline.
-// Shown anonymized to convey momentum without exposing partner identities pre-verification.
-const pipelineMakers = [
-  { region: "Jaipur, India", craft: "Hand-cast Brass & Metal", stage: "Sample Review" },
-  { region: "Jodhpur, India", craft: "Solid Wood Joinery", stage: "Material Audit" },
-  { region: "Bengaluru, India", craft: "Powder-Coated Steel", stage: "Finish Testing" },
-  { region: "Pune, India", craft: "Upholstery & Foam", stage: "Sample Review" },
-  { region: "Delhi NCR, India", craft: "Marble & Stone", stage: "Facility Visit" },
-  { region: "Ahmedabad, India", craft: "Ceramic & Stoneware", stage: "Sample Review" },
-  { region: "Coimbatore, India", craft: "Rattan & Cane Weaving", stage: "Onboarding" },
-  { region: "Chennai, India", craft: "Glass Blowing", stage: "Material Audit" },
-  { region: "Kolkata, India", craft: "Terracotta & Clay", stage: "Sample Review" },
-  { region: "Lisbon, Portugal", craft: "Cork & Sustainable Goods", stage: "Onboarding" },
-  { region: "Bali, Indonesia", craft: "Teak & Outdoor Furniture", stage: "Facility Visit" },
-  { region: "Istanbul, Turkey", craft: "Hand-knotted Textiles", stage: "Material Audit" },
+// Craft categories where new maker partners are joining the Nyzora network.
+// Shown as crafts (not identities) — we celebrate the disciplines, not anonymize the people.
+const upcomingCrafts = [
+  "Hand-cast Brass & Metal",
+  "Solid Wood Joinery",
+  "Powder-Coated Steel",
+  "Upholstery & Foam",
+  "Marble & Stone",
+  "Ceramic & Stoneware",
+  "Rattan & Cane Weaving",
+  "Glass Blowing",
+  "Terracotta & Clay",
+  "Cork & Sustainable Goods",
+  "Teak & Outdoor Furniture",
+  "Hand-knotted Textiles",
 ];
 
 const VerifiedMakers = () => {
