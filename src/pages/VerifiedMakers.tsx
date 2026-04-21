@@ -1,3 +1,5 @@
+import { useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ArrowRight } from "lucide-react";
@@ -25,6 +27,19 @@ const upcomingCrafts = [
 ];
 
 const VerifiedMakers = () => {
+  const { hash } = useLocation();
+
+  useEffect(() => {
+    if (hash) {
+      const id = hash.replace("#", "");
+      // Defer until after layout/paint so the anchor section exists.
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    }
+  }, [hash]);
+
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead

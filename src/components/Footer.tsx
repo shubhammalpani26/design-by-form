@@ -7,7 +7,17 @@ export const Footer = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const hashIndex = path.indexOf("#");
+    if (hashIndex >= 0) {
+      const id = path.slice(hashIndex + 1);
+      // Wait for the destination route to mount before scrolling to the anchor.
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
@@ -55,7 +65,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => handleNavigation("/verified-makers")} className="text-muted-foreground hover:text-primary transition-colors text-left">Verified Makers</button></li>
               <li><button onClick={() => handleNavigation("/maker-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Maker FAQ</button></li>
-              <li><button onClick={() => handleNavigation("/contact")} className="text-muted-foreground hover:text-primary transition-colors text-left">Apply as Maker</button></li>
+              <li><button onClick={() => handleNavigation("/verified-makers#apply")} className="text-muted-foreground hover:text-primary transition-colors text-left">Apply as Maker</button></li>
             </ul>
           </div>
           
