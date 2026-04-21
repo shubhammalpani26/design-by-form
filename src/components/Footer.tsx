@@ -7,7 +7,17 @@ export const Footer = () => {
 
   const handleNavigation = (path: string) => {
     navigate(path);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    const hashIndex = path.indexOf("#");
+    if (hashIndex >= 0) {
+      const id = path.slice(hashIndex + 1);
+      // Wait for the destination route to mount before scrolling to the anchor.
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   return (
