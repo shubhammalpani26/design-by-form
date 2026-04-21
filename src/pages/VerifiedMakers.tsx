@@ -2,13 +2,18 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronDown } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { SEOHead } from "@/components/SEOHead";
 import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
 import { MakerApplicationForm } from "@/components/MakerApplicationForm";
 import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 // Craft categories where new maker partners are joining the Nyzora network.
 // Shown as crafts (not identities) — we celebrate the disciplines, not anonymize the people.
