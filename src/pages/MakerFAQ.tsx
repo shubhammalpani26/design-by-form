@@ -150,7 +150,7 @@ const MakerFAQ = () => {
             <h2 className="text-2xl font-bold mb-4 text-foreground">Ready to Partner with Nyzora?</h2>
             <p className="text-muted-foreground mb-6">Join our network of verified makers and grow your workshop with consistent orders</p>
             <div className="flex gap-4 justify-center flex-wrap">
-              <Link to="/contact?subject=Maker%20Application&message=Hi%20Nyzora%20team%2C%20I%27d%20like%20to%20apply%20as%20a%20verified%20maker.%20Here%27s%20a%20bit%20about%20my%20craft%2C%20materials%2C%20and%20facility%3A%0A%0A">
+              <Link to="/verified-makers#apply">
                 <Button variant="hero" size="lg">
                   Apply as a Maker
                 </Button>
