@@ -5,6 +5,7 @@ import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { SEOHead } from "@/components/SEOHead";
 import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
+import { MakerApplicationForm } from "@/components/MakerApplicationForm";
 
 // Craft categories where new maker partners are joining the Nyzora network.
 // Shown as crafts (not identities) — we celebrate the disciplines, not anonymize the people.
