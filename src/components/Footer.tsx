@@ -55,7 +55,7 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => handleNavigation("/verified-makers")} className="text-muted-foreground hover:text-primary transition-colors text-left">Verified Makers</button></li>
               <li><button onClick={() => handleNavigation("/maker-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Maker FAQ</button></li>
-              <li><button onClick={() => handleNavigation("/contact")} className="text-muted-foreground hover:text-primary transition-colors text-left">Apply as Maker</button></li>
+              <li><button onClick={() => handleNavigation("/verified-makers#apply")} className="text-muted-foreground hover:text-primary transition-colors text-left">Apply as Maker</button></li>
             </ul>
           </div>
           
