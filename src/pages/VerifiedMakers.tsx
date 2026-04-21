@@ -6,21 +6,21 @@ import { SEOHead } from "@/components/SEOHead";
 import { makers } from "@/data/makers";
 import { Link } from "react-router-dom";
 
-// Makers currently progressing through Nyzora's verification pipeline.
-// Shown anonymized to convey momentum without exposing partner identities pre-verification.
-const pipelineMakers = [
-  { region: "Jaipur, India", craft: "Hand-cast Brass & Metal", stage: "Sample Review" },
-  { region: "Jodhpur, India", craft: "Solid Wood Joinery", stage: "Material Audit" },
-  { region: "Bengaluru, India", craft: "Powder-Coated Steel", stage: "Finish Testing" },
-  { region: "Pune, India", craft: "Upholstery & Foam", stage: "Sample Review" },
-  { region: "Delhi NCR, India", craft: "Marble & Stone", stage: "Facility Visit" },
-  { region: "Ahmedabad, India", craft: "Ceramic & Stoneware", stage: "Sample Review" },
-  { region: "Coimbatore, India", craft: "Rattan & Cane Weaving", stage: "Onboarding" },
-  { region: "Chennai, India", craft: "Glass Blowing", stage: "Material Audit" },
-  { region: "Kolkata, India", craft: "Terracotta & Clay", stage: "Sample Review" },
-  { region: "Lisbon, Portugal", craft: "Cork & Sustainable Goods", stage: "Onboarding" },
-  { region: "Bali, Indonesia", craft: "Teak & Outdoor Furniture", stage: "Facility Visit" },
-  { region: "Istanbul, Turkey", craft: "Hand-knotted Textiles", stage: "Material Audit" },
+// Craft categories where new maker partners are joining the Nyzora network.
+// Shown as crafts (not identities) — we celebrate the disciplines, not anonymize the people.
+const upcomingCrafts = [
+  "Hand-cast Brass & Metal",
+  "Solid Wood Joinery",
+  "Powder-Coated Steel",
+  "Upholstery & Foam",
+  "Marble & Stone",
+  "Ceramic & Stoneware",
+  "Rattan & Cane Weaving",
+  "Glass Blowing",
+  "Terracotta & Clay",
+  "Cork & Sustainable Goods",
+  "Teak & Outdoor Furniture",
+  "Hand-knotted Textiles",
 ];
 
 const VerifiedMakers = () => {
@@ -124,13 +124,13 @@ const VerifiedMakers = () => {
               <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12">
                 <div className="max-w-xl">
                   <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
-                    In the Pipeline
+                    Coming Soon
                   </p>
                   <h2 className="text-3xl md:text-4xl font-semibold text-foreground tracking-tight leading-tight mb-4">
-                    40+ makers currently in <span className="font-light italic">verification</span>
+                    New crafts joining the <span className="font-light italic">Nyzora network</span>
                   </h2>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
-                    Across India and select global regions, dozens of fabricators are progressing through our multi-stage vetting — material audits, sample reviews, facility visits, and finish testing — before they ever touch a Nyzora order.
+                    We're carefully curating new maker partners across a wide range of crafts and disciplines — expanding what you can design, build, and bring home through Nyzora.
                   </p>
                 </div>
                 <div className="flex items-center gap-2 text-[11px] text-muted-foreground/60 uppercase tracking-[0.2em]">
@@ -138,30 +138,23 @@ const VerifiedMakers = () => {
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75" />
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-primary" />
                   </span>
-                  Active vetting
+                  Onboarding now
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
-                {pipelineMakers.map((m, i) => (
-                  <div key={i} className="bg-background p-6 flex items-center justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">
-                        {m.craft}
-                      </p>
-                      <p className="text-[11px] text-muted-foreground/60 uppercase tracking-[0.15em] mt-1">
-                        {m.region}
-                      </p>
-                    </div>
-                    <span className="shrink-0 px-2.5 py-1 rounded-full border border-border text-[9px] font-semibold uppercase tracking-[0.15em] text-muted-foreground/70">
-                      {m.stage}
-                    </span>
-                  </div>
+              <div className="flex flex-wrap gap-2">
+                {upcomingCrafts.map((craft) => (
+                  <span
+                    key={craft}
+                    className="px-4 py-2 rounded-full border border-border text-xs font-medium text-foreground/80 bg-background hover:border-primary/30 transition-colors"
+                  >
+                    {craft}
+                  </span>
                 ))}
               </div>
 
-              <p className="text-xs text-muted-foreground/50 text-center mt-8 italic">
-                Identities withheld until verification is complete. Most applicants do not pass.
+              <p className="text-xs text-muted-foreground/60 text-center mt-10 max-w-xl mx-auto leading-relaxed">
+                We work closely with every maker we partner with — taking the time to understand their craft, materials, and process before welcoming them to Nyzora.
               </p>
             </ScrollReveal>
           </div>
@@ -193,7 +186,7 @@ const VerifiedMakers = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border rounded-2xl overflow-hidden">
               {[
                 { number: "50+", label: "Years Combined Experience" },
-                { number: "40+", label: "Makers In Vetting Pipeline" },
+              { number: "12+", label: "Crafts Joining Soon" },
                 { number: "✓", label: "Nyzora Verified Standards" },
               ].map((stat) => (
                 <div key={stat.label} className="bg-background p-8 md:p-10 text-center">
