@@ -2,6 +2,13 @@ import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -21,6 +28,29 @@ const initialState = {
   portfolioUrl: "",
   notes: "",
 };
+
+const COUNTRIES = [
+  "India",
+  "United States",
+  "United Kingdom",
+  "United Arab Emirates",
+  "Canada",
+  "Australia",
+  "Singapore",
+  "Germany",
+  "France",
+  "Italy",
+  "Spain",
+  "Netherlands",
+  "Japan",
+  "Indonesia",
+  "Vietnam",
+  "Thailand",
+  "Mexico",
+  "Brazil",
+  "South Africa",
+  "Other",
+];
 
 export const MakerApplicationForm = () => {
   const { toast } = useToast();
@@ -124,117 +154,90 @@ export const MakerApplicationForm = () => {
   const required = <span className="text-primary/80 ml-0.5">*</span>;
 
   return (
-    <form onSubmit={handleSubmit} className="border border-border rounded-2xl p-8 md:p-12 bg-background space-y-8">
-      {/* About you */}
-      <div>
-        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 mb-5">
-          About You
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label className={labelCls}>First Name {required}</label>
-            <Input value={data.firstName} onChange={(e) => update("firstName", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>Last Name {required}</label>
-            <Input value={data.lastName} onChange={(e) => update("lastName", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>Email {required}</label>
-            <Input type="email" value={data.email} onChange={(e) => update("email", e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>Phone / WhatsApp</label>
-            <Input value={data.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+91 ..." />
-          </div>
+    <form onSubmit={handleSubmit} className="border border-border rounded-2xl p-6 md:p-8 bg-background">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+        <div>
+          <label className={labelCls}>First Name {required}</label>
+          <Input value={data.firstName} onChange={(e) => update("firstName", e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Last Name {required}</label>
+          <Input value={data.lastName} onChange={(e) => update("lastName", e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Email {required}</label>
+          <Input type="email" value={data.email} onChange={(e) => update("email", e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Phone / WhatsApp</label>
+          <Input value={data.phone} onChange={(e) => update("phone", e.target.value)} placeholder="+91 ..." />
+        </div>
+        <div>
+          <label className={labelCls}>Workshop / Studio</label>
+          <Input value={data.workshopName} onChange={(e) => update("workshopName", e.target.value)} />
+        </div>
+        <div>
+          <label className={labelCls}>Primary Craft {required}</label>
+          <Input
+            value={data.craft}
+            onChange={(e) => update("craft", e.target.value)}
+            placeholder="e.g. Solid wood joinery, Hand-cast brass"
+          />
+        </div>
+        <div>
+          <label className={labelCls}>City {required}</label>
+          <Input value={data.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Jaipur" />
+        </div>
+        <div>
+          <label className={labelCls}>Country</label>
+          <Select value={data.country} onValueChange={(v) => update("country", v)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select country" />
+            </SelectTrigger>
+            <SelectContent className="max-h-72">
+              {COUNTRIES.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <label className={labelCls}>Years Active</label>
+          <Input value={data.yearsActive} onChange={(e) => update("yearsActive", e.target.value)} placeholder="e.g. 8" />
+        </div>
+        <div>
+          <label className={labelCls}>Team Size</label>
+          <Input value={data.teamSize} onChange={(e) => update("teamSize", e.target.value)} placeholder="e.g. 12 artisans" />
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelCls}>Tell us about your workshop {required}</label>
+          <Textarea
+            value={data.facilityDetails}
+            onChange={(e) => update("facilityDetails", e.target.value)}
+            placeholder="Materials, machinery, finishing capabilities, monthly output, past pieces…"
+            className="min-h-[100px]"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelCls}>Portfolio / Reference Links</label>
+          <Input
+            value={data.portfolioUrl}
+            onChange={(e) => update("portfolioUrl", e.target.value)}
+            placeholder="Website, Instagram, Drive folder"
+          />
+        </div>
+        <div className="md:col-span-2">
+          <label className={labelCls}>Anything else? (optional)</label>
+          <Textarea
+            value={data.notes}
+            onChange={(e) => update("notes", e.target.value)}
+            className="min-h-[60px]"
+          />
         </div>
       </div>
 
-      {/* Craft */}
-      <div className="pt-2 border-t border-border/60">
-        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 mb-5 mt-6">
-          Your Craft
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div className="md:col-span-2">
-            <label className={labelCls}>Workshop / Studio Name</label>
-            <Input value={data.workshopName} onChange={(e) => update("workshopName", e.target.value)} />
-          </div>
-          <div className="md:col-span-2">
-            <label className={labelCls}>Primary Craft / Discipline {required}</label>
-            <Input
-              value={data.craft}
-              onChange={(e) => update("craft", e.target.value)}
-              placeholder="e.g. Solid wood joinery, Hand-cast brass, Upholstery"
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Years Active</label>
-            <Input value={data.yearsActive} onChange={(e) => update("yearsActive", e.target.value)} placeholder="e.g. 8" />
-          </div>
-          <div>
-            <label className={labelCls}>Team Size</label>
-            <Input value={data.teamSize} onChange={(e) => update("teamSize", e.target.value)} placeholder="e.g. 12 artisans" />
-          </div>
-        </div>
-      </div>
-
-      {/* Location */}
-      <div className="pt-2 border-t border-border/60">
-        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 mb-5 mt-6">
-          Location
-        </p>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          <div>
-            <label className={labelCls}>City {required}</label>
-            <Input value={data.city} onChange={(e) => update("city", e.target.value)} placeholder="e.g. Jaipur" />
-          </div>
-          <div>
-            <label className={labelCls}>Country</label>
-            <Input value={data.country} onChange={(e) => update("country", e.target.value)} />
-          </div>
-        </div>
-      </div>
-
-      {/* Facility */}
-      <div className="pt-2 border-t border-border/60">
-        <p className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/50 mb-5 mt-6">
-          Facility & Capabilities
-        </p>
-        <div className="space-y-5">
-          <div>
-            <label className={labelCls}>
-              Tell us about your workshop {required}
-            </label>
-            <Textarea
-              value={data.facilityDetails}
-              onChange={(e) => update("facilityDetails", e.target.value)}
-              placeholder="Materials you work with, machinery, finishing capabilities, monthly output, types of pieces you've made…"
-              className="min-h-[140px]"
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Portfolio / Reference Links</label>
-            <Textarea
-              value={data.portfolioUrl}
-              onChange={(e) => update("portfolioUrl", e.target.value)}
-              placeholder="Website, Instagram, Drive folder — paste any links to past work"
-              className="min-h-[80px]"
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Anything else we should know?</label>
-            <Textarea
-              value={data.notes}
-              onChange={(e) => update("notes", e.target.value)}
-              className="min-h-[80px]"
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
-        <p className="text-xs text-muted-foreground/60 leading-relaxed max-w-sm">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-6 mt-6 border-t border-border/60">
+        <p className="text-xs text-muted-foreground/60 leading-relaxed">
           We review every application personally and reply within a few days.
         </p>
         <Button type="submit" className="rounded-full" disabled={submitting}>
