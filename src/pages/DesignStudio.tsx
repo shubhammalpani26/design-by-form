@@ -104,7 +104,7 @@ const DesignStudio = () => {
     return localStorage.getItem('demo-generation-used') === 'true';
   });
   const [showSignupNudge, setShowSignupNudge] = useState(false);
-  const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
+  const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>('designer');
   const [intentDialogHandled, setIntentDialogHandled] = useState(false);
   const [hasUnlimited3D, setHasUnlimited3D] = useState(false);
   const [is3DGenerating, setIs3DGenerating] = useState(false);
@@ -1604,16 +1604,16 @@ const DesignStudio = () => {
           <div className="max-w-6xl mx-auto">
             {/* Mode Switcher - Always visible with both options */}
             <div className="mb-6 flex justify-center">
-              <div className="inline-flex items-center gap-2 p-1.5 rounded-lg bg-muted/50 border border-border">
+              <div className="inline-flex items-center gap-1 p-1 rounded-full bg-muted border border-border w-full max-w-md">
                 <button
                   onClick={() => {
                     setUserIntent('designer');
                     setShowIntentDialog(false);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
                     userIntent === 'designer'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground shadow-md ring-1 ring-primary/30'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1626,10 +1626,10 @@ const DesignStudio = () => {
                     setUserIntent('personal');
                     setShowIntentDialog(false);
                   }}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all ${
+                  className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all ${
                     userIntent === 'personal'
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted'
+                      ? 'bg-primary text-primary-foreground shadow-md ring-1 ring-primary/30'
+                      : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

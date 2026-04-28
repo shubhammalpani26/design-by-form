@@ -406,6 +406,44 @@ const Home = () => {
         </section>
 
 
+        {/* Designer Onboarding Band — pitch creators above the fold */}
+        <section className="border-y border-border bg-foreground text-background">
+          <div className="container py-8 md:py-12">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-5">
+              <div className="space-y-2 max-w-xl">
+                <p className="text-[11px] uppercase tracking-[0.2em] text-background/60 font-medium">
+                  For Creators
+                </p>
+                <h2 className="text-2xl md:text-3xl font-semibold leading-tight">
+                  Launch your own designer brand. We manufacture, ship & pay you 70%.
+                </h2>
+                <p className="text-sm text-background/70">
+                  Zero inventory. Zero manufacturing risk. Earn royalty on every piece sold.
+                </p>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3 md:flex-shrink-0">
+                <Link to="/designer-signup" className="inline-flex">
+                  <Button
+                    size="lg"
+                    className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90 rounded-full font-medium"
+                  >
+                    Start your brand <ArrowRight className="h-4 w-4 ml-1.5" />
+                  </Button>
+                </Link>
+                <Link to="/creator-faq" className="inline-flex">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto rounded-full bg-transparent border-background/30 text-background hover:bg-background/10 hover:text-background"
+                  >
+                    How it works
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Curated Showcase — Prompt → Product → Space */}
         <CuratedShowcase />
 
