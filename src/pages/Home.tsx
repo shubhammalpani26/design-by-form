@@ -415,7 +415,7 @@ const Home = () => {
                   For Creators
                 </p>
                 <h2 className="text-2xl md:text-3xl font-semibold leading-tight">
-                  Launch your own designer brand. We manufacture, ship & pay you 70%.
+                  Launch your own product line. We manufacture, ship & pay you 70%.
                 </h2>
                 <p className="text-sm text-background/70">
                   Zero inventory. Zero manufacturing risk. Earn royalty on every piece sold.
@@ -427,7 +427,7 @@ const Home = () => {
                     size="lg"
                     className="w-full sm:w-auto bg-background text-foreground hover:bg-background/90 rounded-full font-medium"
                   >
-                    Start your brand <ArrowRight className="h-4 w-4 ml-1.5" />
+                    Start your line <ArrowRight className="h-4 w-4 ml-1.5" />
                   </Button>
                 </Link>
                 <Link to="/creator-faq" className="inline-flex">
