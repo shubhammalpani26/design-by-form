@@ -104,7 +104,7 @@ const DesignStudio = () => {
     return localStorage.getItem('demo-generation-used') === 'true';
   });
   const [showSignupNudge, setShowSignupNudge] = useState(false);
-  const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>(null);
+  const [userIntent, setUserIntent] = useState<'designer' | 'personal' | null>('designer');
   const [intentDialogHandled, setIntentDialogHandled] = useState(false);
   const [hasUnlimited3D, setHasUnlimited3D] = useState(false);
   const [is3DGenerating, setIs3DGenerating] = useState(false);
