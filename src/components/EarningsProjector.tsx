@@ -158,14 +158,14 @@ export const EarningsProjector = () => {
               <p className="text-xs text-muted-foreground mb-1">Monthly</p>
               <p className="text-lg sm:text-2xl font-bold text-primary break-words leading-tight">{formatINR(monthlyEarnings)}</p>
               <p className="text-[10px] text-muted-foreground mt-1 break-words">
-                {monthlySales} × {formatINR(earningsPerSale)}
+                {monthlySales} {monthlySales === 1 ? 'sale' : 'sales'} × {formatINR(earningsPerSale)}
               </p>
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Yearly</p>
               <p className="text-lg sm:text-2xl font-bold text-primary break-words leading-tight">{formatINR(yearlyEarnings)}</p>
               <p className="text-[10px] text-muted-foreground mt-1 break-words">
-                {monthlySales * 12} × {formatINR(earningsPerSale)}
+                {monthlySales * 12} sales × {formatINR(earningsPerSale)}
               </p>
             </div>
           </div>
