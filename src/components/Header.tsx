@@ -156,7 +156,7 @@ export const Header = () => {
                   >
                     <Button variant="hero" className="w-full justify-start gap-2" size="lg">
                       <Sparkles className="h-4 w-4" />
-                      Start Selling on Nyzora
+                      Launch Your Designer Brand
                     </Button>
                   </Link>
                   <Link
