@@ -186,7 +186,7 @@ const DesignerSignup = () => {
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-10 md:py-16">
           <div className="container text-center max-w-3xl">
             <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-medium mb-3">
-              Launch your designer brand
+              Launch your own product line
             </p>
             <h1 className="text-3xl md:text-5xl font-bold mb-4 text-foreground leading-tight">
               Design it. We build, ship & pay you <span className="text-primary">70%</span>.
