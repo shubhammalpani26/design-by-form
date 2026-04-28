@@ -153,19 +153,19 @@ export const EarningsProjector = () => {
         {/* Projected Earnings */}
         <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 space-y-3">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Projected Earnings</p>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className="grid grid-cols-2 gap-3 min-w-0">
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Monthly</p>
-              <p className="text-2xl font-bold text-primary">{formatINR(monthlyEarnings)}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {monthlySales} sales × {formatINR(earningsPerSale)}
+              <p className="text-lg sm:text-2xl font-bold text-primary break-words leading-tight">{formatINR(monthlyEarnings)}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 break-words">
+                {monthlySales} × {formatINR(earningsPerSale)}
               </p>
             </div>
-            <div>
+            <div className="min-w-0">
               <p className="text-xs text-muted-foreground mb-1">Yearly</p>
-              <p className="text-2xl font-bold text-primary">{formatINR(yearlyEarnings)}</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">
-                {monthlySales * 12} sales × {formatINR(earningsPerSale)}
+              <p className="text-lg sm:text-2xl font-bold text-primary break-words leading-tight">{formatINR(yearlyEarnings)}</p>
+              <p className="text-[10px] text-muted-foreground mt-1 break-words">
+                {monthlySales * 12} × {formatINR(earningsPerSale)}
               </p>
             </div>
           </div>
