@@ -126,18 +126,18 @@ const DesignerBankDetails = () => {
       <Header />
       
       <main className="flex-1">
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-8 md:py-14">
           <div className="container text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+            <h1 className="text-2xl md:text-4xl font-bold mb-2 md:mb-3 text-foreground">
               Bank Details
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
               Add your bank details to receive payments for your designs
             </p>
           </div>
         </section>
 
-        <section className="container py-16">
+        <section className="container py-6 md:py-12">
           <div className="max-w-2xl mx-auto">
             <Card>
               <CardContent className="p-8">
