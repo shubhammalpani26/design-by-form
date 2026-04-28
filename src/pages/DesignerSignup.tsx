@@ -10,6 +10,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { designerSignupSchema } from "@/lib/validations";
+import { EarningsProjector } from "@/components/EarningsProjector";
+import { ArrowRight } from "lucide-react";
 
 const DesignerSignup = () => {
   const navigate = useNavigate();
@@ -154,20 +156,44 @@ const DesignerSignup = () => {
       
       <main className="flex-1">
         {/* Hero */}
-        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-16">
-          <div className="container text-center">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
-              Join as a Creator
+        <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-10 md:py-16">
+          <div className="container text-center max-w-3xl">
+            <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-medium mb-3">
+              Launch your designer brand
+            </p>
+            <h1 className="text-3xl md:text-5xl font-bold mb-4 text-foreground leading-tight">
+              Design it. We build, ship & pay you <span className="text-primary">70%</span>.
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-              Turn your creative vision into income. No upfront costs, no inventory, no hassle.
+            <p className="text-base md:text-lg text-muted-foreground mb-6">
+              Zero inventory. Zero manufacturing risk. Earn royalty on every piece sold — forever.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <Button
+                variant="hero"
+                size="lg"
+                className="rounded-full"
+                onClick={() => document.getElementById('creator-application')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Apply now <ArrowRight className="h-4 w-4 ml-1.5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="lg"
+                className="rounded-full"
+                onClick={() => document.getElementById('earnings-projector')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Estimate your earnings
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground mt-4">
+              No upfront costs · Listing fees waived · Manufactured in India
             </p>
           </div>
         </section>
 
         {/* Benefits */}
-        <section className="container py-16">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-16">
+        <section className="container py-10 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 mb-10 md:mb-16">
             <Card className="border-primary/20">
               <CardContent className="p-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
@@ -205,8 +231,19 @@ const DesignerSignup = () => {
             </Card>
           </div>
 
+          {/* Earnings Projector */}
+          <div id="earnings-projector" className="max-w-2xl mx-auto mb-10 md:mb-16 scroll-mt-24">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">See what you could earn</h2>
+              <p className="text-sm text-muted-foreground">
+                Adjust the sliders to project your monthly & yearly income
+              </p>
+            </div>
+            <EarningsProjector />
+          </div>
+
           {/* Application Form */}
-          <div className="max-w-2xl mx-auto">
+          <div id="creator-application" className="max-w-2xl mx-auto scroll-mt-24">
             <Card>
               <CardContent className="p-8">
                 <h2 className="text-2xl font-bold mb-6 text-foreground">Creator Application</h2>
