@@ -23,7 +23,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut } from "lucide-react";
+import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut, Sparkles, TrendingUp, Users, Trophy, BookOpen } from "lucide-react";
 import wordmark from "@/assets/nyzora-wordmark.png";
 
 export const Header = () => {
@@ -147,6 +147,44 @@ export const Header = () => {
                   </div>
                 )}
 
+                {/* For Creators — primary entry point for designers */}
+                <div className="space-y-1 pb-4 mb-2 border-b border-border">
+                  <h3 className="text-xs font-semibold text-primary uppercase tracking-wide px-2 py-2">For Creators</h3>
+                  <Link
+                    to="/designer-signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    <Button variant="hero" className="w-full justify-start gap-2" size="lg">
+                      <Sparkles className="h-4 w-4" />
+                      Start Selling on Nyzora
+                    </Button>
+                  </Link>
+                  <Link
+                    to="/creator-faq"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent mt-2"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    How it works (Creator FAQ)
+                  </Link>
+                  <Link
+                    to="/creators"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
+                  >
+                    <Users className="h-4 w-4" />
+                    Browse Creators
+                  </Link>
+                  <Link
+                    to="/creator-leaderboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-3 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    Leaderboard
+                  </Link>
+                </div>
+
                 {/* Shop Categories */}
                 <div className="space-y-1">
                   <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 py-2">Shop</h3>
@@ -162,22 +200,13 @@ export const Header = () => {
                   ))}
                 </div>
 
-                {/* Navigation */}
+                {/* More */}
                 <div className="space-y-1 pt-3 border-t border-border mt-3">
-                  <Link
-                    to="/design-studio"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 text-sm font-medium text-foreground hover:text-primary transition-colors py-2 px-2 rounded-lg hover:bg-accent"
-                  >
-                    <Wand2 className="h-4 w-4" />
-                    AI Design Studio
-                  </Link>
+                  <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide px-2 py-2">More</h3>
                   {[
-                    { name: "Creators", path: "/creators" },
                     { name: "Community", path: "/community" },
                     { name: "Technology", path: "/technology" },
                     { name: "Verified Makers", path: "/verified-makers" },
-                    { name: "Leaderboard", path: "/creator-leaderboard" },
                     { name: "Pricing", path: "/plans" },
                   ].map((item) => (
                     <Link
