@@ -111,8 +111,8 @@ const marqueeItems = [
 const expansionCategories = [
   {
     id: "linen",
-    name: "Linen & Soft Furnishings",
-    description: "Custom patterns designed for your space",
+    name: "Apparel, Linen & Soft Furnishings",
+    description: "Custom apparel and patterns designed for you and your space",
     image: categoryLinen,
     tag: "Coming Soon",
   },
