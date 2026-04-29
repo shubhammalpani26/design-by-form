@@ -11,7 +11,7 @@ import { slugify } from "@/lib/slugify";
 import { useToast } from "@/hooks/use-toast";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import categoryLinen from "@/assets/category-linen.jpg";
+import categoryLinen from "@/assets/category-apparel-linen.jpg";
 import categoryJewelry from "@/assets/category-jewelry.jpg";
 import categoryDecor from "@/assets/category-decor.jpg";
 import categoryAccessories from "@/assets/category-accessories.jpg";
