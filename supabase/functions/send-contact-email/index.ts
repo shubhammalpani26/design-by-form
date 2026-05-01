@@ -5,7 +5,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 // Input validation schema
-const contactNyzora?Schema = z.object({
+const contactSchema = z.object({
   firstName: z.string()
     .trim()
     .min(1, "First name is required")
@@ -63,7 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
     const rawData = await req.json();
     
     // Validate and sanitize input
-    const validatedData = contactNyzora?Schema.parse(rawData);
+    const validatedData = contactSchema.parse(rawData);
     const { firstName, lastName, email, subject, message } = validatedData;
 
     console.log("Processing contact form submission from:", email);
