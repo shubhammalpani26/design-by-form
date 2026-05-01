@@ -72,6 +72,13 @@ export const makers: Maker[] = [
 const PRODUCT_MAKER_OVERRIDES: Record<string, string> = {
   // Raina Jain - Atelier Designer Sofa → Beni Enterprise (woodwork + upholstery)
   "22222222-2222-2222-2222-000000000005": "beni-enterprise",
+  // Sakshi Nimkar - Beni Enterprise crafted pieces
+  "33333333-3333-3333-3333-000000000101": "beni-enterprise", // Designer Sofa
+  "33333333-3333-3333-3333-000000000102": "beni-enterprise", // Designer Center Table
+  "33333333-3333-3333-3333-000000000103": "beni-enterprise", // Designer Lamp
+  "33333333-3333-3333-3333-000000000104": "beni-enterprise", // Designer Dining Table
+  // Sakshi Nimkar - Hand Painting → UG Agawane (already routed by category, but explicit)
+  "33333333-3333-3333-3333-000000000105": "ug-agawane",
 };
 
 export const getMakerBySlug = (slug: string): Maker | undefined => {
