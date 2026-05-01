@@ -509,6 +509,35 @@ Respond ONLY in valid JSON format (no markdown):
       console.log("MESHY_API_KEY not configured, skipping 3D generation");
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // 🌀 FLYWHEEL — log this generation back into the dataset
+    // so future designs see this signal too. Best-effort, never blocking.
+    // ─────────────────────────────────────────────────────────────
+    try {
+      await supabase.from('manufacturing_intelligence').insert({
+        product_name: (prompt || 'Untitled design').slice(0, 80),
+        creator_name: user?.email ?? 'anonymous',
+        maker: 'pending-routing',
+        process: 'design_generation',
+        category: pricingData.complexity,
+        stage: 'design_input',
+        signal: 'New design generated with flywheel context',
+        value: `${miContext.used} learnings injected from ${miContext.totalSignals} prior signals · variation ${variationNumber} · ${pricingData.complexity} complexity`,
+        learning: 'Each generation enriches the dataset; downstream production telemetry will close the loop.',
+        confidence: 80,
+        source: 'design_generation',
+        metadata: {
+          variationNumber,
+          hasSketch: !!sketchImageBase64,
+          hasRoomImage: !!roomImageBase64,
+          generate3D,
+          pricePerCubicFoot: pricingData.pricePerCubicFoot,
+        },
+      });
+    } catch (logErr) {
+      console.error('Flywheel log failed (non-blocking):', logErr);
+    }
+
     return new Response(
       JSON.stringify({ 
         imageUrl, 
@@ -516,6 +545,7 @@ Respond ONLY in valid JSON format (no markdown):
         has3DSupport: !!taskId,
         polling: !!taskId,
         pricing: pricingData,
+        flywheel: miContext,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
