@@ -9,6 +9,7 @@ import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ComparisonBar } from "@/components/ComparisonBar";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useReferralCapture } from "@/hooks/useReferralCapture";
 
 // Eager load only the homepage for fastest initial paint
 import Home from "./pages/Home";
@@ -82,6 +83,11 @@ const PageLoader = () => (
   </div>
 );
 
+const ReferralCapture = () => {
+  useReferralCapture();
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -91,6 +97,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <ReferralCapture />
               <ComparisonBar />
               <Suspense fallback={<PageLoader />}>
               <Routes>
