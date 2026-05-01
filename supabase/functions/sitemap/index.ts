@@ -25,7 +25,7 @@ const STATIC_ROUTES: { path: string; changefreq: string; priority: number }[] = 
 ];
 
 // Maker slugs (kept in sync with src/data/makers.ts)
-const MAKER_SLUGS = ["cyanique", "sach-creations", "beni-enterprise"];
+const MAKER_SLUGS = ["cyanique", "sach-creations", "beni-enterprise", "ug-agawane"];
 
 const xmlEscape = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");

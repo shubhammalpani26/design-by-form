@@ -52,6 +52,19 @@ export const makers: Maker[] = [
     specialties: ["Designer Furniture", "Wood Detailing", "Statement Tables", "Custom Woodwork"],
     categoryMatch: ["tables", "dining-tables", "consoles", "wood-furniture", "shelving", "benches", "chairs", "seating", "coffee-tables"],
   },
+  {
+    id: "8",
+    slug: "ug-agawane",
+    name: "UG Agawane",
+    location: "Pune, India",
+    shortDescription: "Master atelier specializing in hand-painted artworks, murals, and bespoke painted finishes on furniture and decor.",
+    expertise: "Decades of expertise in fine art painting — from canvas works and large-format murals to intricate hand-painted details on furniture, vases, and decor objects. Each piece is created entirely by hand using artist-grade pigments and time-tested techniques.",
+    process: "Every commission begins with concept sketches and color studies. Surfaces are hand-prepared and primed for longevity, then painted in layered passes using premium acrylics, oils, or specialty paints depending on the medium. Final pieces are sealed with archival-grade protective finishes for lasting vibrancy and durability.",
+    tags: ["Verified by Nyzora", "Hand-Painted", "Fine Art Atelier"],
+    yearsActive: "15+",
+    specialties: ["Hand-Painted Art", "Murals", "Painted Furniture", "Custom Artworks"],
+    categoryMatch: ["paintings", "art", "murals", "wall-art", "hand-painted", "canvas", "artwork", "painted-decor"],
+  },
 ];
 
 // Per-product maker overrides (used for hand-curated traction products
@@ -79,6 +92,10 @@ export const getMakerForProduct = (productId: string, category?: string): Maker 
   }
 
   const cat = (category || "").toLowerCase();
+
+  // Hand-painted art / paintings → UG Agawane
+  const artCategories = ["paintings", "art", "murals", "wall-art", "hand-painted", "canvas", "artwork", "painted-decor"];
+  if (artCategories.some((a) => cat.includes(a))) return makers[3]; // UG Agawane
 
   // Wood / traditional furniture → Benni Enterprises (limited to specific categories)
   const woodCategories = ["dining-tables", "consoles", "coffee-tables"];
