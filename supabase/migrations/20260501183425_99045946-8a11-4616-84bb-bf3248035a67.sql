@@ -1,0 +1,1 @@
+DELETE FROM public.product_sales WHERE designer_id = '2d21ebbc-84b9-4fd0-96c0-633392e084be';
