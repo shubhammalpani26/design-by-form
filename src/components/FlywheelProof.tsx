@@ -10,12 +10,17 @@ const FlywheelProof = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [{ count: orderCount }, { count: signalCount }] = await Promise.all([
-        supabase.from("product_sales").select("id", { count: "exact", head: true }),
+      const [{ data: orderRefs }, { count: signalCount }] = await Promise.all([
+        supabase
+          .from("manufacturing_intelligence")
+          .select("order_ref")
+          .eq("source", "production")
+          .not("order_ref", "is", null),
         supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }),
       ]);
       if (!mounted) return;
-      setOrders(orderCount ?? 0);
+      const distinctOrders = new Set((orderRefs ?? []).map((r: { order_ref: string | null }) => r.order_ref)).size;
+      setOrders(distinctOrders);
       setSignals(signalCount ?? 0);
     })();
     return () => {
@@ -46,7 +51,7 @@ const FlywheelProof = () => {
                 {orders ?? "—"}
               </p>
               <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">
-                Orders manufactured
+                Pieces delivered
               </p>
             </div>
 
@@ -61,14 +66,14 @@ const FlywheelProof = () => {
                 {signals ?? "—"}
               </p>
               <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">
-                Lessons learned
+                Things the AI learned from them
               </p>
             </div>
           </div>
 
           <p className="text-sm text-muted-foreground text-center max-w-md mx-auto mt-12 leading-relaxed">
-            Each finished piece teaches the system something — material behaviour, maker
-            strengths, what holds up. The next design starts smarter.
+            Each piece we make teaches the AI what works in the real world — so the
+            next design you create starts smarter than the last.
           </p>
         </div>
       </div>
