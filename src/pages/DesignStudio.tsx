@@ -2776,7 +2776,7 @@ const DesignStudio = () => {
                               </div>
                             </div>
                           </div>
-                        ) : generatedDesign && (hasUnlimited3D || threeDFeePaid) ? (
+                        ) : generatedDesign ? (
                           <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-4 max-w-md">
                               <svg className="w-16 h-16 mx-auto mb-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2785,7 +2785,7 @@ const DesignStudio = () => {
                               <div>
                                 <p className="text-foreground text-base font-semibold mb-2">Generate 3D Model</p>
                                 <p className="text-muted-foreground text-sm mb-4">
-                                  {hasUnlimited3D ? "You have unlimited 3D generation! Click below to create your 3D model." : "3D generation ready. Click below to start."}
+                                  Free for all creators. Click below to create your 3D model.
                                 </p>
                               </div>
                               <Button
