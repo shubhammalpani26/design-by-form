@@ -209,8 +209,8 @@ const DesignerProfile = () => {
               name: p.name,
             })),
           }}
-        }}
-      />
+        />
+      )}
       <Header />
       
       <main className="flex-1">
