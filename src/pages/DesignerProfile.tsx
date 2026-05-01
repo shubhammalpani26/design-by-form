@@ -163,16 +163,52 @@ const DesignerProfile = () => {
         id="creator"
         data={{
           "@context": "https://schema.org",
-          "@type": "ProfilePage",
-          mainEntity: {
-            "@type": "Person",
-            name: designer.name,
-            url: window.location.href,
-            image: designer.profile_picture_url || undefined,
-            description: designer.design_background || `Furniture creator on Nyzora`,
-            ...(designer.portfolio_url ? { sameAs: [designer.portfolio_url] } : {}),
-            worksFor: { "@type": "Organization", name: "Nyzora" },
+          "@type": "Person",
+          "@id": `${window.location.href}#person`,
+          name: designer.name,
+          url: window.location.href,
+          image: designer.profile_picture_url || undefined,
+          jobTitle: "Furniture Designer",
+          description: designer.design_background || `Furniture designer on Nyzora`,
+          knowsAbout: [
+            "Furniture Design",
+            "Sustainable Design",
+            ...(designer.furniture_interests ? [designer.furniture_interests] : []),
+          ],
+          worksFor: {
+            "@type": "Organization",
+            "@id": "https://nyzora.ai/#organization",
+            name: "Nyzora",
           },
+          ...(designer.portfolio_url ? { sameAs: [designer.portfolio_url] } : {}),
+        }}
+      />
+      <JsonLd
+        id="breadcrumbs"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BreadcrumbList",
+          itemListElement: [
+            { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
+            { "@type": "ListItem", position: 2, name: "Designers", item: `${window.location.origin}/creators` },
+            { "@type": "ListItem", position: 3, name: designer.name, item: window.location.href },
+          ],
+        }}
+      />
+      {designer.products && designer.products.length > 0 && (
+        <JsonLd
+          id="creator-itemlist"
+          data={{
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: `Products by ${designer.name}`,
+            itemListElement: designer.products.map((p, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              url: `${window.location.origin}/product/${slugify(p.name)}`,
+              name: p.name,
+            })),
+          }}
         }}
       />
       <Header />
