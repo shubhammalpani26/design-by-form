@@ -809,6 +809,66 @@ export type Database = {
           },
         ]
       }
+      manufacturing_intelligence: {
+        Row: {
+          captured_at: string
+          category: string | null
+          confidence: number
+          created_at: string
+          creator_name: string | null
+          id: string
+          learning: string | null
+          maker: string
+          metadata: Json | null
+          order_ref: string | null
+          process: string
+          product_id: string | null
+          product_name: string
+          signal: string
+          source: string
+          stage: string
+          value: string
+        }
+        Insert: {
+          captured_at?: string
+          category?: string | null
+          confidence?: number
+          created_at?: string
+          creator_name?: string | null
+          id?: string
+          learning?: string | null
+          maker: string
+          metadata?: Json | null
+          order_ref?: string | null
+          process: string
+          product_id?: string | null
+          product_name: string
+          signal: string
+          source?: string
+          stage: string
+          value: string
+        }
+        Update: {
+          captured_at?: string
+          category?: string | null
+          confidence?: number
+          created_at?: string
+          creator_name?: string | null
+          id?: string
+          learning?: string | null
+          maker?: string
+          metadata?: Json | null
+          order_ref?: string | null
+          process?: string
+          product_id?: string | null
+          product_name?: string
+          signal?: string
+          source?: string
+          stage?: string
+          value?: string
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
