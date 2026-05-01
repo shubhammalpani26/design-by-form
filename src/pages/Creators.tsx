@@ -34,16 +34,17 @@ const Creators = () => {
 
       if (profilesError) throw profilesError;
 
+      // Fetch sales counts via public RPC (RLS on product_sales blocks anon reads)
+      const { data: salesCounts } = await supabase.rpc('get_designer_sales_counts');
+      const salesMap = new Map<string, number>(
+        (salesCounts || []).map((row: any) => [row.designer_id, Number(row.sales_count)])
+      );
+
       const creatorsWithStats = await Promise.all(
         profiles.map(async (profile) => {
           const { data: products } = await supabase
             .from('designer_products')
             .select('id, status')
-            .eq('designer_id', profile.id);
-
-          const { data: sales } = await supabase
-            .from('product_sales')
-            .select('id')
             .eq('designer_id', profile.id);
 
           const approvedDesigns = products?.filter(p => p.status === 'approved').length || 0;
@@ -55,12 +56,14 @@ const Creators = () => {
             furniture_interests: profile.furniture_interests,
             total_designs: products?.length || 0,
             approved_designs: approvedDesigns,
-            total_sales: sales?.length || 0,
+            total_sales: salesMap.get(profile.id) || 0,
           };
         })
       );
 
-      const activeCreators = creatorsWithStats.filter(c => c.approved_designs > 0);
+      const activeCreators = creatorsWithStats
+        .filter(c => c.approved_designs > 0)
+        .sort((a, b) => b.total_sales - a.total_sales);
       setCreators(activeCreators);
     } catch (error) {
       console.error('Error fetching creators:', error);

@@ -1426,6 +1426,13 @@ export type Database = {
       }
       generate_invoice_number: { Args: never; Returns: string }
       generate_slug: { Args: { input_text: string }; Returns: string }
+      get_designer_sales_counts: {
+        Args: never
+        Returns: {
+          designer_id: string
+          sales_count: number
+        }[]
+      }
       get_public_designer_profile: {
         Args: { profile_id: string }
         Returns: {
