@@ -1173,6 +1173,39 @@ export type Database = {
           },
         ]
       }
+      referrals: {
+        Row: {
+          activated_at: string | null
+          created_at: string
+          credits_awarded: number
+          id: string
+          referred_user_id: string
+          referrer_designer_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          created_at?: string
+          credits_awarded?: number
+          id?: string
+          referred_user_id: string
+          referrer_designer_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          created_at?: string
+          credits_awarded?: number
+          id?: string
+          referred_user_id?: string
+          referrer_designer_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_transactions: {
         Row: {
           amount: number

@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
+import { attachReferralIfPending } from "@/lib/referrals";
 
 const PasswordInput = ({
   value,
@@ -75,7 +76,11 @@ const Auth = () => {
     } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (event === "SIGNED_IN" && session?.user) navigate(returnTo);
+      if (event === "SIGNED_IN" && session?.user) {
+        // Attach pending referral (fire-and-forget) before navigating
+        attachReferralIfPending();
+        navigate(returnTo);
+      }
     });
 
     return () => subscription.unsubscribe();
