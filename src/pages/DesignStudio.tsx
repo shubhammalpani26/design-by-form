@@ -2776,7 +2776,7 @@ const DesignStudio = () => {
                               </div>
                             </div>
                           </div>
-                        ) : generatedDesign && (hasUnlimited3D || threeDFeePaid) ? (
+                        ) : generatedDesign ? (
                           <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
                             <div className="text-center p-8 space-y-4 max-w-md">
                               <svg className="w-16 h-16 mx-auto mb-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -2785,7 +2785,7 @@ const DesignStudio = () => {
                               <div>
                                 <p className="text-foreground text-base font-semibold mb-2">Generate 3D Model</p>
                                 <p className="text-muted-foreground text-sm mb-4">
-                                  {hasUnlimited3D ? "You have unlimited 3D generation! Click below to create your 3D model." : "3D generation ready. Click below to start."}
+                                  Free for all creators. Click below to create your 3D model.
                                 </p>
                               </div>
                               <Button
@@ -2845,35 +2845,6 @@ const DesignStudio = () => {
                                     Starting...
                                   </>
                                 ) : "Generate 3D Model"}
-                              </Button>
-                            </div>
-                          </div>
-                        ) : generatedDesign ? (
-                          <div className="h-[500px] rounded-xl overflow-hidden bg-accent/50 flex items-center justify-center border-2 border-dashed border-border">
-                            <div className="text-center p-8 space-y-4 max-w-md">
-                              <svg className="w-16 h-16 mx-auto mb-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                              </svg>
-                              <div>
-                                <p className="text-foreground text-base font-semibold mb-2">Add 3D Model + AR Preview</p>
-                                <p className="text-muted-foreground text-sm mb-4">
-                                  Enhance your design with an interactive 3D model and AR preview
-                                </p>
-                              </div>
-                              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-left mb-4">
-                                <p className="text-xs font-semibold text-primary mb-2">✨ Benefits:</p>
-                                <ul className="text-xs text-muted-foreground space-y-1">
-                                  <li>• Professional 3D model via Meshy API</li>
-                                  <li>• Interactive 360° product view</li>
-                                  <li>• AR preview for customers</li>
-                                  <li>• Higher conversion rates</li>
-                                </ul>
-                              </div>
-                              <Button
-                                onClick={() => setShow3DFeeDialog(true)}
-                                className="w-full"
-                              >
-                                Add 3D for ₹750 / $15
                               </Button>
                             </div>
                           </div>

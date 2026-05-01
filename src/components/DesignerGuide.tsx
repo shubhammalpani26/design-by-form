@@ -52,8 +52,8 @@ const guideSteps: GuideStep[] = [
     targetId: "variations-grid",
   },
   {
-    title: "Step 5: 3D Model (Optional Upgrade)",
-    description: "The ₹500 listing fee has been waived off! You can now optionally add 3D generation (₹750 India / $15 international) for AR preview.",
+    title: "Step 5: 3D Model (Free)",
+    description: "Listing and 3D generation are free right now. Generate a 3D model to unlock AR preview for your customers.",
     tip: "3D models help customers visualize in AR and can increase conversion rates!",
     targetId: "generate-3d-button",
   },
