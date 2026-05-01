@@ -30,6 +30,7 @@ import CuratedShowcase from "@/components/CuratedShowcase";
 import testimonialMeera from "@/assets/testimonial-meera.jpg";
 import testimonialKaran from "@/assets/testimonial-karan.jpg";
 import { ScrollReveal, StaggerReveal, useCountUp } from "@/hooks/useScrollReveal";
+import { JsonLd } from "@/components/JsonLd";
 
 const testimonials = [
   {
@@ -285,6 +286,53 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <JsonLd
+        id="org"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": "https://nyzora.ai/#organization",
+          name: "Nyzora",
+          alternateName: "Nyzora.ai",
+          url: "https://nyzora.ai",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://nyzora.ai/favicon.png",
+            width: 512,
+            height: 512,
+          },
+          description:
+            "Creator-designed furniture marketplace featuring unique, sustainable pieces from independent designers.",
+          sameAs: [
+            "https://www.instagram.com/nyzora.ai",
+            "https://www.linkedin.com/company/nyzora",
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            email: "contact@nyzora.ai",
+            contactType: "customer support",
+          },
+        }}
+      />
+      <JsonLd
+        id="website"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "@id": "https://nyzora.ai/#website",
+          url: "https://nyzora.ai",
+          name: "Nyzora",
+          publisher: { "@id": "https://nyzora.ai/#organization" },
+          potentialAction: {
+            "@type": "SearchAction",
+            target: {
+              "@type": "EntryPoint",
+              urlTemplate: "https://nyzora.ai/browse?q={search_term_string}",
+            },
+            "query-input": "required name=search_term_string",
+          },
+        }}
+      />
       <Header />
       
       <main className="flex-1">

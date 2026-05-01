@@ -244,11 +244,13 @@ const ProductDetail = () => {
         id="product"
         data={{
           "@context": "https://schema.org",
-          "@type": "Product",
+          "@type": ["Product", "CreativeWork"],
+          "@id": `${window.location.href}#product`,
           name: product.name,
+          url: window.location.href,
           description: product.description || `${product.name} by ${product.designer}`,
           image: product.image_url ? [product.image_url] : undefined,
-          sku: product.id,
+          sku: `NYZ-${String(product.id).slice(0, 8).toUpperCase()}`,
           category: product.category,
           brand: { "@type": "Brand", name: "Nyzora" },
           ...(product.designer
@@ -256,11 +258,13 @@ const ProductDetail = () => {
             : {}),
           offers: {
             "@type": "Offer",
-            price: product.price,
-            priceCurrency: "INR",
-            availability: "https://schema.org/InStock",
             url: window.location.href,
-            seller: { "@type": "Organization", name: "Nyzora" },
+            priceCurrency: "INR",
+            price: product.price,
+            priceValidUntil: "2027-12-31",
+            itemCondition: "https://schema.org/NewCondition",
+            availability: "https://schema.org/InStock",
+            seller: { "@type": "Organization", "@id": "https://nyzora.ai/#organization" },
           },
         }}
       />
@@ -271,7 +275,7 @@ const ProductDetail = () => {
           "@type": "BreadcrumbList",
           itemListElement: [
             { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
-            { "@type": "ListItem", position: 2, name: "Browse", item: `${window.location.origin}/browse` },
+            { "@type": "ListItem", position: 2, name: "Products", item: `${window.location.origin}/browse` },
             { "@type": "ListItem", position: 3, name: product.name, item: window.location.href },
           ],
         }}
