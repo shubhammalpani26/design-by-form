@@ -1,25 +1,22 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
+import { ArrowRight } from "lucide-react";
 
 const FlywheelProof = () => {
-  const [total, setTotal] = useState<number | null>(null);
-  const [productionSignals, setProductionSignals] = useState<number | null>(null);
-  const [designSignals, setDesignSignals] = useState<number | null>(null);
+  const [orders, setOrders] = useState<number | null>(null);
+  const [signals, setSignals] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [{ count: totalCount }, { count: prodCount }, { count: designCount }] =
-        await Promise.all([
-          supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }),
-          supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }).eq("source", "production"),
-          supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }).eq("source", "design_generation"),
-        ]);
+      const [{ count: orderCount }, { count: signalCount }] = await Promise.all([
+        supabase.from("product_sales").select("id", { count: "exact", head: true }),
+        supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }),
+      ]);
       if (!mounted) return;
-      setTotal(totalCount ?? 0);
-      setProductionSignals(prodCount ?? 0);
-      setDesignSignals(designCount ?? 0);
+      setOrders(orderCount ?? 0);
+      setSignals(signalCount ?? 0);
     })();
     return () => {
       mounted = false;
@@ -27,33 +24,52 @@ const FlywheelProof = () => {
   }, []);
 
   return (
-    <section className="py-20 md:py-28 border-t border-border">
+    <section className="py-20 md:py-28 border-t border-border bg-background">
       <div className="container">
         <ScrollReveal animation="fade-up">
-          <div className="max-w-xl mx-auto text-center mb-10">
+          <div className="max-w-xl mx-auto text-center mb-12">
             <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
               The Flywheel — Live
             </p>
             <h2 className="text-2xl md:text-3xl font-semibold text-foreground tracking-tight">
-              Growing with every order.
+              Smarter with every order.
             </h2>
           </div>
         </ScrollReveal>
 
-        {/* Live counters */}
-        <div className="grid grid-cols-3 gap-px bg-border rounded-xl overflow-hidden max-w-3xl mx-auto">
-          {[
-            { n: total, label: "Total signals" },
-            { n: productionSignals, label: "From completed orders" },
-            { n: designSignals, label: "From new designs" },
-          ].map((s) => (
-            <div key={s.label} className="bg-background p-6 md:p-8 text-center">
-              <p className="text-3xl md:text-4xl font-bold text-foreground tabular-nums tracking-tight">
-                {s.n ?? "—"}
+        {/* Visual flow: Orders → Signals → Smarter designs */}
+        <div className="max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] items-center gap-6 md:gap-4">
+            {/* Orders */}
+            <div className="text-center md:text-right">
+              <p className="text-5xl md:text-6xl font-bold text-foreground tabular-nums tracking-tight">
+                {orders ?? "—"}
               </p>
-              <p className="text-[10px] uppercase tracking-wider text-muted-foreground mt-2">{s.label}</p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">
+                Orders manufactured
+              </p>
             </div>
-          ))}
+
+            {/* Arrow */}
+            <div className="flex justify-center">
+              <ArrowRight className="h-6 w-6 md:h-8 md:w-8 text-muted-foreground/40 rotate-90 md:rotate-0" />
+            </div>
+
+            {/* Signals */}
+            <div className="text-center md:text-left">
+              <p className="text-5xl md:text-6xl font-bold text-foreground tabular-nums tracking-tight">
+                {signals ?? "—"}
+              </p>
+              <p className="text-xs uppercase tracking-wider text-muted-foreground mt-2">
+                Lessons learned
+              </p>
+            </div>
+          </div>
+
+          <p className="text-sm text-muted-foreground text-center max-w-md mx-auto mt-12 leading-relaxed">
+            Each finished piece teaches the system something — material behaviour, maker
+            strengths, what holds up. The next design starts smarter.
+          </p>
         </div>
       </div>
     </section>
