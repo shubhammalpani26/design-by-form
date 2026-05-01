@@ -1,7 +1,6 @@
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import LearningLoopDiagram from "@/components/LearningLoopDiagram";
-import ManufacturingIntelligenceProof from "@/components/ManufacturingIntelligenceProof";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { ArrowRight } from "lucide-react";
@@ -101,9 +100,6 @@ const Technology = () => {
             <LearningLoopDiagram />
           </div>
         </section>
-
-        {/* Proof — manufacturing intelligence dataset from completed orders */}
-        <ManufacturingIntelligenceProof />
 
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
