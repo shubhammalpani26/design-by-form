@@ -54,6 +54,13 @@ export const makers: Maker[] = [
   },
 ];
 
+// Per-product maker overrides (used for hand-curated traction products
+// where the maker doesn't match the default category routing).
+const PRODUCT_MAKER_OVERRIDES: Record<string, string> = {
+  // Raina Jain - Atelier Designer Sofa → Benni Enterprises (woodwork + upholstery)
+  "22222222-2222-2222-2222-000000000005": "benni-enterprises",
+};
+
 export const getMakerBySlug = (slug: string): Maker | undefined => {
   return makers.find((m) => m.slug === slug);
 };
@@ -64,6 +71,13 @@ export const getMakerById = (id: string): Maker | undefined => {
 
 // Assign maker based on product category when possible, otherwise default to Cyanique
 export const getMakerForProduct = (productId: string, category?: string): Maker => {
+  // Hand-curated overrides win
+  const overrideSlug = PRODUCT_MAKER_OVERRIDES[productId];
+  if (overrideSlug) {
+    const override = makers.find((m) => m.slug === overrideSlug);
+    if (override) return override;
+  }
+
   const cat = (category || "").toLowerCase();
 
   // Wood / traditional furniture → Benni Enterprises (limited to specific categories)
