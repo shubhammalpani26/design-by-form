@@ -6,6 +6,7 @@ import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 import { ExternalLink } from 'lucide-react';
+import { ReferralWidget } from '@/components/ReferralWidget';
 
 interface DashboardStats {
   totalProducts: number;
@@ -17,6 +18,7 @@ interface DashboardStats {
 
 interface DesignerProfile {
   id: string;
+  slug: string | null;
 }
 
 interface BankDetails {
@@ -48,7 +50,7 @@ const CreatorDashboard = () => {
 
       const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('id')
+        .select('id, slug')
         .eq('user_id', user.id)
         .single();
 
@@ -220,6 +222,13 @@ const CreatorDashboard = () => {
                   </div>
                 </CardContent>
               </Card>
+            )}
+
+            {/* Referral program widget */}
+            {profile && (
+              <div className="mb-8">
+                <ReferralWidget designerId={profile.id} designerSlug={profile.slug} />
+              </div>
             )}
 
             {/* Quick Actions */}
