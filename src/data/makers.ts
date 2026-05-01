@@ -41,8 +41,8 @@ export const makers: Maker[] = [
   },
   {
     id: "7",
-    slug: "benni-enterprises",
-    name: "Benni Enterprises",
+    slug: "beni-enterprise",
+    name: "Beni Enterprise",
     location: "Mumbai, India",
     shortDescription: "Premium woodwork studio crafting refined, design-forward furniture with an emphasis on detail and lasting elegance.",
     expertise: "Specializing in high-end solid wood furniture with intricate detailing and contemporary silhouettes. Known for blending traditional craftsmanship with modern design sensibilities to create statement pieces for discerning interiors.",
@@ -57,8 +57,8 @@ export const makers: Maker[] = [
 // Per-product maker overrides (used for hand-curated traction products
 // where the maker doesn't match the default category routing).
 const PRODUCT_MAKER_OVERRIDES: Record<string, string> = {
-  // Raina Jain - Atelier Designer Sofa → Benni Enterprises (woodwork + upholstery)
-  "22222222-2222-2222-2222-000000000005": "benni-enterprises",
+  // Raina Jain - Atelier Designer Sofa → Beni Enterprise (woodwork + upholstery)
+  "22222222-2222-2222-2222-000000000005": "beni-enterprise",
 };
 
 export const getMakerBySlug = (slug: string): Maker | undefined => {
