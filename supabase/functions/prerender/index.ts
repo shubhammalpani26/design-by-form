@@ -13,6 +13,9 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.0";
 
 const SITE = "https://nyzora.ai";
 const DEFAULT_OG = `${SITE}/og-default.png`;
+const LOGO = `${SITE}/favicon.png`;
+const SUPPORT_EMAIL = "contact@nyzora.ai";
+const PRICE_VALID_UNTIL = "2027-12-31";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -38,7 +41,8 @@ interface Meta {
   image: string;
   url: string;
   type: "website" | "product" | "profile";
-  jsonLd?: Record<string, any>;
+  /** One or more JSON-LD blocks. Each becomes its own <script type="application/ld+json"> tag. */
+  jsonLd?: Record<string, any> | Record<string, any>[];
   bodyHeading?: string; // visible H1 for crawlers
   bodyText?: string;    // visible paragraph
 }
@@ -46,9 +50,12 @@ interface Meta {
 function renderHtml(meta: Meta): string {
   const title = `${truncate(meta.title, 65)} | Nyzora`;
   const desc = truncate(meta.description, 160);
-  const jsonLdScript = meta.jsonLd
-    ? `<script type="application/ld+json">${JSON.stringify(meta.jsonLd)}</script>`
-    : "";
+  const ldArray = meta.jsonLd
+    ? Array.isArray(meta.jsonLd) ? meta.jsonLd : [meta.jsonLd]
+    : [];
+  const jsonLdScript = ldArray
+    .map((b) => `<script type="application/ld+json">${JSON.stringify(b)}</script>`)
+    .join("\n");
 
   return `<!doctype html>
 <html lang="en">
