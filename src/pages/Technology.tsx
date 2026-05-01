@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import LearningLoopDiagram from "@/components/LearningLoopDiagram";
+import FlywheelProof from "@/components/FlywheelProof";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
 import { ArrowRight } from "lucide-react";
@@ -100,6 +101,9 @@ const Technology = () => {
             <LearningLoopDiagram />
           </div>
         </section>
+
+        {/* Live flywheel proof — fed by manufacturing_intelligence */}
+        <FlywheelProof />
 
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
