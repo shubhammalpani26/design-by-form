@@ -180,6 +180,66 @@ CRITICAL MANUFACTURING CONSTRAINTS — every design MUST follow these rules:
 - Structurally sound: the piece must support its intended load (seating, tabletop, etc.)
 The design must be manufacturable via large-format 3D printing and hand-finishing.`;
 
+    // ─────────────────────────────────────────────────────────────
+    // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
+    // Pull the most relevant learnings from completed orders so each new
+    // design generation builds on real production data.
+    // ─────────────────────────────────────────────────────────────
+    let learningsBlock = '';
+    let miContext: any = { totalSignals: 0, used: 0 };
+    try {
+      // Cheap heuristic to bias retrieval toward this prompt's category
+      const promptLower = (prompt || '').toLowerCase();
+      const categoryHints = [
+        'sofa', 'chair', 'lounger', 'bench', 'table', 'dining', 'coffee',
+        'lamp', 'lighting', 'painting', 'canvas', 'shelf', 'console',
+      ];
+      const matchedHint = categoryHints.find((c) => promptLower.includes(c));
+
+      const { count: totalSignals } = await supabase
+        .from('manufacturing_intelligence')
+        .select('id', { count: 'exact', head: true });
+
+      // First try category-biased retrieval
+      let learnings: any[] = [];
+      if (matchedHint) {
+        const { data: biased } = await supabase
+          .from('manufacturing_intelligence')
+          .select('stage, signal, value, learning, maker, process, category, confidence')
+          .or(`category.ilike.%${matchedHint}%,signal.ilike.%${matchedHint}%,product_name.ilike.%${matchedHint}%`)
+          .order('confidence', { ascending: false })
+          .limit(8);
+        learnings = biased ?? [];
+      }
+      // Fallback / top-up with highest-confidence cross-category learnings
+      if (learnings.length < 8) {
+        const { data: topUp } = await supabase
+          .from('manufacturing_intelligence')
+          .select('stage, signal, value, learning, maker, process, category, confidence')
+          .order('confidence', { ascending: false })
+          .limit(8 - learnings.length);
+        learnings = [...learnings, ...(topUp ?? [])];
+      }
+
+      miContext = { totalSignals: totalSignals ?? 0, used: learnings.length };
+
+      if (learnings.length > 0) {
+        learningsBlock = `
+MANUFACTURING INTELLIGENCE — LEARNED FROM ${totalSignals} REAL PRODUCTION SIGNALS:
+The system has built ${totalSignals} data points across completed orders. The most relevant lessons for this design:
+${learnings
+  .map((l, i) => `${i + 1}. [${l.maker} • ${l.process}] ${l.signal}: ${l.value}. → Lesson: ${l.learning} (confidence ${l.confidence}%).`)
+  .join('\n')}
+
+DESIGN DIRECTIVE: Honor these production-validated lessons. Choose proportions, wall thickness, base footprint, and form complexity that align with what has actually built successfully in past orders.`;
+        console.log(`Flywheel: injected ${learnings.length} learnings of ${totalSignals} total signals${matchedHint ? ` (biased: ${matchedHint})` : ''}`);
+      } else {
+        console.log('Flywheel: no learnings yet, skipping injection');
+      }
+    } catch (miError) {
+      console.error('Flywheel retrieval failed (continuing):', miError);
+    }
+
     // Photography direction for premium output
     const photographyDirection = `
 PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
@@ -206,6 +266,8 @@ ${prompt || 'Refine and elevate this design into a premium, gallery-worthy furni
 
 ${manufacturingConstraints}
 
+${learningsBlock}
+
 ${photographyDirection}
 
 Generate a single photorealistic product photograph of this furniture piece.`;
@@ -226,6 +288,8 @@ ${prompt}
 
 ${manufacturingConstraints}
 
+${learningsBlock}
+
 ${photographyDirection}
 
 Generate a single photorealistic product photograph of this furniture piece — shown on its own against a clean backdrop, NOT placed in the room.`;
@@ -245,6 +309,8 @@ Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 ${prompt}
 
 ${manufacturingConstraints}
+
+${learningsBlock}
 
 ${photographyDirection}
 
@@ -443,6 +509,35 @@ Respond ONLY in valid JSON format (no markdown):
       console.log("MESHY_API_KEY not configured, skipping 3D generation");
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // 🌀 FLYWHEEL — log this generation back into the dataset
+    // so future designs see this signal too. Best-effort, never blocking.
+    // ─────────────────────────────────────────────────────────────
+    try {
+      await supabase.from('manufacturing_intelligence').insert({
+        product_name: (prompt || 'Untitled design').slice(0, 80),
+        creator_name: user?.email ?? 'anonymous',
+        maker: 'pending-routing',
+        process: 'design_generation',
+        category: pricingData.complexity,
+        stage: 'design_input',
+        signal: 'New design generated with flywheel context',
+        value: `${miContext.used} learnings injected from ${miContext.totalSignals} prior signals · variation ${variationNumber} · ${pricingData.complexity} complexity`,
+        learning: 'Each generation enriches the dataset; downstream production telemetry will close the loop.',
+        confidence: 80,
+        source: 'design_generation',
+        metadata: {
+          variationNumber,
+          hasSketch: !!sketchImageBase64,
+          hasRoomImage: !!roomImageBase64,
+          generate3D,
+          pricePerCubicFoot: pricingData.pricePerCubicFoot,
+        },
+      });
+    } catch (logErr) {
+      console.error('Flywheel log failed (non-blocking):', logErr);
+    }
+
     return new Response(
       JSON.stringify({ 
         imageUrl, 
@@ -450,6 +545,7 @@ Respond ONLY in valid JSON format (no markdown):
         has3DSupport: !!taskId,
         polling: !!taskId,
         pricing: pricingData,
+        flywheel: miContext,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
