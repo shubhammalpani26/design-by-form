@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CheckCircle, XCircle, Trash2, ExternalLink, Sparkles } from "lucide-react";
+import { MakerSuggestion } from "./MakerSuggestion";
 
 interface DesignerProfile {
   id: string;
@@ -116,6 +117,8 @@ export const ProductCard = React.memo(function ProductCard({
         )}
 
         {isPending ? (
+          <>
+          <MakerSuggestion productId={product.id} />
           <div className="bg-accent/50 rounded-lg p-4 mb-4 border border-border">
             <h4 className="font-semibold text-sm mb-3 flex items-center justify-between">
               <span className="flex items-center gap-2">💰 Pricing</span>
@@ -199,6 +202,7 @@ export const ProductCard = React.memo(function ProductCard({
               </div>
             )}
           </div>
+          </>
         ) : (
           <div className="space-y-1 text-sm mb-4">
             <div className="flex justify-between">
