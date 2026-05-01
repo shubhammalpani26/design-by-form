@@ -497,6 +497,17 @@ const ProductDetail = () => {
       />
 
       <Footer />
+
+      <ShareCardDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        productName={product.name}
+        productImageUrl={mainImage || product.image}
+        productPath={`/product/${slug}`}
+        creatorName={product.designer}
+        creatorSlug={product.designerSlug}
+        isOwnDesign={isOwnDesign}
+      />
     </div>
   );
 };
