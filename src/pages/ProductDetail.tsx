@@ -14,6 +14,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShareButton } from "@/components/ShareButton";
+import { ShareCardDialog } from "@/components/ShareCardDialog";
+import { Share2 } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
@@ -31,6 +33,8 @@ const ProductDetail = () => {
   const [finishImage, setFinishImage] = useState<string>("");
   const [isApplyingFinish, setIsApplyingFinish] = useState(false);
   const [descExpanded, setDescExpanded] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [isOwnDesign, setIsOwnDesign] = useState(false);
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
@@ -38,6 +42,24 @@ const ProductDetail = () => {
   useEffect(() => {
     if (slug) fetchProduct();
   }, [slug]);
+
+  // Detect if viewer is the creator
+  useEffect(() => {
+    if (!product?.designerId) return;
+    let cancelled = false;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user || cancelled) return;
+      const { data } = await supabase
+        .from("designer_profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("id", product.designerId)
+        .maybeSingle();
+      if (!cancelled) setIsOwnDesign(!!data);
+    })();
+    return () => { cancelled = true; };
+  }, [product?.designerId]);
 
   useEffect(() => {
     if (!product?.angle_views) return;
@@ -442,7 +464,10 @@ const ProductDetail = () => {
                   </svg>
                 )}
               </Button>
-              <ShareButton url={window.location.href} title={product.name} description={`${product.name} by ${product.designer}`} variant="outline" size="lg" />
+              <Button variant="outline" size="lg" onClick={() => setShareOpen(true)}>
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
             </div>
 
             {/* Exclusively on Nyzora badge */}
