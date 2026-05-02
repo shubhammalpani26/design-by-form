@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Sparkles, Megaphone, Rocket, Bot, TrendingUp, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Header } from "@/components/Header";
@@ -18,13 +18,12 @@ const Plans = () => {
       name: "Free",
       priceMonthly: 0,
       priceYearly: 0,
-      description: "Try the platform, no commitment.",
+      description: "Test the waters. Design, list, sell.",
       features: [
-        "10 AI designs included",
-        "Basic AI design tools",
-        "Standard product photos",
-        "Listing fees waived during early access*",
-        "3D models free during early access*",
+        "10 AI designs / month",
+        "List up to 5 products",
+        "Standard product photography",
+        "Creator profile page",
         "Community support",
         "7-day design review",
       ],
@@ -35,38 +34,35 @@ const Plans = () => {
       name: "Creator",
       priceMonthly: 2999,
       priceYearly: 29990,
-      description: "Free during early access — for serious furniture designers.",
+      description: "Build a real catalogue and a following.",
       features: [
-        "Unlimited designs",
-        "Unlimited listings (early access)*",
-        "Unlimited 3D models (early access)*",
-        "Advanced AI design tools",
-        "Premium product photography",
+        "Unlimited AI designs & listings",
+        "Premium lifestyle photography",
+        "Verified Creator badge",
         "Priority 3-day review",
-        "Creator badge",
-        "Analytics dashboard",
+        "Sales & traffic analytics",
+        "1 AI Marketing Agent included",
         "Email support",
       ],
-      cta: "Start Creating — Free",
+      cta: "Start Creating",
       popular: true,
     },
     {
       name: "Pro Studio",
       priceMonthly: 9999,
       priceYearly: 99990,
-      description: "Free during early access — for design studios & agencies.",
+      description: "Launch your own furniture brand, end-to-end.",
       features: [
         "Everything in Creator",
-        "Unlimited listings (early access)*",
-        "Unlimited 3D models (early access)*",
-        "Unlimited team members",
-        "White-label options",
-        "Custom branding",
+        "Your own branded storefront",
+        "Custom domain (yourbrand.com)",
+        "Full AI Marketing Agent suite",
         "Same-day priority review",
-        "Dedicated account manager",
+        "Dedicated brand manager",
+        "Team seats & roles",
         "Phone & priority support",
       ],
-      cta: "Get Pro Studio — Free",
+      cta: "Launch My Brand",
       popular: false,
     },
   ];
@@ -102,14 +98,14 @@ const Plans = () => {
             <ScrollReveal animation="fade-up">
               <div className="max-w-3xl">
                 <p className="text-primary-foreground/40 text-xs font-medium uppercase tracking-[0.3em] mb-6">
-                  Pricing
+                  Pricing · Brand Building
                 </p>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[0.95] tracking-tight mb-8">
-                  Simple Plans,<br />
-                  <span className="font-light italic">Real Value</span>
+                  Design Furniture.<br />
+                  <span className="font-light italic">Build a Brand.</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  We're in early access — every plan, every feature, completely free right now.
+                  From your first design to your own branded storefront — backed by AI marketing agents that grow your audience while you create.
                 </p>
               </div>
             </ScrollReveal>
@@ -124,7 +120,7 @@ const Plans = () => {
                 Early Access
               </span>
               <p className="text-sm md:text-base text-foreground">
-                All plans and features are <span className="font-semibold">free right now</span> while we're in our initial phase. No card required.
+                Listing fees and 3D model generation are <span className="font-semibold">waived</span> for early creators. Lock in founder pricing on paid plans.
               </p>
             </div>
           </div>
@@ -230,6 +226,128 @@ const Plans = () => {
           </div>
         </section>
 
+        {/* Launch Your Own Brand */}
+        <section className="py-20 md:py-28 border-t border-border">
+          <div className="container">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-20 items-center max-w-6xl mx-auto">
+              <ScrollReveal animation="fade-up">
+                <div>
+                  <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.3em] mb-4">
+                    Pro Studio
+                  </p>
+                  <h2 className="text-3xl md:text-5xl font-bold text-foreground tracking-tight leading-[1.05] mb-6">
+                    Launch your own<br />
+                    <span className="font-light italic">furniture brand.</span>
+                  </h2>
+                  <p className="text-base text-muted-foreground leading-relaxed mb-8 max-w-md">
+                    Get a fully branded storefront on your own domain, powered by Nyzora's manufacturing network behind the scenes. You design and brand — we make, ship, and support.
+                  </p>
+                  <ul className="space-y-4 mb-10">
+                    {[
+                      { icon: Globe, title: "Branded storefront on your domain", desc: "yourbrand.com — your colors, your logo, your story." },
+                      { icon: Rocket, title: "End-to-end fulfilment", desc: "Manufacturing, QA, packaging, and delivery handled by verified makers." },
+                      { icon: TrendingUp, title: "Dedicated brand manager", desc: "A real human helping you grow your catalogue and revenue." },
+                    ].map(({ icon: Icon, title, desc }) => (
+                      <li key={title} className="flex gap-4">
+                        <div className="w-10 h-10 rounded-full bg-accent flex items-center justify-center shrink-0">
+                          <Icon className="w-4 h-4 text-foreground" />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-semibold text-foreground mb-1">{title}</h3>
+                          <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    className="rounded-full"
+                    onClick={() => navigate("/checkout?plan=pro&cycle=monthly")}
+                  >
+                    Launch My Brand <ArrowRight className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
+              </ScrollReveal>
+              <ScrollReveal animation="fade-up">
+                <div className="aspect-[4/5] bg-accent rounded-2xl border border-border p-8 flex flex-col justify-between relative overflow-hidden">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.25em] text-muted-foreground/60">Your Brand</span>
+                    <span className="text-[10px] uppercase tracking-[0.25em] text-primary">Live</span>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground/60 mb-2">studio.yourbrand.com</p>
+                    <h3 className="text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-tight mb-4">
+                      A studio<br />of your own.
+                    </h3>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                      Powered quietly by Nyzora
+                    </div>
+                  </div>
+                </div>
+              </ScrollReveal>
+            </div>
+          </div>
+        </section>
+
+        {/* AI Marketing Agents */}
+        <section className="py-20 md:py-28 bg-foreground text-background">
+          <div className="container">
+            <ScrollReveal animation="fade-up">
+              <div className="max-w-2xl mb-16">
+                <div className="flex items-center gap-2 mb-6">
+                  <Sparkles className="w-4 h-4 text-background/60" />
+                  <p className="text-xs text-background/60 uppercase tracking-[0.3em]">AI Marketing Agents</p>
+                </div>
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight leading-[1.05] mb-6">
+                  Marketing that<br />
+                  <span className="font-light italic">runs itself.</span>
+                </h2>
+                <p className="text-base text-background/60 leading-relaxed">
+                  Every paid plan includes AI agents that handle the unsexy parts of growing a brand — so you can stay in the studio.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-background/10 rounded-xl overflow-hidden">
+                {[
+                  {
+                    icon: Megaphone,
+                    name: "Social Agent",
+                    desc: "Auto-generates Instagram & Pinterest posts from each new design — captions, hashtags, and lifestyle imagery included.",
+                    plan: "Creator+",
+                  },
+                  {
+                    icon: Bot,
+                    name: "SEO & Content Agent",
+                    desc: "Writes product descriptions, blog posts, and meta tags optimized to rank for the searches your buyers actually make.",
+                    plan: "Creator+",
+                  },
+                  {
+                    icon: TrendingUp,
+                    name: "Ads & Audience Agent",
+                    desc: "Builds and runs paid campaigns across Meta and Google. Auto-tunes spend toward the products that convert.",
+                    plan: "Pro Studio",
+                  },
+                ].map(({ icon: Icon, name, desc, plan }) => (
+                  <div key={name} className="bg-foreground p-8 md:p-10">
+                    <div className="w-10 h-10 rounded-full bg-background/10 flex items-center justify-center mb-6">
+                      <Icon className="w-4 h-4 text-background" />
+                    </div>
+                    <h3 className="text-lg font-semibold tracking-tight mb-3">{name}</h3>
+                    <p className="text-sm text-background/60 leading-relaxed mb-6">{desc}</p>
+                    <span className="inline-block text-[10px] uppercase tracking-[0.25em] text-background/60 px-2 py-1 border border-background/20 rounded-full">
+                      {plan}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <p className="text-xs text-background/40 mt-8 text-center">
+                Done-for-you marketing campaigns and brand strategy are also available as add-ons for Pro Studio members.
+              </p>
+            </ScrollReveal>
+          </div>
+        </section>
+
         {/* 3D pricing comparison */}
         <section className="py-16 md:py-24 bg-accent">
           <div className="container">
@@ -243,15 +361,14 @@ const Plans = () => {
             </ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-3xl mx-auto rounded-xl overflow-hidden">
               {[
-                { plan: "Free", price: 500, note: "Free during early access", tag: "Free now" },
-                { plan: "Creator", price: 300, note: "Free during early access", tag: "Free now" },
-                { plan: "Pro Studio", price: 200, note: "Free during early access", tag: "Free now" },
+                { plan: "Free", price: 500, note: "per 3D model", tag: "Waived in early access" },
+                { plan: "Creator", price: 300, note: "per 3D model", tag: "Waived in early access" },
+                { plan: "Pro Studio", price: 200, note: "per 3D model", tag: "Waived in early access" },
               ].map((item) => (
                 <div key={item.plan} className="bg-background p-8 md:p-10 text-center">
                   <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] mb-3">{item.plan}</p>
                   <p className="text-3xl font-bold text-foreground tracking-tight mb-1">
-                    <span className="line-through text-muted-foreground/40 text-xl mr-2">{formatPrice(item.price)}</span>
-                    {formatPrice(0)}
+                    {formatPrice(item.price)}
                   </p>
                   <p className="text-xs text-muted-foreground mb-2">{item.note}</p>
                   {item.tag && (
@@ -263,7 +380,7 @@ const Plans = () => {
               ))}
             </div>
             <p className="text-xs text-center text-muted-foreground/50 mt-6">
-              *Listing fees and 3D model fees are currently waived during our initial phase. Standard pricing shown above will apply once early access ends.
+              Listing fees and 3D model fees are waived during early access. Standard pricing above applies once early access ends.
             </p>
           </div>
         </section>
