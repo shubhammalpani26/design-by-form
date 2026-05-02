@@ -1381,7 +1381,7 @@ const DesignStudio = () => {
       if (userIntent === 'designer') {
         if (profileError || !profile) {
           // Save design data before redirecting so it's not lost
-          saveDesignToLocalStorage();
+          await saveDesignToLocalStorage();
           
           toast({
             title: "Complete Designer Onboarding",
@@ -1393,7 +1393,7 @@ const DesignStudio = () => {
 
         if (!profile.terms_accepted) {
           // Save design data before redirecting
-          saveDesignToLocalStorage();
+          await saveDesignToLocalStorage();
           
           toast({
             title: "Terms Not Accepted",
