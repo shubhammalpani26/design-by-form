@@ -243,13 +243,16 @@ const Plans = () => {
             </ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-3xl mx-auto rounded-xl overflow-hidden">
               {[
-                { plan: "Free", price: 500, note: "per 3D model", tag: null },
-                { plan: "Creator", price: 300, note: "after 5 free / month", tag: "40% savings" },
-                { plan: "Pro Studio", price: 200, note: "after 20 free / month", tag: "60% savings" },
+                { plan: "Free", price: 500, note: "Free during early access", tag: "Free now" },
+                { plan: "Creator", price: 300, note: "Free during early access", tag: "Free now" },
+                { plan: "Pro Studio", price: 200, note: "Free during early access", tag: "Free now" },
               ].map((item) => (
                 <div key={item.plan} className="bg-background p-8 md:p-10 text-center">
                   <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] mb-3">{item.plan}</p>
-                  <p className="text-3xl font-bold text-foreground tracking-tight mb-1">{formatPrice(item.price)}</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight mb-1">
+                    <span className="line-through text-muted-foreground/40 text-xl mr-2">{formatPrice(item.price)}</span>
+                    {formatPrice(0)}
+                  </p>
                   <p className="text-xs text-muted-foreground mb-2">{item.note}</p>
                   {item.tag && (
                     <span className="inline-block text-[10px] uppercase tracking-wider text-primary font-medium">
@@ -260,7 +263,7 @@ const Plans = () => {
               ))}
             </div>
             <p className="text-xs text-center text-muted-foreground/50 mt-6">
-              *Listing fees currently waived during our initial phase
+              *Listing fees and 3D model fees are currently waived during our initial phase. Standard pricing shown above will apply once early access ends.
             </p>
           </div>
         </section>
