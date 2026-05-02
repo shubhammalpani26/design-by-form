@@ -2228,7 +2228,7 @@ const DesignStudio = () => {
                                 
                                 const modelUrl = urlData.publicUrl;
                                 
-                                // If we have a selected variation, update it with the model URL
+                                // If we have a selected variation, attach the model URL to it
                                 if (selectedVariation !== null && generatedVariations[selectedVariation]) {
                                   setGeneratedVariations(prev => {
                                     const updated = [...prev];
@@ -2239,16 +2239,26 @@ const DesignStudio = () => {
                                     return updated;
                                   });
                                   setGenerated3DModel(modelUrl);
-                                  
+                                  setPreviewMode("3d");
                                   toast({
                                     title: "Model Uploaded Successfully",
-                                    description: "Your 3D model has been applied to the current design. Switch to 3D Model tab to preview.",
+                                    description: "Showing your 3D model in the preview.",
                                   });
                                 } else {
-                                  // Store the URL for later use when a variation is selected
+                                  // No design generated yet — create a synthetic variation
+                                  // backed only by the uploaded model so the viewer renders it
+                                  // immediately without requiring a 2D generation step first.
+                                  const placeholderImage =
+                                    "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'></svg>";
+                                  setGeneratedVariations([
+                                    { imageUrl: placeholderImage, modelUrl },
+                                  ]);
+                                  setSelectedVariation(0);
+                                  setGenerated3DModel(modelUrl);
+                                  setPreviewMode("3d");
                                   toast({
-                                    title: "Model Uploaded Successfully", 
-                                    description: "Generate a design first, then the model will be applied automatically.",
+                                    title: "Model Uploaded Successfully",
+                                    description: "Your 3D model is ready to preview.",
                                   });
                                 }
                                 
