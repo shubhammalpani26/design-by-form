@@ -23,8 +23,8 @@ const Plans = () => {
         "10 AI designs included",
         "Basic AI design tools",
         "Standard product photos",
-        "Listing fee: ₹1,000 per listing*",
-        "Pay ₹500 per 3D model",
+        "Listing fees waived during early access*",
+        "3D models free during early access*",
         "Community support",
         "7-day design review",
       ],
@@ -35,13 +35,11 @@ const Plans = () => {
       name: "Creator",
       priceMonthly: 2999,
       priceYearly: 29990,
-      description: "For serious furniture designers.",
+      description: "Free during early access — for serious furniture designers.",
       features: [
         "Unlimited designs",
-        "5 free listings per month*",
-        "Additional listings at ₹500 each",
-        "5 free 3D models per month",
-        "Additional 3D models at ₹300 each",
+        "Unlimited listings (early access)*",
+        "Unlimited 3D models (early access)*",
         "Advanced AI design tools",
         "Premium product photography",
         "Priority 3-day review",
@@ -49,19 +47,18 @@ const Plans = () => {
         "Analytics dashboard",
         "Email support",
       ],
-      cta: "Start Creating",
+      cta: "Start Creating — Free",
       popular: true,
     },
     {
       name: "Pro Studio",
       priceMonthly: 9999,
       priceYearly: 99990,
-      description: "For design studios & agencies.",
+      description: "Free during early access — for design studios & agencies.",
       features: [
         "Everything in Creator",
-        "Unlimited listings included",
-        "20 free 3D models per month",
-        "Additional models at ₹200 each",
+        "Unlimited listings (early access)*",
+        "Unlimited 3D models (early access)*",
         "Unlimited team members",
         "White-label options",
         "Custom branding",
@@ -69,7 +66,7 @@ const Plans = () => {
         "Dedicated account manager",
         "Phone & priority support",
       ],
-      cta: "Get Pro Studio",
+      cta: "Get Pro Studio — Free",
       popular: false,
     },
   ];
@@ -112,10 +109,24 @@ const Plans = () => {
                   <span className="font-light italic">Real Value</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  Start free. Upgrade when you're ready. Every plan includes our AI design tools.
+                  We're in early access — every plan, every feature, completely free right now.
                 </p>
               </div>
             </ScrollReveal>
+          </div>
+        </section>
+
+        {/* Early Access Banner */}
+        <section className="border-b border-border bg-accent/40">
+          <div className="container py-5">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-center">
+              <span className="inline-block text-[10px] uppercase tracking-[0.25em] text-primary font-semibold px-2 py-1 border border-primary/30 rounded-full">
+                Early Access
+              </span>
+              <p className="text-sm md:text-base text-foreground">
+                All plans and features are <span className="font-semibold">free right now</span> while we're in our initial phase. No card required.
+              </p>
+            </div>
           </div>
         </section>
 
@@ -232,13 +243,16 @@ const Plans = () => {
             </ScrollReveal>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border max-w-3xl mx-auto rounded-xl overflow-hidden">
               {[
-                { plan: "Free", price: 500, note: "per 3D model", tag: null },
-                { plan: "Creator", price: 300, note: "after 5 free / month", tag: "40% savings" },
-                { plan: "Pro Studio", price: 200, note: "after 20 free / month", tag: "60% savings" },
+                { plan: "Free", price: 500, note: "Free during early access", tag: "Free now" },
+                { plan: "Creator", price: 300, note: "Free during early access", tag: "Free now" },
+                { plan: "Pro Studio", price: 200, note: "Free during early access", tag: "Free now" },
               ].map((item) => (
                 <div key={item.plan} className="bg-background p-8 md:p-10 text-center">
                   <p className="text-xs text-muted-foreground/60 uppercase tracking-[0.2em] mb-3">{item.plan}</p>
-                  <p className="text-3xl font-bold text-foreground tracking-tight mb-1">{formatPrice(item.price)}</p>
+                  <p className="text-3xl font-bold text-foreground tracking-tight mb-1">
+                    <span className="line-through text-muted-foreground/40 text-xl mr-2">{formatPrice(item.price)}</span>
+                    {formatPrice(0)}
+                  </p>
                   <p className="text-xs text-muted-foreground mb-2">{item.note}</p>
                   {item.tag && (
                     <span className="inline-block text-[10px] uppercase tracking-wider text-primary font-medium">
@@ -249,7 +263,7 @@ const Plans = () => {
               ))}
             </div>
             <p className="text-xs text-center text-muted-foreground/50 mt-6">
-              *Listing fees currently waived during our initial phase
+              *Listing fees and 3D model fees are currently waived during our initial phase. Standard pricing shown above will apply once early access ends.
             </p>
           </div>
         </section>
