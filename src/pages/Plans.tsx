@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Check, ArrowRight } from "lucide-react";
+import { Check, ArrowRight, Sparkles, Megaphone, Rocket, Bot, TrendingUp, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { Header } from "@/components/Header";
@@ -18,13 +18,12 @@ const Plans = () => {
       name: "Free",
       priceMonthly: 0,
       priceYearly: 0,
-      description: "Try the platform, no commitment.",
+      description: "Test the waters. Design, list, sell.",
       features: [
-        "10 AI designs included",
-        "Basic AI design tools",
-        "Standard product photos",
-        "Listing fees waived during early access*",
-        "3D models free during early access*",
+        "10 AI designs / month",
+        "List up to 5 products",
+        "Standard product photography",
+        "Creator profile page",
         "Community support",
         "7-day design review",
       ],
@@ -35,38 +34,35 @@ const Plans = () => {
       name: "Creator",
       priceMonthly: 2999,
       priceYearly: 29990,
-      description: "Free during early access — for serious furniture designers.",
+      description: "Build a real catalogue and a following.",
       features: [
-        "Unlimited designs",
-        "Unlimited listings (early access)*",
-        "Unlimited 3D models (early access)*",
-        "Advanced AI design tools",
-        "Premium product photography",
+        "Unlimited AI designs & listings",
+        "Premium lifestyle photography",
+        "Verified Creator badge",
         "Priority 3-day review",
-        "Creator badge",
-        "Analytics dashboard",
+        "Sales & traffic analytics",
+        "1 AI Marketing Agent included",
         "Email support",
       ],
-      cta: "Start Creating — Free",
+      cta: "Start Creating",
       popular: true,
     },
     {
       name: "Pro Studio",
       priceMonthly: 9999,
       priceYearly: 99990,
-      description: "Free during early access — for design studios & agencies.",
+      description: "Launch your own furniture brand, end-to-end.",
       features: [
         "Everything in Creator",
-        "Unlimited listings (early access)*",
-        "Unlimited 3D models (early access)*",
-        "Unlimited team members",
-        "White-label options",
-        "Custom branding",
+        "Your own branded storefront",
+        "Custom domain (yourbrand.com)",
+        "Full AI Marketing Agent suite",
         "Same-day priority review",
-        "Dedicated account manager",
+        "Dedicated brand manager",
+        "Team seats & roles",
         "Phone & priority support",
       ],
-      cta: "Get Pro Studio — Free",
+      cta: "Launch My Brand",
       popular: false,
     },
   ];
@@ -102,14 +98,14 @@ const Plans = () => {
             <ScrollReveal animation="fade-up">
               <div className="max-w-3xl">
                 <p className="text-primary-foreground/40 text-xs font-medium uppercase tracking-[0.3em] mb-6">
-                  Pricing
+                  Pricing · Brand Building
                 </p>
                 <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-primary-foreground leading-[0.95] tracking-tight mb-8">
-                  Simple Plans,<br />
-                  <span className="font-light italic">Real Value</span>
+                  Design Furniture.<br />
+                  <span className="font-light italic">Build a Brand.</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  We're in early access — every plan, every feature, completely free right now.
+                  From your first design to your own branded storefront — backed by AI marketing agents that grow your audience while you create.
                 </p>
               </div>
             </ScrollReveal>
@@ -124,7 +120,7 @@ const Plans = () => {
                 Early Access
               </span>
               <p className="text-sm md:text-base text-foreground">
-                All plans and features are <span className="font-semibold">free right now</span> while we're in our initial phase. No card required.
+                Listing fees and 3D model generation are <span className="font-semibold">waived</span> for early creators. Lock in founder pricing on paid plans.
               </p>
             </div>
           </div>
