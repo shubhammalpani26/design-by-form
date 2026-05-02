@@ -342,26 +342,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
             </div>
           )}
 
-          {modelUrl && loadingState !== 'error' && (
-            <div className="text-xs text-muted-foreground">
-              <details className="cursor-pointer">
-                <summary className="hover:text-foreground transition-colors">Debug Info</summary>
-                <div className="mt-2 space-y-1 font-mono text-[10px] bg-muted p-2 rounded">
-                  <p><strong>Status:</strong> {loadingState}</p>
-                  <p><strong>Progress:</strong> {loadProgress}%</p>
-                  <p><strong>Script Ready:</strong> {scriptReady ? 'Yes' : 'No'}</p>
-                  <p><strong>Has Ref:</strong> {viewerElementRef.current ? 'Yes' : 'No'}</p>
-                  <p><strong>Cached:</strong> {loadedModelsCache.has(modelUrl) ? 'Yes' : 'No'}</p>
-                  <p><strong>Viewer Key:</strong> {viewerKey}</p>
-                  {modelFileSize && <p><strong>Size:</strong> {modelFileSize}</p>}
-                  <p className="break-all"><strong>URL:</strong> {modelUrl}</p>
-                  {proxiedUrl && (
-                    <p className="text-primary"><strong>Using proxy:</strong> Yes</p>
-                  )}
-                </div>
-              </details>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
