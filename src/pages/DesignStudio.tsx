@@ -27,7 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { designSubmissionSchema } from "@/lib/validations";
 import type { User, Session } from "@supabase/supabase-js";
 import { applyColorTransformToFurniture } from "@/lib/colorTransform";
-import { retrieveDesignImages } from "@/lib/designTransfer";
+import { retrieveDesignImages, storePayload, retrievePayload, clearPayload } from "@/lib/designTransfer";
 
 const DesignStudio = () => {
   const navigate = useNavigate();
@@ -128,7 +128,7 @@ const DesignStudio = () => {
   const [shouldAutoSubmit, setShouldAutoSubmit] = useState(false);
   // Flag to suppress intermediate toasts during auto-submit
   const [isAutoSubmitting, setIsAutoSubmitting] = useState(false);
-  const saveDesignToLocalStorage = () => {
+  const saveDesignToLocalStorage = async () => {
     const designData = {
       generatedDesign,
       generatedVariations,
@@ -142,16 +142,23 @@ const DesignStudio = () => {
       showSubmissionForm,
       autoSubmitAfterRestore: true, // Flag to trigger auto-submit
     };
-    localStorage.setItem('pending-design-data', JSON.stringify(designData));
-    localStorage.setItem('pending-design-intent', 'designer');
+    try {
+      // Store the heavy payload (base64 images can easily exceed 5MB localStorage quota) in IndexedDB
+      await storePayload('pending-design-data', designData);
+      // Keep a tiny flag in localStorage so other pages can detect a pending submission
+      localStorage.setItem('pending-design-data', '1');
+      localStorage.setItem('pending-design-intent', 'designer');
+    } catch (e) {
+      console.error('Failed to persist pending design:', e);
+      throw e;
+    }
   };
 
-  // Restore design data from localStorage after onboarding
-  const restoreDesignFromLocalStorage = (): { restored: boolean; shouldAutoSubmit: boolean } => {
-    const savedData = localStorage.getItem('pending-design-data');
-    if (savedData) {
+  // Restore design data from IndexedDB after onboarding
+  const restoreDesignFromLocalStorage = async (): Promise<{ restored: boolean; shouldAutoSubmit: boolean }> => {
+    const data = await retrievePayload<any>('pending-design-data');
+    if (data) {
       try {
-        const data = JSON.parse(savedData);
         if (data.generatedDesign) setGeneratedDesign(data.generatedDesign);
         if (data.generatedVariations) setGeneratedVariations(data.generatedVariations);
         if (data.selectedVariation !== null) setSelectedVariation(data.selectedVariation);
@@ -162,14 +169,16 @@ const DesignStudio = () => {
         if (data.prompt) setPrompt(data.prompt);
         if (data.currentPricing) setCurrentPricing(data.currentPricing);
         if (data.showSubmissionForm) setShowSubmissionForm(data.showSubmissionForm);
-        
+
         const autoSubmit = data.autoSubmitAfterRestore === true;
-        
+
+        await clearPayload('pending-design-data');
         localStorage.removeItem('pending-design-data');
-        
+
         return { restored: true, shouldAutoSubmit: autoSubmit };
       } catch (e) {
         console.error('Failed to restore design data:', e);
+        await clearPayload('pending-design-data');
         localStorage.removeItem('pending-design-data');
       }
     }
@@ -178,31 +187,31 @@ const DesignStudio = () => {
 
   // Check if user was redirected from designer onboarding - auto-select designer mode and restore design
   useEffect(() => {
-    const pendingDesignData = localStorage.getItem('pending-design-data');
+    const pendingDesignFlag = localStorage.getItem('pending-design-data');
     const pendingIntent = localStorage.getItem('pending-design-intent');
-    
-    if ((pendingDesignData || pendingIntent === 'designer') && user) {
-      // User just completed designer onboarding, auto-select designer mode
+
+    if ((pendingDesignFlag || pendingIntent === 'designer') && user) {
       setUserIntent('designer');
       setShowIntentDialog(false);
       setIntentDialogHandled(true);
       localStorage.removeItem('pending-design-intent');
-      
-      // Restore any saved design data
-      if (pendingDesignData) {
-        const { restored, shouldAutoSubmit: autoSubmit } = restoreDesignFromLocalStorage();
-        if (restored && autoSubmit) {
-          setShouldAutoSubmit(true);
-          toast({
-            title: "Design Restored!",
-            description: "Submitting your design automatically...",
-          });
-        } else if (restored) {
-          toast({
-            title: "Design Restored!",
-            description: "Your saved design is ready. You can now submit it.",
-          });
-        }
+
+      if (pendingDesignFlag) {
+        (async () => {
+          const { restored, shouldAutoSubmit: autoSubmit } = await restoreDesignFromLocalStorage();
+          if (restored && autoSubmit) {
+            setShouldAutoSubmit(true);
+            toast({
+              title: "Design Restored!",
+              description: "Submitting your design automatically...",
+            });
+          } else if (restored) {
+            toast({
+              title: "Design Restored!",
+              description: "Your design has been restored. Click submit to continue.",
+            });
+          }
+        })();
       }
     }
   }, [user]);
@@ -1372,7 +1381,7 @@ const DesignStudio = () => {
       if (userIntent === 'designer') {
         if (profileError || !profile) {
           // Save design data before redirecting so it's not lost
-          saveDesignToLocalStorage();
+          await saveDesignToLocalStorage();
           
           toast({
             title: "Complete Designer Onboarding",
@@ -1384,7 +1393,7 @@ const DesignStudio = () => {
 
         if (!profile.terms_accepted) {
           // Save design data before redirecting
-          saveDesignToLocalStorage();
+          await saveDesignToLocalStorage();
           
           toast({
             title: "Terms Not Accepted",
@@ -3581,9 +3590,9 @@ const DesignStudio = () => {
           <div className="flex flex-col gap-3">
             <Button 
               variant="hero" 
-              onClick={() => {
-                // Save current design to localStorage before redirect
-                saveDesignToLocalStorage();
+              onClick={async () => {
+                // Save current design before redirect (uses IndexedDB for large image payloads)
+                await saveDesignToLocalStorage();
                 navigate('/auth?returnTo=/design-studio');
               }}
             >

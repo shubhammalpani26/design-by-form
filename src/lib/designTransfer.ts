@@ -87,3 +87,52 @@ export async function clearDesignImages(): Promise<void> {
     // ignore
   }
 }
+
+/**
+ * Generic JSON payload storage in IndexedDB. Used for large objects (e.g.
+ * pending design submission data containing base64 images) that exceed the
+ * ~5MB localStorage quota.
+ */
+export async function storePayload(key: string, payload: unknown): Promise<void> {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).put(payload, key);
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    db.close();
+  } catch (e) {
+    console.warn(`IndexedDB store failed for key "${key}":`, e);
+    throw e;
+  }
+}
+
+export async function retrievePayload<T = unknown>(key: string): Promise<T | null> {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readonly');
+    const request = tx.objectStore(STORE_NAME).get(key);
+    const result = await new Promise<T | null>((resolve, reject) => {
+      request.onsuccess = () => resolve((request.result as T) ?? null);
+      request.onerror = () => reject(request.error);
+    });
+    db.close();
+    return result;
+  } catch (e) {
+    console.warn(`IndexedDB retrieve failed for key "${key}":`, e);
+    return null;
+  }
+}
+
+export async function clearPayload(key: string): Promise<void> {
+  try {
+    const db = await openDB();
+    const tx = db.transaction(STORE_NAME, 'readwrite');
+    tx.objectStore(STORE_NAME).delete(key);
+    db.close();
+  } catch {
+    // ignore
+  }
+}
