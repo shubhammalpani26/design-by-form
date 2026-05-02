@@ -2259,13 +2259,9 @@ const DesignStudio = () => {
                                   setGenerated3DModel(modelUrl);
                                   // Trigger the same flow as picking a variation so the
                                   // pricing/submission workflow appears (Submit / Get Quote).
-                                  // handleSelectVariation reads from generatedVariations[index]
-                                  // synchronously via the closure, so we briefly defer to let
-                                  // state settle before invoking it.
-                                  setTimeout(() => {
-                                    handleSelectVariation(0);
-                                    setPreviewMode("3d");
-                                  }, 0);
+                                  // Pass the synthetic variation explicitly to avoid stale state.
+                                  await handleSelectVariation(0, synthetic);
+                                  setPreviewMode("3d");
                                   toast({
                                     title: "Model Uploaded Successfully",
                                     description: "Your 3D model is ready. Continue to list it or get a quote below.",
