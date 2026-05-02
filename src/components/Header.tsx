@@ -256,7 +256,7 @@ export const Header = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-3 lg:space-x-5 min-w-0 flex-shrink">
+        <nav className="hidden md:flex items-center space-x-3 lg:space-x-4 xl:space-x-5 min-w-0 flex-shrink">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -285,16 +285,16 @@ export const Header = () => {
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
           </Link>
-          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
+          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Verified Makers
           </Link>
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Leaderboard
           </Link>
-          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
             Technology
           </Link>
-          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden lg:block">
             Pricing
           </Link>
         </nav>
