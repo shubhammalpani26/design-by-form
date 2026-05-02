@@ -215,14 +215,6 @@ const DesignStudio = () => {
       }
     }
   }, [user]);
-          toast({
-            title: "Design Restored!",
-            description: "Your saved design is ready. You can now submit it.",
-          });
-        }
-      }
-    }
-  }, [user]);
 
   // Auto-submit design after restoration if flagged
   useEffect(() => {
