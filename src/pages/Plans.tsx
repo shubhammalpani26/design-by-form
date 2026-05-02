@@ -109,10 +109,24 @@ const Plans = () => {
                   <span className="font-light italic">Real Value</span>
                 </h1>
                 <p className="text-primary-foreground/50 text-base md:text-lg max-w-lg leading-relaxed">
-                  Start free. Upgrade when you're ready. Every plan includes our AI design tools.
+                  We're in early access — every plan, every feature, completely free right now.
                 </p>
               </div>
             </ScrollReveal>
+          </div>
+        </section>
+
+        {/* Early Access Banner */}
+        <section className="border-b border-border bg-accent/40">
+          <div className="container py-5">
+            <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 text-center">
+              <span className="inline-block text-[10px] uppercase tracking-[0.25em] text-primary font-semibold px-2 py-1 border border-primary/30 rounded-full">
+                Early Access
+              </span>
+              <p className="text-sm md:text-base text-foreground">
+                All plans and features are <span className="font-semibold">free right now</span> while we're in our initial phase. No card required.
+              </p>
+            </div>
           </div>
         </section>
 
