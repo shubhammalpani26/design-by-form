@@ -878,9 +878,13 @@ const DesignStudio = () => {
     }
   };
 
-  const handleSelectVariation = async (index: number) => {
+  const handleSelectVariation = async (
+    index: number,
+    explicitVariation?: typeof generatedVariations[number]
+  ) => {
     setSelectedVariation(index);
-    const selectedVar = generatedVariations[index];
+    const selectedVar = explicitVariation ?? generatedVariations[index];
+    if (!selectedVar) return;
     
     setGeneratedDesign(selectedVar.imageUrl);
     setGenerated3DModel(selectedVar.modelUrl || null);
@@ -2250,15 +2254,17 @@ const DesignStudio = () => {
                                   // immediately without requiring a 2D generation step first.
                                   const placeholderImage =
                                     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'></svg>";
-                                  setGeneratedVariations([
-                                    { imageUrl: placeholderImage, modelUrl },
-                                  ]);
-                                  setSelectedVariation(0);
+                                  const synthetic = { imageUrl: placeholderImage, modelUrl };
+                                  setGeneratedVariations([synthetic]);
                                   setGenerated3DModel(modelUrl);
+                                  // Trigger the same flow as picking a variation so the
+                                  // pricing/submission workflow appears (Submit / Get Quote).
+                                  // Pass the synthetic variation explicitly to avoid stale state.
+                                  await handleSelectVariation(0, synthetic);
                                   setPreviewMode("3d");
                                   toast({
                                     title: "Model Uploaded Successfully",
-                                    description: "Your 3D model is ready to preview.",
+                                    description: "Your 3D model is ready. Continue to list it or get a quote below.",
                                   });
                                 }
                                 
