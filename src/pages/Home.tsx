@@ -191,10 +191,9 @@ const Home = () => {
       if (error) throw error;
 
       const total = count ?? 0;
-      const roundedCount = total < 5 ? Math.max(total, 1) : Math.floor(total / 5) * 5;
 
       setCreatorStats({
-        activeCreators: roundedCount,
+        activeCreators: total,
       });
     } catch (error) {
       console.error('Error fetching creator stats:', error);
