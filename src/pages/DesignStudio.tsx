@@ -3590,9 +3590,9 @@ const DesignStudio = () => {
           <div className="flex flex-col gap-3">
             <Button 
               variant="hero" 
-              onClick={() => {
-                // Save current design to localStorage before redirect
-                saveDesignToLocalStorage();
+              onClick={async () => {
+                // Save current design before redirect (uses IndexedDB for large image payloads)
+                await saveDesignToLocalStorage();
                 navigate('/auth?returnTo=/design-studio');
               }}
             >
