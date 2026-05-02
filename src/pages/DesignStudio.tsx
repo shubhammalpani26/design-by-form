@@ -2137,12 +2137,23 @@ const DesignStudio = () => {
                         <label className="cursor-pointer">
                           <input 
                             type="file" 
-                            accept=".glb,.obj,.stl,.fbx" 
+                            accept=".glb,.gltf" 
                             className="hidden" 
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
                               
+                              // Validate file type — model-viewer only supports GLB/GLTF
+                              const ext = file.name.split('.').pop()?.toLowerCase();
+                              if (ext !== 'glb' && ext !== 'gltf') {
+                                toast({
+                                  title: "Unsupported Format",
+                                  description: "Only .glb or .gltf files can be previewed. Please convert FBX/OBJ/STL to GLB before uploading.",
+                                  variant: "destructive",
+                                });
+                                return;
+                              }
+
                               // Validate file size (max 50MB)
                               if (file.size > 50 * 1024 * 1024) {
                                 toast({
