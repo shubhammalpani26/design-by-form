@@ -2250,15 +2250,21 @@ const DesignStudio = () => {
                                   // immediately without requiring a 2D generation step first.
                                   const placeholderImage =
                                     "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'></svg>";
-                                  setGeneratedVariations([
-                                    { imageUrl: placeholderImage, modelUrl },
-                                  ]);
-                                  setSelectedVariation(0);
+                                  const synthetic = { imageUrl: placeholderImage, modelUrl };
+                                  setGeneratedVariations([synthetic]);
                                   setGenerated3DModel(modelUrl);
-                                  setPreviewMode("3d");
+                                  // Trigger the same flow as picking a variation so the
+                                  // pricing/submission workflow appears (Submit / Get Quote).
+                                  // handleSelectVariation reads from generatedVariations[index]
+                                  // synchronously via the closure, so we briefly defer to let
+                                  // state settle before invoking it.
+                                  setTimeout(() => {
+                                    handleSelectVariation(0);
+                                    setPreviewMode("3d");
+                                  }, 0);
                                   toast({
                                     title: "Model Uploaded Successfully",
-                                    description: "Your 3D model is ready to preview.",
+                                    description: "Your 3D model is ready. Continue to list it or get a quote below.",
                                   });
                                 }
                                 
