@@ -28,6 +28,7 @@ import { designSubmissionSchema } from "@/lib/validations";
 import type { User, Session } from "@supabase/supabase-js";
 import { applyColorTransformToFurniture } from "@/lib/colorTransform";
 import { retrieveDesignImages, storePayload, retrievePayload, clearPayload } from "@/lib/designTransfer";
+import { convertToGlb } from "@/lib/modelConvert";
 
 const DesignStudio = () => {
   const navigate = useNavigate();
@@ -2137,23 +2138,12 @@ const DesignStudio = () => {
                         <label className="cursor-pointer">
                           <input 
                             type="file" 
-                            accept=".glb,.gltf" 
+                            accept=".glb,.gltf,.obj,.stl,.fbx" 
                             className="hidden" 
                             onChange={async (e) => {
                               const file = e.target.files?.[0];
                               if (!file) return;
                               
-                              // Validate file type — model-viewer only supports GLB/GLTF
-                              const ext = file.name.split('.').pop()?.toLowerCase();
-                              if (ext !== 'glb' && ext !== 'gltf') {
-                                toast({
-                                  title: "Unsupported Format",
-                                  description: "Only .glb or .gltf files can be previewed. Please convert FBX/OBJ/STL to GLB before uploading.",
-                                  variant: "destructive",
-                                });
-                                return;
-                              }
-
                               // Validate file size (max 50MB)
                               if (file.size > 50 * 1024 * 1024) {
                                 toast({
@@ -2180,13 +2170,32 @@ const DesignStudio = () => {
                                   return;
                                 }
                                 
-                                // Upload to Supabase storage
-                                const fileExt = file.name.split('.').pop()?.toLowerCase() || 'glb';
+                                // Convert OBJ/STL/FBX to GLB so <model-viewer> can render it
+                                let uploadFile: File = file;
+                                const origExt = file.name.split('.').pop()?.toLowerCase() || '';
+                                if (origExt !== 'glb' && origExt !== 'gltf') {
+                                  try {
+                                    uploadFile = await convertToGlb(file);
+                                  } catch (convErr) {
+                                    console.error('Model conversion failed:', convErr);
+                                    toast({
+                                      title: "Conversion Failed",
+                                      description: `Could not convert .${origExt} to GLB. Try exporting your model as GLB from your 3D tool.`,
+                                      variant: "destructive",
+                                    });
+                                    setUploadedModelFile(null);
+                                    setIsUploadingModel(false);
+                                    return;
+                                  }
+                                }
+
+                                // Upload to Supabase storage (always as .glb after conversion)
+                                const fileExt = uploadFile.name.split('.').pop()?.toLowerCase() || 'glb';
                                 const fileName = `${user.id}/${Date.now()}-model.${fileExt}`;
                                 
                                 const { data: uploadData, error: uploadError } = await supabase.storage
                                   .from('3d-models')
-                                  .upload(fileName, file, {
+                                  .upload(fileName, uploadFile, {
                                     cacheControl: '3600',
                                     upsert: false
                                   });
