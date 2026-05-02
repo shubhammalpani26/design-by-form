@@ -1,4 +1,4 @@
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Shield } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
@@ -23,6 +23,7 @@ import { slugify } from "@/lib/slugify";
 
 const ProductDetail = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
@@ -92,6 +93,13 @@ const ProductDetail = () => {
       }
 
       if (!data) throw error || new Error('Product not found');
+
+      // If accessed via UUID (or stale slug), redirect to canonical slug URL
+      const canonicalSlug = (data as any).slug || slugify(data.name);
+      if (canonicalSlug && slug !== canonicalSlug) {
+        navigate(`/product/${canonicalSlug}`, { replace: true });
+        return;
+      }
 
       const dims = data.dimensions as any;
       let productWeight = Number(data.weight || 15);
