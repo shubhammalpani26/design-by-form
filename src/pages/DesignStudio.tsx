@@ -878,9 +878,13 @@ const DesignStudio = () => {
     }
   };
 
-  const handleSelectVariation = async (index: number) => {
+  const handleSelectVariation = async (
+    index: number,
+    explicitVariation?: typeof generatedVariations[number]
+  ) => {
     setSelectedVariation(index);
-    const selectedVar = generatedVariations[index];
+    const selectedVar = explicitVariation ?? generatedVariations[index];
+    if (!selectedVar) return;
     
     setGeneratedDesign(selectedVar.imageUrl);
     setGenerated3DModel(selectedVar.modelUrl || null);
