@@ -74,7 +74,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-3 xl:px-4 flex h-14 md:h-16 items-center justify-between gap-2 overflow-x-hidden">
+      <div className="w-full max-w-[1400px] mx-auto px-3 lg:px-4 flex h-14 md:h-16 items-center justify-between gap-3">
         {/* Mobile: Left side - Menu + Logo */}
         <div className="flex items-center gap-2 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -256,7 +256,7 @@ export const Header = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-2 lg:space-x-3 2xl:space-x-5 min-w-0 flex-shrink">
+        <nav className="hidden md:flex items-center gap-1.5 lg:gap-3 2xl:gap-5 min-w-0 flex-shrink">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -294,13 +294,13 @@ export const Header = () => {
           <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Technology
           </Link>
-          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
+          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Pricing
           </Link>
         </nav>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-0.5 xl:gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-1 flex-shrink-0">
           {/* Search - compact on mobile */}
           <div className="hidden md:block">
             <GlobalSearch />
@@ -337,7 +337,7 @@ export const Header = () => {
           
           {/* Desktop Elements */}
           {user && (
-            <div className="hidden md:block">
+            <div className="hidden xl:block">
               <CreditBalance />
             </div>
           )}
@@ -360,8 +360,8 @@ export const Header = () => {
           {user && <div className="hidden md:block"><NotificationBell /></div>}
           
           <div className="h-6 w-px bg-border/60 hidden 2xl:block mx-1" />
-          
-          <div className="hidden md:block">
+
+          <div className="hidden 2xl:block">
             <CurrencySelector />
           </div>
           
@@ -369,11 +369,11 @@ export const Header = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 xl:w-auto xl:px-3 xl:items-center xl:gap-2">
+                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 2xl:w-auto 2xl:px-3 2xl:items-center 2xl:gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="hidden xl:inline max-w-28 truncate">{user.email?.split('@')[0]}</span>
+                  <span className="hidden 2xl:inline max-w-28 truncate">{user.email?.split('@')[0]}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
