@@ -70,15 +70,18 @@ export const CreditBalance = () => {
   return (
     <>
       <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1 px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-full border border-primary/20">
+        <div className="flex items-center gap-1 px-2 xl:px-3 py-1.5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-full border border-primary/20 whitespace-nowrap">
           <Sparkles className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">{credits} credits</span>
+          <span className="text-sm font-medium">
+            <span className="xl:hidden">{credits}</span>
+            <span className="hidden xl:inline">{credits} credits</span>
+          </span>
         </div>
         {credits < 5 && (
           <Button
             size="sm"
             onClick={() => setShowPurchase(true)}
-            className="bg-gradient-to-r from-primary to-primary/80"
+            className="hidden 2xl:inline-flex bg-gradient-to-r from-primary to-primary/80"
           >
             Get More
           </Button>
