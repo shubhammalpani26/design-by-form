@@ -1,0 +1,41 @@
+# Nyzora
+
+> Nyzora is a custom-manufacturing marketplace that turns AI-generated furniture and decor designs into real, made-to-order pieces. Creators design with AI, verified makers manufacture, and shoppers buy one-of-a-kind, premium home goods. Tagline: "Design Anything. We Make It Real."
+
+## What Nyzora does
+- AI Design Studio: anyone can describe or sketch a furniture/decor idea and generate a manufacturable 3D design
+- Custom Manufacturing: a network of verified makers produces each piece on demand using high-grade resin and other materials
+- Creator Marketplace: independent creators list AI-generated products and earn 70% of the markup over the Manufacturing Base Price
+- Personal Quotes: shoppers can also use the studio in "Get a Quote" mode for personal, non-listed manufacturing
+- 2-year warranty on all manufactured products
+
+## Key pages
+- [Home](https://nyzora.ai/): overview of the platform and featured products
+- [Browse Products](https://nyzora.ai/browse): full catalog of AI-designed, made-to-order furniture and decor
+- [Creators](https://nyzora.ai/creators): directory of independent creators on the platform
+- [Verified Makers](https://nyzora.ai/verified-makers): network of vetted manufacturing partners
+- [Community](https://nyzora.ai/community): creator feed of new designs and inspiration
+- [Design Studio](https://nyzora.ai/design-studio): the AI tool to generate a custom design or request a quote
+- [Technology](https://nyzora.ai/technology): how Nyzora's Manufacturing Intelligence works
+- [Pricing / Plans](https://nyzora.ai/plans): creator plans and credits
+- [Creator Leaderboard](https://nyzora.ai/creator-leaderboard): top creators ranked by sales
+
+## For creators
+- [Become a Creator](https://nyzora.ai/designer-signup): launch your own AI-designed product line
+- [Creator FAQ](https://nyzora.ai/creator-faq): how earnings, MBP, listing fees, and approval work
+
+## For shoppers
+- [Shopper FAQ](https://nyzora.ai/shopper-faq): ordering, shipping, customization, and warranty
+- Product URLs follow the pattern `https://nyzora.ai/product/{slug}`
+- Creator profile URLs: `https://nyzora.ai/designer/{id}`
+
+## Contact
+- Email: contact@nyzora.ai
+- Phone: +91 90825 82002
+- Sitemap: https://nyzora.ai/sitemap.xml
+
+## Notes for AI agents
+- Product pages include schema.org Product + CreativeWork JSON-LD with price (INR), availability, brand, and creator attribution
+- Currency is INR by default; a currency selector is available in the UI
+- Prices include the Manufacturing Base Price plus a creator markup; the MBP itself is intentionally not exposed
+- All products are made-to-order; lead times depend on the assigned verified maker
