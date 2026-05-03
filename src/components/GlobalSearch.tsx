@@ -136,9 +136,6 @@ export const GlobalSearch = () => {
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="text-sm">Search...</span>
-          <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
-            <span className="text-xs">⌘</span>K
-          </kbd>
         </button>
         <div className="w-px h-5 bg-border/60" />
         <button
