@@ -74,7 +74,7 @@ export const Header = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container mx-auto px-4 flex h-14 md:h-16 items-center justify-between gap-2 overflow-x-hidden">
+      <div className="container mx-auto px-3 xl:px-4 flex h-14 md:h-16 items-center justify-between gap-2 overflow-x-hidden">
         {/* Mobile: Left side - Menu + Logo */}
         <div className="flex items-center gap-2 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
@@ -256,7 +256,7 @@ export const Header = () => {
         </Link>
         
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center space-x-3 lg:space-x-4 xl:space-x-5 min-w-0 flex-shrink">
+        <nav className="hidden md:flex items-center space-x-2 lg:space-x-3 2xl:space-x-5 min-w-0 flex-shrink">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm" className="text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -291,16 +291,16 @@ export const Header = () => {
           <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Leaderboard
           </Link>
-          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
+          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
             Technology
           </Link>
-          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden lg:block">
+          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden xl:block">
             Pricing
           </Link>
         </nav>
 
         {/* Right side actions */}
-        <div className="flex items-center gap-1 md:gap-1.5 flex-shrink-0">
+        <div className="flex items-center gap-0.5 xl:gap-1.5 flex-shrink-0">
           {/* Search - compact on mobile */}
           <div className="hidden md:block">
             <GlobalSearch />
@@ -344,7 +344,7 @@ export const Header = () => {
           
           {user && (
             <Link to="/cart" className="relative hidden md:block">
-              <Button variant="ghost" size="sm" className="relative">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -359,7 +359,7 @@ export const Header = () => {
           
           {user && <div className="hidden md:block"><NotificationBell /></div>}
           
-          <div className="h-6 w-px bg-border/60 hidden lg:block mx-1" />
+          <div className="h-6 w-px bg-border/60 hidden 2xl:block mx-1" />
           
           <div className="hidden md:block">
             <CurrencySelector />
@@ -369,11 +369,11 @@ export const Header = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="hidden md:flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 xl:w-auto xl:px-3 xl:items-center xl:gap-2">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="hidden md:inline">{user.email?.split('@')[0]}</span>
+                  <span className="hidden xl:inline max-w-28 truncate">{user.email?.split('@')[0]}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
