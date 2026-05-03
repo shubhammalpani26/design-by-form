@@ -285,18 +285,27 @@ export const Header = () => {
           <Link to="/community" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
             Community
           </Link>
-          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            Verified Makers
+          <Link to="/verified-makers" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap">
+            Makers
           </Link>
-          <Link to="/creator-leaderboard" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            Leaderboard
-          </Link>
-          <Link to="/technology" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            Technology
-          </Link>
-          <Link to="/plans" className="text-sm font-medium text-foreground hover:text-primary transition-colors whitespace-nowrap hidden 2xl:block">
-            Pricing
-          </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="More links">
+                <Menu className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48 bg-background border border-border shadow-lg z-50">
+              <DropdownMenuItem asChild>
+                <Link to="/creator-leaderboard" className="cursor-pointer hover:bg-accent">Leaderboard</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/technology" className="cursor-pointer hover:bg-accent">Technology</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link to="/plans" className="cursor-pointer hover:bg-accent">Pricing</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </nav>
 
         {/* Right side actions */}
