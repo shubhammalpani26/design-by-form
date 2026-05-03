@@ -128,15 +128,15 @@ export const GlobalSearch = () => {
 
   return (
     <>
-      {/* Desktop: Search + Create combo bar */}
-      <div className="hidden md:flex items-center gap-0 rounded-full border border-border bg-muted/40 hover:bg-muted/60 transition-colors h-9 overflow-hidden flex-shrink min-w-0">
+      {/* Desktop: Search + Create combo bar (full pill on xl+) */}
+      <div className="hidden xl:flex items-center gap-0 rounded-full border border-border bg-muted/40 hover:bg-muted/60 transition-colors h-9 overflow-hidden flex-shrink min-w-0">
         <button
           onClick={() => setIsOpen(true)}
           className="flex items-center gap-1.5 px-2.5 h-full text-sm text-muted-foreground hover:text-foreground transition-colors"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
-          <span className="text-sm hidden lg:inline">Search...</span>
-          <kbd className="pointer-events-none hidden xl:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
+          <span className="text-sm">Search...</span>
+          <kbd className="pointer-events-none hidden 2xl:inline-flex h-5 select-none items-center gap-0.5 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground ml-auto">
             <span className="text-xs">⌘</span>K
           </kbd>
         </button>
@@ -148,6 +148,28 @@ export const GlobalSearch = () => {
           <Wand2 className="h-3.5 w-3.5" />
           Create
         </button>
+      </div>
+
+      {/* Tablet/medium desktop: compact icon-only search + Create */}
+      <div className="hidden md:flex xl:hidden items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-9 w-9"
+          onClick={() => setIsOpen(true)}
+          aria-label="Search"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-9 px-2.5 text-sm font-semibold text-primary hover:text-primary/80"
+          onClick={() => navigate('/design-studio')}
+        >
+          <Wand2 className="h-3.5 w-3.5 mr-1" />
+          Create
+        </Button>
       </div>
 
       {/* Mobile: icon-only search button */}
