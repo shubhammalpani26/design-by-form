@@ -20,9 +20,11 @@ export const CurrencySelector = () => {
 
   return (
     <Select value={currency} onValueChange={setCurrency}>
-      <SelectTrigger className="w-[140px] h-9 bg-background border-border">
+      <SelectTrigger className="w-10 xl:w-[104px] 2xl:w-[140px] h-9 bg-background border-border px-2 xl:px-3">
         <Globe className="w-4 h-4 mr-2" />
-        <SelectValue />
+        <span className="hidden xl:inline-flex min-w-0">
+          <SelectValue />
+        </span>
       </SelectTrigger>
       <SelectContent>
         {currencies.map((curr) => (
