@@ -39,3 +39,9 @@
 - Currency is INR by default; a currency selector is available in the UI
 - Prices include the Manufacturing Base Price plus a creator markup; the MBP itself is intentionally not exposed
 - All products are made-to-order; lead times depend on the assigned verified maker
+
+## Machine-readable product feed
+- JSON feed (full catalog, paginated): https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed
+- Google Merchant–style RSS/XML: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed?format=xml
+- Query params: `limit` (max 1000), `offset`, `category` (e.g. chairs, tables, vases)
+- Each product includes: id, slug, title, description, url, image, price, currency, availability, brand, creator, dimensions_cm, weight_kg, finishes, sizes, lead_time_days, materials

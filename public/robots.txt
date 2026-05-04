@@ -83,3 +83,7 @@ Disallow: /cart
 Disallow: /auth
 
 Sitemap: https://nyzora.ai/sitemap.xml
+
+# Machine-readable product feed for AI shopping agents
+# JSON: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed
+# XML:  https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed?format=xml
