@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.products-feed]
 verify_jwt = false
+
+[functions.agent-api]
+verify_jwt = false

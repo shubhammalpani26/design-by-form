@@ -45,3 +45,18 @@
 - Google Merchant–style RSS/XML: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed?format=xml
 - Query params: `limit` (max 1000), `offset`, `category` (e.g. chairs, tables, vases)
 - Each product includes: id, slug, title, description, url, image, price, currency, availability, brand, creator, dimensions_cm, weight_kg, finishes, sizes, lead_time_days, materials
+
+## Agent API (browse + initiate checkout)
+Base URL: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/agent-api
+- GET `/` — service descriptor
+- GET `/products?limit=&offset=&category=&q=` — list approved products
+- GET `/products/{slug_or_id}` — full product details
+- GET `/creators?limit=&offset=` — list verified creators
+- GET `/creators/{slug_or_id}` — creator with their products
+- GET `/categories` — categories with counts
+- POST `/checkout-intent` body `{ "items": [{ "slug": "...", "quantity": 1 }] }` — returns `checkout_url` deep link to nyzora.ai/cart for the user to complete payment
+
+Notes for shopping agents:
+- All prices in INR. Convert to user currency client-side if needed.
+- Payment is always completed by the human user on nyzora.ai (sign-in + Razorpay). The agent's role ends with the deep link.
+- Products are made-to-order; respect `lead_time_days`.
