@@ -3,23 +3,81 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useCart } from "@/contexts/CartContext";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const Cart = () => {
-  const { cart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
+  const { cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
   const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
+  const prefillHandled = useRef(false);
+
+  // Agent deep-link prefill: /cart?prefill=[{"id":"...","qty":1}]
+  useEffect(() => {
+    if (prefillHandled.current) return;
+    const raw = searchParams.get("prefill");
+    if (!raw) return;
+    prefillHandled.current = true;
+
+    (async () => {
+      try {
+        const items = JSON.parse(decodeURIComponent(raw));
+        if (!Array.isArray(items) || items.length === 0) return;
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          // Stash for after sign-in
+          localStorage.setItem("cart_prefill_pending", JSON.stringify(items));
+          toast.info("Please sign in to add the suggested items to your cart.");
+          navigate("/auth?redirect=/cart");
+          return;
+        }
+
+        for (const it of items) {
+          if (it?.id) {
+            await addToCart(it.id, {});
+          }
+        }
+        toast.success("Items added to your cart");
+      } catch (e) {
+        console.error("Prefill failed", e);
+      } finally {
+        // Clean URL
+        searchParams.delete("prefill");
+        setSearchParams(searchParams, { replace: true });
+      }
+    })();
+  }, [searchParams, navigate, addToCart, setSearchParams]);
+
+  // After login, replay stashed prefill
+  useEffect(() => {
+    const pending = localStorage.getItem("cart_prefill_pending");
+    if (!pending) return;
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      try {
+        const items = JSON.parse(pending);
+        for (const it of items) {
+          if (it?.id) await addToCart(it.id, {});
+        }
+        toast.success("Items added to your cart");
+      } finally {
+        localStorage.removeItem("cart_prefill_pending");
+      }
+    })();
+  }, [addToCart]);
   
   // Checkout form state
   const [checkoutForm, setCheckoutForm] = useState({
