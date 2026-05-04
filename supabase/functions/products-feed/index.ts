@@ -20,6 +20,12 @@ Deno.serve(async (req) => {
     const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10), 0);
     const category = url.searchParams.get("category");
 
+    // Detect /products-feed/extended vs standard /products-feed
+    const parts = url.pathname.split("/").filter(Boolean);
+    const fnIdx = parts.indexOf("products-feed");
+    const sub = parts.slice(fnIdx + 1)[0] || "";
+    const extended = sub === "extended" || url.searchParams.get("extended") === "1";
+
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
@@ -43,7 +49,8 @@ Deno.serve(async (req) => {
     const products = (data || []).map((p: any) => {
       const slug = p.slug || p.id;
       const creatorSlug = p.designer_profiles?.slug || p.designer_profiles?.id;
-      return {
+      // Standard fields aligned with Google Merchant + Schema.org Product
+      const base = {
         id: p.id,
         sku: p.id,
         slug,
@@ -57,6 +64,13 @@ Deno.serve(async (req) => {
         availability: "in_stock",
         condition: "new",
         brand: "Nyzora",
+        identifier_exists: false,
+        shipping: { country: "IN", service: "Standard", price: 0, currency: "INR" },
+      };
+      if (!extended) return base;
+      // Extended Nyzora-specific fields
+      return {
+        ...base,
         creator: {
           id: p.designer_profiles?.id,
           name: p.designer_profiles?.name,
@@ -69,6 +83,10 @@ Deno.serve(async (req) => {
         lead_time_days: p.lead_time_days,
         materials: p.materials_description,
         total_sales: p.total_sales,
+        customizable: true,
+        made_to_order: true,
+        production_method: "custom_manufactured",
+        warranty_years: 2,
         created_at: p.created_at,
         updated_at: p.updated_at,
       };
@@ -117,11 +135,15 @@ Deno.serve(async (req) => {
       JSON.stringify(
         {
           version: "1.0",
+          feed: extended ? "extended" : "standard",
           site: SITE_URL,
           generated_at: new Date().toISOString(),
           count: products.length,
           limit,
           offset,
+          schema: extended
+            ? "Google Merchant baseline + Nyzora extensions (creator, materials, dimensions, finishes, lead_time_days, customizable, made_to_order, warranty_years)"
+            : "Google Merchant baseline + Schema.org Product",
           products,
         },
         null,
