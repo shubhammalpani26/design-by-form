@@ -313,11 +313,12 @@ Deno.serve(async (req) => {
         }
       }
 
-      const { data, error } = await supabase
+      let cQuery = supabase
         .from("designer_profiles")
         .select("id, slug, name, design_background, profile_picture_url")
-        .eq("status", "approved")
-        .filter("id", designerIdsFilter ? "in" : "not.is", designerIdsFilter ? `(${designerIdsFilter.map((i) => `"${i}"`).join(",")})` : null)
+        .eq("status", "approved");
+      if (designerIdsFilter) cQuery = cQuery.in("id", designerIdsFilter);
+      const { data, error } = await cQuery
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
       if (error) throw error;
