@@ -7,6 +7,9 @@ const corsHeaders = {
 };
 
 const SITE_URL = "https://nyzora.ai";
+const FUNCTIONS_BASE = "https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1";
+const AGENT_BASE = `${FUNCTIONS_BASE}/agent-api`;
+
 const json = (body: unknown, status = 200, extra: Record<string, string> = {}) =>
   new Response(JSON.stringify(body, null, 2), {
     status,
@@ -32,23 +35,65 @@ Deno.serve(async (req) => {
   );
 
   try {
+    // GET /agent-api/openapi.json -> OpenAPI spec
+    if (route[0] === "openapi.json") {
+      return json(buildOpenApiSpec(), 200, { "Cache-Control": "public, max-age=3600" });
+    }
+
+    // GET /agent-api/.well-known/ai-plugin.json (also exposed at /agent-api/ai-plugin.json)
+    if (
+      route[0] === "ai-plugin.json" ||
+      (route[0] === ".well-known" && route[1] === "ai-plugin.json")
+    ) {
+      return json(
+        {
+          schema_version: "v1",
+          name_for_human: "Nyzora",
+          name_for_model: "nyzora",
+          description_for_human:
+            "Browse and order AI-designed, made-to-order furniture and decor from independent creators on Nyzora.",
+          description_for_model:
+            "Use the Nyzora Agent API to search products, look up creators, check availability and lead times, and create checkout intents that deep-link the user back to nyzora.ai to complete payment. Currency is INR. Products are made-to-order.",
+          auth: { type: "none" },
+          api: { type: "openapi", url: `${AGENT_BASE}/openapi.json` },
+          logo_url: `${SITE_URL}/favicon.ico`,
+          contact_email: "contact@nyzora.ai",
+          legal_info_url: `${SITE_URL}/terms`,
+        },
+        200,
+        { "Cache-Control": "public, max-age=3600" }
+      );
+    }
+
     // GET /agent-api  -> service descriptor
     if (route.length === 0) {
       return json({
         name: "Nyzora Agent API",
-        version: "1.0",
+        version: "1.1",
         description:
           "Read-only catalog + checkout-initiation endpoints for AI shopping agents. Payment is completed by the user on nyzora.ai.",
         site: SITE_URL,
         endpoints: {
           products: "/agent-api/products?limit=&offset=&category=&q=",
           product: "/agent-api/products/{id_or_slug}",
+          product_availability: "/agent-api/products/{id_or_slug}/availability",
+          search:
+            "/agent-api/search?q=&min_price=&max_price=&category=&material=&finish=&max_lead_days=&limit=&offset=",
           creators: "/agent-api/creators?limit=&offset=",
+          creators_featured: "/agent-api/creators/featured?limit=",
+          creators_by_category: "/agent-api/creators?category=&limit=&offset=",
           creator: "/agent-api/creators/{id_or_slug}",
           categories: "/agent-api/categories",
           checkout_intent: "POST /agent-api/checkout-intent { items: [{slug|id, quantity}] }",
+          order: "GET /agent-api/orders/{id} (requires user JWT)",
+          openapi: "/agent-api/openapi.json",
+          ai_plugin: "/agent-api/.well-known/ai-plugin.json",
         },
-        product_feed: `${SITE_URL.replace("nyzora.ai", "rdcfakdhgndnhgzfkuvw.supabase.co")}/functions/v1/products-feed`,
+        product_feed: {
+          standard: `${FUNCTIONS_BASE}/products-feed`,
+          extended: `${FUNCTIONS_BASE}/products-feed/extended`,
+          xml: `${FUNCTIONS_BASE}/products-feed?format=xml`,
+        },
         notes:
           "All prices in INR. Products are made-to-order. Checkout-intent returns a deep link for the user to complete payment.",
       });
@@ -69,6 +114,50 @@ Deno.serve(async (req) => {
         categories: Object.entries(counts)
           .map(([slug, count]) => ({ slug, count, url: `${SITE_URL}/browse?category=${slug}` }))
           .sort((a, b) => b.count - a.count),
+      });
+    }
+
+    // GET /agent-api/search
+    if (route[0] === "search" && route.length === 1) {
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
+      const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10), 0);
+      const q = url.searchParams.get("q");
+      const category = url.searchParams.get("category");
+      const minPrice = parseFloat(url.searchParams.get("min_price") || "");
+      const maxPrice = parseFloat(url.searchParams.get("max_price") || "");
+      const material = url.searchParams.get("material");
+      const finish = url.searchParams.get("finish");
+      const maxLead = parseInt(url.searchParams.get("max_lead_days") || "", 10);
+
+      let query = supabase
+        .from("designer_products")
+        .select(
+          "id, slug, name, description, category, designer_price, image_url, lead_time_days, available_finishes, materials_description, designer_profiles!inner(id, name, slug)",
+          { count: "exact" }
+        )
+        .eq("status", "approved")
+        .not("image_url", "is", null);
+
+      if (q) query = query.or(`name.ilike.%${q}%,description.ilike.%${q}%`);
+      if (category) query = query.eq("category", category);
+      if (!Number.isNaN(minPrice)) query = query.gte("designer_price", minPrice);
+      if (!Number.isNaN(maxPrice)) query = query.lte("designer_price", maxPrice);
+      if (!Number.isNaN(maxLead)) query = query.lte("lead_time_days", maxLead);
+      if (material) query = query.ilike("materials_description", `%${material}%`);
+      if (finish) query = query.contains("available_finishes", [finish]);
+
+      query = query
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+
+      const { data, error, count } = await query;
+      if (error) throw error;
+      return json({
+        total: count ?? null,
+        limit,
+        offset,
+        filters: { q, category, min_price: minPrice || null, max_price: maxPrice || null, material, finish, max_lead_days: maxLead || null },
+        results: (data || []).map((p: any) => formatProductSummary(p)),
       });
     }
 
@@ -97,6 +186,43 @@ Deno.serve(async (req) => {
         limit,
         offset,
         products: (data || []).map((p: any) => formatProductSummary(p)),
+      });
+    }
+
+    // GET /agent-api/products/{slug}/availability
+    if (route[0] === "products" && route.length === 3 && route[2] === "availability") {
+      const key = decodeURIComponent(route[1]);
+      const isUuid = /^[0-9a-f-]{36}$/i.test(key);
+      const { data: p } = await supabase
+        .from("designer_products")
+        .select("id, slug, name, lead_time_days, status")
+        .eq("status", "approved")
+        .eq(isUuid ? "id" : "slug", key)
+        .maybeSingle();
+      if (!p) return json({ error: "Product not found" }, 404);
+      const lead = Number(p.lead_time_days || 21);
+      const shippingDaysMin = 3;
+      const shippingDaysMax = 7;
+      const now = new Date();
+      const shipsByMin = new Date(now.getTime() + lead * 86400000);
+      const deliversByMin = new Date(shipsByMin.getTime() + shippingDaysMin * 86400000);
+      const deliversByMax = new Date(shipsByMin.getTime() + shippingDaysMax * 86400000);
+      return json({
+        id: p.id,
+        slug: p.slug,
+        title: p.name,
+        availability: "made_to_order",
+        in_stock: true,
+        lead_time_days: lead,
+        shipping_window_days: { min: shippingDaysMin, max: shippingDaysMax },
+        estimated_ship_date: shipsByMin.toISOString().slice(0, 10),
+        estimated_delivery_window: {
+          earliest: deliversByMin.toISOString().slice(0, 10),
+          latest: deliversByMax.toISOString().slice(0, 10),
+        },
+        currency: "INR",
+        notes:
+          "Made-to-order. Lead time begins after payment confirmation. Shipping is domestic India by default; international quotes on request.",
       });
     }
 
@@ -131,20 +257,74 @@ Deno.serve(async (req) => {
       return json(formatProductDetail(product));
     }
 
+    // GET /agent-api/creators/featured
+    if (route[0] === "creators" && route[1] === "featured" && route.length === 2) {
+      const limit = Math.min(parseInt(url.searchParams.get("limit") || "12", 10), 50);
+      // Featured = creators with the most approved products (proxy for activity)
+      const { data: profiles } = await supabase
+        .from("designer_profiles")
+        .select("id, slug, name, design_background, profile_picture_url")
+        .eq("status", "approved");
+      const { data: products } = await supabase
+        .from("designer_products")
+        .select("designer_id, category")
+        .eq("status", "approved");
+      const counts: Record<string, number> = {};
+      const cats: Record<string, Set<string>> = {};
+      (products || []).forEach((p: any) => {
+        counts[p.designer_id] = (counts[p.designer_id] || 0) + 1;
+        if (!cats[p.designer_id]) cats[p.designer_id] = new Set();
+        if (p.category) cats[p.designer_id].add(p.category);
+      });
+      const featured = (profiles || [])
+        .map((c: any) => ({
+          id: c.id,
+          slug: c.slug,
+          name: c.name,
+          bio: c.design_background,
+          avatar: c.profile_picture_url,
+          product_count: counts[c.id] || 0,
+          categories: Array.from(cats[c.id] || []),
+          url: `${SITE_URL}/designer/${c.slug || c.id}`,
+        }))
+        .filter((c) => c.product_count > 0)
+        .sort((a, b) => b.product_count - a.product_count)
+        .slice(0, limit);
+      return json({ limit, creators: featured });
+    }
+
     // GET /agent-api/creators
     if (route[0] === "creators" && route.length === 1) {
       const limit = Math.min(parseInt(url.searchParams.get("limit") || "50", 10), 200);
       const offset = Math.max(parseInt(url.searchParams.get("offset") || "0", 10), 0);
+      const category = url.searchParams.get("category");
+
+      // If category filter, find designer_ids from products in that category
+      let designerIdsFilter: string[] | null = null;
+      if (category) {
+        const { data: prods } = await supabase
+          .from("designer_products")
+          .select("designer_id")
+          .eq("status", "approved")
+          .eq("category", category);
+        designerIdsFilter = Array.from(new Set((prods || []).map((p: any) => p.designer_id))).filter(Boolean);
+        if (designerIdsFilter.length === 0) {
+          return json({ limit, offset, category, creators: [] });
+        }
+      }
+
       const { data, error } = await supabase
         .from("designer_profiles")
         .select("id, slug, name, design_background, profile_picture_url")
         .eq("status", "approved")
+        .filter("id", designerIdsFilter ? "in" : "not.is", designerIdsFilter ? `(${designerIdsFilter.map((i) => `"${i}"`).join(",")})` : null)
         .order("created_at", { ascending: false })
         .range(offset, offset + limit - 1);
       if (error) throw error;
       return json({
         limit,
         offset,
+        category: category || null,
         creators: (data || []).map((c: any) => ({
           id: c.id,
           slug: c.slug,
@@ -198,6 +378,65 @@ Deno.serve(async (req) => {
           image: p.image_url,
           url: `${SITE_URL}/product/${p.slug || p.id}`,
         })),
+      });
+    }
+
+    // GET /agent-api/orders/{id} (requires user JWT)
+    if (route[0] === "orders" && route.length === 2 && req.method === "GET") {
+      const orderId = decodeURIComponent(route[1]);
+      const authHeader = req.headers.get("Authorization") || "";
+      const token = authHeader.replace(/^Bearer\s+/i, "");
+      if (!token) {
+        return json({ error: "Authentication required. Pass user's JWT as Bearer token." }, 401);
+      }
+      const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+      if (userErr || !userData?.user) {
+        return json({ error: "Invalid or expired token" }, 401);
+      }
+      const userId = userData.user.id;
+      const { data: order, error: orderErr } = await supabase
+        .from("orders")
+        .select(
+          "id, status, total_amount, subtotal, currency:gst_rate, invoice_number, invoice_date, shipping_address, created_at, updated_at, user_id"
+        )
+        .eq("id", orderId)
+        .maybeSingle();
+      if (orderErr) throw orderErr;
+      if (!order || order.user_id !== userId) {
+        return json({ error: "Order not found" }, 404);
+      }
+      const { data: items } = await supabase
+        .from("order_items")
+        .select("product_id, quantity, price, designer_price, customizations, designer_products(name, slug, lead_time_days, image_url)")
+        .eq("order_id", orderId);
+      const maxLead = Math.max(0, ...((items || []).map((i: any) => Number(i.designer_products?.lead_time_days || 0))));
+      const created = new Date(order.created_at);
+      const estShip = new Date(created.getTime() + maxLead * 86400000);
+      return json({
+        id: order.id,
+        status: order.status,
+        invoice_number: order.invoice_number,
+        invoice_date: order.invoice_date,
+        currency: "INR",
+        subtotal: order.subtotal ? Number(order.subtotal) : null,
+        total: Number(order.total_amount),
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+        estimated_ship_date: maxLead > 0 ? estShip.toISOString().slice(0, 10) : null,
+        shipping_address: order.shipping_address,
+        items: (items || []).map((i: any) => ({
+          product_id: i.product_id,
+          title: i.designer_products?.name,
+          slug: i.designer_products?.slug,
+          image: i.designer_products?.image_url,
+          quantity: i.quantity,
+          unit_price: Number(i.price),
+          line_total: Number(i.price) * Number(i.quantity),
+          lead_time_days: i.designer_products?.lead_time_days,
+          customizations: i.customizations || {},
+          url: `${SITE_URL}/product/${i.designer_products?.slug || i.product_id}`,
+        })),
+        url: `${SITE_URL}/order-history`,
       });
     }
 
@@ -313,12 +552,147 @@ function formatProductDetail(p: any) {
       url: `${SITE_URL}/designer/${p.designer_profiles?.slug || p.designer_profiles?.id}`,
     },
     url: `${SITE_URL}/product/${slug}`,
+    availability_endpoint: `${AGENT_BASE}/products/${slug}/availability`,
     checkout_intent_example: {
       method: "POST",
-      url: `${SITE_URL.replace("nyzora.ai", "rdcfakdhgndnhgzfkuvw.supabase.co")}/functions/v1/agent-api/checkout-intent`,
+      url: `${AGENT_BASE}/checkout-intent`,
       body: { items: [{ slug, quantity: 1 }] },
     },
     created_at: p.created_at,
     updated_at: p.updated_at,
+  };
+}
+
+function buildOpenApiSpec() {
+  return {
+    openapi: "3.1.0",
+    info: {
+      title: "Nyzora Agent API",
+      version: "1.1.0",
+      description:
+        "Read-only catalog, search, availability, and checkout-initiation endpoints for AI shopping agents. Currency is INR. Products are made-to-order. Payment is always completed by the human user on nyzora.ai.",
+      contact: { email: "contact@nyzora.ai", url: SITE_URL },
+    },
+    servers: [{ url: AGENT_BASE }],
+    paths: {
+      "/": { get: { summary: "Service descriptor", responses: { "200": { description: "OK" } } } },
+      "/categories": { get: { summary: "List product categories with counts", responses: { "200": { description: "OK" } } } },
+      "/search": {
+        get: {
+          summary: "Search products with structured filters",
+          parameters: [
+            { name: "q", in: "query", schema: { type: "string" } },
+            { name: "category", in: "query", schema: { type: "string" } },
+            { name: "min_price", in: "query", schema: { type: "number" } },
+            { name: "max_price", in: "query", schema: { type: "number" } },
+            { name: "material", in: "query", schema: { type: "string" } },
+            { name: "finish", in: "query", schema: { type: "string" } },
+            { name: "max_lead_days", in: "query", schema: { type: "integer" } },
+            { name: "limit", in: "query", schema: { type: "integer", maximum: 200 } },
+            { name: "offset", in: "query", schema: { type: "integer" } },
+          ],
+          responses: { "200": { description: "Matching products" } },
+        },
+      },
+      "/products": {
+        get: {
+          summary: "List approved products",
+          parameters: [
+            { name: "limit", in: "query", schema: { type: "integer" } },
+            { name: "offset", in: "query", schema: { type: "integer" } },
+            { name: "category", in: "query", schema: { type: "string" } },
+            { name: "q", in: "query", schema: { type: "string" } },
+          ],
+          responses: { "200": { description: "OK" } },
+        },
+      },
+      "/products/{slug}": {
+        get: {
+          summary: "Product detail by slug or id",
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          responses: { "200": { description: "OK" }, "404": { description: "Not found" } },
+        },
+      },
+      "/products/{slug}/availability": {
+        get: {
+          summary: "Lead time, ship window, and estimated delivery",
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          responses: { "200": { description: "OK" } },
+        },
+      },
+      "/creators": {
+        get: {
+          summary: "List verified creators (optionally filter by category)",
+          parameters: [
+            { name: "limit", in: "query", schema: { type: "integer" } },
+            { name: "offset", in: "query", schema: { type: "integer" } },
+            { name: "category", in: "query", schema: { type: "string" } },
+          ],
+          responses: { "200": { description: "OK" } },
+        },
+      },
+      "/creators/featured": {
+        get: {
+          summary: "Top creators ranked by approved-product count",
+          parameters: [{ name: "limit", in: "query", schema: { type: "integer", maximum: 50 } }],
+          responses: { "200": { description: "OK" } },
+        },
+      },
+      "/creators/{slug}": {
+        get: {
+          summary: "Creator profile with their products",
+          parameters: [{ name: "slug", in: "path", required: true, schema: { type: "string" } }],
+          responses: { "200": { description: "OK" } },
+        },
+      },
+      "/checkout-intent": {
+        post: {
+          summary: "Create a checkout deep link for the user to complete payment on nyzora.ai",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["items"],
+                  properties: {
+                    items: {
+                      type: "array",
+                      maxItems: 20,
+                      items: {
+                        type: "object",
+                        properties: {
+                          slug: { type: "string" },
+                          id: { type: "string" },
+                          quantity: { type: "integer", minimum: 1, maximum: 50 },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          responses: { "200": { description: "Checkout intent with deep link" } },
+        },
+      },
+      "/orders/{id}": {
+        get: {
+          summary: "Order status (requires user JWT in Authorization: Bearer ...)",
+          parameters: [{ name: "id", in: "path", required: true, schema: { type: "string" } }],
+          responses: {
+            "200": { description: "Order details" },
+            "401": { description: "Auth required" },
+            "404": { description: "Not found" },
+          },
+          security: [{ bearerAuth: [] }],
+        },
+      },
+    },
+    components: {
+      securitySchemes: {
+        bearerAuth: { type: "http", scheme: "bearer", bearerFormat: "JWT" },
+      },
+    },
   };
 }
