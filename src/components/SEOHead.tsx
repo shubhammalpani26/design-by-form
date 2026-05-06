@@ -17,7 +17,7 @@ const SITE_URL = 'https://nyzora.ai';
 export const getCanonicalUrl = (pathOverride?: string) => {
   const sourceUrl = new URL(pathOverride || `${window.location.pathname}${window.location.search}`, SITE_URL);
   const params = sourceUrl.searchParams;
-  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref'].forEach((key) => params.delete(key));
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref', '__lovable_token'].forEach((key) => params.delete(key));
   const query = params.toString();
 
   return `${SITE_URL}${sourceUrl.pathname.replace(/\/+$/, '') || '/'}${query ? `?${query}` : ''}`;
