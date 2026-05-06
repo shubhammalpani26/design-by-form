@@ -12,6 +12,22 @@ interface SEOHeadProps {
   noIndex?: boolean;
 }
 
+const SITE_URL = 'https://nyzora.ai';
+
+export const getCanonicalUrl = (pathOverride?: string) => {
+  if (pathOverride?.startsWith('http')) {
+    const suppliedUrl = new URL(pathOverride);
+    return `${SITE_URL}${suppliedUrl.pathname.replace(/\/+$/, '') || '/'}${suppliedUrl.search}`;
+  }
+
+  const pathname = pathOverride || window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
+  ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref'].forEach((key) => params.delete(key));
+  const query = params.toString();
+
+  return `${SITE_URL}${pathname.replace(/\/+$/, '') || '/'}${query ? `?${query}` : ''}`;
+};
+
 export const SEOHead = ({
   title,
   description,
@@ -24,10 +40,7 @@ export const SEOHead = ({
   noIndex = false,
 }: SEOHeadProps) => {
   useEffect(() => {
-    // Build canonical URL: prefer explicit prop, else nyzora.ai + pathname (strip query/hash)
-    const canonicalUrl =
-      canonical ||
-      `https://nyzora.ai${window.location.pathname.replace(/\/+$/, '') || '/'}`;
+    const canonicalUrl = canonical || getCanonicalUrl();
 
     // Update document title
     document.title = `${title} | Nyzora`;
