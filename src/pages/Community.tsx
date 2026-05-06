@@ -14,6 +14,7 @@ import { StoriesBar } from "@/components/community/StoriesBar";
 import { FeedViewToggle } from "@/components/community/FeedViewToggle";
 import { PostGrid } from "@/components/community/PostGrid";
 import { InstagramFeedPost } from "@/components/community/InstagramFeedPost";
+import { SEOHead } from "@/components/SEOHead";
 
 const Community = () => {
   const [filter, setFilter] = useState<string>("all");
@@ -57,6 +58,7 @@ const Community = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Community Feed | Nyzora"} description={"Discover designs and stories from Nyzora creators around the world."} />
       <Header />
 
       <main className="flex-1">

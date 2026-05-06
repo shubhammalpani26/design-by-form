@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Copy, Download, Sparkles, Share2, ArrowLeft } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { SEOHead } from "@/components/SEOHead";
 
 interface Product {
   id: string;
@@ -272,6 +273,7 @@ const ProductSuccessKit = () => {
   if (loading) {
     return (
       <div className="container mx-auto px-4 py-8">
+      <SEOHead title={"Product Success Kit | Nyzora"} description={"Marketing assets and tips to promote your listed designs on Nyzora."} />
         <Skeleton className="h-8 w-64 mb-8" />
         <Skeleton className="h-96 w-full" />
       </div>

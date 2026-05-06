@@ -13,6 +13,7 @@ import { NotificationsManagement } from "@/components/admin/NotificationsManagem
 import { CreditsManagement } from "@/components/admin/CreditsManagement";
 import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
 import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -62,6 +63,7 @@ export default function AdminPanel() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+      <SEOHead title={"Admin Panel"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center">

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { SEOHead } from "@/components/SEOHead";
 
 interface PayoutRequest {
   id: string;
@@ -248,6 +249,7 @@ const AdminPayouts = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Admin Payouts"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <main className="flex-1 container py-12">
           <p className="text-center text-muted-foreground">Loading...</p>

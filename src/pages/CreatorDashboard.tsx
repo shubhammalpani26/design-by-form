@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { OnboardingChecklist } from '@/components/OnboardingChecklist';
 import { ExternalLink } from 'lucide-react';
 import { ReferralWidget } from '@/components/ReferralWidget';
+import { SEOHead } from "@/components/SEOHead";
 
 interface DashboardStats {
   totalProducts: number;
@@ -111,6 +112,7 @@ const CreatorDashboard = () => {
   if (isLoading) {
     return (
       <div className="text-center py-12">
+      <SEOHead title={"Creator Dashboard"} description={"Private page on Nyzora."} noIndex />
         <p className="text-muted-foreground">Loading dashboard...</p>
       </div>
     );

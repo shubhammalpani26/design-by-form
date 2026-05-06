@@ -2,10 +2,12 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone } from 'lucide-react';
+import { SEOHead } from "@/components/SEOHead";
 
 const PrivacyPolicy = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Privacy Policy | Nyzora"} description={"How Nyzora collects, uses, and protects your personal information."} />
       <Header />
       <main className="flex-1 container py-12">
         <div className="max-w-4xl mx-auto">

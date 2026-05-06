@@ -13,6 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SEOHead } from "@/components/SEOHead";
 
 const Cart = () => {
   const { cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
@@ -143,6 +144,7 @@ const Cart = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Your Cart"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <main className="flex-1 container py-12">
           <Skeleton className="h-12 w-64 mb-8" />

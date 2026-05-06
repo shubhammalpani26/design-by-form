@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
+import { SEOHead } from "@/components/SEOHead";
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -12,6 +13,7 @@ import {
 const CreatorFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Creator FAQs — Earn from Your Designs | Nyzora"} description={"Answers for creators: how AI design works, royalties (70% of markup), payouts, approvals, and getting started on Nyzora."} />
       <Header />
       
       <main className="flex-1">

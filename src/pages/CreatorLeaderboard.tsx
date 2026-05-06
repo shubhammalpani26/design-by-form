@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import { Card, CardContent } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
+import { SEOHead } from "@/components/SEOHead";
 
 interface Creator {
   id: string;
@@ -73,6 +74,7 @@ const CreatorLeaderboard = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Top Creators Leaderboard | Nyzora"} description={"Discover the top-earning creators on Nyzora — ranked by sales of their AI-designed, made-to-order furniture."} />
       <Header />
       
       <main className="flex-1">

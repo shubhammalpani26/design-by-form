@@ -29,6 +29,7 @@ import type { User, Session } from "@supabase/supabase-js";
 import { applyColorTransformToFurniture } from "@/lib/colorTransform";
 import { retrieveDesignImages, storePayload, retrievePayload, clearPayload } from "@/lib/designTransfer";
 import { convertToGlb } from "@/lib/modelConvert";
+import { SEOHead } from "@/components/SEOHead";
 
 const DesignStudio = () => {
   const navigate = useNavigate();
@@ -1580,6 +1581,7 @@ const DesignStudio = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"AI Design Studio — Create Furniture from Ideas | Nyzora"} description={"Turn ideas or sketches into manufacturable furniture designs in seconds with Nyzora's AI Design Studio."} />
       <Header />
       
       <main className="flex-1">

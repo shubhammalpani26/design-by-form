@@ -8,6 +8,7 @@ import { Loader2, Check } from "lucide-react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCurrency } from "@/contexts/CurrencyContext";
+import { SEOHead } from "@/components/SEOHead";
 
 declare global {
   interface Window {
@@ -194,6 +195,7 @@ const Checkout = () => {
   if (!planType || !planDetails) {
     return (
       <div className="min-h-screen flex items-center justify-center">
+      <SEOHead title={"Checkout"} description={"Private page on Nyzora."} noIndex />
         <p>Invalid plan selected</p>
       </div>
     );

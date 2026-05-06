@@ -14,6 +14,7 @@ import {
   ChartLegendContent,
 } from '@/components/ui/chart';
 import {
+import { SEOHead } from "@/components/SEOHead";
   LineChart,
   Line,
   BarChart,
@@ -266,6 +267,7 @@ const AnalyticsDashboard = () => {
   if (loading) {
     return (
       <div className="text-center py-12">
+      <SEOHead title={"Analytics"} description={"Private page on Nyzora."} noIndex />
         <Skeleton className="h-8 w-64 mb-8 mx-auto" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (

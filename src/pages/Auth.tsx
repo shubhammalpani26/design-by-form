@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
 import { attachReferralIfPending } from "@/lib/referrals";
+import { SEOHead } from "@/components/SEOHead";
 
 const PasswordInput = ({
   value,
@@ -164,6 +165,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Sign In or Create an Account | Nyzora"} description={"Sign in to Nyzora to design with AI, list products, and track orders."} />
       <Header />
 
       <main className="flex-1 flex items-center justify-center py-20 md:py-28">
