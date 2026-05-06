@@ -17,7 +17,7 @@
       (function () {
         var path = window.location.pathname.replace(/\/+$/, '') || '/';
         var params = new URLSearchParams(window.location.search);
-        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref'].forEach(function (key) { params.delete(key); });
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref', '__lovable_token'].forEach(function (key) { params.delete(key); });
         var query = params.toString();
         var canonicalUrl = 'https://nyzora.ai' + path + (query ? '?' + query : '');
         var canonical = document.querySelector('link[rel="canonical"]');
