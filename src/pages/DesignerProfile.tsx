@@ -9,8 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
-import { SEOHead } from "@/components/SEOHead";
-import { getCanonicalUrl } from "@/components/SEOHead";
+import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { DesignerFeedSection } from "@/components/DesignerFeedSection";
 import { ExternalLink } from "lucide-react";
@@ -268,7 +267,7 @@ const DesignerProfile = () => {
                   )}
                   <div className="mt-4">
                     <ShareButton
-                      url={window.location.href}
+                      url={canonicalUrl}
                       title={`Check out ${designer.name}'s designs on Nyzora`}
                       description={`Browse ${designer.totalProducts} unique furniture designs by ${designer.name}`}
                     />
