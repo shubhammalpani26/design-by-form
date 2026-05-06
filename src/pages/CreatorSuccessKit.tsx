@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Copy, Download, Share2, TrendingUp, Calendar, DollarSign, Camera, Link as LinkIcon } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { SEOHead } from "@/components/SEOHead";
 
 const CreatorSuccessKit = () => {
   const { toast } = useToast();
@@ -89,6 +90,7 @@ const CreatorSuccessKit = () => {
 
   return (
     <div>
+      <SEOHead title={"Creator Success Kit | Nyzora"} description={"Resources, templates, and best practices to grow your sales as a Nyzora creator."} />
         {/* Hero */}
         <section className="bg-gradient-to-br from-primary/10 via-secondary/5 to-accent py-12">
           <div className="container">

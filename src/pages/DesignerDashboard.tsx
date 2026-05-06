@@ -10,6 +10,7 @@ import { Sparkles, Edit, Trash2, ExternalLink } from 'lucide-react';
 import { ShareButton } from '@/components/ShareButton';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { SEOHead } from "@/components/SEOHead";
 
 interface Product {
   id: string;
@@ -167,6 +168,7 @@ const DesignerDashboard = () => {
   if (isLoading) {
     return (
       <div className="container py-12">
+      <SEOHead title={"Creator Dashboard"} description={"Private page on Nyzora."} noIndex />
         <p className="text-center text-muted-foreground">Loading dashboard...</p>
       </div>
     );

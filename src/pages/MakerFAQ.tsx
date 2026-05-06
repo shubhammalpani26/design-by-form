@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
+import { SEOHead } from "@/components/SEOHead";
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -12,6 +13,7 @@ import {
 const MakerFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Maker FAQs — Become a Verified Nyzora Maker"} description={"How verified makers join Nyzora, manufacturing standards, MBP agreements, and AI pricing profile explained."} />
       <Header />
       
       <main className="flex-1">

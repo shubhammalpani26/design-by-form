@@ -6,6 +6,7 @@ import { DollarSign, TrendingUp, Package, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrency } from '@/contexts/CurrencyContext';
 import { EarningsProjector } from '@/components/EarningsProjector';
+import { SEOHead } from "@/components/SEOHead";
 
 interface EarningsData {
   totalEarnings: number;
@@ -85,6 +86,7 @@ const CreatorEarningsDashboard = () => {
   if (loading) {
     return (
       <div className="text-center py-12">
+      <SEOHead title={"Earnings Dashboard"} description={"Private page on Nyzora."} noIndex />
         <Skeleton className="h-8 w-64 mb-8 mx-auto" />
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (

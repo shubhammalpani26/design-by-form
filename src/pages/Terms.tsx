@@ -2,10 +2,12 @@ import { Header } from '@/components/Header';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone } from 'lucide-react';
+import { SEOHead } from "@/components/SEOHead";
 
 const Terms = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Terms of Service | Nyzora"} description={"Terms governing use of Nyzora's marketplace, design tools, and creator/maker programs."} />
       <Header />
       <main className="flex-1 container py-12">
         <div className="max-w-4xl mx-auto">

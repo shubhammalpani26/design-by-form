@@ -9,6 +9,7 @@ interface SEOHeadProps {
   author?: string;
   keywords?: string[];
   canonical?: string;
+  noIndex?: boolean;
 }
 
 export const SEOHead = ({
@@ -20,6 +21,7 @@ export const SEOHead = ({
   author,
   keywords = [],
   canonical,
+  noIndex = false,
 }: SEOHeadProps) => {
   useEffect(() => {
     // Build canonical URL: prefer explicit prop, else nyzora.ai + pathname (strip query/hash)
@@ -68,7 +70,7 @@ export const SEOHead = ({
     setMetaTag('twitter:image', image, true);
 
     // Additional meta tags
-    setMetaTag('robots', 'index, follow', true);
+    setMetaTag('robots', noIndex ? 'noindex, nofollow' : 'index, follow', true);
     setMetaTag('viewport', 'width=device-width, initial-scale=1.0', true);
 
     // Canonical URL
@@ -80,7 +82,7 @@ export const SEOHead = ({
     }
     canonicalLink.setAttribute('href', canonicalUrl);
 
-  }, [title, description, image, url, type, author, keywords, canonical]);
+  }, [title, description, image, url, type, author, keywords, canonical, noIndex]);
 
   return null; // This component doesn't render anything
 };

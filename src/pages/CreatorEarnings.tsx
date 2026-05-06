@@ -3,10 +3,12 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { SEOHead } from "@/components/SEOHead";
 
 const CreatorEarnings = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Creator Earnings"} description={"Private page on Nyzora."} noIndex />
       <Header />
       
       <main className="flex-1">

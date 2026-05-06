@@ -13,6 +13,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
+import { SEOHead } from "@/components/SEOHead";
 
 interface ProductData {
   name: string;
@@ -183,6 +184,7 @@ const AdminProductEdit = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Edit Product"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <main className="flex-1 container py-12">
           <p className="text-center text-muted-foreground">Loading product...</p>

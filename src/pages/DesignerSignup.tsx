@@ -15,6 +15,7 @@ import { ArrowRight, Star } from "lucide-react";
 import testimonialPriya from "@/assets/testimonial-priya.jpg";
 import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
 import testimonialArjun from "@/assets/testimonial-arjun.jpg";
+import { SEOHead } from "@/components/SEOHead";
 
 const creatorTestimonials = [
   {
@@ -179,6 +180,7 @@ const DesignerSignup = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Become a Creator on Nyzora — Earn 70% Royalties"} description={"Join Nyzora as a creator. Design with AI, list for free, and earn 70% of your markup on every sale, forever."} />
       <Header />
       
       <main className="flex-1">

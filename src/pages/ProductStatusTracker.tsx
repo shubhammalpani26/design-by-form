@@ -8,6 +8,7 @@ import { useToast } from '@/hooks/use-toast';
 import { CheckCircle2, Clock, XCircle, AlertCircle, Package, DollarSign, Truck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { SEOHead } from "@/components/SEOHead";
 
 interface Product {
   id: string;
@@ -143,6 +144,7 @@ const ProductStatusTracker = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Product Status"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <main className="flex-1 container py-12">
           <p className="text-center text-muted-foreground">Loading...</p>

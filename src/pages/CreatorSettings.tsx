@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function CreatorSettings() {
   const [isLoading, setIsLoading] = useState(true);
@@ -73,6 +74,7 @@ export default function CreatorSettings() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
+      <SEOHead title={"Creator Settings"} description={"Private page on Nyzora."} noIndex />
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );

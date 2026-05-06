@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { designerSignupSchema } from '@/lib/validations';
 import { ProfileImageUpload } from '@/components/community/ProfileImageUpload';
+import { SEOHead } from "@/components/SEOHead";
 
 interface ProfileData {
   name: string;
@@ -133,6 +134,7 @@ const CreatorProfile = () => {
   if (isLoading) {
     return (
       <div className="text-center py-12">
+      <SEOHead title={"Creator Profile | Nyzora"} description={"Explore designs and collections from a Nyzora creator."} />
         <p className="text-muted-foreground">Loading profile...</p>
       </div>
     );

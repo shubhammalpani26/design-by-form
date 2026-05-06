@@ -9,6 +9,7 @@ import { X, ShoppingCart } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '@/contexts/CartContext';
 import { useToast } from '@/hooks/use-toast';
+import { SEOHead } from "@/components/SEOHead";
 
 interface Product {
   id: string;
@@ -110,6 +111,7 @@ export default function ProductComparison() {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
+      <SEOHead title={"Compare Products | Nyzora"} description={"Compare Nyzora furniture pieces side-by-side: dimensions, materials, finishes, and price."} />
         <Header />
         <div className="container mx-auto px-4 py-8">
           <div className="flex items-center justify-center h-64">

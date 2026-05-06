@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
+import { SEOHead } from "@/components/SEOHead";
   Accordion,
   AccordionContent,
   AccordionItem,
@@ -12,6 +13,7 @@ import {
 const ShopperFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Shopper FAQs — Made-to-Order Furniture | Nyzora"} description={"Shipping, returns, customization, materials, and lead times for Nyzora's made-to-order, creator-designed furniture."} />
       <Header />
       
       <main className="flex-1">

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, Trash2, Upload } from 'lucide-react';
 import { PriceCalculator } from '@/components/PriceCalculator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { SEOHead } from "@/components/SEOHead";
 
 interface ProductData {
   name: string;
@@ -191,6 +192,7 @@ const ProductEdit = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Edit Product"} description={"Private page on Nyzora."} noIndex />
         <Header />
         <main className="flex-1 container py-12">
           <p className="text-center text-muted-foreground">Loading product...</p>

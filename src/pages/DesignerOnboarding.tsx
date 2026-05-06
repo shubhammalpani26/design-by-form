@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { CheckCircle2, Upload, User, Mail, Phone, Globe, Briefcase } from "lucide-react";
+import { SEOHead } from "@/components/SEOHead";
 
 export default function DesignerOnboarding() {
   const navigate = useNavigate();
@@ -140,6 +141,7 @@ export default function DesignerOnboarding() {
       case 1:
         return (
           <div className="space-y-6">
+      <SEOHead title={"Creator Onboarding"} description={"Private page on Nyzora."} noIndex />
             <div className="text-center space-y-4">
               <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                 <Briefcase className="w-8 h-8 text-primary" />

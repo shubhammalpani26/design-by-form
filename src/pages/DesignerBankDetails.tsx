@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { SEOHead } from "@/components/SEOHead";
 
 const DesignerBankDetails = () => {
   const navigate = useNavigate();
@@ -123,6 +124,7 @@ const DesignerBankDetails = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead title={"Bank Details"} description={"Private page on Nyzora."} noIndex />
       <Header />
       
       <main className="flex-1">
