@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { slugify } from "@/lib/slugify";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
@@ -9,13 +9,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { DesignerFeedSection } from "@/components/DesignerFeedSection";
 import { ExternalLink } from "lucide-react";
 
 interface Designer {
   id: string;
+  slug: string;
   name: string;
   email: string;
   design_background: string;
@@ -40,6 +41,7 @@ interface Designer {
 
 const DesignerProfile = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [designer, setDesigner] = useState<Designer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +73,11 @@ const DesignerProfile = () => {
       }
 
       if (!profile) throw new Error('Designer not found');
+      const canonicalSlug = profile.slug || slugify(profile.name);
+      if (canonicalSlug && slug !== canonicalSlug) {
+        navigate(`/designer/${canonicalSlug}`, { replace: true });
+        return;
+      }
       const designerId = profile.id;
 
       // Fetch designer's products
@@ -91,6 +98,7 @@ const DesignerProfile = () => {
 
       setDesigner({
         id: profile.id,
+        slug: canonicalSlug,
         name: profile.name,
         email: profile.email,
         design_background: profile.design_background || '',
@@ -148,13 +156,16 @@ const DesignerProfile = () => {
     );
   }
 
+  const canonicalUrl = getCanonicalUrl(`/designer/${designer.slug}`);
+
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title={`${designer.name} - Creator Profile`}
         description={`Explore ${designer.name}'s unique furniture designs. ${designer.totalProducts} products with ${designer.totalSales} sales. ${designer.design_background || 'Creative furniture designer'}`}
         image={designer.products[0]?.image_url || `${window.location.origin}/og-default.png`}
-        url={window.location.href}
+        url={canonicalUrl}
+        canonical={canonicalUrl}
         type="profile"
         author={designer.name}
         keywords={['furniture creator', designer.name, 'custom furniture', designer.furniture_interests || 'furniture']}
@@ -164,9 +175,9 @@ const DesignerProfile = () => {
         data={{
           "@context": "https://schema.org",
           "@type": "Person",
-          "@id": `${window.location.href}#person`,
+          "@id": `${canonicalUrl}#person`,
           name: designer.name,
-          url: window.location.href,
+          url: canonicalUrl,
           image: designer.profile_picture_url || undefined,
           jobTitle: "Furniture Designer",
           description: designer.design_background || `Furniture designer on Nyzora`,
@@ -189,9 +200,9 @@ const DesignerProfile = () => {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
-            { "@type": "ListItem", position: 2, name: "Designers", item: `${window.location.origin}/creators` },
-            { "@type": "ListItem", position: 3, name: designer.name, item: window.location.href },
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://nyzora.ai/" },
+            { "@type": "ListItem", position: 2, name: "Creators", item: "https://nyzora.ai/creators" },
+            { "@type": "ListItem", position: 3, name: designer.name, item: canonicalUrl },
           ],
         }}
       />
@@ -256,7 +267,7 @@ const DesignerProfile = () => {
                   )}
                   <div className="mt-4">
                     <ShareButton
-                      url={window.location.href}
+                      url={canonicalUrl}
                       title={`Check out ${designer.name}'s designs on Nyzora`}
                       description={`Browse ${designer.totalProducts} unique furniture designs by ${designer.name}`}
                     />

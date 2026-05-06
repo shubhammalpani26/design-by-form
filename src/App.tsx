@@ -2,14 +2,15 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { CartProvider } from "@/contexts/CartContext";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ComparisonBar } from "@/components/ComparisonBar";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReferralCapture } from "@/hooks/useReferralCapture";
+import { getCanonicalUrl } from "@/components/SEOHead";
 
 // Eager load only the homepage for fastest initial paint
 import Home from "./pages/Home";
@@ -88,6 +89,26 @@ const ReferralCapture = () => {
   return null;
 };
 
+const CanonicalRouteSync = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const canonicalUrl = getCanonicalUrl(`${location.pathname}${location.search}`);
+    let canonical = document.querySelector('link[rel="canonical"]');
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.setAttribute("rel", "canonical");
+      document.head.appendChild(canonical);
+    }
+    canonical.setAttribute("href", canonicalUrl);
+
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.setAttribute("content", canonicalUrl);
+  }, [location.pathname, location.search]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -98,6 +119,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ReferralCapture />
+              <CanonicalRouteSync />
               <ComparisonBar />
               <Suspense fallback={<PageLoader />}>
               <Routes>

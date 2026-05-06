@@ -16,7 +16,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShareButton } from "@/components/ShareButton";
 import { ShareCardDialog } from "@/components/ShareCardDialog";
 import { Share2 } from "lucide-react";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
@@ -125,6 +125,7 @@ const ProductDetail = () => {
 
       setProduct({
         id: data.id,
+        slug: canonicalSlug,
         name: data.name,
         designer: data.designer_profiles?.name || 'Unknown Creator',
         designerId: data.designer_id,
@@ -236,6 +237,8 @@ const ProductDetail = () => {
     { name: 'Walnut', color: '#5C3A1E' },
     { name: 'Concrete', color: '#A0A09B' },
   ];
+  const canonicalPath = `/product/${product.slug || slugify(product.name)}`;
+  const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -243,7 +246,8 @@ const ProductDetail = () => {
         title={product.name}
         description={product.description || `${product.name} by ${product.designer}. Premium furniture.`}
         image={product.image_url}
-        url={window.location.href}
+        url={canonicalUrl}
+        canonical={canonicalUrl}
         type="product"
         author={product.designer}
         keywords={[product.name, product.designer, product.category, 'furniture']}
@@ -253,9 +257,9 @@ const ProductDetail = () => {
         data={{
           "@context": "https://schema.org",
           "@type": ["Product", "CreativeWork"],
-          "@id": `${window.location.href}#product`,
+          "@id": `${canonicalUrl}#product`,
           name: product.name,
-          url: window.location.href,
+          url: canonicalUrl,
           description: product.description || `${product.name} by ${product.designer}`,
           image: product.image_url ? [product.image_url] : undefined,
           sku: `NYZ-${String(product.id).slice(0, 8).toUpperCase()}`,
@@ -266,7 +270,7 @@ const ProductDetail = () => {
             : {}),
           offers: {
             "@type": "Offer",
-            url: window.location.href,
+            url: canonicalUrl,
             priceCurrency: "INR",
             price: product.price,
             priceValidUntil: "2027-12-31",
@@ -282,9 +286,9 @@ const ProductDetail = () => {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
-            { "@type": "ListItem", position: 2, name: "Products", item: `${window.location.origin}/browse` },
-            { "@type": "ListItem", position: 3, name: product.name, item: window.location.href },
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://nyzora.ai/" },
+            { "@type": "ListItem", position: 2, name: "Products", item: "https://nyzora.ai/browse" },
+            { "@type": "ListItem", position: 3, name: product.name, item: canonicalUrl },
           ],
         }}
       />
