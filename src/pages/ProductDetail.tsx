@@ -125,6 +125,7 @@ const ProductDetail = () => {
 
       setProduct({
         id: data.id,
+        slug: canonicalSlug,
         name: data.name,
         designer: data.designer_profiles?.name || 'Unknown Creator',
         designerId: data.designer_id,
@@ -236,7 +237,7 @@ const ProductDetail = () => {
     { name: 'Walnut', color: '#5C3A1E' },
     { name: 'Concrete', color: '#A0A09B' },
   ];
-  const canonicalPath = `/product/${slugify(product.name)}`;
+  const canonicalPath = `/product/${product.slug || slugify(product.name)}`;
   const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   return (
