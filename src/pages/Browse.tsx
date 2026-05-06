@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { ProductCard } from "@/components/ProductCard";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SEOHead } from "@/components/SEOHead";
 
 interface Product {
   id: string;
@@ -95,6 +96,12 @@ const Browse = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title={category ? `${getCategoryTitle()} | Browse` : "Browse Collection"}
+        description={category
+          ? `Shop ${getCategoryTitle()} — unique, creator-designed pieces made to order.`
+          : "Browse the full Nyzora collection of creator-designed, made-to-order furniture and home objects."}
+      />
       <Header />
       
       <main className="flex-1">

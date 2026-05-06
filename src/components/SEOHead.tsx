@@ -8,6 +8,7 @@ interface SEOHeadProps {
   type?: 'website' | 'article' | 'profile' | 'product';
   author?: string;
   keywords?: string[];
+  canonical?: string;
 }
 
 export const SEOHead = ({
@@ -18,8 +19,14 @@ export const SEOHead = ({
   type = 'website',
   author,
   keywords = [],
+  canonical,
 }: SEOHeadProps) => {
   useEffect(() => {
+    // Build canonical URL: prefer explicit prop, else nyzora.ai + pathname (strip query/hash)
+    const canonicalUrl =
+      canonical ||
+      `https://nyzora.ai${window.location.pathname.replace(/\/+$/, '') || '/'}`;
+
     // Update document title
     document.title = `${title} | Nyzora`;
 
@@ -50,7 +57,7 @@ export const SEOHead = ({
     setMetaTag('og:title', title);
     setMetaTag('og:description', description);
     setMetaTag('og:image', image);
-    setMetaTag('og:url', url);
+    setMetaTag('og:url', canonicalUrl);
     setMetaTag('og:type', type);
     setMetaTag('og:site_name', 'Nyzora');
 
@@ -71,9 +78,9 @@ export const SEOHead = ({
       canonicalLink.setAttribute('rel', 'canonical');
       document.head.appendChild(canonicalLink);
     }
-    canonicalLink.setAttribute('href', url);
+    canonicalLink.setAttribute('href', canonicalUrl);
 
-  }, [title, description, image, url, type, author, keywords]);
+  }, [title, description, image, url, type, author, keywords, canonical]);
 
   return null; // This component doesn't render anything
 };
