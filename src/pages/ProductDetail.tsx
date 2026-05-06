@@ -16,11 +16,10 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { ShareButton } from "@/components/ShareButton";
 import { ShareCardDialog } from "@/components/ShareCardDialog";
 import { Share2 } from "lucide-react";
-import { SEOHead } from "@/components/SEOHead";
+import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
-import { getCanonicalUrl } from "@/components/SEOHead";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -270,7 +269,7 @@ const ProductDetail = () => {
             : {}),
           offers: {
             "@type": "Offer",
-            url: window.location.href,
+            url: canonicalUrl,
             priceCurrency: "INR",
             price: product.price,
             priceValidUntil: "2027-12-31",
