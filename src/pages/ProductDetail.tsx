@@ -286,9 +286,9 @@ const ProductDetail = () => {
           "@context": "https://schema.org",
           "@type": "BreadcrumbList",
           itemListElement: [
-            { "@type": "ListItem", position: 1, name: "Home", item: `${window.location.origin}/` },
-            { "@type": "ListItem", position: 2, name: "Products", item: `${window.location.origin}/browse` },
-            { "@type": "ListItem", position: 3, name: product.name, item: window.location.href },
+            { "@type": "ListItem", position: 1, name: "Home", item: "https://nyzora.ai/" },
+            { "@type": "ListItem", position: 2, name: "Products", item: "https://nyzora.ai/browse" },
+            { "@type": "ListItem", position: 3, name: product.name, item: canonicalUrl },
           ],
         }}
       />
