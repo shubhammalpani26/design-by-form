@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { slugify } from "@/lib/slugify";
 import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ShareButton } from "@/components/ShareButton";
 import { SEOHead } from "@/components/SEOHead";
+import { getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { DesignerFeedSection } from "@/components/DesignerFeedSection";
 import { ExternalLink } from "lucide-react";
@@ -40,6 +41,7 @@ interface Designer {
 
 const DesignerProfile = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [designer, setDesigner] = useState<Designer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -71,6 +73,11 @@ const DesignerProfile = () => {
       }
 
       if (!profile) throw new Error('Designer not found');
+      const canonicalSlug = profile.slug || slugify(profile.name);
+      if (canonicalSlug && slug !== canonicalSlug) {
+        navigate(`/designer/${canonicalSlug}`, { replace: true });
+        return;
+      }
       const designerId = profile.id;
 
       // Fetch designer's products
