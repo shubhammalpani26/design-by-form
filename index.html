@@ -10,9 +10,19 @@
     <meta property="og:title" content="Nyzora - Creator-Designed Furniture Marketplace" />
     <meta property="og:description" content="Every piece tells a story. Shop unique, sustainable furniture designed by creators and manufactured on-demand." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://nyzora.ai/" />
+    <meta property="og:url" content="https://nyzora.ai/" data-dynamic-url />
     <meta property="og:site_name" content="Nyzora" />
     <meta property="og:image" content="https://nyzora.ai/og-default.png" />
+    <link rel="canonical" href="https://nyzora.ai/" data-dynamic-url />
+    <script>
+      (function () {
+        var canonicalUrl = 'https://nyzora.ai' + (window.location.pathname.replace(/\/+$/, '') || '/');
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (canonical) canonical.setAttribute('href', canonicalUrl);
+        var ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.setAttribute('content', canonicalUrl);
+      })();
+    </script>
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://nyzora.ai/og-default.png" />
