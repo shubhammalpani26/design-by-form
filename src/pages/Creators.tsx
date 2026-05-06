@@ -7,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { slugify } from "@/lib/slugify";
 import { ArrowRight } from "lucide-react";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
+import { SEOHead } from "@/components/SEOHead";
 
 interface Creator {
   id: string;
@@ -74,6 +75,10 @@ const Creators = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Creators — Designers Behind Every Piece"
+        description="Meet the global community of creators designing one-of-a-kind, made-to-order furniture on Nyzora."
+      />
       <Header />
       
       <main className="flex-1">
