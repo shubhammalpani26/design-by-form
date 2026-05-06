@@ -10,14 +10,22 @@
     <meta property="og:title" content="Nyzora - Creator-Designed Furniture Marketplace" />
     <meta property="og:description" content="Every piece tells a story. Shop unique, sustainable furniture designed by creators and manufactured on-demand." />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://nyzora.ai/" data-dynamic-url />
+    <meta property="og:url" content="" data-dynamic-url />
     <meta property="og:site_name" content="Nyzora" />
     <meta property="og:image" content="https://nyzora.ai/og-default.png" />
-    <link rel="canonical" href="https://nyzora.ai/" data-dynamic-url />
     <script>
       (function () {
-        var canonicalUrl = 'https://nyzora.ai' + (window.location.pathname.replace(/\/+$/, '') || '/');
+        var path = window.location.pathname.replace(/\/+$/, '') || '/';
+        var params = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref'].forEach(function (key) { params.delete(key); });
+        var query = params.toString();
+        var canonicalUrl = 'https://nyzora.ai' + path + (query ? '?' + query : '');
         var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonical);
+        }
         if (canonical) canonical.setAttribute('href', canonicalUrl);
         var ogUrl = document.querySelector('meta[property="og:url"]');
         if (ogUrl) ogUrl.setAttribute('content', canonicalUrl);
