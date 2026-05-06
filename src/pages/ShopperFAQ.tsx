@@ -1,9 +1,9 @@
+import { SEOHead } from "@/components/SEOHead";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
-import { SEOHead } from "@/components/SEOHead";
   Accordion,
   AccordionContent,
   AccordionItem,
