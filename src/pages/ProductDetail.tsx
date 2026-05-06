@@ -20,6 +20,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
+import { getCanonicalUrl } from "@/components/SEOHead";
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -236,6 +237,8 @@ const ProductDetail = () => {
     { name: 'Walnut', color: '#5C3A1E' },
     { name: 'Concrete', color: '#A0A09B' },
   ];
+  const canonicalPath = `/product/${slugify(product.name)}`;
+  const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -243,7 +246,8 @@ const ProductDetail = () => {
         title={product.name}
         description={product.description || `${product.name} by ${product.designer}. Premium furniture.`}
         image={product.image_url}
-        url={window.location.href}
+        url={canonicalUrl}
+        canonical={canonicalUrl}
         type="product"
         author={product.designer}
         keywords={[product.name, product.designer, product.category, 'furniture']}
@@ -253,9 +257,9 @@ const ProductDetail = () => {
         data={{
           "@context": "https://schema.org",
           "@type": ["Product", "CreativeWork"],
-          "@id": `${window.location.href}#product`,
+          "@id": `${canonicalUrl}#product`,
           name: product.name,
-          url: window.location.href,
+          url: canonicalUrl,
           description: product.description || `${product.name} by ${product.designer}`,
           image: product.image_url ? [product.image_url] : undefined,
           sku: `NYZ-${String(product.id).slice(0, 8).toUpperCase()}`,
