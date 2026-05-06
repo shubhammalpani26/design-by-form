@@ -10,6 +10,7 @@ import { ComparisonBar } from "@/components/ComparisonBar";
 import { lazy, Suspense } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useReferralCapture } from "@/hooks/useReferralCapture";
+import { SEOHead } from "@/components/SEOHead";
 
 // Eager load only the homepage for fastest initial paint
 import Home from "./pages/Home";
@@ -98,6 +99,10 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <ReferralCapture />
+              <SEOHead
+                title="Nyzora — Creator-Designed, Made-to-Order Furniture"
+                description="Discover creator-designed, made-to-order furniture and home objects on Nyzora."
+              />
               <ComparisonBar />
               <Suspense fallback={<PageLoader />}>
               <Routes>
