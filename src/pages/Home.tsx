@@ -31,6 +31,7 @@ import testimonialMeera from "@/assets/testimonial-meera.jpg";
 import testimonialKaran from "@/assets/testimonial-karan.jpg";
 import { ScrollReveal, StaggerReveal, useCountUp } from "@/hooks/useScrollReveal";
 import { JsonLd } from "@/components/JsonLd";
+import { SEOHead } from "@/components/SEOHead";
 
 const testimonials = [
   {
@@ -285,6 +286,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <SEOHead
+        title="Nyzora — Creator-Designed, Made-to-Order Furniture"
+        description="Discover one-of-a-kind furniture designed by creators worldwide. Made-to-order, sustainable, and crafted by verified makers."
+      />
       <JsonLd
         id="org"
         data={{
