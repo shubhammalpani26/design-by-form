@@ -128,20 +128,117 @@ const WEBSITE_LD = {
 };
 
 function fallbackHtml(path: string): string {
-  const isHome = !path || path === "/" || path === "";
+  const cleanPath = (path || "/").split("?")[0].replace(/\/+$/, "") || "/";
+  const ROUTE_META: Record<string, { title: string; description: string; heading?: string }> = {
+    "/": {
+      title: "Nyzora — Creator-Designed Furniture & Sculpture Marketplace",
+      description: "Nyzora — the marketplace for creator-designed, sustainable furniture. Shop unique chairs, benches and sculptures from indie designers.",
+      heading: "Furniture Designed by Independent Creators",
+    },
+    "/browse": {
+      title: "Browse Creator-Designed Furniture",
+      description: "Explore original, made-to-order furniture and home objects from independent creators worldwide.",
+      heading: "Browse the Nyzora Catalog",
+    },
+    "/explore": {
+      title: "Explore the Nyzora Community Feed",
+      description: "Discover the latest designs, drops and stories from creators on Nyzora.",
+      heading: "Explore Creator Drops",
+    },
+    "/creators": {
+      title: "Meet the Creators on Nyzora",
+      description: "Browse verified independent furniture designers shaping the next generation of made-to-order home objects.",
+      heading: "Creators on Nyzora",
+    },
+    "/verified-makers": {
+      title: "Verified Makers — Nyzora Manufacturing Partners",
+      description: "Trusted manufacturing partners producing Nyzora pieces with verified quality, lead times and material standards.",
+      heading: "Verified Makers",
+    },
+    "/design-studio": {
+      title: "AI Design Studio — Create Your Own Furniture",
+      description: "Use Nyzora's AI Design Studio to sketch, generate and list original furniture pieces — or get a manufacturing quote.",
+      heading: "Nyzora Design Studio",
+    },
+    "/how-it-works": {
+      title: "How Nyzora Works",
+      description: "Learn how Nyzora turns creator designs into made-to-order furniture and how every piece reaches you.",
+      heading: "How Nyzora Works",
+    },
+    "/about": {
+      title: "About Nyzora",
+      description: "Nyzora is building a manufacturing intelligence layer for creator-designed furniture, made to order.",
+      heading: "About Nyzora",
+    },
+    "/technology": {
+      title: "Nyzora Manufacturing Intelligence",
+      description: "How Nyzora's manufacturing intelligence flywheel encodes maker learnings into every new design.",
+      heading: "Manufacturing Intelligence",
+    },
+    "/contact": {
+      title: "Contact Nyzora",
+      description: "Get in touch with Nyzora — partnerships, support, press and creator inquiries.",
+      heading: "Contact Nyzora",
+    },
+    "/plans": {
+      title: "Creator Plans & Pricing",
+      description: "Choose the Nyzora creator plan that fits your practice — from solo experiments to full studios.",
+      heading: "Creator Plans",
+    },
+    "/designer-signup": {
+      title: "Join Nyzora as a Creator",
+      description: "Apply to design and sell original furniture on Nyzora. Earn 70% of the markup on every made-to-order piece.",
+      heading: "Become a Nyzora Creator",
+    },
+    "/creator-faq": {
+      title: "Creator FAQ",
+      description: "Everything creators need to know about listing, pricing, manufacturing and earnings on Nyzora.",
+      heading: "Creator FAQ",
+    },
+    "/maker-faq": {
+      title: "Maker FAQ",
+      description: "How verified makers join Nyzora, receive orders and get paid for producing creator-designed pieces.",
+      heading: "Maker FAQ",
+    },
+    "/shopper-faq": {
+      title: "Shopper FAQ",
+      description: "Answers to common questions about ordering, shipping, customisation and warranty on Nyzora.",
+      heading: "Shopper FAQ",
+    },
+    "/privacy-policy": {
+      title: "Privacy Policy",
+      description: "How Nyzora collects, uses and protects your information.",
+      heading: "Privacy Policy",
+    },
+    "/terms": {
+      title: "Terms of Service",
+      description: "The terms that govern use of Nyzora.ai and its services.",
+      heading: "Terms of Service",
+    },
+    "/community": {
+      title: "Nyzora Community",
+      description: "Share work, follow creators and discover the latest made-to-order furniture on the Nyzora community feed.",
+      heading: "Nyzora Community",
+    },
+    "/leaderboard": {
+      title: "Top Creators on Nyzora",
+      description: "The Nyzora creator leaderboard — ranked by sales of original, made-to-order furniture.",
+      heading: "Creator Leaderboard",
+    },
+  };
+
+  const meta = ROUTE_META[cleanPath] || {
+    title: "Nyzora — Creator-Designed, Made-to-Order Furniture",
+    description: "Discover original furniture designed by creators worldwide. Each piece is exclusive to Nyzora and made to order.",
+  };
+
   return renderHtml({
-    title: isHome
-      ? "Nyzora — Creator-Designed Furniture & Sculpture Marketplace"
-      : "Nyzora — Creator-Designed, Made-to-Order Furniture",
-    description: isHome
-      ? "Nyzora — the marketplace for creator-designed, sustainable furniture. Shop unique chairs, benches and sculptures from indie designers."
-      : "Discover original furniture designed by creators worldwide. Each piece is exclusive to Nyzora and made to order.",
+    title: meta.title,
+    description: meta.description,
     image: DEFAULT_OG,
-    url: `${SITE}${path || "/"}`,
+    url: `${SITE}${cleanPath === "/" ? "/" : cleanPath}`,
     type: "website",
-    bodyHeading: isHome
-      ? "Furniture Designed by Independent Creators"
-      : undefined,
+    bodyHeading: meta.heading,
     jsonLd: [ORGANIZATION_LD, WEBSITE_LD],
   });
 }
