@@ -83,6 +83,7 @@ Disallow: /cart
 Disallow: /auth
 
 Sitemap: https://nyzora.ai/sitemap.xml
+# Note: nyzora.ai is the canonical custom domain (also served at www.nyzora.ai).
 
 # Machine-readable product feed for AI shopping agents
 # JSON: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed
