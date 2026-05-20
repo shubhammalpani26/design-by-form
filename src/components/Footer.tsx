@@ -47,6 +47,7 @@ export const Footer = () => {
               <li><button onClick={() => handleNavigation("/browse?category=dining-tables")} className="text-muted-foreground hover:text-primary transition-colors text-left">Dining Tables</button></li>
               <li><button onClick={() => handleNavigation("/browse?category=home-decor")} className="text-muted-foreground hover:text-primary transition-colors text-left">Home Decor</button></li>
               <li><button onClick={() => handleNavigation("/luxury-furniture-india")} className="text-muted-foreground hover:text-primary transition-colors text-left">Luxury Furniture India</button></li>
+              <li><button onClick={() => handleNavigation("/ai-designed-furniture")} className="text-muted-foreground hover:text-primary transition-colors text-left">AI Designed Furniture</button></li>
               <li><button onClick={() => handleNavigation("/shopper-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Shopper FAQ</button></li>
             </ul>
           </div>

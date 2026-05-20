@@ -63,6 +63,7 @@ const MakerProfile = lazy(() => import("./pages/MakerProfile"));
 const MakerFAQ = lazy(() => import("./pages/MakerFAQ"));
 const Technology = lazy(() => import("./pages/Technology"));
 const LuxuryFurnitureIndia = lazy(() => import("./pages/LuxuryFurnitureIndia"));
+const AIDesignedFurniture = lazy(() => import("./pages/AIDesignedFurniture"));
 
 // Lazy load layout
 const CreatorLayout = lazy(() => import("./layouts/CreatorLayout").then(m => ({ default: m.CreatorLayout })));
@@ -181,6 +182,7 @@ const App = () => (
               <Route path="/maker-faq" element={<MakerFAQ />} />
               <Route path="/technology" element={<Technology />} />
               <Route path="/luxury-furniture-india" element={<LuxuryFurnitureIndia />} />
+              <Route path="/ai-designed-furniture" element={<AIDesignedFurniture />} />
               <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
