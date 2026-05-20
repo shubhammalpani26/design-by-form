@@ -180,6 +180,7 @@ const App = () => (
               <Route path="/plans" element={<Plans />} />
               <Route path="/maker-faq" element={<MakerFAQ />} />
               <Route path="/technology" element={<Technology />} />
+              <Route path="/luxury-furniture-india" element={<LuxuryFurnitureIndia />} />
               <Route path="/checkout" element={<Checkout />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
