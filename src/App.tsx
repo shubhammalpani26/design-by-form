@@ -62,6 +62,7 @@ const VerifiedMakers = lazy(() => import("./pages/VerifiedMakers"));
 const MakerProfile = lazy(() => import("./pages/MakerProfile"));
 const MakerFAQ = lazy(() => import("./pages/MakerFAQ"));
 const Technology = lazy(() => import("./pages/Technology"));
+const LuxuryFurnitureIndia = lazy(() => import("./pages/LuxuryFurnitureIndia"));
 
 // Lazy load layout
 const CreatorLayout = lazy(() => import("./layouts/CreatorLayout").then(m => ({ default: m.CreatorLayout })));
