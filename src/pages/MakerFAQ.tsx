@@ -1,4 +1,5 @@
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
@@ -10,10 +11,29 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  { q: "What is a Verified Maker on Nyzora?", a: "A vetted manufacturer or artisan who produces creator-designed products on Nyzora. Verified Makers receive a Verified by Nyzora badge, featured directory placement, and on-demand production orders." },
+  { q: "Who can apply to become a Verified Maker?", a: "Workshops, fabrication studios, and individual artisans specialising in wood, metal, composite, resin, or 3D printing. A minimum of 3 years of production experience is required." },
+  { q: "How does the order flow work?", a: "When a customer purchases on Nyzora, we match the order to a Verified Maker based on material expertise and capacity. You receive design files and specs; we handle logistics." },
+  { q: "How am I paid for production orders?", a: "The Manufacturing Base Price is agreed during onboarding. Payment is released within 7 days of the customer confirming delivery and quality. Bank transfer, UPI, and international wire supported." },
+  { q: "Do I need to find my own customers?", a: "No. Nyzora handles all marketing, sales, and customer acquisition. You focus purely on manufacturing." },
+  { q: "Are there any fees to join as a maker?", a: "No upfront fees. No listing charges or subscription costs. Nyzora earns a commission on each sale, agreed transparently during onboarding." },
+  { q: "How is the Manufacturing Base Price determined?", a: "MBP is mutually agreed during onboarding based on your material costs, production complexity, and craftsmanship standards. Our AI pricing model is then trained on your specific profile." },
+];
+
 const MakerFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead title={"Maker FAQs — Become a Verified Nyzora Maker"} description={"How verified makers join Nyzora, manufacturing standards, MBP agreements, and AI pricing profile explained."} />
+      <JsonLd id="faq-maker" data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      }} />
       <Header />
       
       <main className="flex-1">

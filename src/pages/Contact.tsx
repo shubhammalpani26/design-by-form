@@ -3,6 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -65,6 +66,34 @@ const Contact = () => {
         description="Get in touch with Nyzora. We'd love to hear from you."
         url="https://nyzora.ai/contact"
       />
+      <JsonLd id="contact-localbusiness" data={{
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        name: "Nyzora",
+        url: "https://nyzora.ai",
+        email: "contact@nyzora.ai",
+        telephone: "+91-90825-82002",
+        image: "https://nyzora.ai/og-default.png",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Mumbai",
+          addressRegion: "Maharashtra",
+          addressCountry: "IN",
+        },
+        openingHoursSpecification: [{
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+          opens: "10:00",
+          closes: "19:00",
+        }],
+        contactPoint: {
+          "@type": "ContactPoint",
+          contactType: "customer support",
+          email: "contact@nyzora.ai",
+          telephone: "+91-90825-82002",
+          areaServed: "Worldwide",
+        },
+      }} />
       <Header />
 
       <main className="flex-1">

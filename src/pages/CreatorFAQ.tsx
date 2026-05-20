@@ -1,4 +1,5 @@
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
@@ -10,10 +11,30 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  { q: "Who can become a Nyzora creator?", a: "Anyone with creative ideas — students, architects, hobbyists, and professional designers from around the world. No formal design degree required." },
+  { q: "How do I get started as a creator?", a: "Visit our Design Studio and start creating with AI, or fill out the creator application form. Once approved (usually within 24-48 hours), you can upload designs immediately." },
+  { q: "How much can I earn as a creator?", a: "You earn 70% of the markup you set above our Manufacturing Base Price (MBP). For example, if MBP is ₹50,000 and you price at ₹75,000, you earn ₹17,500 per sale." },
+  { q: "Can I set my own prices?", a: "Yes. We calculate the Manufacturing Base Price; you decide your selling price. You earn 70% of the difference (markup)." },
+  { q: "Do I need to provide 3D models?", a: "No. You can use our AI Design Studio to generate designs from text or sketches. You can also upload .STL, .OBJ, or .FBX files if you prefer." },
+  { q: "How long do I earn?", a: "Forever. As long as your design is being manufactured and sold on Nyzora, you continue earning 70% of the markup with no expiration." },
+  { q: "When and how do I get paid?", a: "Payments are processed monthly in the first week of each month for the previous month's sales. Minimum payout is ₹4,000. Bank transfer, UPI, and international payments supported." },
+  { q: "Are there any upfront costs or fees?", a: "No. It is free to join and list designs. We only earn our share when you make a sale. No listing fees, subscriptions, or hidden charges." },
+];
+
 const CreatorFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead title={"Creator FAQs — Earn from Your Designs | Nyzora"} description={"Answers for creators: how AI design works, royalties (70% of markup), payouts, approvals, and getting started on Nyzora."} />
+      <JsonLd id="faq-creator" data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      }} />
       <Header />
       
       <main className="flex-1">

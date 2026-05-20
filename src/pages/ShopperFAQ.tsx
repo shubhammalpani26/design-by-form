@@ -1,4 +1,5 @@
 import { SEOHead } from "@/components/SEOHead";
+import { JsonLd } from "@/components/JsonLd";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Link } from "react-router-dom";
@@ -10,10 +11,30 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const FAQ_ITEMS: { q: string; a: string }[] = [
+  { q: "What makes Nyzora furniture unique?", a: "Every piece is designed by independent creators and crafted using high-grade resin reinforced with composite fibre, produced through hybrid fabrication with meticulous hand-finishing. Each piece is unique." },
+  { q: "What is the typical lead time for orders?", a: "Standard pieces are manufactured on-demand with a typical lead time of 21 days. Custom-sized or specially finished pieces may take 28-35 days." },
+  { q: "Can I customize the colors, finishes, or sizes?", a: "Yes. Each product page offers basic customization options like finish and size. For deeper customizations use the Request More Customizations button to work with our design team." },
+  { q: "What is your return and refund policy?", a: "Each piece is made-to-order, so we don't accept returns on standard orders unless there's a manufacturing defect or shipping damage. 14-day quality guarantee on all orders." },
+  { q: "What are your shipping and delivery options?", a: "Shipping costs are calculated separately based on size, weight, and destination. We offer worldwide shipping. Smaller items ship via courier; larger furniture uses freight delivery." },
+  { q: "What payment methods do you accept?", a: "All major credit/debit cards, UPI, net banking, and digital wallets. Bank transfer and EMI options are available for large orders. All transactions use industry-standard encryption." },
+  { q: "Are the materials eco-friendly?", a: "Yes. Our advanced composite material uses high-grade resin reinforced with composite fibre. Our hybrid fabrication process generates minimal waste and pieces are built to last." },
+  { q: "How do I care for my Nyzora furniture?", a: "Wipe with a damp cloth and mild soap. Avoid abrasive cleaners or harsh chemicals. While weather-resistant, storing outdoor pieces indoors during extreme weather extends their lifespan." },
+];
+
 const ShopperFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead title={"Shopper FAQs — Made-to-Order Furniture | Nyzora"} description={"Shipping, returns, customization, materials, and lead times for Nyzora's made-to-order, creator-designed furniture."} />
+      <JsonLd id="faq-shopper" data={{
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: FAQ_ITEMS.map(({ q, a }) => ({
+          "@type": "Question",
+          name: q,
+          acceptedAnswer: { "@type": "Answer", text: a },
+        })),
+      }} />
       <Header />
       
       <main className="flex-1">
