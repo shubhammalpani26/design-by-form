@@ -26,6 +26,7 @@ const FALLBACK = `<?xml version="1.0" encoding="UTF-8"?>
   <url><loc>${SITE}/technology</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>${SITE}/contact</loc><changefreq>monthly</changefreq><priority>0.5</priority></url>
   <url><loc>${SITE}/luxury-furniture-india</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>${SITE}/ai-designed-furniture</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
   <url><loc>${SITE}/plans</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>${SITE}/designer-signup</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
 </urlset>`;
