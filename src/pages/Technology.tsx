@@ -11,7 +11,7 @@ const Technology = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
-        title="AI Manufacturing Technology | Manufacturing Intelligence — Nyzora"
+        title="AI Manufacturing Intelligence Technology"
         description="Nyzora learns from real-world production—capturing materials, processes, and outcomes to predict what can be built before production begins."
         keywords={["AI manufacturing", "manufacturing intelligence", "production data", "maker matching", "feasibility prediction", "smart manufacturing platform"]}
         url="https://nyzora.ai/technology"

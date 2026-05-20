@@ -42,7 +42,7 @@ const HowItWorks = () => {
   return (
     <div className="min-h-screen flex flex-col">
       <SEOHead
-        title="How It Works — AI-Powered Design to Manufacturing | Nyzora"
+        title="How It Works — AI Design to Manufacturing"
         description="From idea to income in 5 steps. Create with AI, we optimize for manufacturing, review, list, and earn perpetual royalties. Zero inventory, zero risk."
         keywords={["how AI design works", "AI product creation", "design to manufacturing", "creator royalties", "AI furniture platform", "custom product manufacturing"]}
         url="https://nyzora.ai/how-it-works"

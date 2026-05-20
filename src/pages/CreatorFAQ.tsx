@@ -25,7 +25,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
 const CreatorFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={"Creator FAQs — Earn from Your Designs | Nyzora"} description={"Answers for creators: how AI design works, royalties (70% of markup), payouts, approvals, and getting started on Nyzora."} />
+      <SEOHead title={"Creator FAQs — Earn from Your Designs"} description={"Answers for creators: how AI design works, royalties (70% of markup), payouts, approvals, and getting started on Nyzora."} />
       <JsonLd id="faq-creator" data={{
         "@context": "https://schema.org",
         "@type": "FAQPage",

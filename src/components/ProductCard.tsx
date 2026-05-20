@@ -59,6 +59,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
                 className="backdrop-blur-sm shadow-lg h-9 w-9"
                 onClick={toggleComparison}
                 title={inComparison ? "Remove from comparison" : "Add to comparison"}
+                aria-label={inComparison ? "Remove from comparison" : "Add to comparison"}
               >
                 {inComparison ? (
                   <Check className="h-4 w-4" />

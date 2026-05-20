@@ -25,7 +25,7 @@ const FAQ_ITEMS: { q: string; a: string }[] = [
 const ShopperFAQ = () => {
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={"Shopper FAQs — Made-to-Order Furniture | Nyzora"} description={"Shipping, returns, customization, materials, and lead times for Nyzora's made-to-order, creator-designed furniture."} />
+      <SEOHead title={"Shopper FAQs — Made-to-Order Furniture"} description={"Shipping, returns, customization, materials, and lead times for Nyzora's made-to-order, creator-designed furniture."} />
       <JsonLd id="faq-shopper" data={{
         "@context": "https://schema.org",
         "@type": "FAQPage",

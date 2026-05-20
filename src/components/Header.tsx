@@ -79,7 +79,7 @@ export const Header = () => {
         <div className="flex items-center gap-2 md:hidden">
           <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9">
+              <Button variant="ghost" size="icon" className="shrink-0 h-9 w-9" aria-label="Open menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
@@ -331,7 +331,7 @@ export const Header = () => {
           {user && (
             <div className="flex items-center gap-0.5 md:hidden">
               <Link to="/cart" className="relative">
-                <Button variant="ghost" size="icon" className="h-8 w-8 relative">
+                <Button variant="ghost" size="icon" className="h-8 w-8 relative" aria-label="Cart">
                   <ShoppingCart className="h-4 w-4" />
                   {cartCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-[10px] rounded-full w-4 h-4 flex items-center justify-center font-semibold">
@@ -353,7 +353,7 @@ export const Header = () => {
           
           {user && (
             <Link to="/cart" className="relative hidden md:block">
-                <Button variant="ghost" size="icon" className="relative h-9 w-9">
+                <Button variant="ghost" size="icon" className="relative h-9 w-9" aria-label="Cart">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
@@ -378,7 +378,7 @@ export const Header = () => {
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 2xl:w-auto 2xl:px-3 2xl:items-center 2xl:gap-2">
+                <Button variant="ghost" size="icon" className="hidden md:flex h-9 w-9 2xl:w-auto 2xl:px-3 2xl:items-center 2xl:gap-2" aria-label="Account menu">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
