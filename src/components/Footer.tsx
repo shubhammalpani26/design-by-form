@@ -46,8 +46,6 @@ export const Footer = () => {
               <li><button onClick={() => handleNavigation("/browse?category=installations")} className="text-muted-foreground hover:text-primary transition-colors text-left">Installations</button></li>
               <li><button onClick={() => handleNavigation("/browse?category=dining-tables")} className="text-muted-foreground hover:text-primary transition-colors text-left">Dining Tables</button></li>
               <li><button onClick={() => handleNavigation("/browse?category=home-decor")} className="text-muted-foreground hover:text-primary transition-colors text-left">Home Decor</button></li>
-              <li><button onClick={() => handleNavigation("/luxury-furniture-india")} className="text-muted-foreground hover:text-primary transition-colors text-left">Luxury Furniture India</button></li>
-              <li><button onClick={() => handleNavigation("/ai-designed-furniture")} className="text-muted-foreground hover:text-primary transition-colors text-left">AI Designed Furniture</button></li>
               <li><button onClick={() => handleNavigation("/shopper-faq")} className="text-muted-foreground hover:text-primary transition-colors text-left">Shopper FAQ</button></li>
             </ul>
           </div>
@@ -107,6 +105,12 @@ export const Footer = () => {
           </div>
 
           <div className="text-center text-sm text-muted-foreground">
+            <div className="flex flex-wrap justify-center gap-x-4 gap-y-2 mb-4 text-xs">
+              <span className="uppercase tracking-[0.2em] text-muted-foreground/60">Explore</span>
+              <button onClick={() => handleNavigation("/luxury-furniture-india")} className="hover:text-primary transition-colors">Luxury Furniture India</button>
+              <span className="text-muted-foreground/30">·</span>
+              <button onClick={() => handleNavigation("/ai-designed-furniture")} className="hover:text-primary transition-colors">AI Designed Furniture</button>
+            </div>
             <div className="flex justify-center gap-6 mb-4">
               <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>
               <button onClick={() => handleNavigation("/privacy-policy")} className="hover:text-primary transition-colors">Privacy Policy</button>
