@@ -26,37 +26,33 @@ serve(async (req) => {
 
     // Handle surprise prompt generation
     if (type === 'surprise_prompt') {
-      systemContent = 'You are a wildly creative furniture designer with expertise in 3D printing and structural engineering. Generate completely unexpected, never-before-seen designs. Be random, surprising, and inventive with colors, finishes, and inspirations. Every response must be different.';
-      
+      systemContent = 'You are a wildly creative furniture designer fluent in both traditional craft (solid wood joinery, upholstery, metalwork, stone, glass, rattan) and modern 3D-printed resin/composite work. Generate completely unexpected, never-before-seen designs across any manufacturing method. Be random, surprising, and inventive with forms, materials, colors, and finishes. Every response must be different.';
+
       const randomSeed = Math.floor(Math.random() * 100000);
-      
+
       prompt = `SEED: ${randomSeed}
 
 Generate a COMPLETELY RANDOM and UNIQUE design prompt for a ${category || 'furniture'} piece.
 
-BE UNPREDICTABLE - choose ANY inspiration, ANY color, ANY finish. Surprise me with something I've never seen!
+BE UNPREDICTABLE — choose ANY inspiration, ANY material, ANY form, ANY finish. Surprise me with something I've never seen!
 
-MANUFACTURING CONSTRAINTS (must follow for 3D printability):
-- Single material: resin/composite (3D printed with hand-finishing)
-- Single color OR single finish (no multi-color patterns)
-- Self-supporting structure with stable base
-- Proper center of gravity for the category
-- Load-bearing requirements: chairs 120kg, tables hold objects, benches seat multiple people
-- No fragile cantilevers or thin unsupported extensions
-- Minimum 8-15mm wall thickness for structural parts
-- Optional: fabric cushions or upholstery accents allowed
+MANUFACTURING FREEDOM (we can make almost anything):
+- 3D-printed resin/composite for sculptural curved forms
+- Solid wood (Sheesham, Teak, oak, walnut) with traditional joinery — dining tables, consoles, shelving, beds
+- Upholstery — sofas, lounge chairs, ottomans, headboards (fabric, leather, bouclé, velvet)
+- Metalwork — powder-coated steel, brass, blackened iron, stainless
+- Multi-material hybrids — wood + metal, stone tops + wood base, upholstered seat + wood frame
+- Hardware is fine — hinges, soft-close drawers, sliding doors, casters/wheels, reclining mechanisms
+- Surface finishes — stained/oiled/lacquered wood, matte/gloss paint, veneer, marble, glass, rattan/cane, fluting, channel tufting, piping
 
-DESIGN STYLE CONSTRAINTS (CRITICAL - must follow):
-- NO parametric patterns, voronoi, lattice, mesh, or cellular structures
-- NO holes, perforations, or cut-out patterns in surfaces
-- SOLID, continuous surfaces only - smooth, flowing forms
-- Think sculptural, organic, monolithic shapes - NOT algorithmic/generative patterns
-- Avoid anything that looks computer-generated or fractal
+DESIGN GUIDANCE:
+- Pick a real manufacturing direction (sculpted resin OR solid wood OR upholstered OR metal-framed OR hybrid)
+- Match form to material (don't ask for sharp dovetails on a printed resin piece, or organic curves on a flat-pack ply piece)
+- Load-bearing must be sensible: chairs 120kg, tables hold objects, beds support a person
 
 FORMAT:
 - 2-3 sentences ONLY
-- Be SPECIFIC about the unique form/structure
-- Name ONE color or finish (your random choice!)
+- Be SPECIFIC about the form, primary material, and ONE color or finish
 - Return ONLY the design prompt, nothing else`;
     } else {
       // Standard product description generation
