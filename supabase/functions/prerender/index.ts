@@ -187,7 +187,7 @@ function fallbackHtml(path: string): string {
     },
     "/designer-signup": {
       title: "Join Nyzora as a Creator",
-      description: "Apply to design and sell original furniture on Nyzora. Founding Creators keep 100% of the markup on every made-to-order piece.",
+      description: "Apply to design and sell original furniture on Nyzora. Creators keep 100% of the markup on every made-to-order piece.",
       heading: "Become a Nyzora Creator",
     },
     "/creator-faq": {

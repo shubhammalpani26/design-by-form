@@ -20,7 +20,7 @@ const faqs = [
   },
   {
     q: "Can I sell furniture I design with AI on Nyzora?",
-    a: "Yes. Founding Creators keep 100% of the markup on every piece sold. Generate a design, list it, and Nyzora handles manufacturing and fulfillment with our verified maker network.",
+    a: "Yes. Creators keep 100% of the markup on every piece sold. Generate a design, list it, and Nyzora handles manufacturing and fulfillment with our verified maker network.",
   },
 ];
 
@@ -161,7 +161,7 @@ const AIDesignedFurniture = () => {
                     "Verified Indian makers, vetted for craftsmanship",
                     "Transparent pricing before you commit",
                     "2-year warranty on every piece",
-                    "List your designs and keep 100% of the markup (Founding Creator)",
+                    "List your designs and keep 100% of the markup",
                   ].map((item) => (
                     <li key={item} className="flex gap-3 items-start">
                       <Check className="w-5 h-5 text-primary shrink-0 mt-0.5" />

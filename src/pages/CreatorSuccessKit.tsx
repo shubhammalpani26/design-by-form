@@ -403,9 +403,9 @@ const CreatorSuccessKit = () => {
                     <Card className="bg-secondary/5 border-secondary/20">
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">100% Markup (Founding)</h4>
+                        <h4 className="font-semibold text-foreground mb-1">100% Markup</h4>
                         <p className="text-xs text-muted-foreground">
-                          Founding Creators keep the full markup
+                          Creators keep the full markup
                         </p>
                       </CardContent>
                     </Card>
@@ -433,7 +433,7 @@ const CreatorSuccessKit = () => {
                       </div>
                       <div className="p-3 border border-primary bg-primary/5 rounded-lg">
                         <p className="font-medium mb-1">3. You Keep 100% of Markup</p>
-                        <p className="text-sm text-muted-foreground">Founding Creator Program — the full markup is yours on every sale.</p>
+                        <p className="text-sm text-muted-foreground">Creators the full markup is yours on every sale.</p>
                       </div>
                     </div>
                   </div>

@@ -19,7 +19,7 @@ const CreatorEarnings = () => {
               How You Earn as a Creator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Founding Creator Program — set your own markup above our Manufacturing Base Price and keep 100% of it on every sale.
+              Set your own markup above our Manufacturing Base Price and keep 100% of it on every sale.
             </p>
           </div>
         </section>
@@ -37,7 +37,7 @@ const CreatorEarnings = () => {
                 <h3 className="text-2xl font-bold mb-3 text-foreground">Your Markup Earnings</h3>
                 <p className="text-4xl font-bold text-primary mb-4">100%</p>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Set your own selling price above our Manufacturing Base Price (MBP). <strong className="text-foreground">As a Founding Creator, you keep 100% of the markup</strong> (the difference between your price and MBP). Nyzora makes money on the maker side — your markup is yours.
+                  Set your own selling price above our Manufacturing Base Price (MBP). <strong className="text-foreground">You keep 100% of the markup</strong> (the difference between your price and MBP). Nyzora makes money on the maker side — your markup is yours.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
@@ -46,7 +46,7 @@ const CreatorEarnings = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
-                    <span><strong className="text-foreground">Founding Creator benefit:</strong> 100% of markup goes to you — no platform cut on creator earnings right now</span>
+                    <span><strong className="text-foreground">Creator benefit:</strong> 100% of markup goes to you — no platform cut on creator earnings right now</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-primary mt-1">•</span>
@@ -90,7 +90,7 @@ const CreatorEarnings = () => {
                   <div className="text-5xl font-bold text-primary mb-4">3</div>
                   <h3 className="text-lg font-semibold mb-2 text-foreground">Keep 100% of Markup</h3>
                   <p className="text-sm text-muted-foreground">
-                    Founding Creators keep the full markup on every sale. Nyzora earns on the maker side.
+                    Creators keep the full markup on every sale. Nyzora earns on the maker side.
                   </p>
                 </CardContent>
               </Card>
@@ -214,7 +214,7 @@ const CreatorEarnings = () => {
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">How long do I earn?</h4>
                     <p className="text-sm text-muted-foreground">
-                      Forever. As long as your design is being manufactured and sold on Nyzora, you keep earning on every sale with no expiration date. Founding Creators currently receive 100% of the markup; if a platform fee is introduced later, we'll communicate it transparently and well in advance.
+                      Forever. As long as your design is being manufactured and sold on Nyzora, you keep earning on every sale with no expiration date. Creators currently receive 100% of the markup; if a platform fee is introduced later, we'll communicate it transparently and well in advance.
                     </p>
                   </div>
                   <div>
@@ -232,7 +232,7 @@ const CreatorEarnings = () => {
                   <div>
                     <h4 className="font-semibold mb-2 text-foreground">Are there any platform fees?</h4>
                     <p className="text-sm text-muted-foreground">
-                      No creator markup fees right now — Founding Creators keep 100% of markup. Our revenue comes from the maker side and platform subscriptions. No hidden charges, simple and transparent pricing.
+                      No creator markup fees right now — Creators keep 100% of markup. Our revenue comes from the maker side and platform subscriptions. No hidden charges, simple and transparent pricing.
                     </p>
                   </div>
                 </div>

@@ -2940,7 +2940,7 @@ const DesignStudio = () => {
                             onChange={(e) => {
                               const sellingPrice = parseInt(e.target.value) || estimatedCost;
                               const markup = sellingPrice - estimatedCost;
-                              const yourEarnings = Math.round(markup); // Founding Creator: 100% of markup
+                              const yourEarnings = Math.round(markup); // Creator keeps 100% of markup
                               document.getElementById('markup-display')!.textContent = `₹${markup.toLocaleString()}`;
                               document.getElementById('your-share-display')!.textContent = `₹${yourEarnings.toLocaleString()}`;
                               document.getElementById('total-earnings')!.textContent = `₹${yourEarnings.toLocaleString()}`;
@@ -3334,7 +3334,7 @@ const DesignStudio = () => {
                         </div>
                         <div className="flex justify-between items-center">
                           <p className="text-xs text-muted-foreground">
-                            100% of Markup (Founding Creator)
+                            100% of Markup
                           </p>
                           <span className="text-xs font-medium text-primary/80 bg-primary/10 px-2 py-0.5 rounded">
                             {Math.round(((submissionData.designerPrice - submissionData.basePrice) / submissionData.basePrice) * 100)}% markup
