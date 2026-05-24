@@ -175,7 +175,7 @@ const handler = async (req: Request): Promise<Response> => {
                     <strong>Your Earnings Per Sale: ₹${designerEarnings.toLocaleString('en-IN')}</strong>
                   </p>
                   <p style="margin: 5px 0 0; color: #6b7280; font-size: 12px;">
-                    (70% of markup on base manufacturing price)
+                    (Founding Creator: 100% of markup on base manufacturing price)
                   </p>
                 </div>
               </div>

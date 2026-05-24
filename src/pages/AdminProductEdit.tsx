@@ -121,11 +121,11 @@ const AdminProductEdit = () => {
     }
   };
 
-  // Calculate designer earnings preview
+  // Calculate designer earnings preview — Founding Creator Program: 100% of markup
   const getDesignerEarnings = () => {
     if (!product) return 0;
     const markup = product.designer_price - product.base_price;
-    return Math.round(markup * 0.7);
+    return Math.round(markup);
   };
 
   // Calculate current markup percentage

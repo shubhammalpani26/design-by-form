@@ -21,8 +21,9 @@ export const PriceCalculator = ({ basePrice, designerPrice, onPriceChange, readO
   }, [designerPrice]);
 
   const markup = Math.max(0, price - basePrice);
-  const yourEarnings = markup * 0.7;
-  const platformFee = markup * 0.3;
+  // Founding Creator Program — creators keep 100% of their markup.
+  const yourEarnings = markup;
+  const platformFee = 0;
   const markupPercent = basePrice > 0 ? ((markup / basePrice) * 100).toFixed(0) : '0';
   const minPrice = basePrice;
   const maxPrice = basePrice * 4;
@@ -122,14 +123,6 @@ export const PriceCalculator = ({ basePrice, designerPrice, onPriceChange, readO
                 {((basePrice / Math.max(price, 1)) * 100).toFixed(0)}%
               </div>
             )}
-            {platformFee > 0 && (
-              <div
-                className="bg-secondary/30 flex items-center justify-center text-[10px] font-medium text-secondary-foreground"
-                style={{ width: `${(platformFee / Math.max(price, 1)) * 100}%` }}
-              >
-                {((platformFee / Math.max(price, 1)) * 100).toFixed(0)}%
-              </div>
-            )}
             {yourEarnings > 0 && (
               <div
                 className="bg-primary flex items-center justify-center text-[10px] font-medium text-primary-foreground"
@@ -141,7 +134,7 @@ export const PriceCalculator = ({ basePrice, designerPrice, onPriceChange, readO
           </div>
 
           {/* Legend */}
-          <div className="grid grid-cols-3 gap-2 text-center">
+          <div className="grid grid-cols-2 gap-2 text-center">
             <div className="p-2 rounded-lg bg-muted/50">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <div className="w-2 h-2 rounded-full bg-muted-foreground/40" />
@@ -149,17 +142,10 @@ export const PriceCalculator = ({ basePrice, designerPrice, onPriceChange, readO
               </div>
               <p className="text-sm font-semibold text-foreground">{formatINR(basePrice)}</p>
             </div>
-            <div className="p-2 rounded-lg bg-secondary/10">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <div className="w-2 h-2 rounded-full bg-secondary/50" />
-                <span className="text-[10px] text-muted-foreground">Platform</span>
-              </div>
-              <p className="text-sm font-semibold text-foreground">{formatINR(platformFee)}</p>
-            </div>
             <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <div className="w-2 h-2 rounded-full bg-primary" />
-                <span className="text-[10px] text-primary font-medium">You Earn</span>
+                <span className="text-[10px] text-primary font-medium">You Earn (100% of markup)</span>
               </div>
               <p className="text-sm font-bold text-primary">{formatINR(yourEarnings)}</p>
             </div>

@@ -71,7 +71,7 @@ const About = () => {
                 },
                 {
                   title: "Creator-Centric",
-                  desc: "Creators earn 70% of their markup from every sale, forever. Ongoing recognition for ongoing value."
+                  desc: "Founding Creators keep 100% of their markup from every sale, forever. Ongoing recognition for ongoing value."
                 },
                 {
                   title: "AI-Augmented",

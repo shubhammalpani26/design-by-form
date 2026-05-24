@@ -133,7 +133,7 @@ export function ProductsManagement() {
     (product: Product, editPrice: number, autoMarkup: boolean) => {
       const previewSelling = getPreviewSellingPrice(product, editPrice, autoMarkup);
       const markup = previewSelling - editPrice;
-      return Math.round(markup * 0.7);
+      return Math.round(markup);
     },
     [getPreviewSellingPrice]
   );
