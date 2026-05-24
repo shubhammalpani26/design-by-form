@@ -184,7 +184,7 @@ const handler = async (req: Request): Promise<Response> => {
       product_id: item.product_id,
       order_id: order.id,
       sale_amount: item.price * item.quantity,
-      // Founding Creator: creator receives 100% of markup. Stored as royalty_amount for
+      // Creator receives 100% of markup. Stored as royalty_amount for
       // payout calculations; commission_amount kept at 0 until maker-side commission is finalised.
       royalty_percentage: 100,
       royalty_amount: item.designer_earnings,

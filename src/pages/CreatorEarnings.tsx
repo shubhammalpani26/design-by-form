@@ -37,7 +37,7 @@ const CreatorEarnings = () => {
                 <h3 className="text-2xl font-bold mb-3 text-foreground">Your Markup Earnings</h3>
                 <p className="text-4xl font-bold text-primary mb-4">100%</p>
                 <p className="text-muted-foreground text-sm mb-4">
-                  Set your own selling price above our Manufacturing Base Price (MBP). <strong className="text-foreground">As a Founding Creator, you keep 100% of the markup</strong> (the difference between your price and MBP). Nyzora makes money on the maker side — your markup is yours.
+                  Set your own selling price above our Manufacturing Base Price (MBP). <strong className="text-foreground">You keep 100% of the markup</strong> (the difference between your price and MBP). Nyzora makes money on the maker side — your markup is yours.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
