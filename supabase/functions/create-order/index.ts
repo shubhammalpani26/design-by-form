@@ -79,10 +79,11 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Cart is empty");
     }
 
-    // Calculate subtotal (before GST) and creator earnings
-    // Creator Earnings: creator keeps 100% of markup (designer_price − base_price).
-    // Maker commission (typically 15–20%) is negotiated per-maker and applied OUT-OF-BAND
-    // during payout/reconciliation — NOT computed on the customer-paid price here.
+    // Calculate subtotal (before GST), creator earnings, and maker commission.
+    // Creator keeps 100% of markup (designer_price − base_price).
+    // Platform charges a flat 20% commission to the maker on the Manufacturing Base Price
+    // for each manufactured item (recorded on order_items for reconciliation/payout).
+    const MAKER_COMMISSION_RATE = 20; // percent of base_price, per unit
     let subtotal = 0;
     const orderItemsData = [];
 
@@ -91,12 +92,13 @@ const handler = async (req: Request): Promise<Response> => {
       const itemTotal = Number(product.designer_price) * item.quantity;
       subtotal += itemTotal;
 
-      // Creator earnings = full markup × quantity. No platform cut during current phase.
+      // Creator earnings = full markup × quantity. No platform cut on creator markup.
       const basePrice = Number(product.base_price) || 0;
       const markupPerUnit = Math.max(0, Number(product.designer_price) - basePrice);
       const designerEarnings = markupPerUnit * item.quantity;
-      const commissionRate = 0; // Platform markup fee deferred (Creator Earnings)
-      const commissionAmount = 0;
+      // Maker-side commission: flat 20% of MBP × quantity (platform revenue, deducted from maker payout).
+      const commissionRate = MAKER_COMMISSION_RATE;
+      const commissionAmount = (basePrice * MAKER_COMMISSION_RATE / 100) * item.quantity;
 
       orderItemsData.push({
         product_id: product.id,
