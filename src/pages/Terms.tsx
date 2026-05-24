@@ -94,7 +94,7 @@ const Terms = () => {
 
               <h3 className="text-xl font-semibold mb-3">3.4 Pricing and Earnings</h3>
               <p className="text-muted-foreground mb-4">
-                Designers set their own selling prices above the Manufacturing Base Price (MBP) calculated by our platform. Designers earn 70% of the markup (difference between their selling price and MBP). The platform retains 30% of the markup to cover operations, customer support, and infrastructure. In cases where dynamic pricing reduces a product to the Manufacturing Base Price due to low sales, designers will earn 5-8% commission on base price sales.
+                Creators set their own selling prices above the Manufacturing Base Price (MBP) calculated by our platform. As part of the Founding Creator Program, Creators currently keep 100% of the markup (difference between their selling price and MBP). Nyzora's revenue during this phase comes from maker-side commissions and platform subscriptions. A platform markup fee may be introduced in the future; if so, it will be announced transparently and well in advance, and Founding Creators may receive preferential terms. In cases where dynamic pricing reduces a product to the Manufacturing Base Price due to low sales, Creators will earn 5-8% commission on base price sales.
               </p>
 
               <h3 className="text-xl font-semibold mb-3">3.5 Payments</h3>
