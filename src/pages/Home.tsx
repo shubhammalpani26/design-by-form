@@ -467,7 +467,7 @@ const Home = () => {
                   For Creators
                 </p>
                 <h2 className="text-2xl md:text-3xl font-semibold leading-tight">
-                  Launch your own product line. We manufacture, ship & pay you 70%.
+                  Launch your own product line. We manufacture, ship & pay you 100% of your markup.
                 </h2>
                 <p className="text-sm text-background/70">
                   Zero inventory. Zero manufacturing risk. Earn royalty on every piece sold.
@@ -584,8 +584,8 @@ const Home = () => {
               </div>
               <div className="hidden md:block w-px h-12 bg-border" />
               <div className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-foreground">70%</div>
-                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Creator Royalty</div>
+                <div className="text-4xl md:text-5xl font-bold text-foreground">100%</div>
+                <div className="text-sm text-muted-foreground mt-1 tracking-wide uppercase">Creator Markup</div>
               </div>
             </div>
           </div>
