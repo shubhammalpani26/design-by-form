@@ -26,7 +26,7 @@ serve(async (req) => {
 
     // Handle surprise prompt generation
     if (type === 'surprise_prompt') {
-      systemContent = 'You are a wildly creative furniture designer fluent in both traditional craft (solid wood joinery, upholstery, metalwork, stone, glass, rattan) and modern 3D-printed resin/composite work. Generate completely unexpected, never-before-seen designs across any manufacturing method. Be random, surprising, and inventive with forms, materials, colors, and finishes. Every response must be different.';
+      systemContent = 'You are a wildly creative furniture designer fluent in both traditional craft (solid wood joinery, hand-carved detailing, upholstery, metalwork, stone, glass, rattan, cane) and modern 3D-printed resin/composite work. You design like Beni Enterprise (Mumbai premium woodwork — solid hardwoods, fluted/carved detailing, contemporary silhouettes, statement dining tables, consoles, sofas, lamps) and Cyanique (sculptural additive manufacturing). Generate completely unexpected, never-before-seen designs across any manufacturing method. CRITICAL: every piece must use ONE cohesive, tonal color story (a single palette of 1-2 closely related tones + at most one accent material). Never mix unrelated colors. Every response must be different.';
 
       const randomSeed = Math.floor(Math.random() * 100000);
 
@@ -34,25 +34,30 @@ serve(async (req) => {
 
 Generate a COMPLETELY RANDOM and UNIQUE design prompt for a ${category || 'furniture'} piece.
 
-BE UNPREDICTABLE — choose ANY inspiration, ANY material, ANY form, ANY finish. Surprise me with something I've never seen!
+BE UNPREDICTABLE in form & inspiration — but DISCIPLINED in palette. Surprise me with something I've never seen, in ONE cohesive color story.
 
 MANUFACTURING FREEDOM (we can make almost anything):
-- 3D-printed resin/composite for sculptural curved forms
-- Solid wood (Sheesham, Teak, oak, walnut) with traditional joinery — dining tables, consoles, shelving, beds
-- Upholstery — sofas, lounge chairs, ottomans, headboards (fabric, leather, bouclé, velvet)
+- Premium solid wood (Sheesham, Teak, oak, walnut, mango) with traditional joinery, hand-carved detailing, fluting, reeding, turned legs — dining tables, consoles, shelving, beds, coffee tables, benches (Beni Enterprise capability)
+- Designer upholstered furniture on solid wood frames — sofas, lounge chairs, ottomans, headboards, designer lamps (fabric, leather, bouclé, velvet, linen) (Beni Enterprise capability)
+- 3D-printed resin/composite for sculptural curved forms — vases, accent pieces, statement decor (Cyanique capability)
 - Metalwork — powder-coated steel, brass, blackened iron, stainless
-- Multi-material hybrids — wood + metal, stone tops + wood base, upholstered seat + wood frame
+- Multi-material hybrids — wood + metal, stone tops + wood base, upholstered seat + carved wood frame
 - Hardware is fine — hinges, soft-close drawers, sliding doors, casters/wheels, reclining mechanisms
-- Surface finishes — stained/oiled/lacquered wood, matte/gloss paint, veneer, marble, glass, rattan/cane, fluting, channel tufting, piping
+- Surface finishes — stained/oiled/lacquered wood, matte/gloss paint, veneer, marble, travertine, glass, rattan/cane, fluting, channel tufting, piping
+
+COLOR DISCIPLINE (non-negotiable):
+- Pick ONE tonal family for the entire piece: e.g. "warm walnut throughout", "all bone-white with cream bouclé", "blackened oak with brushed brass accents only", "travertine top on natural oak base", "monochrome charcoal velvet on ebonised wood".
+- Maximum TWO closely-related tones + ONE small accent (metal trim, piping, hardware). No rainbow combinations. No clashing hues.
+- Name the EXACT finish (e.g. "fumed oak", "champagne bouclé", "antique brass", "honed Carrara") — not vague words like "colorful" or "vibrant".
 
 DESIGN GUIDANCE:
-- Pick a real manufacturing direction (sculpted resin OR solid wood OR upholstered OR metal-framed OR hybrid)
+- Pick a real manufacturing direction (carved/turned solid wood OR upholstered-on-wood-frame OR sculpted resin OR metal-framed OR hybrid)
 - Match form to material (don't ask for sharp dovetails on a printed resin piece, or organic curves on a flat-pack ply piece)
 - Load-bearing must be sensible: chairs 120kg, tables hold objects, beds support a person
 
 FORMAT:
 - 2-3 sentences ONLY
-- Be SPECIFIC about the form, primary material, and ONE color or finish
+- Be SPECIFIC about the form, primary material, and the ONE cohesive finish/palette
 - Return ONLY the design prompt, nothing else`;
     } else {
       // Standard product description generation
