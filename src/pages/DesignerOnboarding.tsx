@@ -161,7 +161,7 @@ export default function DesignerOnboarding() {
                     </div>
                     <h3 className="font-semibold">Earn Per Sale</h3>
                     <p className="text-sm text-muted-foreground">
-                      Founding Creator Program — keep 100% of the markup you set above MBP.
+                      Creators keep 100% of the markup you set above MBP.
                     </p>
                   </div>
                 </CardContent>
@@ -325,7 +325,7 @@ export default function DesignerOnboarding() {
                     />
                     <label htmlFor="terms" className="text-sm leading-relaxed cursor-pointer">
                       I accept the <a href="/terms" className="text-primary hover:underline">Creator Terms & Conditions</a>,
-                      including the listing fee policy (currently waived) and the Founding Creator earnings
+                      including the listing fee policy (currently waived) and the Creator earnings
                       model — I keep 100% of the markup I set above the Manufacturing Base Price.
                     </label>
                   </div>

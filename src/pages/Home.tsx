@@ -755,7 +755,7 @@ const Home = () => {
                 </div>
                 <h3 className="text-lg font-semibold text-foreground">Earn forever</h3>
                 <p className="text-sm text-muted-foreground">
-                  Founding Creators keep 100% of markup on every sale. Perpetual royalties, monthly payouts.
+                  Creators keep 100% of markup on every sale. Perpetual royalties, monthly payouts.
                 </p>
               </div>
             </StaggerReveal>

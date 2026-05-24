@@ -81,7 +81,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
 
         <div className="mt-4 space-y-1">
           <p className="text-xs text-center text-muted-foreground">
-            * Listing fees currently waived. Founding Creators keep 100% of markup on every sale.
+            * Listing fees currently waived. Creators keep 100% of markup on every sale.
           </p>
           <p className="text-xs text-center text-muted-foreground">
             You can always become a designer later if you choose personal use
