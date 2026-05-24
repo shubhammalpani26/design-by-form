@@ -166,19 +166,38 @@ serve(async (req) => {
       "Create organic, flowing lines inspired by natural geological or botanical forms"
     ];
 
-    // Manufacturing constraints applied to EVERY generation
+    // Manufacturing capabilities — Nyzora now supports BOTH advanced 3D printing
+    // AND traditional craft manufacturing (via Beni Enterprises and our maker network).
+    // The AI should design freely across the full furniture spectrum.
     const manufacturingConstraints = `
-CRITICAL MANUFACTURING CONSTRAINTS — every design MUST follow these rules:
-- SOLID, CONTINUOUS, MONOLITHIC form only — no hollow shells, no thin walls
-- NO lattice, mesh, voronoi, perforated, or honeycomb patterns
-- NO holes, cutouts, or openings in structural surfaces
-- Single material (resin/composite) and single color/finish
-- Stable, flat base that can stand on its own without support
-- No thin unsupported cantilevers or fragile overhangs
-- Minimum wall thickness throughout — designed for 3D printing at furniture scale
-- Smooth, continuous surfaces suitable for post-processing and finishing
-- Structurally sound: the piece must support its intended load (seating, tabletop, etc.)
-The design must be manufacturable via large-format 3D printing and hand-finishing.`;
+MANUFACTURING CAPABILITIES — Nyzora's maker network can produce a wide range of furniture:
+
+1. LARGE-FORMAT 3D PRINTING (resin/composite): best for sculptural, organic, monolithic forms,
+   curved seating, decor objects, lighting, planters, and statement pieces.
+2. TRADITIONAL WOODWORKING & JOINERY: solid wood, veneers, plywood, MDF — for tables, chairs,
+   beds, cabinets, shelving, consoles, sideboards. Mortise & tenon, dovetail, dowel joints are all fair game.
+3. UPHOLSTERY: sofas, lounge chairs, ottomans, headboards, benches with fabric/leather/boucle,
+   with foam/feather/spring cores and hardwood or metal frames.
+4. METALWORK: powder-coated steel, brushed brass, blackened iron, stainless — for legs, frames,
+   structural elements, hairpin/sled/cantilever bases.
+5. UPHOLSTERED + WOOD + METAL HYBRIDS: multi-material assemblies are fully supported.
+6. HARDWARE: hinges, soft-close drawers, sliding doors, casters/wheels, adjustable shelves,
+   extension mechanisms (for dining tables), reclining mechanisms — all available through our maker network.
+7. SURFACE FINISHES: stained/oiled/lacquered wood, matte/gloss paint, veneer, marble/stone tops,
+   glass, rattan/cane weaving, fluting, channel tufting, piping.
+
+DESIGN FREEDOM:
+- Design for the form the piece WANTS to take — don't force every piece to be a monolithic blob.
+- A dining table can have four legs and a wood top. A wardrobe can have hinged doors and drawers.
+  A sofa can be upholstered. A bar cart can have wheels.
+- Match the manufacturing method to the design: organic/sculptural → 3D printed; functional/storage/seating
+  → traditional craft; statement decor → either.
+
+BASELINE QUALITY RULES (apply to everything):
+- Structurally sound and able to support its intended load.
+- Stable, well-proportioned base / footprint.
+- Real-world manufacturable at furniture scale by skilled makers.
+- Cohesive material story — materials chosen should make sense together.`;
 
     // ─────────────────────────────────────────────────────────────
     // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
@@ -412,14 +431,17 @@ Generate a single photorealistic product photograph of this furniture piece.`;
 
 Design Prompt: ${prompt}
 
-This is PREMIUM DESIGNER FURNITURE - not mass-produced items. These are handcrafted, unique pieces using advanced 3D printing and hand-finishing.
+This is PREMIUM DESIGNER FURNITURE — handcrafted unique pieces. Our maker network covers BOTH
+advanced large-format 3D printing AND traditional craft (wood joinery, upholstery, metalwork,
+multi-material assemblies, hardware like hinges/drawers/wheels).
 
 Analyze this furniture piece and determine:
-1. Manufacturing complexity (simple/medium/high)
-2. Material requirements (single PP / PP + one add-on / multi-material)
-3. Finishing type (matte single-color / dual-finish texture / gloss metallic hand-polished)
-4. Customization level (minimal / moderate / fully bespoke)
-5. Assembly difficulty (single piece / modular / multi-part)
+1. Likely manufacturing method (3D printed / solid wood / upholstered / metal / hybrid)
+2. Manufacturing complexity (simple/medium/high)
+3. Material requirements (single material / two materials / multi-material with hardware)
+4. Finishing type (matte/standard / mid-tier finish / premium hand-finished, marble, brass, leather, etc.)
+5. Customization level (minimal / moderate / fully bespoke)
+6. Assembly difficulty (single piece / modular / multi-part with hardware)
 
 Based on your analysis, provide a PREMIUM price per cubic foot between ₹8,000 and ₹18,000.
 

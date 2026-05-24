@@ -2299,31 +2299,6 @@ const DesignStudio = () => {
                   </CardContent>
                 </Card>
 
-                {/* Tips */}
-                <Card className="hidden md:block bg-accent border-border">
-                  <CardContent className="p-6">
-                    <h4 className="font-semibold mb-3 text-foreground">💡 Design Guidelines</h4>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Focus on <strong className="text-foreground">single-piece forms</strong></span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Describe <strong className="text-foreground">surface finishes</strong></span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-primary mt-1">✓</span>
-                        <span>Include <strong className="text-foreground">style & shape</strong></span>
-                      </li>
-                      <li className="flex items-start gap-2">
-                        <span className="text-destructive mt-1">✗</span>
-                        <span className="line-through">Avoid wheels, hinges, or multi-material assemblies</span>
-                      </li>
-                    </ul>
-                  </CardContent>
-                </Card>
-
                 {/* Weekly Theme - hidden on mobile for cleaner flow */}
                 <div className="hidden md:block">
                   <WeeklyThemes />
