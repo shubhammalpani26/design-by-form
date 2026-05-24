@@ -19,7 +19,7 @@ const CreatorEarnings = () => {
               How You Earn as a Creator
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Creators set your own markup above our Manufacturing Base Price and keep 100% of it on every sale.
+              Set your own markup above our Manufacturing Base Price and keep 100% of it on every sale.
             </p>
           </div>
         </section>

@@ -121,7 +121,7 @@ const AdminProductEdit = () => {
     }
   };
 
-  // Calculate designer earnings preview — Creator Earnings: 100% of markup
+  // Calculate designer earnings preview — creator keeps 100% of markup
   const getDesignerEarnings = () => {
     if (!product) return 0;
     const markup = product.designer_price - product.base_price;

@@ -21,7 +21,7 @@ export const PriceCalculator = ({ basePrice, designerPrice, onPriceChange, readO
   }, [designerPrice]);
 
   const markup = Math.max(0, price - basePrice);
-  // Creators creators keep 100% of their markup.
+  // Creators keep 100% of their markup.
   const yourEarnings = markup;
   const platformFee = 0;
   const markupPercent = basePrice > 0 ? ((markup / basePrice) * 100).toFixed(0) : '0';

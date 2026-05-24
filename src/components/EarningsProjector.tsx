@@ -12,7 +12,7 @@ export const EarningsProjector = () => {
   const [monthlySales, setMonthlySales] = useState(10);
 
   const markup = Math.max(0, sellingPrice - basePrice);
-  // Creators creators keep 100% of their markup.
+  // Creators keep 100% of their markup.
   const earningsPerSale = markup;
   const platformPerSale = 0;
   const monthlyEarnings = earningsPerSale * monthlySales;
@@ -33,7 +33,7 @@ export const EarningsProjector = () => {
                 <Info className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[240px]">
-                <p className="text-xs">Creators you keep 100% of the markup you set above Manufacturing Base Price.</p>
+                <p className="text-xs">You keep 100% of the markup you set above Manufacturing Base Price.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
