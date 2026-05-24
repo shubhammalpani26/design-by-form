@@ -79,7 +79,10 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Cart is empty");
     }
 
-    // Calculate subtotal (before GST) and commission
+    // Calculate subtotal (before GST) and creator earnings
+    // Founding Creator Program: creator keeps 100% of markup (designer_price − base_price).
+    // Maker commission (typically 15–20%) is negotiated per-maker and applied OUT-OF-BAND
+    // during payout/reconciliation — NOT computed on the customer-paid price here.
     let subtotal = 0;
     const orderItemsData = [];
 
@@ -88,10 +91,12 @@ const handler = async (req: Request): Promise<Response> => {
       const itemTotal = Number(product.designer_price) * item.quantity;
       subtotal += itemTotal;
 
-      // Calculate commission (7% of sale)
-      const commissionRate = 0.07;
-      const commissionAmount = itemTotal * commissionRate;
-      const designerEarnings = itemTotal - commissionAmount;
+      // Creator earnings = full markup × quantity. No platform cut during Founding Creator phase.
+      const basePrice = Number(product.base_price) || 0;
+      const markupPerUnit = Math.max(0, Number(product.designer_price) - basePrice);
+      const designerEarnings = markupPerUnit * item.quantity;
+      const commissionRate = 0; // Platform markup fee deferred (Founding Creator Program)
+      const commissionAmount = 0;
 
       orderItemsData.push({
         product_id: product.id,
@@ -179,9 +184,11 @@ const handler = async (req: Request): Promise<Response> => {
       product_id: item.product_id,
       order_id: order.id,
       sale_amount: item.price * item.quantity,
-      royalty_percentage: 7,
-      royalty_amount: item.commission_amount,
-      commission_amount: item.commission_amount,
+      // Founding Creator: creator receives 100% of markup. Stored as royalty_amount for
+      // payout calculations; commission_amount kept at 0 until maker-side commission is finalised.
+      royalty_percentage: 100,
+      royalty_amount: item.designer_earnings,
+      commission_amount: 0,
       status: "pending"
     }));
 
