@@ -14,10 +14,10 @@ import {
 const FAQ_ITEMS: { q: string; a: string }[] = [
   { q: "Who can become a Nyzora creator?", a: "Anyone with creative ideas — students, architects, hobbyists, and professional designers from around the world. No formal design degree required." },
   { q: "How do I get started as a creator?", a: "Visit our Design Studio and start creating with AI, or fill out the creator application form. Once approved (usually within 24-48 hours), you can upload designs immediately." },
-  { q: "How much can I earn as a creator?", a: "You earn 70% of the markup you set above our Manufacturing Base Price (MBP). For example, if MBP is ₹50,000 and you price at ₹75,000, you earn ₹17,500 per sale." },
-  { q: "Can I set my own prices?", a: "Yes. We calculate the Manufacturing Base Price; you decide your selling price. You earn 70% of the difference (markup)." },
+  { q: "How much can I earn as a creator?", a: "Founding Creators keep 100% of the markup they set above our Manufacturing Base Price (MBP). For example, if MBP is ₹50,000 and you price at ₹75,000, you earn ₹25,000 per sale." },
+  { q: "Can I set my own prices?", a: "Yes. We calculate the Manufacturing Base Price; you decide your selling price and keep 100% of the difference (markup) as a Founding Creator." },
   { q: "Do I need to provide 3D models?", a: "No. You can use our AI Design Studio to generate designs from text or sketches. You can also upload .STL, .OBJ, or .FBX files if you prefer." },
-  { q: "How long do I earn?", a: "Forever. As long as your design is being manufactured and sold on Nyzora, you continue earning 70% of the markup with no expiration." },
+  { q: "How long do I earn?", a: "Forever. As long as your design is being manufactured and sold on Nyzora, you continue earning on every sale with no expiration. Founding Creators currently keep 100% of the markup; any future platform fee will be communicated transparently in advance." },
   { q: "When and how do I get paid?", a: "Payments are processed monthly in the first week of each month for the previous month's sales. Minimum payout is ₹4,000. Bank transfer, UPI, and international payments supported." },
   { q: "Are there any upfront costs or fees?", a: "No. It is free to join and list designs. We only earn our share when you make a sale. No listing fees, subscriptions, or hidden charges." },
 ];

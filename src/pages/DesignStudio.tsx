@@ -2940,8 +2940,7 @@ const DesignStudio = () => {
                             onChange={(e) => {
                               const sellingPrice = parseInt(e.target.value) || estimatedCost;
                               const markup = sellingPrice - estimatedCost;
-                              const yourEarnings = Math.round(markup * 0.7); // 70% of markup
-                              const platformShare = Math.round(markup * 0.3); // 30% to platform
+                              const yourEarnings = Math.round(markup); // Founding Creator: 100% of markup
                               document.getElementById('markup-display')!.textContent = `₹${markup.toLocaleString()}`;
                               document.getElementById('your-share-display')!.textContent = `₹${yourEarnings.toLocaleString()}`;
                               document.getElementById('total-earnings')!.textContent = `₹${yourEarnings.toLocaleString()}`;
@@ -2961,19 +2960,19 @@ const DesignStudio = () => {
                             <span id="markup-display" className="font-medium text-muted-foreground">₹{(estimatedCost * 0.5).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between text-xs">
-                            <span className="text-muted-foreground">Your Share (70% of markup)</span>
-                            <span id="your-share-display" className="font-semibold text-primary">₹{Math.round(estimatedCost * 0.5 * 0.7).toLocaleString()}</span>
+                            <span className="text-muted-foreground">Your Share (100% of markup)</span>
+                            <span id="your-share-display" className="font-semibold text-primary">₹{Math.round(estimatedCost * 0.5).toLocaleString()}</span>
                           </div>
                           <div className="flex justify-between pt-2 border-t border-primary/20">
                             <span className="font-semibold text-foreground">Per Sale Earnings</span>
-                            <span id="total-earnings" className="font-bold text-primary">₹{Math.round(estimatedCost * 0.5 * 0.7).toLocaleString()}</span>
+                            <span id="total-earnings" className="font-bold text-primary">₹{Math.round(estimatedCost * 0.5).toLocaleString()}</span>
                           </div>
                         </div>
 
                         <div className="bg-accent/50 rounded-lg p-3">
                           <p className="text-xs text-muted-foreground mb-2">📈 If you sell 10 units/month:</p>
                           <p className="text-sm font-bold text-foreground">
-                            Monthly Income: <span id="monthly-income">₹{Math.round(estimatedCost * 0.5 * 0.7 * 10).toLocaleString()}</span>
+                            Monthly Income: <span id="monthly-income">₹{Math.round(estimatedCost * 0.5 * 10).toLocaleString()}</span>
                           </p>
                         </div>
 
@@ -3330,12 +3329,12 @@ const DesignStudio = () => {
                         <div className="flex justify-between items-center mb-2">
                           <span className="text-sm font-medium text-foreground">Your Earnings Per Sale</span>
                           <span className="text-xl font-bold text-primary">
-                            ₹{((submissionData.designerPrice - submissionData.basePrice) * 0.70).toLocaleString()}
+                            ₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()}
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
                           <p className="text-xs text-muted-foreground">
-                            70% of Markup (₹{(submissionData.designerPrice - submissionData.basePrice).toLocaleString()})
+                            100% of Markup (Founding Creator)
                           </p>
                           <span className="text-xs font-medium text-primary/80 bg-primary/10 px-2 py-0.5 rounded">
                             {Math.round(((submissionData.designerPrice - submissionData.basePrice) / submissionData.basePrice) * 100)}% markup

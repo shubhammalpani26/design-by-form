@@ -403,9 +403,9 @@ const CreatorSuccessKit = () => {
                     <Card className="bg-secondary/5 border-secondary/20">
                       <CardContent className="p-4 text-center">
                         <TrendingUp className="w-8 h-8 text-secondary mx-auto mb-2" />
-                        <h4 className="font-semibold text-foreground mb-1">70% Markup Share</h4>
+                        <h4 className="font-semibold text-foreground mb-1">100% Markup (Founding)</h4>
                         <p className="text-xs text-muted-foreground">
-                          You earn 70% of your markup
+                          Founding Creators keep the full markup
                         </p>
                       </CardContent>
                     </Card>
@@ -432,8 +432,8 @@ const CreatorSuccessKit = () => {
                         <p className="text-sm text-muted-foreground">Price above MBP - the difference is your markup</p>
                       </div>
                       <div className="p-3 border border-primary bg-primary/5 rounded-lg">
-                        <p className="font-medium mb-1">3. You Get 70% of Markup</p>
-                        <p className="text-sm text-muted-foreground">We keep 30% to run the platform. Forever!</p>
+                        <p className="font-medium mb-1">3. You Keep 100% of Markup</p>
+                        <p className="text-sm text-muted-foreground">Founding Creator Program — the full markup is yours on every sale.</p>
                       </div>
                     </div>
                   </div>
@@ -478,9 +478,8 @@ const CreatorSuccessKit = () => {
                       <p className="font-medium text-foreground">Product: Chair priced at ₹35,000</p>
                       <p>• Manufacturing Base Price (MBP): ₹18,000</p>
                       <p>• Your Markup: ₹17,000</p>
-                      <p>• Your Share (70% of markup): ₹11,900</p>
-                      <p>• Platform Share (30% of markup): ₹5,100</p>
-                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹11,900</p>
+                      <p>• Your Share (100% of markup): ₹17,000</p>
+                      <p className="font-bold text-foreground pt-2 border-t">Your earnings per sale: ₹17,000</p>
                     </div>
                   </div>
                 </CardContent>

@@ -12,8 +12,9 @@ export const EarningsProjector = () => {
   const [monthlySales, setMonthlySales] = useState(10);
 
   const markup = Math.max(0, sellingPrice - basePrice);
-  const earningsPerSale = markup * 0.7;
-  const platformPerSale = markup * 0.3;
+  // Founding Creator Program — creators keep 100% of their markup.
+  const earningsPerSale = markup;
+  const platformPerSale = 0;
   const monthlyEarnings = earningsPerSale * monthlySales;
   const yearlyEarnings = monthlyEarnings * 12;
 
@@ -32,7 +33,7 @@ export const EarningsProjector = () => {
                 <Info className="h-4 w-4 text-muted-foreground" />
               </TooltipTrigger>
               <TooltipContent className="max-w-[240px]">
-                <p className="text-xs">Estimate your monthly income by adjusting the sliders. You earn 70% of the markup above Manufacturing Base Price.</p>
+                <p className="text-xs">Founding Creator Program — you keep 100% of the markup you set above Manufacturing Base Price.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -111,17 +112,13 @@ export const EarningsProjector = () => {
         {/* Per-Sale Breakdown */}
         <div className="p-4 rounded-lg bg-muted/40 border border-border space-y-3">
           <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Per Sale Breakdown</p>
-          <div className="grid grid-cols-3 gap-3 text-center">
+          <div className="grid grid-cols-2 gap-3 text-center">
             <div className="p-2 rounded-lg bg-background">
               <p className="text-[10px] text-muted-foreground mb-1">MBP</p>
               <p className="text-sm font-semibold text-foreground">{formatINR(basePrice)}</p>
             </div>
-            <div className="p-2 rounded-lg bg-background">
-              <p className="text-[10px] text-muted-foreground mb-1">Platform (30%)</p>
-              <p className="text-sm font-semibold text-foreground">{formatINR(platformPerSale)}</p>
-            </div>
             <div className="p-2 rounded-lg bg-primary/10 border border-primary/20">
-              <p className="text-[10px] text-primary font-medium mb-1">You Earn (70%)</p>
+              <p className="text-[10px] text-primary font-medium mb-1">You Earn (100% of markup)</p>
               <p className="text-sm font-bold text-primary">{formatINR(earningsPerSale)}</p>
             </div>
           </div>
@@ -135,16 +132,10 @@ export const EarningsProjector = () => {
                 MBP
               </div>
               <div
-                className="bg-secondary/30 flex items-center justify-center text-[9px] font-medium text-secondary-foreground"
-                style={{ width: `${(platformPerSale / sellingPrice) * 100}%` }}
-              >
-                30%
-              </div>
-              <div
                 className="bg-primary flex items-center justify-center text-[9px] font-medium text-primary-foreground"
                 style={{ width: `${(earningsPerSale / sellingPrice) * 100}%` }}
               >
-                70%
+                100% markup
               </div>
             </div>
           )}
