@@ -46,7 +46,7 @@ export const IntentSelectionDialog = ({ isOpen, onSelect }: IntentSelectionDialo
                 <ul className="text-xs text-muted-foreground space-y-1">
                   <li>• Join as a verified creator</li>
                   <li>• Listing fee ({displayFee})*</li>
-                  <li>• Earn 70% of your markup per sale</li>
+                  <li>• Earn 100% of your markup per sale</li>
                   <li>• Platform fees waived initially*</li>
                   <li>• Featured in public catalogue</li>
                 </ul>
