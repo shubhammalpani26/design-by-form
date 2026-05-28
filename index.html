@@ -59,7 +59,10 @@
       "url": "https://nyzora.ai",
       "potentialAction": {
         "@type": "SearchAction",
-        "target": "https://nyzora.ai/browse?q={search_term_string}",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://nyzora.ai/browse?q={search_term_string}"
+        },
         "query-input": "required name=search_term_string"
       }
     }
