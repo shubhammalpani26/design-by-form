@@ -142,7 +142,7 @@ export default function DesignStudioChat() {
   async function insertMessage(sid: string, role: Role, content: string | null, image_urls: string[] = [], metadata: Record<string, unknown> = {}) {
     const { data, error } = await supabase
       .from("design_messages")
-      .insert({ session_id: sid, role, content, image_urls, metadata })
+      .insert([{ session_id: sid, role, content, image_urls: image_urls as any, metadata: metadata as any }])
       .select("id,session_id,role,content,image_urls,metadata,created_at")
       .single();
     if (error || !data) {
