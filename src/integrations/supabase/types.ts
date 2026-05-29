@@ -364,6 +364,74 @@ export type Database = {
           },
         ]
       }
+      design_messages: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          image_urls: Json
+          metadata: Json
+          role: string
+          session_id: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: Json
+          metadata?: Json
+          role: string
+          session_id: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: Json
+          metadata?: Json
+          role?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "design_messages_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "design_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      design_sessions: {
+        Row: {
+          active_image_url: string | null
+          category: string | null
+          created_at: string
+          id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          active_image_url?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          active_image_url?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       designer_bank_details: {
         Row: {
           bank_account_holder_name: string | null
