@@ -125,7 +125,7 @@ export default function DesignStudioChat() {
     const title = (initialPrompt ?? "Untitled design").slice(0, 80);
     const { data, error } = await supabase
       .from("design_sessions")
-      .insert({ user_id: userId, title, category })
+      .insert([{ user_id: userId, title, category }])
       .select("id,title,active_image_url,category,updated_at")
       .single();
     if (error || !data) {
