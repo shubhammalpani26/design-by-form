@@ -20,6 +20,7 @@ const Browse = lazy(() => import("./pages/Browse"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const DesignerProfile = lazy(() => import("./pages/DesignerProfile"));
 const DesignStudio = lazy(() => import("./pages/DesignStudio"));
+const DesignStudioChat = lazy(() => import("./pages/DesignStudioChat"));
 const Creators = lazy(() => import("./pages/Creators"));
 const DesignerSignup = lazy(() => import("./pages/DesignerSignup"));
 const DesignerDashboard = lazy(() => import("./pages/DesignerDashboard"));
