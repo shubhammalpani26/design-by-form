@@ -372,11 +372,9 @@ export default function DesignStudioChat() {
           {/* Top bar (mobile + active image badge) */}
           <div className="flex items-center justify-between gap-2 px-3 md:px-6 py-2 border-b border-border">
             <div className="flex items-center gap-2 min-w-0">
-              <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(true)}>
-                  <Menu className="w-4 h-4" />
-                </Button>
-              </SheetTrigger>
+              <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setSidebarOpen(true)}>
+                <Menu className="w-4 h-4" />
+              </Button>
               <Wand2 className="w-4 h-4 text-primary shrink-0" />
               <h1 className="text-sm font-medium truncate">Design Studio</h1>
             </div>
