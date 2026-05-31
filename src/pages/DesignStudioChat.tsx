@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,7 @@ import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
 import { storeDesignImages } from "@/lib/designTransfer";
+import { ModelViewer3D } from "@/components/ModelViewer3D";
 
 type Role = "user" | "assistant";
 
@@ -40,6 +41,13 @@ const STARTER_PROMPTS = [
   "A pebble-form lamp in matte bone ceramic",
 ];
 
+const FINISHES: { name: string; prompt: string }[] = [
+  { name: "Matte Black", prompt: "a sleek matte black finish with no shine, deep charcoal-black color" },
+  { name: "Glossy White", prompt: "a bright glossy white lacquered finish with subtle reflections" },
+  { name: "Walnut", prompt: "a rich warm walnut wood grain finish with natural wood texture" },
+  { name: "Brushed Brass", prompt: "a warm brushed brass metallic finish with fine directional grain" },
+];
+
 type AttachmentKind = "space" | "sketch" | "model";
 interface Attachment {
   kind: AttachmentKind;
@@ -68,6 +76,7 @@ export default function DesignStudioChat() {
   const spaceInputRef = useRef<HTMLInputElement>(null);
   const sketchInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
+  const spacePreviewInputRef = useRef<HTMLInputElement>(null);
 
   // Auth gate
   useEffect(() => {
@@ -407,6 +416,193 @@ export default function DesignStudioChat() {
     toast({ title: "Reverted", description: "Continue editing from this version." });
   }
 
+  async function updateAssistantMessage(messageId: string, patch: Partial<DBMessage>) {
+    await supabase.from("design_messages").update(patch as any).eq("id", messageId);
+    if (activeSessionId) await loadMessages(activeSessionId);
+  }
+
+  async function handleApplyFinish(finishName: string) {
+    if (!activeImage || !activeSessionId || busy) return;
+    const finish = FINISHES.find((f) => f.name === finishName);
+    if (!finish) return;
+    setBusy(true);
+    try {
+      const sid = activeSessionId;
+      const baseImageUrl = await storeStudioImageUrl(activeImage, sid);
+      if (baseImageUrl !== activeImage) await updateSessionActiveImage(sid, baseImageUrl);
+
+      await insertMessage(sid, "user", `Apply finish: ${finishName}`, [], { kind: "finish-request" });
+      const placeholder = await insertMessage(
+        sid,
+        "assistant",
+        `Re-rendering in ${finishName}…`,
+        [],
+        { kind: "finish-result", status: "pending", finishName, basedOn: baseImageUrl },
+      );
+
+      const editPrompt = `Re-render this exact furniture piece with ${finish.prompt}. Keep the same shape, angle, proportions, pose, lighting and background — only change the surface finish.`;
+      const { data, error } = await supabase.functions.invoke("edit-design", {
+        body: { sessionId: sid, baseImageUrl, editPrompt, category },
+      });
+
+      if (error || !(data as any)?.imageUrl) {
+        const msg = (error as any)?.message ?? "Finish render failed";
+        if (placeholder) await updateAssistantMessage(placeholder.id, { content: `Couldn't apply ${finishName}: ${msg}`, metadata: { kind: "finish-result", status: "failed", finishName } as any });
+        toast({ title: "Finish failed", description: msg, variant: "destructive" });
+        return;
+      }
+
+      if (placeholder) {
+        await updateAssistantMessage(placeholder.id, {
+          content: `${finishName} applied. Tap to make it the working version.`,
+          image_urls: [(data as any).imageUrl] as any,
+          metadata: { kind: "finish-result", status: "ready", finishName, basedOn: baseImageUrl } as any,
+        });
+      }
+    } catch (e) {
+      toast({ title: "Finish failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function triggerSeeInSpace() {
+    if (!activeImage || busy) return;
+    spacePreviewInputRef.current?.click();
+  }
+
+  async function handleSeeInSpaceFile(file: File) {
+    if (!activeImage || !activeSessionId) return;
+    setBusy(true);
+    try {
+      const sid = activeSessionId;
+      const spaceDataUrl = await fileToDataUrl(file);
+      const productImageUrl = await storeStudioImageUrl(activeImage, sid);
+
+      await insertMessage(sid, "user", "Place this in my space", [], { kind: "space-request" });
+      const placeholder = await insertMessage(
+        sid,
+        "assistant",
+        "Composing this into your space…",
+        [],
+        { kind: "space-result", status: "pending", basedOn: productImageUrl },
+      );
+
+      const { data, error } = await supabase.functions.invoke("generate-space-preview", {
+        body: {
+          spaceImageBase64: spaceDataUrl,
+          productImageUrl,
+          productName: category,
+          category,
+        },
+      });
+
+      if (error || !(data as any)?.imageUrl) {
+        const msg = (error as any)?.message ?? "Space preview failed";
+        if (placeholder) await updateAssistantMessage(placeholder.id, { content: `Couldn't place it in the space: ${msg}`, metadata: { kind: "space-result", status: "failed" } as any });
+        toast({ title: "Space preview failed", description: msg, variant: "destructive" });
+        return;
+      }
+
+      const storedUrl = await storeStudioImageUrl((data as any).imageUrl, sid);
+      if (placeholder) {
+        await updateAssistantMessage(placeholder.id, {
+          content: "Here it is in your space.",
+          image_urls: [storedUrl] as any,
+          metadata: { kind: "space-result", status: "ready", basedOn: productImageUrl } as any,
+        });
+      }
+    } catch (e) {
+      toast({ title: "Space preview failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function poll3DTask(messageId: string, taskId: string) {
+    const max = 60;
+    let attempts = 0;
+    const tick = async () => {
+      attempts++;
+      try {
+        const { data } = await supabase.functions.invoke("check-3d-status", { body: { taskId } });
+        const status = (data as any)?.status;
+        const modelUrl = (data as any)?.modelUrl;
+        const progress = (data as any)?.progress;
+        if (status === "SUCCEEDED" && modelUrl) {
+          await updateAssistantMessage(messageId, {
+            content: "3D model ready. Drag to rotate.",
+            metadata: { kind: "3d-result", status: "ready", modelUrl, taskId } as any,
+          });
+          toast({ title: "3D model ready" });
+          return;
+        }
+        if (status === "FAILED") {
+          await updateAssistantMessage(messageId, {
+            content: "3D model generation failed. Please try again.",
+            metadata: { kind: "3d-result", status: "failed", taskId } as any,
+          });
+          return;
+        }
+        if (attempts < max) {
+          await updateAssistantMessage(messageId, {
+            content: `Building 3D model… ${typeof progress === "number" ? progress + "%" : ""}`.trim(),
+            metadata: { kind: "3d-result", status: "pending", taskId, progress } as any,
+          });
+          setTimeout(tick, 10000);
+        } else {
+          await updateAssistantMessage(messageId, {
+            content: "3D model is taking longer than expected. Check back shortly.",
+            metadata: { kind: "3d-result", status: "timeout", taskId } as any,
+          });
+        }
+      } catch (e) {
+        await updateAssistantMessage(messageId, {
+          content: "Lost connection while building the 3D model.",
+          metadata: { kind: "3d-result", status: "failed", taskId } as any,
+        });
+      }
+    };
+    setTimeout(tick, 5000);
+  }
+
+  async function handleGenerate3D() {
+    if (!activeImage || !activeSessionId || busy) return;
+    setBusy(true);
+    try {
+      const sid = activeSessionId;
+      const baseImageUrl = await storeStudioImageUrl(activeImage, sid);
+      if (baseImageUrl !== activeImage) await updateSessionActiveImage(sid, baseImageUrl);
+
+      await insertMessage(sid, "user", "Generate a 3D model", [], { kind: "3d-request" });
+      const placeholder = await insertMessage(
+        sid,
+        "assistant",
+        "Starting 3D model generation…",
+        [],
+        { kind: "3d-result", status: "pending", basedOn: baseImageUrl },
+      );
+
+      const { data, error } = await supabase.functions.invoke("generate-design", {
+        body: { generate3D: true, imageUrl: baseImageUrl },
+      });
+
+      const taskId = (data as any)?.taskId;
+      if (error || !taskId) {
+        const msg = (error as any)?.message ?? "Could not start 3D generation";
+        if (placeholder) await updateAssistantMessage(placeholder.id, { content: msg, metadata: { kind: "3d-result", status: "failed" } as any });
+        toast({ title: "3D failed", description: msg, variant: "destructive" });
+        return;
+      }
+
+      if (placeholder) void poll3DTask(placeholder.id, taskId);
+    } catch (e) {
+      toast({ title: "3D failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function handleMakeManufacturable() {
     if (!activeImage) return;
     try {
@@ -428,10 +624,6 @@ export default function DesignStudioChat() {
       sessionStorage.setItem("ar-product-image", activeImage);
     } catch {}
     navigate("/ar-viewer");
-  }
-
-  function comingSoon(name: string) {
-    toast({ title: `${name} — coming soon`, description: "Wiring this in next. Your design is saved." });
   }
 
   const hasMessages = messages.length > 0;
@@ -557,11 +749,12 @@ export default function DesignStudioChat() {
                   activeImage={activeImage}
                   onPickVariation={pickVariation}
                   onRevert={revertToImage}
-                  onApplyFinish={() => comingSoon("Apply finish")}
+                  onApplyFinish={handleApplyFinish}
                   onViewAR={handleViewInAR}
-                  onGen3D={() => comingSoon("Generate 3D")}
-                  onSeeInSpace={() => comingSoon("See in your space")}
+                  onGen3D={handleGenerate3D}
+                  onSeeInSpace={triggerSeeInSpace}
                   onMakeManufacturable={handleMakeManufacturable}
+                  busy={busy}
                 />
               ))}
 
@@ -611,6 +804,7 @@ export default function DesignStudioChat() {
                 <input ref={spaceInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("space", f); e.target.value = ""; }} />
                 <input ref={sketchInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("sketch", f); e.target.value = ""; }} />
                 <input ref={modelInputRef} type="file" accept=".glb,.gltf,.obj,.stl,.fbx,.usdz" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("model", f); e.target.value = ""; }} />
+                <input ref={spacePreviewInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleSeeInSpaceFile(f); e.target.value = ""; }} />
                 <AttachButton icon={<Home className="w-3 h-3" />} label="Attach space" onClick={() => spaceInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="space")} />
                 <AttachButton icon={<Pencil className="w-3 h-3" />} label="Attach sketch" onClick={() => sketchInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="sketch")} />
                 <AttachButton icon={<Box className="w-3 h-3" />} label="Attach 3D model" onClick={() => modelInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="model")} />
@@ -676,16 +870,18 @@ function MessageBubble({
   onGen3D,
   onSeeInSpace,
   onMakeManufacturable,
+  busy,
 }: {
   message: DBMessage;
   activeImage: string | null;
   onPickVariation: (url: string) => void;
   onRevert: (url: string) => void;
-  onApplyFinish: () => void;
+  onApplyFinish: (finishName: string) => void;
   onViewAR: () => void;
   onGen3D: () => void;
   onSeeInSpace: () => void;
   onMakeManufacturable: () => void;
+  busy?: boolean;
 }) {
   const isUser = message.role === "user";
   const kind = (message.metadata?.kind as string) ?? "";
@@ -705,8 +901,13 @@ function MessageBubble({
   const isInitialVariations = kind === "initial-variations";
   const isEditVariations = kind === "edit-variations";
   const isVariations = isInitialVariations || isEditVariations;
+  const isFinishResult = kind === "finish-result";
+  const isSpaceResult = kind === "space-result";
+  const is3DResult = kind === "3d-result";
+  const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
+  const singleResultUrl = (isFinishResult || isSpaceResult) && status === "ready" ? images[0] : null;
 
   return (
     <div className="space-y-3">
@@ -745,36 +946,88 @@ function MessageBubble({
         </div>
       )}
 
+      {/* Single-result image (finish / space preview) */}
+      {singleResultUrl && (
+        <button
+          onClick={() => onPickVariation(singleResultUrl)}
+          className={`block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
+            singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+          }`}
+        >
+          <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
+        </button>
+      )}
+
+      {/* 3D model result */}
+      {is3DResult && status === "ready" && modelUrl && (
+        <div className="w-full max-w-md rounded-lg overflow-hidden border border-border bg-muted">
+          <div className="h-72">
+            <ModelViewer3D modelUrl={modelUrl} productName="Studio design" />
+          </div>
+        </div>
+      )}
+
       {/* Action toolbar — shown once a variation in this message is the working canvas */}
       {hasActiveInGrid && (
-        <div className="flex flex-wrap gap-1.5 pt-1">
-          <ActionChip
-            icon={<Tag className="w-3 h-3" />}
-            label="Make manufacturable & price"
-            onClick={onMakeManufacturable}
-            primary
-          />
-          <span className="text-[11px] text-muted-foreground self-center pl-1">
-            or just tell me the next change in chat
-          </span>
+        <div className="space-y-2 pt-1">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <FinishMenu onPick={onApplyFinish} disabled={busy} />
+            <ActionChip icon={<Home className="w-3 h-3" />} label="See in your space" onClick={onSeeInSpace} disabled={busy} />
+            <ActionChip icon={<Box className="w-3 h-3" />} label="Generate 3D" onClick={onGen3D} disabled={busy} />
+            <ActionChip icon={<Eye className="w-3 h-3" />} label="View in AR" onClick={onViewAR} disabled={busy} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <ActionChip
+              icon={<Tag className="w-3 h-3" />}
+              label="Make manufacturable & price"
+              onClick={onMakeManufacturable}
+              primary
+            />
+            <span className="text-[11px] text-muted-foreground self-center pl-1">
+              or just tell me the next change in chat
+            </span>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function ActionChip({ icon, label, onClick, primary }: { icon: React.ReactNode; label: string; onClick: () => void; primary?: boolean }) {
+function ActionChip({ icon, label, onClick, primary, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; primary?: boolean; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-full border transition-colors ${
         primary
           ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
           : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-      }`}
+      } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {icon}
       {label}
     </button>
+  );
+}
+
+function FinishMenu({ onPick, disabled }: { onPick: (name: string) => void; disabled?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <ActionChip icon={<Palette className="w-3 h-3" />} label="Apply finish" onClick={() => setOpen((o) => !o)} disabled={disabled} />
+      {open && (
+        <div className="absolute z-10 mt-1 left-0 bg-popover border border-border rounded-md shadow-lg p-1 min-w-[140px]">
+          {FINISHES.map((f) => (
+            <button
+              key={f.name}
+              onClick={() => { setOpen(false); onPick(f.name); }}
+              className="block w-full text-left text-[11px] px-2 py-1.5 rounded hover:bg-accent text-foreground"
+            >
+              {f.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
