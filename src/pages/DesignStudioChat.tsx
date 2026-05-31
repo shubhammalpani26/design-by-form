@@ -666,10 +666,10 @@ function MessageBubble({
 
   // Assistant
   const isInitialVariations = kind === "initial-variations";
-  const isEdit = kind === "edit";
+  const isEditVariations = kind === "edit-variations";
+  const isVariations = isInitialVariations || isEditVariations;
   const images = message.image_urls ?? [];
-  const singleImage = images.length === 1 ? images[0] : null;
-  const isActive = singleImage && singleImage === activeImage;
+  const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
 
   return (
     <div className="space-y-3">
@@ -683,9 +683,9 @@ function MessageBubble({
         </div>
       )}
 
-      {/* Initial 3-variation grid */}
-      {isInitialVariations && images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      {/* Variation grid (initial OR per-edit candidates) */}
+      {isVariations && images.length > 0 && (
+        <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1 max-w-md" : "grid-cols-2 md:grid-cols-3"}`}>
           {images.map((url, i) => (
             <button
               key={i}
@@ -694,31 +694,22 @@ function MessageBubble({
                 url === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
               }`}
             >
-              <img src={url} alt={`Variation ${i + 1}`} className="w-full h-full object-contain bg-muted" />
+              <img src={url} alt={`Option ${i + 1}`} className="w-full h-full object-contain bg-muted" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
                 {url === activeImage ? "Selected" : "Pick this"}
               </div>
+              {url === activeImage && (
+                <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded">
+                  Working
+                </div>
+              )}
             </button>
           ))}
         </div>
       )}
 
-      {/* Edit result — single image */}
-      {isEdit && singleImage && (
-        <div className="space-y-2">
-          <div className={`relative rounded-lg overflow-hidden border-2 ${isActive ? "border-primary" : "border-border"}`}>
-            <img src={singleImage} alt="Edited design" className="w-full max-h-[420px] object-contain bg-muted" />
-          </div>
-          {!isActive && (
-            <Button variant="outline" size="sm" onClick={() => onRevert(singleImage)} className="gap-1.5">
-              <RotateCcw className="w-3 h-3" /> Revert to this version
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Action toolbar — shown under any assistant message that has a singleImage OR when this is the latest with images */}
-      {(singleImage || (isInitialVariations && activeImage)) && (
+      {/* Action toolbar — shown once a variation in this message is the working canvas */}
+      {hasActiveInGrid && (
         <div className="flex flex-wrap gap-1.5 pt-1">
           <ActionChip icon={<Sparkles className="w-3 h-3" />} label="Apply finish" onClick={onApplyFinish} />
           <ActionChip icon={<Eye className="w-3 h-3" />} label="View in AR" onClick={onViewAR} />
