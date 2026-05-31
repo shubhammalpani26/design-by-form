@@ -481,7 +481,7 @@ export default function DesignStudioChat() {
                       What are we <span className="italic font-serif">making real</span> today?
                     </h2>
                     <p className="text-sm text-muted-foreground max-w-lg mx-auto">
-                      Describe it, sketch it, or drop a photo of your space. We'll explore directions together — then turn the one you love into something physical.
+                      Describe it, sketch it, or drop a photo of your space. We'll iterate together until it feels right — then lock it in and price it for production.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
