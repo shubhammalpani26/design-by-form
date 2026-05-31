@@ -303,19 +303,34 @@ export default function DesignStudioChat() {
         }
         await loadMessages(sid);
       } else {
-        // Iterative edit
-        const placeholderMsg = await insertMessage(sid, "assistant", "Refining…", [], { kind: "edit", status: "pending" });
+        // Iterative edit — generate 3 alternatives so the creator can choose
+        const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: activeImage });
 
-        const { data, error } = await supabase.functions.invoke("edit-design", {
-          body: { sessionId: sid, baseImageUrl: activeImage, editPrompt: text, category },
-        });
+        const results = await Promise.allSettled(
+          [1, 2, 3].map(() =>
+            supabase.functions.invoke("edit-design", {
+              body: { sessionId: sid, baseImageUrl: activeImage, editPrompt: text, category },
+            })
+          )
+        );
 
-        if (error || !data?.imageUrl) {
-          const msg = (error as any)?.message ?? (data as any)?.error ?? "Edit failed";
+        const editUrls: string[] = [];
+        let lastErr = "";
+        for (const r of results) {
+          if (r.status === "fulfilled" && !r.value.error) {
+            const url = (r.value.data as any)?.imageUrl;
+            if (url) editUrls.push(url);
+          } else if (r.status === "fulfilled") {
+            lastErr = (r.value.error as any)?.message ?? "";
+          }
+        }
+
+        if (editUrls.length === 0) {
+          const msg = lastErr || "Edit failed";
           if (placeholderMsg) {
             await supabase.from("design_messages").update({
               content: `Couldn't apply that edit: ${msg}`,
-              metadata: { kind: "edit", status: "failed" },
+              metadata: { kind: "edit-variations", status: "failed" },
             }).eq("id", placeholderMsg.id);
           }
           await loadMessages(sid);
@@ -323,15 +338,15 @@ export default function DesignStudioChat() {
           return;
         }
 
-        const newUrl: string = data.imageUrl;
         if (placeholderMsg) {
           await supabase.from("design_messages").update({
-            content: "Updated.",
-            image_urls: [newUrl],
-            metadata: { kind: "edit", status: "ready", basedOn: activeImage },
+            content: editUrls.length === 1
+              ? "Here's an option. Tap to make it the working version, or describe another change."
+              : `Here ${editUrls.length === 2 ? "are two takes" : "are three takes"} on that change. Tap the one you want to keep building from.`,
+            image_urls: editUrls,
+            metadata: { kind: "edit-variations", status: "ready", basedOn: activeImage },
           }).eq("id", placeholderMsg.id);
         }
-        await updateSessionActiveImage(sid, newUrl);
         await loadMessages(sid);
       }
     } catch (e) {
