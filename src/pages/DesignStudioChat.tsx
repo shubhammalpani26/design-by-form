@@ -335,7 +335,7 @@ export default function DesignStudioChat() {
         if (baseImageUrl !== activeImage) {
           await updateSessionActiveImage(sid, baseImageUrl);
         }
-        const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: activeImage });
+        const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: baseImageUrl });
 
         const results = await Promise.allSettled(
           [1, 2, 3].map(() =>
@@ -375,7 +375,7 @@ export default function DesignStudioChat() {
               ? "Here's an option. Tap to make it the working version, or describe another change."
               : `Here ${editUrls.length === 2 ? "are two takes" : "are three takes"} on that change. Tap the one you want to keep building from.`,
             image_urls: editUrls,
-            metadata: { kind: "edit-variations", status: "ready", basedOn: activeImage },
+            metadata: { kind: "edit-variations", status: "ready", basedOn: baseImageUrl },
           }).eq("id", placeholderMsg.id);
         }
         await loadMessages(sid);
