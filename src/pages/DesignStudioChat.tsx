@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
@@ -39,6 +39,16 @@ const STARTER_PROMPTS = [
   "A pebble-form lamp in matte bone ceramic",
 ];
 
+type AttachmentKind = "space" | "sketch" | "model";
+interface Attachment {
+  kind: AttachmentKind;
+  name: string;
+  previewUrl?: string; // object URL for images
+  base64?: string;     // data URL for images sent to edge fn
+  fileUrl?: string;    // public URL for 3d models (after upload)
+  uploading?: boolean;
+}
+
 export default function DesignStudioChat() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,8 +61,12 @@ export default function DesignStudioChat() {
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const spaceInputRef = useRef<HTMLInputElement>(null);
+  const sketchInputRef = useRef<HTMLInputElement>(null);
+  const modelInputRef = useRef<HTMLInputElement>(null);
 
   // Auth gate
   useEffect(() => {
@@ -166,11 +180,62 @@ export default function DesignStudioChat() {
     void refreshSessions();
   }
 
+  function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function handleAttachFile(kind: AttachmentKind, file: File) {
+    // Drop existing of same kind
+    setAttachments((prev) => prev.filter((a) => a.kind !== kind));
+
+    if (kind === "model") {
+      // Upload to 3d-models bucket
+      const placeholder: Attachment = { kind, name: file.name, uploading: true };
+      setAttachments((prev) => [...prev, placeholder]);
+      try {
+        if (!userId) throw new Error("Sign in required");
+        const path = `${userId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("3d-models").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("3d-models").getPublicUrl(path);
+        setAttachments((prev) => prev.map((a) => a.kind === kind ? { ...a, uploading: false, fileUrl: pub.publicUrl } : a));
+      } catch (e) {
+        setAttachments((prev) => prev.filter((a) => a.kind !== kind));
+        toast({ title: "Upload failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      }
+      return;
+    }
+
+    // space / sketch: keep as base64 + object URL preview
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const previewUrl = URL.createObjectURL(file);
+      setAttachments((prev) => [...prev, { kind, name: file.name, base64: dataUrl, previewUrl }]);
+    } catch (e) {
+      toast({ title: "Couldn't read file", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    }
+  }
+
+  function removeAttachment(kind: AttachmentKind) {
+    setAttachments((prev) => {
+      const found = prev.find((a) => a.kind === kind);
+      if (found?.previewUrl) URL.revokeObjectURL(found.previewUrl);
+      return prev.filter((a) => a.kind !== kind);
+    });
+  }
+
   async function handleSend() {
     const text = input.trim();
-    if (!text || busy) return;
+    if ((!text && attachments.length === 0) || busy) return;
     setInput("");
     setBusy(true);
+    const sent = attachments;
+    setAttachments([]);
 
     try {
       let sid = activeSessionId;
@@ -181,19 +246,29 @@ export default function DesignStudioChat() {
         if (!sid) return;
       }
 
-      await insertMessage(sid, "user", text);
+      const userAttachmentMeta = sent.map((a) => ({ kind: a.kind, name: a.name, fileUrl: a.fileUrl }));
+      await insertMessage(sid, "user", text || (sent.length ? "(attachments)" : ""), [], { attachments: userAttachmentMeta });
 
       if (isFirstMessage || !activeImage) {
         // Generate 3 starting variations in parallel
         const placeholderMsg = await insertMessage(sid, "assistant", "Generating three starting directions…", [], { kind: "initial-variations", status: "pending" });
 
+        const space = sent.find((a) => a.kind === "space");
+        const sketch = sent.find((a) => a.kind === "sketch");
+        const model = sent.find((a) => a.kind === "model");
+        const promptWithModel = model?.fileUrl
+          ? `${text}\n\n[Reference 3D model uploaded by user: ${model.fileUrl}]`
+          : text;
+
         const results = await Promise.allSettled(
           [1, 2, 3].map((n) =>
             supabase.functions.invoke("generate-design", {
               body: {
-                prompt: text,
+                prompt: promptWithModel,
                 variationNumber: n,
                 generate3D: false,
+                roomImageBase64: space?.base64,
+                sketchImageBase64: sketch?.base64,
               },
             })
           )
@@ -402,9 +477,11 @@ export default function DesignStudioChat() {
                     <Wand2 className="w-6 h-6 text-primary" />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-2xl font-light">What are we designing?</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Start with a prompt. I'll show you three directions to pick from, then we'll refine your chosen one — material, color, proportions, anything — through chat.
+                    <h2 className="text-3xl md:text-4xl font-light tracking-tight">
+                      What are we <span className="italic font-serif">making real</span> today?
+                    </h2>
+                    <p className="text-sm text-muted-foreground max-w-lg mx-auto">
+                      Describe it, sketch it, or drop a photo of your space. We'll explore directions together — then turn the one you love into something physical.
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
@@ -454,6 +531,39 @@ export default function DesignStudioChat() {
                   <span>Editing this design — describe the change</span>
                 </div>
               )}
+
+              {/* Attachment chips */}
+              {attachments.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((a) => (
+                    <div key={a.kind} className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-full border border-border bg-accent/40 text-[11px]">
+                      {a.previewUrl ? (
+                        <img src={a.previewUrl} alt="" className="w-6 h-6 object-cover rounded-full" />
+                      ) : (
+                        <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
+                          {a.kind === "model" ? <Box className="w-3 h-3" /> : a.kind === "sketch" ? <Pencil className="w-3 h-3" /> : <Home className="w-3 h-3" />}
+                        </div>
+                      )}
+                      <span className="capitalize">{a.kind === "model" ? "3D model" : a.kind}</span>
+                      {a.uploading && <Loader2 className="w-3 h-3 animate-spin" />}
+                      <button onClick={() => removeAttachment(a.kind)} className="text-muted-foreground hover:text-foreground">
+                        <X className="w-3 h-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Attach buttons row */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <input ref={spaceInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("space", f); e.target.value = ""; }} />
+                <input ref={sketchInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("sketch", f); e.target.value = ""; }} />
+                <input ref={modelInputRef} type="file" accept=".glb,.gltf,.obj,.stl,.fbx,.usdz" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) void handleAttachFile("model", f); e.target.value = ""; }} />
+                <AttachButton icon={<Home className="w-3 h-3" />} label="Attach space" onClick={() => spaceInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="space")} />
+                <AttachButton icon={<Pencil className="w-3 h-3" />} label="Attach sketch" onClick={() => sketchInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="sketch")} />
+                <AttachButton icon={<Box className="w-3 h-3" />} label="Attach 3D model" onClick={() => modelInputRef.current?.click()} active={!!attachments.find(a=>a.kind==="model")} />
+              </div>
+
               <div className="flex items-end gap-2">
                 <Textarea
                   ref={inputRef}
@@ -463,7 +573,7 @@ export default function DesignStudioChat() {
                   placeholder={
                     activeImage
                       ? "e.g. make the legs brushed brass, slightly taller, deeper seat"
-                      : "Describe a furniture piece — material, form, vibe…"
+                      : "Describe what you want to bring into the physical world…"
                   }
                   rows={2}
                   className="resize-none min-h-[56px]"
@@ -471,7 +581,7 @@ export default function DesignStudioChat() {
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={!input.trim() || busy}
+                  disabled={(!input.trim() && attachments.length === 0) || busy}
                   size="icon"
                   className="h-[56px] w-[56px] shrink-0"
                 >
@@ -483,6 +593,24 @@ export default function DesignStudioChat() {
         </main>
       </div>
     </div>
+  );
+}
+
+function AttachButton({ icon, label, onClick, active }: { icon: React.ReactNode; label: string; onClick: () => void; active?: boolean }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-full border transition-colors ${
+        active
+          ? "border-primary text-primary bg-primary/5"
+          : "border-border text-muted-foreground hover:border-primary hover:text-primary"
+      }`}
+    >
+      <Paperclip className="w-3 h-3 opacity-60" />
+      {icon}
+      {label}
+    </button>
   );
 }
 
