@@ -718,16 +718,15 @@ function MessageBubble({
       {/* Action toolbar — shown once a variation in this message is the working canvas */}
       {hasActiveInGrid && (
         <div className="flex flex-wrap gap-1.5 pt-1">
-          <ActionChip icon={<Sparkles className="w-3 h-3" />} label="Apply finish" onClick={onApplyFinish} />
-          <ActionChip icon={<Eye className="w-3 h-3" />} label="View in AR" onClick={onViewAR} />
-          <ActionChip icon={<Box className="w-3 h-3" />} label="Generate 3D" onClick={onGen3D} />
-          <ActionChip icon={<ImageIcon className="w-3 h-3" />} label="See in your space" onClick={onSeeInSpace} />
           <ActionChip
             icon={<Tag className="w-3 h-3" />}
             label="Make manufacturable & price"
             onClick={onMakeManufacturable}
             primary
           />
+          <span className="text-[11px] text-muted-foreground self-center pl-1">
+            or just tell me the next change in chat
+          </span>
         </div>
       )}
     </div>
