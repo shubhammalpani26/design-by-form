@@ -400,7 +400,7 @@ export default function DesignStudioChat() {
   const hasMessages = messages.length > 0;
 
   const Sidebar = (
-    <div className="h-full flex flex-col bg-background border-r border-border">
+    <div className="h-full w-full flex flex-col bg-background border-r border-border overflow-hidden">
       <div className="p-4 border-b border-border">
         <Button
           onClick={() => { setActiveSessionId(null); setSidebarOpen(false); inputRef.current?.focus(); }}
@@ -448,7 +448,7 @@ export default function DesignStudioChat() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-64 shrink-0">{Sidebar}</aside>
+        <aside className="hidden md:flex w-64 shrink-0 overflow-hidden">{Sidebar}</aside>
 
         {/* Mobile sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
