@@ -180,11 +180,62 @@ export default function DesignStudioChat() {
     void refreshSessions();
   }
 
+  function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(file);
+    });
+  }
+
+  async function handleAttachFile(kind: AttachmentKind, file: File) {
+    // Drop existing of same kind
+    setAttachments((prev) => prev.filter((a) => a.kind !== kind));
+
+    if (kind === "model") {
+      // Upload to 3d-models bucket
+      const placeholder: Attachment = { kind, name: file.name, uploading: true };
+      setAttachments((prev) => [...prev, placeholder]);
+      try {
+        if (!userId) throw new Error("Sign in required");
+        const path = `${userId}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { error: upErr } = await supabase.storage.from("3d-models").upload(path, file, { upsert: false });
+        if (upErr) throw upErr;
+        const { data: pub } = supabase.storage.from("3d-models").getPublicUrl(path);
+        setAttachments((prev) => prev.map((a) => a.kind === kind ? { ...a, uploading: false, fileUrl: pub.publicUrl } : a));
+      } catch (e) {
+        setAttachments((prev) => prev.filter((a) => a.kind !== kind));
+        toast({ title: "Upload failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      }
+      return;
+    }
+
+    // space / sketch: keep as base64 + object URL preview
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      const previewUrl = URL.createObjectURL(file);
+      setAttachments((prev) => [...prev, { kind, name: file.name, base64: dataUrl, previewUrl }]);
+    } catch (e) {
+      toast({ title: "Couldn't read file", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    }
+  }
+
+  function removeAttachment(kind: AttachmentKind) {
+    setAttachments((prev) => {
+      const found = prev.find((a) => a.kind === kind);
+      if (found?.previewUrl) URL.revokeObjectURL(found.previewUrl);
+      return prev.filter((a) => a.kind !== kind);
+    });
+  }
+
   async function handleSend() {
     const text = input.trim();
-    if (!text || busy) return;
+    if ((!text && attachments.length === 0) || busy) return;
     setInput("");
     setBusy(true);
+    const sent = attachments;
+    setAttachments([]);
 
     try {
       let sid = activeSessionId;
@@ -195,19 +246,31 @@ export default function DesignStudioChat() {
         if (!sid) return;
       }
 
-      await insertMessage(sid, "user", text);
+      const userAttachmentMeta = sent.map((a) => ({ kind: a.kind, name: a.name, fileUrl: a.fileUrl }));
+      const userImageUrls = sent.filter((a) => a.previewUrl).map((a) => a.previewUrl!) as string[];
+      // Note: previewUrl is local blob; we still store kind/name in metadata so the bubble can render chips
+      await insertMessage(sid, "user", text || (sent.length ? "(attachments)" : ""), [], { attachments: userAttachmentMeta });
 
       if (isFirstMessage || !activeImage) {
         // Generate 3 starting variations in parallel
         const placeholderMsg = await insertMessage(sid, "assistant", "Generating three starting directions…", [], { kind: "initial-variations", status: "pending" });
 
+        const space = sent.find((a) => a.kind === "space");
+        const sketch = sent.find((a) => a.kind === "sketch");
+        const model = sent.find((a) => a.kind === "model");
+        const promptWithModel = model?.fileUrl
+          ? `${text}\n\n[Reference 3D model uploaded by user: ${model.fileUrl}]`
+          : text;
+
         const results = await Promise.allSettled(
           [1, 2, 3].map((n) =>
             supabase.functions.invoke("generate-design", {
               body: {
-                prompt: text,
+                prompt: promptWithModel,
                 variationNumber: n,
                 generate3D: false,
+                roomImageBase64: space?.base64,
+                sketchImageBase64: sketch?.base64,
               },
             })
           )
