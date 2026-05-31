@@ -870,16 +870,18 @@ function MessageBubble({
   onGen3D,
   onSeeInSpace,
   onMakeManufacturable,
+  busy,
 }: {
   message: DBMessage;
   activeImage: string | null;
   onPickVariation: (url: string) => void;
   onRevert: (url: string) => void;
-  onApplyFinish: () => void;
+  onApplyFinish: (finishName: string) => void;
   onViewAR: () => void;
   onGen3D: () => void;
   onSeeInSpace: () => void;
   onMakeManufacturable: () => void;
+  busy?: boolean;
 }) {
   const isUser = message.role === "user";
   const kind = (message.metadata?.kind as string) ?? "";
@@ -899,8 +901,13 @@ function MessageBubble({
   const isInitialVariations = kind === "initial-variations";
   const isEditVariations = kind === "edit-variations";
   const isVariations = isInitialVariations || isEditVariations;
+  const isFinishResult = kind === "finish-result";
+  const isSpaceResult = kind === "space-result";
+  const is3DResult = kind === "3d-result";
+  const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
+  const singleResultUrl = (isFinishResult || isSpaceResult) && status === "ready" ? images[0] : null;
 
   return (
     <div className="space-y-3">
@@ -939,36 +946,88 @@ function MessageBubble({
         </div>
       )}
 
+      {/* Single-result image (finish / space preview) */}
+      {singleResultUrl && (
+        <button
+          onClick={() => onPickVariation(singleResultUrl)}
+          className={`block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
+            singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+          }`}
+        >
+          <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
+        </button>
+      )}
+
+      {/* 3D model result */}
+      {is3DResult && status === "ready" && modelUrl && (
+        <div className="w-full max-w-md rounded-lg overflow-hidden border border-border bg-muted">
+          <div className="h-72">
+            <ModelViewer3D modelUrl={modelUrl} productName="Studio design" />
+          </div>
+        </div>
+      )}
+
       {/* Action toolbar — shown once a variation in this message is the working canvas */}
       {hasActiveInGrid && (
-        <div className="flex flex-wrap gap-1.5 pt-1">
-          <ActionChip
-            icon={<Tag className="w-3 h-3" />}
-            label="Make manufacturable & price"
-            onClick={onMakeManufacturable}
-            primary
-          />
-          <span className="text-[11px] text-muted-foreground self-center pl-1">
-            or just tell me the next change in chat
-          </span>
+        <div className="space-y-2 pt-1">
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <FinishMenu onPick={onApplyFinish} disabled={busy} />
+            <ActionChip icon={<Home className="w-3 h-3" />} label="See in your space" onClick={onSeeInSpace} disabled={busy} />
+            <ActionChip icon={<Box className="w-3 h-3" />} label="Generate 3D" onClick={onGen3D} disabled={busy} />
+            <ActionChip icon={<Eye className="w-3 h-3" />} label="View in AR" onClick={onViewAR} disabled={busy} />
+          </div>
+          <div className="flex flex-wrap gap-1.5 items-center">
+            <ActionChip
+              icon={<Tag className="w-3 h-3" />}
+              label="Make manufacturable & price"
+              onClick={onMakeManufacturable}
+              primary
+            />
+            <span className="text-[11px] text-muted-foreground self-center pl-1">
+              or just tell me the next change in chat
+            </span>
+          </div>
         </div>
       )}
     </div>
   );
 }
 
-function ActionChip({ icon, label, onClick, primary }: { icon: React.ReactNode; label: string; onClick: () => void; primary?: boolean }) {
+function ActionChip({ icon, label, onClick, primary, disabled }: { icon: React.ReactNode; label: string; onClick: () => void; primary?: boolean; disabled?: boolean }) {
   return (
     <button
       onClick={onClick}
+      disabled={disabled}
       className={`inline-flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-full border transition-colors ${
         primary
           ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90"
           : "border-border text-muted-foreground hover:border-primary hover:text-primary"
-      }`}
+      } disabled:opacity-50 disabled:cursor-not-allowed`}
     >
       {icon}
       {label}
     </button>
+  );
+}
+
+function FinishMenu({ onPick, disabled }: { onPick: (name: string) => void; disabled?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative">
+      <ActionChip icon={<Palette className="w-3 h-3" />} label="Apply finish" onClick={() => setOpen((o) => !o)} disabled={disabled} />
+      {open && (
+        <div className="absolute z-10 mt-1 left-0 bg-popover border border-border rounded-md shadow-lg p-1 min-w-[140px]">
+          {FINISHES.map((f) => (
+            <button
+              key={f.name}
+              onClick={() => { setOpen(false); onPick(f.name); }}
+              className="block w-full text-left text-[11px] px-2 py-1.5 rounded hover:bg-accent text-foreground"
+            >
+              {f.name}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
