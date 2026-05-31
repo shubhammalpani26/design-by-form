@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
