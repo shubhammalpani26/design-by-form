@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -303,19 +303,34 @@ export default function DesignStudioChat() {
         }
         await loadMessages(sid);
       } else {
-        // Iterative edit
-        const placeholderMsg = await insertMessage(sid, "assistant", "Refining…", [], { kind: "edit", status: "pending" });
+        // Iterative edit — generate 3 alternatives so the creator can choose
+        const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: activeImage });
 
-        const { data, error } = await supabase.functions.invoke("edit-design", {
-          body: { sessionId: sid, baseImageUrl: activeImage, editPrompt: text, category },
-        });
+        const results = await Promise.allSettled(
+          [1, 2, 3].map(() =>
+            supabase.functions.invoke("edit-design", {
+              body: { sessionId: sid, baseImageUrl: activeImage, editPrompt: text, category },
+            })
+          )
+        );
 
-        if (error || !data?.imageUrl) {
-          const msg = (error as any)?.message ?? (data as any)?.error ?? "Edit failed";
+        const editUrls: string[] = [];
+        let lastErr = "";
+        for (const r of results) {
+          if (r.status === "fulfilled" && !r.value.error) {
+            const url = (r.value.data as any)?.imageUrl;
+            if (url) editUrls.push(url);
+          } else if (r.status === "fulfilled") {
+            lastErr = (r.value.error as any)?.message ?? "";
+          }
+        }
+
+        if (editUrls.length === 0) {
+          const msg = lastErr || "Edit failed";
           if (placeholderMsg) {
             await supabase.from("design_messages").update({
               content: `Couldn't apply that edit: ${msg}`,
-              metadata: { kind: "edit", status: "failed" },
+              metadata: { kind: "edit-variations", status: "failed" },
             }).eq("id", placeholderMsg.id);
           }
           await loadMessages(sid);
@@ -323,15 +338,15 @@ export default function DesignStudioChat() {
           return;
         }
 
-        const newUrl: string = data.imageUrl;
         if (placeholderMsg) {
           await supabase.from("design_messages").update({
-            content: "Updated.",
-            image_urls: [newUrl],
-            metadata: { kind: "edit", status: "ready", basedOn: activeImage },
+            content: editUrls.length === 1
+              ? "Here's an option. Tap to make it the working version, or describe another change."
+              : `Here ${editUrls.length === 2 ? "are two takes" : "are three takes"} on that change. Tap the one you want to keep building from.`,
+            image_urls: editUrls,
+            metadata: { kind: "edit-variations", status: "ready", basedOn: activeImage },
           }).eq("id", placeholderMsg.id);
         }
-        await updateSessionActiveImage(sid, newUrl);
         await loadMessages(sid);
       }
     } catch (e) {
@@ -385,7 +400,7 @@ export default function DesignStudioChat() {
   const hasMessages = messages.length > 0;
 
   const Sidebar = (
-    <div className="h-full flex flex-col bg-background border-r border-border">
+    <div className="h-full w-full flex flex-col bg-background border-r border-border overflow-hidden">
       <div className="p-4 border-b border-border">
         <Button
           onClick={() => { setActiveSessionId(null); setSidebarOpen(false); inputRef.current?.focus(); }}
@@ -433,7 +448,7 @@ export default function DesignStudioChat() {
 
       <div className="flex-1 flex overflow-hidden">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex w-64 shrink-0">{Sidebar}</aside>
+        <aside className="hidden md:flex w-64 shrink-0 overflow-hidden">{Sidebar}</aside>
 
         {/* Mobile sidebar */}
         <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
@@ -651,10 +666,10 @@ function MessageBubble({
 
   // Assistant
   const isInitialVariations = kind === "initial-variations";
-  const isEdit = kind === "edit";
+  const isEditVariations = kind === "edit-variations";
+  const isVariations = isInitialVariations || isEditVariations;
   const images = message.image_urls ?? [];
-  const singleImage = images.length === 1 ? images[0] : null;
-  const isActive = singleImage && singleImage === activeImage;
+  const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
 
   return (
     <div className="space-y-3">
@@ -668,9 +683,9 @@ function MessageBubble({
         </div>
       )}
 
-      {/* Initial 3-variation grid */}
-      {isInitialVariations && images.length > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+      {/* Variation grid (initial OR per-edit candidates) */}
+      {isVariations && images.length > 0 && (
+        <div className={`grid gap-2 ${images.length === 1 ? "grid-cols-1 max-w-md" : "grid-cols-2 md:grid-cols-3"}`}>
           {images.map((url, i) => (
             <button
               key={i}
@@ -679,31 +694,22 @@ function MessageBubble({
                 url === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
               }`}
             >
-              <img src={url} alt={`Variation ${i + 1}`} className="w-full h-full object-contain bg-muted" />
+              <img src={url} alt={`Option ${i + 1}`} className="w-full h-full object-contain bg-muted" />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
                 {url === activeImage ? "Selected" : "Pick this"}
               </div>
+              {url === activeImage && (
+                <div className="absolute top-1.5 left-1.5 bg-primary text-primary-foreground text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded">
+                  Working
+                </div>
+              )}
             </button>
           ))}
         </div>
       )}
 
-      {/* Edit result — single image */}
-      {isEdit && singleImage && (
-        <div className="space-y-2">
-          <div className={`relative rounded-lg overflow-hidden border-2 ${isActive ? "border-primary" : "border-border"}`}>
-            <img src={singleImage} alt="Edited design" className="w-full max-h-[420px] object-contain bg-muted" />
-          </div>
-          {!isActive && (
-            <Button variant="outline" size="sm" onClick={() => onRevert(singleImage)} className="gap-1.5">
-              <RotateCcw className="w-3 h-3" /> Revert to this version
-            </Button>
-          )}
-        </div>
-      )}
-
-      {/* Action toolbar — shown under any assistant message that has a singleImage OR when this is the latest with images */}
-      {(singleImage || (isInitialVariations && activeImage)) && (
+      {/* Action toolbar — shown once a variation in this message is the working canvas */}
+      {hasActiveInGrid && (
         <div className="flex flex-wrap gap-1.5 pt-1">
           <ActionChip icon={<Sparkles className="w-3 h-3" />} label="Apply finish" onClick={onApplyFinish} />
           <ActionChip icon={<Eye className="w-3 h-3" />} label="View in AR" onClick={onViewAR} />
