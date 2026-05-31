@@ -9,6 +9,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
+import { storeDesignImages } from "@/lib/designTransfer";
 
 type Role = "user" | "assistant";
 
@@ -379,10 +380,16 @@ export default function DesignStudioChat() {
   async function handleMakeManufacturable() {
     if (!activeImage) return;
     try {
-      sessionStorage.setItem("studio-handoff-image", activeImage);
-      sessionStorage.setItem("studio-handoff-category", category);
-    } catch {}
-    navigate(`/design-studio?fromStudio=1`);
+      // Hand off via the same channel the homepage mini-studio uses so the
+      // full pricing/submission flow restores it automatically.
+      await storeDesignImages([activeImage]);
+    } catch (e) {
+      console.warn("Handoff store failed, falling back to sessionStorage", e);
+      try { sessionStorage.setItem("homepage-generated-image", activeImage); } catch {}
+    }
+    const params = new URLSearchParams({ fromStudio: "1" });
+    if (category) params.set("category", category);
+    navigate(`/design-studio?${params.toString()}`);
   }
 
   function handleViewInAR() {
