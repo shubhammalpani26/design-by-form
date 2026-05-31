@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, RotateCcw, Menu, X, Home, Pencil, Paperclip } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -38,6 +38,16 @@ const STARTER_PROMPTS = [
   "A monolithic blackened-oak dining table, six seats",
   "A pebble-form lamp in matte bone ceramic",
 ];
+
+type AttachmentKind = "space" | "sketch" | "model";
+interface Attachment {
+  kind: AttachmentKind;
+  name: string;
+  previewUrl?: string; // object URL for images
+  base64?: string;     // data URL for images sent to edge fn
+  fileUrl?: string;    // public URL for 3d models (after upload)
+  uploading?: boolean;
+}
 
 export default function DesignStudioChat() {
   const navigate = useNavigate();
