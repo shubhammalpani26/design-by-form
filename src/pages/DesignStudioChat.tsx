@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
 import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
@@ -247,8 +247,6 @@ export default function DesignStudioChat() {
       }
 
       const userAttachmentMeta = sent.map((a) => ({ kind: a.kind, name: a.name, fileUrl: a.fileUrl }));
-      const userImageUrls = sent.filter((a) => a.previewUrl).map((a) => a.previewUrl!) as string[];
-      // Note: previewUrl is local blob; we still store kind/name in metadata so the bubble can render chips
       await insertMessage(sid, "user", text || (sent.length ? "(attachments)" : ""), [], { attachments: userAttachmentMeta });
 
       if (isFirstMessage || !activeImage) {
