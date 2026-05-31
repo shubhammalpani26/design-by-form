@@ -181,6 +181,28 @@ export default function DesignStudioChat() {
     void refreshSessions();
   }
 
+  function isDataImageUrl(url: string) {
+    return url.startsWith("data:image/");
+  }
+
+  async function storeStudioImageUrl(imageUrl: string, sid: string) {
+    if (!isDataImageUrl(imageUrl)) return imageUrl;
+    if (!userId) throw new Error("Sign in required");
+
+    const blob = await (await fetch(imageUrl)).blob();
+    const match = imageUrl.match(/^data:image\/(\w+);base64,/);
+    const rawExt = match?.[1] ?? "png";
+    const ext = rawExt === "jpeg" ? "jpg" : rawExt;
+    const filePath = `studio-sessions/${userId}/${sid}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error } = await supabase.storage.from("product-images").upload(filePath, blob, {
+      contentType: blob.type || `image/${rawExt}`,
+      upsert: false,
+    });
+    if (error) throw error;
+    const { data } = supabase.storage.from("product-images").getPublicUrl(filePath);
+    return data.publicUrl;
+  }
+
   function fileToDataUrl(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
       const r = new FileReader();
@@ -275,13 +297,17 @@ export default function DesignStudioChat() {
           )
         );
 
-        const imageUrls: string[] = [];
+        const rawImageUrls: string[] = [];
         for (const r of results) {
           if (r.status === "fulfilled" && !r.value.error) {
             const url = (r.value.data as any)?.imageUrl;
-            if (url) imageUrls.push(url);
+            if (url) rawImageUrls.push(url);
           }
         }
+
+        const imageUrls = (await Promise.all(
+          rawImageUrls.map((url) => storeStudioImageUrl(url, sid))
+        )).filter(Boolean);
 
         if (imageUrls.length === 0) {
           if (placeholderMsg) {
@@ -305,12 +331,16 @@ export default function DesignStudioChat() {
         await loadMessages(sid);
       } else {
         // Iterative edit — generate 3 alternatives so the creator can choose
+        const baseImageUrl = await storeStudioImageUrl(activeImage, sid);
+        if (baseImageUrl !== activeImage) {
+          await updateSessionActiveImage(sid, baseImageUrl);
+        }
         const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: activeImage });
 
         const results = await Promise.allSettled(
           [1, 2, 3].map(() =>
             supabase.functions.invoke("edit-design", {
-              body: { sessionId: sid, baseImageUrl: activeImage, editPrompt: text, category },
+              body: { sessionId: sid, baseImageUrl, editPrompt: text, category },
             })
           )
         );
