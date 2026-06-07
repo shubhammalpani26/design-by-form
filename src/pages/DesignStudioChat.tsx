@@ -1518,7 +1518,11 @@ function ConfirmListingCard({
           <span className="text-[10px] text-muted-foreground">Your earnings: {formatINR(markup)}</span>
         </div>
         <Input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="h-9 text-sm" min={basePrice} />
-        <div className="text-[10px] text-muted-foreground">You keep 100% of the markup. Manufacturing cost is set by our maker network.</div>
+        <div className="flex items-center justify-between rounded-md bg-muted/50 border border-border px-2.5 py-1.5">
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground">Manufacturing Base Price</span>
+          <span className="text-xs font-semibold text-foreground">{formatINR(basePrice)}</span>
+        </div>
+        <div className="text-[10px] text-muted-foreground">You keep 100% of the markup (Selling price − MBP). MBP is set by our maker network.</div>
       </div>
 
       <Button
