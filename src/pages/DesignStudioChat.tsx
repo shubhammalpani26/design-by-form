@@ -114,6 +114,39 @@ const FINISHES: { name: string; prompt: string }[] = [
   { name: "Brushed Brass", prompt: "a warm brushed brass metallic finish with fine directional grain" },
 ];
 
+// Keyword-based category auto-detection so prompts like "a pebble lamp" route to Lamp
+// even when the user forgot to switch the category chip.
+const CATEGORY_KEYWORDS: Record<string, string[]> = {
+  Lamp: ["lamp", "lighting", "sconce", "pendant", "chandelier", "floor light"],
+  Chair: ["chair", "armchair", "lounge chair", "accent chair", "dining chair", "stool"],
+  Sofa: ["sofa", "couch", "settee", "loveseat", "chesterfield", "sectional"],
+  Table: ["dining table", "coffee table", "side table", "end table", "table"],
+  Console: ["console", "sideboard", "credenza", "buffet"],
+  Shelving: ["shelf", "shelving", "bookshelf", "bookcase", "etagere"],
+  Bed: ["bed", "headboard", "bedframe"],
+  Decor: ["vase", "bowl", "sculpture", "bookend", "decor", "ornament"],
+  General: ["my room", "my space", "my living", "my bedroom", "my dining", "redesign the", "whole room", "whole space", "entire room", "entire space", "full set", "client's "],
+};
+
+function detectCategoryFromPrompt(text: string): string | null {
+  const t = text.toLowerCase();
+  // General wins if it clearly describes a whole space
+  for (const kw of CATEGORY_KEYWORDS.General) {
+    if (t.includes(kw)) return "General";
+  }
+  // Score categories by keyword hits; longer keywords win
+  let best: { cat: string; score: number } | null = null;
+  for (const [cat, kws] of Object.entries(CATEGORY_KEYWORDS)) {
+    if (cat === "General") continue;
+    for (const kw of kws) {
+      if (t.includes(kw) && (!best || kw.length > best.score)) {
+        best = { cat, score: kw.length };
+      }
+    }
+  }
+  return best?.cat ?? null;
+}
+
 type AttachmentKind = "space" | "sketch" | "model";
 interface Attachment {
   kind: AttachmentKind;
