@@ -1060,6 +1060,9 @@ export default function DesignStudioChat() {
                   onGen3D={handleGenerate3D}
                   onSeeInSpace={triggerSeeInSpace}
                   onMakeManufacturable={handleMakeManufacturable}
+                  onCreatorRegister={handleCreatorRegister}
+                  onPublishListing={handlePublishListing}
+                  onOpenProduct={(path) => navigate(path)}
                   busy={busy}
                 />
               ))}
