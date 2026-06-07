@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette, Square, Check, Link as LinkIcon, ExternalLink } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette, Square, Check, Link as LinkIcon, ExternalLink, Maximize2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -1285,6 +1285,7 @@ function MessageBubble({
   const isUser = message.role === "user";
   const kind = (message.metadata?.kind as string) ?? "";
   const status = (message.metadata?.status as string) ?? "ready";
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   if (isUser) {
     return (
@@ -1357,8 +1358,16 @@ function MessageBubble({
 
       {/* AI-predicted production drawing */}
       {isProductionDrawing && status === "ready" && images[0] && (
-        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md">
-          <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md relative group">
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(images[0])}
+            className="block w-full"
+            aria-label="Preview drawing"
+          >
+            <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+          </button>
+          <ImageOverlayActions url={images[0]} onExpand={() => setLightboxUrl(images[0])} filename="production-drawing.png" />
           <div className="px-3 py-2 border-t border-border bg-card text-[10px] uppercase tracking-wider text-muted-foreground flex items-center justify-between">
             <span>Manufacturing Reference</span>
             <span>Nyzora · AI predicted</span>
@@ -1378,6 +1387,7 @@ function MessageBubble({
               }`}
             >
               <img src={url} alt={`Option ${i + 1}`} className="w-full h-full object-contain bg-muted" />
+              <ImageOverlayActions url={url} onExpand={() => setLightboxUrl(url)} filename={`variation-${i + 1}.png`} />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
                 {url === activeImage ? "Selected" : "Pick this"}
               </div>
@@ -1393,14 +1403,14 @@ function MessageBubble({
 
       {/* Single-result image (finish / space preview) */}
       {singleResultUrl && (
-        <button
-          onClick={() => onPickVariation(singleResultUrl)}
-          className={`block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
-            singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
-          }`}
-        >
-          <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
-        </button>
+        <div className={`relative group block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
+          singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+        }`}>
+          <button onClick={() => onPickVariation(singleResultUrl)} className="block w-full">
+            <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
+          </button>
+          <ImageOverlayActions url={singleResultUrl} onExpand={() => setLightboxUrl(singleResultUrl)} filename="result.png" />
+        </div>
       )}
 
       {/* 3D model result */}
@@ -1434,7 +1444,91 @@ function MessageBubble({
           </div>
         </div>
       )}
+
+      <ImageLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
+  );
+}
+
+function ImageOverlayActions({ url, onExpand, filename }: { url: string; onExpand: () => void; filename?: string }) {
+  async function download(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = filename || "nyzora-image.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(obj), 1000);
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
+  return (
+    <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-10">
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label="Preview larger"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExpand(); }}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); onExpand(); } }}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black/70 text-white hover:bg-black/90 cursor-pointer"
+      >
+        <Maximize2 className="w-3.5 h-3.5" />
+      </span>
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label="Download image"
+        onClick={download}
+        onKeyDown={(e) => { if (e.key === "Enter") download(e as unknown as React.MouseEvent); }}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black/70 text-white hover:bg-black/90 cursor-pointer"
+      >
+        <Download className="w-3.5 h-3.5" />
+      </span>
+    </div>
+  );
+}
+
+function ImageLightbox({ url, onClose }: { url: string | null; onClose: () => void }) {
+  async function download() {
+    if (!url) return;
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = "nyzora-image.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(obj), 1000);
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
+  return (
+    <Dialog open={!!url} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-5xl p-0 bg-background border-border overflow-hidden">
+        <DialogHeader className="px-4 py-2.5 border-b border-border flex-row items-center justify-between space-y-0">
+          <DialogTitle className="text-sm font-normal text-muted-foreground">Preview</DialogTitle>
+          <Button size="sm" variant="outline" onClick={download} className="h-8 gap-1.5 text-xs mr-6">
+            <Download className="w-3.5 h-3.5" /> Download
+          </Button>
+        </DialogHeader>
+        {url && (
+          <div className="bg-muted/30 flex items-center justify-center max-h-[80vh] overflow-auto">
+            <img src={url} alt="Preview" className="max-w-full max-h-[80vh] object-contain" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
