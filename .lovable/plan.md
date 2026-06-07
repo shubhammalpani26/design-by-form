@@ -1,95 +1,55 @@
-# Conversational Design Studio
+## Goal
+Make the chat at `/studio` the entire workflow — from idea → image → manufacturable → listed → shareable product link — without ever leaving the page. Add cheaper Beni Enterprises products so the catalog isn't only premium Cyanique pieces, and teach the AI to propose both styles.
 
-Transform `/design-studio` from a "generate 3 → pick → checkout" flow into a **chat-based design canvas** where creators pick one variation and iteratively refine it through conversation, with all existing tools (3D, AR, space preview, sketch upload, finishes, pricing) surfaced as inline action buttons.
+## Scope (all 4 in this loop)
 
-## Core UX flow
+### 1. Stop button in chat
+- Wire an `AbortController` into `handleSend`, `handleApplyFinish`, `handleSeeInSpaceFile`, `handleGenerate3D`, and the new inline pricing/listing calls.
+- While `busy === true`, the composer's send button becomes a Stop button (square icon) that calls `controller.abort()` and resets `busy`.
+- On abort: update any pending assistant placeholder message to "Stopped." instead of leaving it spinning.
 
-```text
-1. Creator opens /design-studio
-   → empty chat with PromptInput at bottom + "New design" sidebar
-2. Types prompt (or uploads sketch / space photo) → submits
-   → assistant message streams in with 3 starting variations (existing generate-design)
-3. Creator clicks one variation → it becomes the "active canvas" (pinned at top)
-4. Creator chats: "make the legs brass", "more sculptural", "smaller scale", etc.
-   → each user msg → edit-design edge fn → new image, becomes new active canvas
-   → previous canvas kept in history (can revert by clicking any prior image)
-5. Under each assistant image, inline action buttons:
-   [✨ Apply finish] [📐 View in AR] [🧊 Generate 3D] [🏠 See in space]
-   [✅ Make manufacturable & get price]
-6. "Make manufacturable" → runs current pricing/MBP flow on the active canvas,
-   opens existing pricing dialog → on confirm, creates the product as today.
-```
+### 2. Full end-to-end listing inside the chat
+Triggered by the existing "Make manufacturable & price" chip — but now it stays in chat instead of navigating to `/design-studio`.
 
-## Phasing
+Flow (each step is a new assistant message with an inline card):
 
-### Phase 1 (this build) — Core chat + iterative edits
-- DB schema (`design_sessions`, `design_messages`)
-- New `/design-studio` page rebuilt as chat (AI Elements: Conversation, Message, MessageResponse, PromptInput, Tool)
-- Sidebar: list of past sessions + "New design" button
-- Initial generation: reuses existing `generate-design` edge function, returns 3 variations rendered as a 3-up grid in the first assistant message
-- Pick variation → sets `active_image_url` on session
-- New edge function `edit-design`: image-to-image via `google/gemini-2.5-flash-image` (Nano Banana), takes current image + edit prompt, returns new image
-- Each edit becomes a new assistant message with the new image as active canvas
-- "Revert to this" button on any earlier image
-- Inline action buttons stub: [Apply finish] [View in AR] [Generate 3D] [See in space] [Make manufacturable]
+1. **Creator registration** — if the user has no `designer_profiles` row:
+   - Assistant asks for name + email (email pre-filled from auth).
+   - On submit, insert a `designer_profiles` row with `status='approved'`, `terms_accepted=true` (same shortcut the personal-mode flow already uses). No redirect.
 
-### Phase 2 — Wire tool buttons to existing flows
-- [Apply finish] → opens existing finish selector dialog, runs `generate-finish-preview`, posts result as new assistant msg
-- [View in AR] → routes to existing ARViewer with active image
-- [Generate 3D] → existing Meshy flow + 3D fee dialog
-- [See in space] → existing `generate-space-preview` (upload space photo if not set)
-- [Make manufacturable] → existing pricing/MBP + listing dialog, creates `designer_products` row
+2. **Auto dimensions & weight** — assistant invokes `calculate-weight` + a new lightweight dimension-estimator (or reuses Gemini via `recalculate-pricing` with sensible defaults). Renders an editable card: `Width × Depth × Height (cm)` + estimated weight + category, all pre-filled. User clicks **Confirm & price**.
 
-### Phase 3 — Polish
-- Streaming partial images during edits (Gemini supports SSE partials)
-- Slash commands as a fast path (optional later)
-- Old `DesignStudio` archived (route replaced)
+3. **Pricing** — calls existing `recalculate-pricing` edge function. Shows MBP (private), suggested selling price, and an editable selling price slider (creator keeps 100% of markup, per existing monetization rule).
 
-## Technical details (Phase 1)
+4. **Title + description** — auto-generated in background via `generate-product-title` + `generate-product-description`. Editable inline.
 
-**DB migration:**
-- `design_sessions`: `id`, `user_id`, `title`, `active_image_url`, `category`, `created_at`, `updated_at`
-- `design_messages`: `id`, `session_id`, `role` ('user'|'assistant'), `content` (text), `image_urls` (jsonb array), `metadata` (jsonb — for tool calls, variation choice, etc.), `created_at`
-- RLS: user can CRUD their own sessions/messages; GRANTs for `authenticated` + `service_role`
-- Trigger: `update_updated_at_column` on both
+5. **Publish** — inserts into `designer_products` (status `approved` for personal mode, or `pending` for designer mode — keep current behavior; for demo, default to `approved` so the link works immediately). Inserts `design_listings` row with `listing_fee_paid: true` (waived). Posts the final assistant message:
+   > ✓ Listed. View live product → `/product/<slug>`  
+   > Copy link · Share · Open dashboard
 
-**Edge function `edit-design`:**
-- Input: `{ sessionId, baseImageUrl, editPrompt, category }`
-- Auth: verify JWT, verify session belongs to user
-- Validate with Zod
-- Call Lovable AI Gateway `/v1/images/generations` with `google/gemini-2.5-flash-image`, messages with image_url + edit prompt, modalities `["image","text"]`, `stream: false` (Phase 1 — simpler; streaming in Phase 3)
-- Upload result PNG to `product-images` bucket → return public URL
-- Insert assistant message into `design_messages`
-- Update `design_sessions.active_image_url`
-- Enforce manufacturing constraints via system prompt (solid form, flat base — pull from existing `generate-design` prompt)
+All steps reuse existing edge functions; no new backend infra required besides one tiny `register-creator-inline` helper (or just direct insert from client — RLS allows the user to create their own profile, and we'll keep the insert client-side).
 
-**Frontend (`/design-studio` page rewrite):**
-- Install AI Elements: `bun x ai-elements@latest add conversation message prompt-input shimmer`
-- Layout: left sidebar (sessions) | main chat area (Conversation + PromptInput at bottom)
-- Mobile (390x844): sidebar collapses to a sheet, chat full-width
-- Active canvas thumbnail pinned above PromptInput (small, ~80px, with category badge)
-- Initial message empty-state shows category quick-picks + "Try: 'a sculptural walnut console with brass inlay'"
-- Render image messages with `object-contain` (per project mem)
-- No bg on assistant messages, user messages in `bg-primary text-primary-foreground` bubble
+### 3. Beni Enterprises cheaper catalog
+Seed ~8 products into `designer_products` priced ₹3,500 – ₹18,000 across the categories Beni covers (dining table, console, coffee table, bench, shelving, chair, side table, sideboard). All `status='approved'`, attributed to a new "Beni Studio" creator profile (or reuse an existing seeded profile if present). Use existing curated stock-style images or generate via `generate-design` with traditional-wood prompts.
 
-**Action buttons (Phase 1 = visible but only wire 2):**
-- [Make manufacturable & get price] — fully wired, opens existing pricing flow on the active image
-- [View in AR] — routes to existing ARViewer with active image
-- Others (Apply finish, Generate 3D, See in space) — visible with "Coming soon" toast, wired in Phase 2
+These will show on `/browse` immediately and route to Beni Enterprise as the maker (already wired in `src/data/makers.ts`).
 
-**Replaces:**
-- `src/pages/DesignStudio.tsx` — rewritten end-to-end
-- Existing `generate-design` edge function — kept, called for the initial 3 variations
-- Existing pricing/MBP/listing flow — reused unchanged on the active canvas
+### 4. Broaden AI prompts (Cyanique + Beni)
+In `supabase/functions/generate-design/index.ts` and the `STARTER_PROMPTS` / surprise-me lists:
+- Tell the model the platform makes BOTH sculptural additive pieces (Cyanique) AND traditional solid wood / craft furniture (Beni Enterprises).
+- Allow rectilinear, slatted, joinery-based silhouettes for `Table`, `Console`, `Shelving`, `Bed`, `Chair` when the user's prompt implies traditional/wood/craft.
+- Adjust the "solid monolithic flat-base" hard constraint so it only applies to additive/resin categories (decor, sculptures, accent pieces) — wood furniture can have legs, slats, and joinery.
+- Add Beni-style starter prompts: e.g. "A walnut slatted bench with brass inlays", "A teak 4-drawer console with tapered legs", "A solid oak dining table with breadboard ends".
 
-## Out of scope for Phase 1
-- Masked region edits (you chose free-form chat; can layer masking later if needed)
-- Streaming partial preview frames (added in Phase 3)
-- Tool buttons beyond "Make manufacturable" and "View in AR" (Phase 2)
-- Migrating in-flight users from old Studio (clean replace)
+## Technical notes
+- New file: `src/components/studio/InlineListingFlow.tsx` (registration card, dim/price card, publish card, success card). Rendered as special `MessageBubble` kinds (`creator-register`, `confirm-dims`, `confirm-price`, `listing-published`).
+- Reuse: `calculate-weight`, `recalculate-pricing`, `generate-product-description`, `generate-product-title`. No new edge functions.
+- Beni seeding: one `supabase--insert` call.
+- Abort: stored in a `useRef<AbortController | null>`; passed to `supabase.functions.invoke` via `{ signal: controller.signal }` where supported, otherwise we just stop processing the result and mark `busy = false`.
+- `handleMakeManufacturable` no longer navigates — it inserts a `creator-register` assistant message (or skips straight to `confirm-dims` if profile exists).
+- Slug for the success link comes from the existing `set_slug_on_product` trigger.
 
-## Risk / unknowns
-- `gemini-2.5-flash-image` quality on furniture edit prompts — we have prior success with it (used in space preview, finish preview). Should be solid.
-- Cost: each edit ≈ 1 image gen call. Existing 10-credit logic should cover; we may want to decrement credits per edit (Phase 2 decision — Phase 1 will be free during dogfooding).
-
-Approve to start Phase 1, or tell me what to adjust.
+## Out of scope (defer)
+- 3D model generation paywall (regular ₹750) — keep existing flow; the demo path uses 2D image listing.
+- Stripe / Razorpay payment for listing fee — keep "waived" per existing messaging memory.
+- Multi-step creator approval review — demo auto-approves.
