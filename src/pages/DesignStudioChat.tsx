@@ -831,6 +831,9 @@ export default function DesignStudioChat() {
         }).eq("id", placeholder.id);
       }
       await loadMessages(sid);
+
+      // 5) Fire off production drawing (non-blocking, runs in background as a separate message)
+      void generateProductionDrawing(sid, baseImageUrl, polishedTitle, dbCategory, dims);
     } catch (e) {
       if (placeholder) {
         await supabase.from("design_messages").update({
@@ -841,6 +844,45 @@ export default function DesignStudioChat() {
       toast({ title: "Pricing failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function generateProductionDrawing(
+    sid: string,
+    imageUrl: string,
+    productName: string,
+    dbCategory: string,
+    dimensions: { length: number; breadth: number; height: number },
+  ) {
+    const placeholder = await insertMessage(
+      sid,
+      "assistant",
+      "Drafting a production-reference drawing — front, side & top views with dimensions…",
+      [],
+      { kind: "production-drawing", status: "pending" },
+    );
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-production-drawing", {
+        body: { imageUrl, productName, category: dbCategory, dimensions },
+      });
+      if (error || !data?.imageUrl) throw error ?? new Error("No drawing returned");
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "📐 AI-predicted production drawing. This is a manufacturing reference — your assigned maker will refine the final shop drawing before cutting.",
+          image_urls: [data.imageUrl],
+          metadata: { kind: "production-drawing", status: "ready" } as any,
+        }).eq("id", placeholder.id);
+      }
+      await loadMessages(sid);
+    } catch (e) {
+      console.warn("Production drawing failed", e);
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "Couldn't generate the production drawing this time — but you can still publish; makers will draft one from the reference image.",
+          metadata: { kind: "production-drawing", status: "failed" } as any,
+        }).eq("id", placeholder.id);
+        await loadMessages(sid);
+      }
     }
   }
 
@@ -1264,6 +1306,7 @@ function MessageBubble({
   const isCreatorRegister = kind === "creator-register";
   const isConfirmListing = kind === "confirm-listing";
   const isListingPublished = kind === "listing-published";
+  const isProductionDrawing = kind === "production-drawing";
   const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
@@ -1310,6 +1353,17 @@ function MessageBubble({
       {/* Listing published success card */}
       {isListingPublished && (
         <PublishedCard metadata={message.metadata as any} onOpenProduct={onOpenProduct} />
+      )}
+
+      {/* AI-predicted production drawing */}
+      {isProductionDrawing && status === "ready" && images[0] && (
+        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md">
+          <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+          <div className="px-3 py-2 border-t border-border bg-card text-[10px] uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+            <span>Manufacturing Reference</span>
+            <span>Nyzora · AI predicted</span>
+          </div>
+        </div>
       )}
 
       {/* Variation grid (initial OR per-edit candidates) */}
