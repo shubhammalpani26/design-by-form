@@ -35,10 +35,11 @@ interface DBSession {
   updated_at: string;
 }
 
-const CATEGORIES = ["Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor"];
+const CATEGORIES = ["General", "Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor"];
 
 // Map free-form category labels to canonical DB categories used on /browse
 const DB_CATEGORY: Record<string, string> = {
+  General: "decor",
   Chair: "chairs",
   Sofa: "sofas",
   Table: "dining-tables",
@@ -50,6 +51,12 @@ const DB_CATEGORY: Record<string, string> = {
 };
 
 const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
+  General: [
+    "Here's a photo of my living room — redesign the whole space in warm minimalism with custom pieces",
+    "I'm a designer working on a client's bedroom — let's create a full custom set together",
+    "Reimagine this dining area end-to-end: table, chairs, lighting, and a console",
+    "Plan a cohesive entryway — console, mirror, bench, and accent lighting in travertine and oak",
+  ],
   Chair: [
     "A sculptural travertine accent chair, all tonal cream",
     "A solid walnut lounge chair with curved arms and bouclé seat",
