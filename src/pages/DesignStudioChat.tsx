@@ -49,14 +49,56 @@ const DB_CATEGORY: Record<string, string> = {
   Decor: "decor",
 };
 
-const STARTER_PROMPTS = [
-  "A solid teak 6-seater dining table with tapered legs",
-  "A walnut slatted console with brass-tipped feet",
-  "A sculptural travertine accent chair, all tonal cream",
-  "A mango wood round coffee table with chunky pedestal",
-  "A pebble-form lamp in matte bone ceramic",
-  "An oak slat entryway bench, clean lines",
-];
+const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
+  Chair: [
+    "A sculptural travertine accent chair, all tonal cream",
+    "A solid walnut lounge chair with curved arms and bouclé seat",
+    "A pebble-form resin accent chair in matte bone",
+    "An oak dining chair with woven cord seat",
+  ],
+  Sofa: [
+    "A low-slung bouclé 3-seater sofa in oat tone",
+    "A modular travertine-base sofa with cream linen cushions",
+    "A curved cream sofa with solid walnut plinth",
+    "A deep-seat leather chesterfield in cognac",
+  ],
+  Table: [
+    "A solid teak 6-seater dining table with tapered legs",
+    "A mango wood round coffee table with chunky pedestal",
+    "A sculptural travertine oval dining table",
+    "An oak extension dining table with breadboard ends",
+  ],
+  Console: [
+    "A walnut slatted console with brass-tipped feet",
+    "A mango wood 4-drawer console, hand-finished",
+    "A sculptural plaster console with arched base",
+    "A solid oak hallway console with brass pulls",
+  ],
+  Lamp: [
+    "A pebble-form table lamp in matte bone ceramic",
+    "A sculptural travertine table lamp with linen shade",
+    "A solid walnut tripod floor lamp with paper shade",
+    "A monolithic plaster table lamp, all tonal cream",
+  ],
+  Shelving: [
+    "An oak open shelving unit with slim brass uprights",
+    "A walnut wall-mounted shelf with rounded edges",
+    "A solid mango wood bookshelf, chunky planks",
+    "A travertine-base floor shelf with oak shelves",
+  ],
+  Bed: [
+    "An upholstered bouclé bed in oat with low headboard",
+    "A solid walnut platform bed with paneled headboard",
+    "A curved headboard bed in cream linen on oak base",
+    "A mango wood low platform bed with woven headboard",
+  ],
+  Decor: [
+    "A pebble-form ceramic vase set in matte bone",
+    "A sculptural travertine bookend pair",
+    "A solid walnut hand-turned bowl, organic form",
+    "A tonal cream plaster sculpture, monolithic form",
+  ],
+};
 
 const FINISHES: { name: string; prompt: string }[] = [
   { name: "Matte Black", prompt: "a sleek matte black finish with no shine, deep charcoal-black color" },
@@ -1088,7 +1130,7 @@ export default function DesignStudioChat() {
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2 justify-center max-w-xl mx-auto">
-                    {STARTER_PROMPTS.map((p) => (
+                    {(STARTER_PROMPTS_BY_CATEGORY[category] ?? []).map((p) => (
                       <button
                         key={p}
                         onClick={() => setInput(p)}
