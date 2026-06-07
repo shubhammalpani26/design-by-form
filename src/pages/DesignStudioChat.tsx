@@ -220,6 +220,21 @@ export default function DesignStudioChat() {
     if (!busy) inputRef.current?.focus();
   }, [busy, activeSessionId]);
 
+  // Handle ?prompt= query param: prefill and auto-send once user is ready
+  const autoPromptHandledRef = useRef(false);
+  useEffect(() => {
+    if (!userId || autoPromptHandledRef.current) return;
+    const p = searchParams.get("prompt");
+    if (!p) return;
+    autoPromptHandledRef.current = true;
+    setInput(p);
+    // Defer to next tick so input state is applied, then send
+    setTimeout(() => {
+      void handleSend();
+    }, 50);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   async function startNewSession(initialPrompt?: string) {
     if (!userId) return null;
     const title = (initialPrompt ?? "Untitled design").slice(0, 80);
