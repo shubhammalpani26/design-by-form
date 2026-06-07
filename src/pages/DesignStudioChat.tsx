@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette, Square, Check, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -36,11 +37,25 @@ interface DBSession {
 
 const CATEGORIES = ["Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor"];
 
+// Map free-form category labels to canonical DB categories used on /browse
+const DB_CATEGORY: Record<string, string> = {
+  Chair: "chairs",
+  Sofa: "sofas",
+  Table: "dining-tables",
+  Console: "consoles",
+  Lamp: "lighting",
+  Shelving: "shelving",
+  Bed: "beds",
+  Decor: "decor",
+};
+
 const STARTER_PROMPTS = [
-  "A sculptural walnut accent chair with brass legs",
-  "A sinuous travertine console, all in one tonal cream",
-  "A monolithic blackened-oak dining table, six seats",
+  "A solid teak 6-seater dining table with tapered legs",
+  "A walnut slatted console with brass-tipped feet",
+  "A sculptural travertine accent chair, all tonal cream",
+  "A mango wood round coffee table with chunky pedestal",
   "A pebble-form lamp in matte bone ceramic",
+  "An oak slat entryway bench, clean lines",
 ];
 
 const FINISHES: { name: string; prompt: string }[] = [
