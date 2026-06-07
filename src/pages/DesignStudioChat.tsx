@@ -831,6 +831,9 @@ export default function DesignStudioChat() {
         }).eq("id", placeholder.id);
       }
       await loadMessages(sid);
+
+      // 5) Fire off production drawing (non-blocking, runs in background as a separate message)
+      void generateProductionDrawing(sid, baseImageUrl, polishedTitle, dbCategory, dims);
     } catch (e) {
       if (placeholder) {
         await supabase.from("design_messages").update({
