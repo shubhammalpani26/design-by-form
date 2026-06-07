@@ -1306,6 +1306,7 @@ function MessageBubble({
   const isCreatorRegister = kind === "creator-register";
   const isConfirmListing = kind === "confirm-listing";
   const isListingPublished = kind === "listing-published";
+  const isProductionDrawing = kind === "production-drawing";
   const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
@@ -1352,6 +1353,17 @@ function MessageBubble({
       {/* Listing published success card */}
       {isListingPublished && (
         <PublishedCard metadata={message.metadata as any} onOpenProduct={onOpenProduct} />
+      )}
+
+      {/* AI-predicted production drawing */}
+      {isProductionDrawing && status === "ready" && images[0] && (
+        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md">
+          <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+          <div className="px-3 py-2 border-t border-border bg-card text-[10px] uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+            <span>Manufacturing Reference</span>
+            <span>Nyzora · AI predicted</span>
+          </div>
+        </div>
       )}
 
       {/* Variation grid (initial OR per-edit candidates) */}
