@@ -133,6 +133,27 @@ Rules for this turn:
 
     console.log("edit-design: generating with prompt:", editPrompt.slice(0, 120));
 
+    // Inline the reference image as a base64 data URL. Passing a remote URL
+    // sometimes results in the model ignoring the reference entirely (which
+    // showed up as "random" outputs disconnected from the prior design).
+    let referenceImageUrl = baseImageUrl;
+    try {
+      if (/^https?:\/\//i.test(baseImageUrl)) {
+        const imgResp = await fetch(baseImageUrl);
+        if (imgResp.ok) {
+          const buf = new Uint8Array(await imgResp.arrayBuffer());
+          const ct = imgResp.headers.get("content-type") ?? "image/png";
+          let bin = "";
+          for (let i = 0; i < buf.length; i++) bin += String.fromCharCode(buf[i]);
+          referenceImageUrl = `data:${ct};base64,${btoa(bin)}`;
+        } else {
+          console.warn("edit-design: failed to fetch reference image", imgResp.status);
+        }
+      }
+    } catch (err) {
+      console.warn("edit-design: error inlining reference image", err);
+    }
+
     // Call Gemini image model with image input
     let newImageDataUrl: string | null = null;
     const maxRetries = 3;
@@ -152,7 +173,7 @@ Rules for this turn:
               role: "user",
               content: [
                 { type: "text", text: userInstruction },
-                { type: "image_url", image_url: { url: baseImageUrl } },
+                { type: "image_url", image_url: { url: referenceImageUrl } },
               ],
             },
           ],
