@@ -17,145 +17,204 @@ interface ModelViewer3DProps {
 
 type LoadingState = 'idle' | 'loading-model' | 'loaded' | 'error';
 
+const disposeObject = (object: THREE.Object3D) => {
+  object.traverse((child) => {
+    const mesh = child as THREE.Mesh;
+    mesh.geometry?.dispose();
+
+    const material = mesh.material;
+    if (Array.isArray(material)) {
+      material.forEach((item) => item.dispose());
+    } else {
+      material?.dispose();
+    }
+  });
+};
+
+const fitCameraToObject = (
+  camera: THREE.PerspectiveCamera,
+  object: THREE.Object3D,
+  controls: OrbitControls
+) => {
+  const box = new THREE.Box3().setFromObject(object);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  const maxDimension = Math.max(size.x, size.y, size.z);
+
+  if (!Number.isFinite(maxDimension) || maxDimension <= 0) {
+    camera.position.set(0, 1.2, 4);
+    controls.target.set(0, 0, 0);
+    controls.update();
+    return;
+  }
+
+  const fitDistance = (maxDimension / (2 * Math.tan((Math.PI * camera.fov) / 360))) * 1.55;
+  const direction = new THREE.Vector3(0.9, 0.45, 1).normalize();
+
+  camera.near = Math.max(fitDistance / 100, 0.01);
+  camera.far = fitDistance * 100;
+  camera.position.copy(center).add(direction.multiplyScalar(fitDistance));
+  camera.lookAt(center);
+  camera.updateProjectionMatrix();
+
+  controls.target.copy(center);
+  controls.minDistance = fitDistance * 0.25;
+  controls.maxDistance = fitDistance * 4;
+  controls.update();
+};
+
 export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DProps) => {
-  const [scriptReady, setScriptReady] = useState(() => modelViewerScriptLoaded || !!customElements.get('model-viewer'));
   const [loadingState, setLoadingState] = useState<LoadingState>('idle');
   const [errorMessage, setErrorMessage] = useState<string>("");
   const [loadProgress, setLoadProgress] = useState(0);
   const [proxiedUrl, setProxiedUrl] = useState<string>("");
-  const [modelFileSize, setModelFileSize] = useState<string>("");
-  
-  // Use a key to force remount of model-viewer when URL changes
-  const [viewerKey, setViewerKey] = useState(0);
-  
-  // Store the actual DOM element reference
-  const viewerElementRef = useRef<HTMLElement | null>(null);
-
-  // Load model-viewer script
-  useEffect(() => {
-    if (modelViewerScriptLoaded || customElements.get('model-viewer')) {
-      setScriptReady(true);
-      return;
-    }
-
-    setLoadingState('loading-script');
-
-    const script = document.createElement('script');
-    script.type = 'module';
-    script.src = 'https://unpkg.com/@google/model-viewer@4.0.0/dist/model-viewer.min.js';
-    
-    script.onload = () => {
-      const checkElement = setInterval(() => {
-        if (customElements.get('model-viewer')) {
-          modelViewerScriptLoaded = true;
-          setScriptReady(true);
-          setLoadingState('idle');
-          clearInterval(checkElement);
-        }
-      }, 100);
-      
-      setTimeout(() => {
-        clearInterval(checkElement);
-        if (!modelViewerScriptLoaded) {
-          setLoadingState('error');
-          setErrorMessage('Failed to load 3D viewer library');
-        }
-      }, 5000);
-    };
-    
-    script.onerror = () => {
-      setLoadingState('error');
-      setErrorMessage('Failed to load 3D viewer library');
-    };
-    
-    document.head.appendChild(script);
-  }, []);
+  const viewerContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Build proxy URL when modelUrl changes
   useEffect(() => {
-    if (!modelUrl || !scriptReady) {
+    if (!modelUrl) {
       setProxiedUrl("");
       setLoadingState('idle');
       return;
     }
 
-    // Check cache first
     const cachedProxyUrl = loadedModelsCache.get(modelUrl);
-    if (cachedProxyUrl) {
-      console.log('📦 Using cached proxy URL for:', modelUrl);
-      setProxiedUrl(cachedProxyUrl);
-      setLoadingState('loading-model');
-      setLoadProgress(0);
-      setViewerKey(k => k + 1); // Force remount
-      return;
-    }
+    const proxyUrl = cachedProxyUrl || `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
 
-    // Build new proxy URL
+    setProxiedUrl(proxyUrl);
     setLoadingState('loading-model');
     setLoadProgress(0);
     setErrorMessage("");
+  }, [modelUrl]);
 
-    const proxyUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/proxy-3d-model?url=${encodeURIComponent(modelUrl)}`;
-    console.log('🔗 Setting proxy URL:', proxyUrl);
-    setProxiedUrl(proxyUrl);
-    setViewerKey(k => k + 1); // Force remount
-  }, [modelUrl, scriptReady]);
+  useEffect(() => {
+    const container = viewerContainerRef.current;
+    if (!container || !proxiedUrl) return;
 
-  // Handle model-viewer element via callback ref
-  const handleViewerRef = useCallback((element: HTMLElement | null) => {
-    // Clean up old listeners if we have a previous element
-    const prevElement = viewerElementRef.current;
-    if (prevElement && prevElement !== element) {
-      console.log('🧹 Cleaning up old model-viewer listeners');
-      // Remove all listeners by cloning (simplest cleanup)
-    }
-    
-    viewerElementRef.current = element;
-    
-    if (!element || !proxiedUrl) return;
-    
-    console.log('🎯 Setting up model-viewer element with src:', proxiedUrl);
-    
-    const handleLoad = () => {
-      console.log('✅ Model loaded successfully');
-      if (modelUrl) {
-        loadedModelsCache.set(modelUrl, proxiedUrl);
-      }
-      setLoadingState('loaded');
-      setLoadProgress(100);
-    };
+    let animationFrame = 0;
+    let cancelled = false;
+    let loadedScene: THREE.Object3D | null = null;
 
-    const handleError = (event: Event) => {
-      console.error('❌ Model load failed:', event);
+    setLoadingState('loading-model');
+    setLoadProgress(0);
+    setErrorMessage("");
+    container.replaceChildren();
+
+    const width = Math.max(container.clientWidth, 320);
+    const height = Math.max(container.clientHeight, 360);
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(35, width / height, 0.01, 1000);
+    let renderer: THREE.WebGLRenderer;
+
+    try {
+      renderer = new THREE.WebGLRenderer({
+        alpha: true,
+        antialias: true,
+        powerPreference: 'high-performance',
+      });
+    } catch (error) {
+      console.error('❌ WebGL renderer failed:', error);
+      const msg = '3D rendering is unavailable in this browser session. Please refresh and try again.';
       setLoadingState('error');
-      const msg = 'Failed to load 3D model. Please try again or contact support.';
       setErrorMessage(msg);
       onError?.(msg);
-    };
-
-    const handleProgress = (event: any) => {
-      if (event.detail && event.detail.totalProgress !== undefined) {
-        const progress = Math.round(event.detail.totalProgress * 100);
-        console.log('📊 Loading progress:', progress);
-        setLoadProgress(progress);
-      }
-    };
-
-    // Check if already loaded (e.g., from browser cache)
-    const modelViewer = element as any;
-    if (modelViewer.loaded) {
-      console.log('✅ Model already loaded (browser cache)');
-      handleLoad();
       return;
     }
 
-    element.addEventListener('load', handleLoad);
-    element.addEventListener('error', handleError);
-    element.addEventListener('progress', handleProgress);
-    
-    // Return cleanup function isn't needed for callback refs,
-    // but we store reference for manual cleanup if needed
-  }, [proxiedUrl, modelUrl, onError]);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setSize(width, height);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1;
+    renderer.domElement.setAttribute('aria-label', `${productName} 3D model`);
+    renderer.domElement.style.display = 'block';
+    renderer.domElement.style.height = '100%';
+    renderer.domElement.style.width = '100%';
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.enablePan = false;
+    controls.autoRotate = false;
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0xb7b0a8, 2.4));
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 3.2);
+    keyLight.position.set(3, 5, 4);
+    scene.add(keyLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 1.25);
+    fillLight.position.set(-4, 2, -3);
+    scene.add(fillLight);
+
+    camera.position.set(0, 1.2, 4);
+
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      const nextWidth = Math.max(entry.contentRect.width, 320);
+      const nextHeight = Math.max(entry.contentRect.height, 360);
+      camera.aspect = nextWidth / nextHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(nextWidth, nextHeight);
+    });
+    resizeObserver.observe(container);
+
+    const animate = () => {
+      controls.update();
+      renderer.render(scene, camera);
+      animationFrame = window.requestAnimationFrame(animate);
+    };
+    animate();
+
+    const loader = new GLTFLoader();
+    loader.load(
+      proxiedUrl,
+      (gltf) => {
+        if (cancelled) return;
+
+        loadedScene = gltf.scene;
+        loadedScene.traverse((child) => {
+          const mesh = child as THREE.Mesh;
+          if (mesh.isMesh) {
+            mesh.frustumCulled = false;
+          }
+        });
+
+        scene.add(loadedScene);
+        fitCameraToObject(camera, loadedScene, controls);
+
+        if (modelUrl) {
+          loadedModelsCache.set(modelUrl, proxiedUrl);
+        }
+
+        setLoadProgress(100);
+        setLoadingState('loaded');
+      },
+      (event) => {
+        if (!event.total) return;
+        setLoadProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
+      },
+      (error) => {
+        if (cancelled) return;
+        console.error('❌ Model load failed:', error);
+        const msg = 'Failed to load 3D model. Please try again or download the model file.';
+        setLoadingState('error');
+        setErrorMessage(msg);
+        onError?.(msg);
+      }
+    );
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
+      resizeObserver.disconnect();
+      controls.dispose();
+      if (loadedScene) disposeObject(loadedScene);
+      renderer.dispose();
+      if (renderer.domElement.parentElement === container) {
+        container.removeChild(renderer.domElement);
+      }
+    };
+  }, [proxiedUrl, modelUrl, productName, onError]);
 
   const handleDownloadModel = () => {
     if (modelUrl) {
@@ -172,7 +231,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     setProxiedUrl('https://modelviewer.dev/shared-assets/models/Astronaut.glb');
     setLoadingState('loading-model');
     setLoadProgress(0);
-    setViewerKey(k => k + 1);
+    setErrorMessage("");
   };
 
   const handleRetry = () => {
@@ -185,30 +244,12 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
         setProxiedUrl(proxyUrl);
         setLoadingState('loading-model');
         setLoadProgress(0);
-        setViewerKey(k => k + 1);
+        setErrorMessage("");
       }, 100);
+    } else {
+      handleTestSampleModel();
     }
   };
-
-  if (!scriptReady) {
-    return (
-      <Card className="border-primary/20 shadow-medium h-full">
-        <CardContent className="p-6 h-full flex flex-col">
-          <div className="space-y-4 flex-1 flex flex-col">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-foreground">3D Model Viewer</h3>
-            </div>
-            <div className="flex-1 bg-accent rounded-xl flex items-center justify-center relative overflow-hidden min-h-[400px] max-h-[500px]">
-              <div className="text-center space-y-3 p-8">
-                <Loader2 className="w-12 h-12 text-primary animate-spin mx-auto" />
-                <p className="text-sm text-muted-foreground">Loading 3D viewer library...</p>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
     <Card className="border-primary/20 shadow-medium h-full">
