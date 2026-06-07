@@ -1133,11 +1133,13 @@ export default function DesignStudioChat() {
                 />
                 <Button
                   onClick={handleSend}
-                  disabled={(!input.trim() && attachments.length === 0) || busy}
+                  disabled={!busy && (!input.trim() && attachments.length === 0)}
                   size="icon"
                   className="h-[56px] w-[56px] shrink-0"
+                  variant={busy ? "outline" : "default"}
+                  title={busy ? "Stop" : "Send"}
                 >
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {busy ? <Square className="w-4 h-4 fill-current" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
