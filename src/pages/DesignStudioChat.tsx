@@ -11,6 +11,8 @@ import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
 import { storeDesignImages } from "@/lib/designTransfer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
+import { ARViewer } from "@/components/ARViewer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Role = "user" | "assistant";
 
@@ -77,6 +79,8 @@ export default function DesignStudioChat() {
   const sketchInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const spacePreviewInputRef = useRef<HTMLInputElement>(null);
+  const [arOpen, setArOpen] = useState(false);
+  const [arImage, setArImage] = useState<string | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -620,10 +624,8 @@ export default function DesignStudioChat() {
 
   function handleViewInAR() {
     if (!activeImage) return;
-    try {
-      sessionStorage.setItem("ar-product-image", activeImage);
-    } catch {}
-    navigate("/ar-viewer");
+    setArImage(activeImage);
+    setArOpen(true);
   }
 
   const hasMessages = messages.length > 0;
