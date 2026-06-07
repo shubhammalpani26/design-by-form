@@ -352,8 +352,8 @@ export default function DesignStudioChat() {
     });
   }
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if ((!text && attachments.length === 0) || busy) return;
     setInput("");
     setBusy(true);
