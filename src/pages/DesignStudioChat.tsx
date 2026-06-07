@@ -475,10 +475,24 @@ export default function DesignStudioChat() {
         }
         const placeholderMsg = await insertMessage(sid, "assistant", "Exploring three takes on that edit…", [], { kind: "edit-variations", status: "pending", basedOn: baseImageUrl });
 
+        // Build session context so the editor model understands the original
+        // subject and prior edits — prevents drift (e.g. lamp → chair after a
+        // vague comment like "can't see the full image").
+        const userTurns = messages.filter((m) => m.role === "user" && (m.content ?? "").trim().length > 0);
+        const originalPrompt = userTurns[0]?.content ?? "";
+        const priorEdits = userTurns.slice(1).map((m) => (m.content ?? "").trim()).filter(Boolean);
+
         const results = await Promise.allSettled(
           [1, 2, 3].map(() =>
             supabase.functions.invoke("edit-design", {
-              body: { sessionId: sid, baseImageUrl, editPrompt: text, category },
+              body: {
+                sessionId: sid,
+                baseImageUrl,
+                editPrompt: text,
+                category,
+                originalPrompt,
+                priorEdits,
+              },
             })
           )
         );
