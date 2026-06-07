@@ -1411,3 +1411,169 @@ function FinishMenu({ onPick, disabled }: { onPick: (name: string) => void; disa
     </div>
   );
 }
+
+function CreatorRegisterCard({
+  messageId,
+  suggestedName,
+  email,
+  onSubmit,
+  busy,
+}: {
+  messageId: string;
+  suggestedName: string;
+  email: string;
+  onSubmit: (id: string, name: string) => void;
+  busy: boolean;
+}) {
+  const [name, setName] = useState(suggestedName);
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 max-w-md space-y-3">
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Your name</label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="h-9 text-sm" />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Email</label>
+        <div className="text-sm text-muted-foreground">{email}</div>
+      </div>
+      <Button
+        onClick={() => onSubmit(messageId, name)}
+        disabled={busy || name.trim().length < 2}
+        size="sm"
+        className="w-full"
+      >
+        {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Create account & continue"}
+      </Button>
+      <p className="text-[10px] text-muted-foreground">By continuing you accept the Nyzora creator terms. You can edit your profile anytime.</p>
+    </div>
+  );
+}
+
+function formatINR(n: number) {
+  try {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  } catch {
+    return `₹${n.toLocaleString("en-IN")}`;
+  }
+}
+
+function ConfirmListingCard({
+  messageId,
+  metadata,
+  onPublish,
+  busy,
+}: {
+  messageId: string;
+  metadata: any;
+  onPublish: (id: string, edits: any) => void;
+  busy: boolean;
+}) {
+  const [title, setTitle] = useState<string>(metadata?.title ?? "");
+  const [dims, setDims] = useState<{ length: number; breadth: number; height: number }>(
+    metadata?.dimensions ?? { length: 100, breadth: 50, height: 60 },
+  );
+  const [price, setPrice] = useState<number>(Number(metadata?.suggestedPrice ?? 0));
+  const basePrice = Number(metadata?.basePrice ?? 0);
+  const imageUrl = metadata?.imageUrl as string;
+  const profileId = metadata?.profileId as string;
+  const dbCategory = metadata?.dbCategory as string;
+  const markup = Math.max(0, price - basePrice);
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 max-w-md space-y-3">
+      <div className="flex gap-3 items-start">
+        {imageUrl && (
+          <img src={imageUrl} alt="" className="w-20 h-20 rounded object-contain bg-muted shrink-0" />
+        )}
+        <div className="flex-1 space-y-1.5">
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Product name</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 text-sm" />
+          <div className="text-[10px] text-muted-foreground capitalize">Category: {dbCategory?.replace(/-/g, " ")}</div>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Dimensions (cm)</label>
+        <div className="grid grid-cols-3 gap-2">
+          <Input type="number" value={dims.length} onChange={(e) => setDims({ ...dims, length: Number(e.target.value) })} placeholder="W" className="h-8 text-sm" />
+          <Input type="number" value={dims.breadth} onChange={(e) => setDims({ ...dims, breadth: Number(e.target.value) })} placeholder="D" className="h-8 text-sm" />
+          <Input type="number" value={dims.height} onChange={(e) => setDims({ ...dims, height: Number(e.target.value) })} placeholder="H" className="h-8 text-sm" />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-baseline justify-between">
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Selling price</label>
+          <span className="text-[10px] text-muted-foreground">Your earnings: {formatINR(markup)}</span>
+        </div>
+        <Input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="h-9 text-sm" min={basePrice} />
+        <div className="text-[10px] text-muted-foreground">You keep 100% of the markup. Manufacturing cost is set by our maker network.</div>
+      </div>
+
+      <Button
+        onClick={() =>
+          onPublish(messageId, {
+            title: title.trim(),
+            dbCategory,
+            dimensions: dims,
+            basePrice,
+            designerPrice: Math.max(price, basePrice),
+            imageUrl,
+            profileId,
+          })
+        }
+        disabled={busy || !title.trim() || !profileId || !imageUrl}
+        size="sm"
+        className="w-full"
+      >
+        {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Tag className="w-3.5 h-3.5 mr-1.5" /> Publish to marketplace</>}
+      </Button>
+    </div>
+  );
+}
+
+function PublishedCard({
+  metadata,
+  onOpenProduct,
+}: {
+  metadata: any;
+  onOpenProduct: (path: string) => void;
+}) {
+  const path = metadata?.productPath as string;
+  const title = metadata?.productTitle as string;
+  const imageUrl = metadata?.imageUrl as string;
+  const price = Number(metadata?.designerPrice ?? 0);
+  const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      toast({ title: "Link copied" });
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 max-w-md space-y-3">
+      <div className="flex gap-3 items-center">
+        {imageUrl && <img src={imageUrl} alt="" className="w-16 h-16 rounded object-contain bg-background shrink-0" />}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-primary">
+            <Check className="w-3 h-3" /> Live on Nyzora
+          </div>
+          <div className="text-sm font-medium truncate">{title}</div>
+          <div className="text-xs text-muted-foreground">{formatINR(price)}</div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <Button size="sm" onClick={() => onOpenProduct(path)} className="gap-1.5 h-8 text-xs">
+          <ExternalLink className="w-3 h-3" /> Open product page
+        </Button>
+        <Button size="sm" variant="outline" onClick={copyLink} className="gap-1.5 h-8 text-xs">
+          <LinkIcon className="w-3 h-3" /> Copy link
+        </Button>
+      </div>
+    </div>
+  );
+}
