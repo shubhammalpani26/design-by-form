@@ -227,11 +227,7 @@ export default function DesignStudioChat() {
     const p = searchParams.get("prompt");
     if (!p) return;
     autoPromptHandledRef.current = true;
-    setInput(p);
-    // Defer to next tick so input state is applied, then send
-    setTimeout(() => {
-      void handleSend();
-    }, 50);
+    void handleSend(p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
