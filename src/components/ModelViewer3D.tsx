@@ -313,25 +313,7 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
               </div>
             ) : (
               <>
-                <model-viewer
-                  key={viewerKey}
-                  ref={handleViewerRef}
-                  src={proxiedUrl}
-                  alt={productName}
-                  auto-rotate
-                  camera-controls
-                  shadow-intensity="1"
-                  loading="eager"
-                  interaction-prompt="auto"
-                  ar
-                  ar-modes="webxr scene-viewer quick-look"
-                  style={{ 
-                    width: '100%', 
-                    height: '100%',
-                    maxHeight: '500px',
-                    backgroundColor: 'transparent'
-                  }}
-                />
+                <div ref={viewerContainerRef} className="absolute inset-0" />
                 {loadingState === 'loading-model' && (
                   <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">
                     <div className="text-center space-y-3">
@@ -339,9 +321,6 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">Loading 3D model...</p>
                         <p className="text-xs text-muted-foreground">{loadProgress}%</p>
-                        {modelFileSize && (
-                          <p className="text-xs text-muted-foreground">{modelFileSize}</p>
-                        )}
                       </div>
                     </div>
                   </div>
