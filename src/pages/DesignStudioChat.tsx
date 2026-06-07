@@ -414,8 +414,25 @@ export default function DesignStudioChat() {
         if (!sid) return;
       }
 
+      // Upload image attachments (space/sketch) so they persist in chat history
+      const userImageUrls: string[] = [];
+      for (const a of sent) {
+        if ((a.kind === "space" || a.kind === "sketch") && a.base64 && !a.fileUrl) {
+          try {
+            const publicUrl = await storeStudioImageUrl(a.base64, sid);
+            if (publicUrl) {
+              a.fileUrl = publicUrl;
+              userImageUrls.push(publicUrl);
+            }
+          } catch (err) {
+            console.error("Failed to persist attachment", err);
+          }
+        } else if (a.fileUrl && (a.kind === "space" || a.kind === "sketch")) {
+          userImageUrls.push(a.fileUrl);
+        }
+      }
       const userAttachmentMeta = sent.map((a) => ({ kind: a.kind, name: a.name, fileUrl: a.fileUrl }));
-      await insertMessage(sid, "user", text || (sent.length ? "(attachments)" : ""), [], { attachments: userAttachmentMeta });
+      await insertMessage(sid, "user", text || (sent.length ? "(attachments)" : ""), userImageUrls, { attachments: userAttachmentMeta });
 
       if (isFirstMessage || !activeImage) {
         // Generate 3 starting variations in parallel
