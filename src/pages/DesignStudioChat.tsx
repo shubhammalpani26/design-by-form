@@ -1444,7 +1444,91 @@ function MessageBubble({
           </div>
         </div>
       )}
+
+      <ImageLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
     </div>
+  );
+}
+
+function ImageOverlayActions({ url, onExpand, filename }: { url: string; onExpand: () => void; filename?: string }) {
+  async function download(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = filename || "nyzora-image.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(obj), 1000);
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
+  return (
+    <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity z-10">
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label="Preview larger"
+        onClick={(e) => { e.preventDefault(); e.stopPropagation(); onExpand(); }}
+        onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); e.stopPropagation(); onExpand(); } }}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black/70 text-white hover:bg-black/90 cursor-pointer"
+      >
+        <Maximize2 className="w-3.5 h-3.5" />
+      </span>
+      <span
+        role="button"
+        tabIndex={0}
+        aria-label="Download image"
+        onClick={download}
+        onKeyDown={(e) => { if (e.key === "Enter") download(e as unknown as React.MouseEvent); }}
+        className="inline-flex items-center justify-center w-7 h-7 rounded-md bg-black/70 text-white hover:bg-black/90 cursor-pointer"
+      >
+        <Download className="w-3.5 h-3.5" />
+      </span>
+    </div>
+  );
+}
+
+function ImageLightbox({ url, onClose }: { url: string | null; onClose: () => void }) {
+  async function download() {
+    if (!url) return;
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      const blob = await res.blob();
+      const obj = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = obj;
+      a.download = "nyzora-image.png";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(obj), 1000);
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
+  return (
+    <Dialog open={!!url} onOpenChange={(o) => { if (!o) onClose(); }}>
+      <DialogContent className="max-w-5xl p-0 bg-background border-border overflow-hidden">
+        <DialogHeader className="px-4 py-2.5 border-b border-border flex-row items-center justify-between space-y-0">
+          <DialogTitle className="text-sm font-normal text-muted-foreground">Preview</DialogTitle>
+          <Button size="sm" variant="outline" onClick={download} className="h-8 gap-1.5 text-xs mr-6">
+            <Download className="w-3.5 h-3.5" /> Download
+          </Button>
+        </DialogHeader>
+        {url && (
+          <div className="bg-muted/30 flex items-center justify-center max-h-[80vh] overflow-auto">
+            <img src={url} alt="Preview" className="max-w-full max-h-[80vh] object-contain" />
+          </div>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 
