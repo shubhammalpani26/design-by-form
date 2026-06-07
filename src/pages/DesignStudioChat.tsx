@@ -637,18 +637,60 @@ export default function DesignStudioChat() {
 
   function triggerSeeInSpace() {
     if (!activeImage || busy) return;
-    spacePreviewInputRef.current?.click();
+    const prior = getLastUploadedSpaceUrl();
+    if (prior) {
+      void handleSeeInSpace({ url: prior });
+    } else {
+      spacePreviewInputRef.current?.click();
+    }
+  }
+
+  function getLastUploadedSpaceUrl(): string | null {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (m.role !== "user") continue;
+      const atts = (m.metadata as any)?.attachments as Array<{ kind: string; fileUrl?: string }> | undefined;
+      const space = atts?.find((a) => a.kind === "space" && a.fileUrl);
+      if (space?.fileUrl) return space.fileUrl;
+      // fallback: first image on a message that has space attachment metadata
+      const hasSpaceMeta = atts?.some((a) => a.kind === "space");
+      if (hasSpaceMeta && m.image_urls?.[0]) return m.image_urls[0];
+    }
+    return null;
+  }
+
+  async function urlToDataUrl(url: string): Promise<string> {
+    const blob = await (await fetch(url)).blob();
+    return await new Promise<string>((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result as string);
+      r.onerror = () => reject(r.error);
+      r.readAsDataURL(blob);
+    });
   }
 
   async function handleSeeInSpaceFile(file: File) {
+    const spaceDataUrl = await fileToDataUrl(file);
+    await handleSeeInSpace({ base64: spaceDataUrl });
+  }
+
+  async function handleSeeInSpace(source: { base64?: string; url?: string }) {
     if (!activeImage || !activeSessionId) return;
     setBusy(true);
     try {
       const sid = activeSessionId;
-      const spaceDataUrl = await fileToDataUrl(file);
+      const spaceDataUrl = source.base64 ?? (source.url ? await urlToDataUrl(source.url) : null);
+      if (!spaceDataUrl) throw new Error("No space image provided");
+      const spaceDisplayUrl = source.url ?? null;
       const productImageUrl = await storeStudioImageUrl(activeImage, sid);
 
-      await insertMessage(sid, "user", "Place this in my space", [], { kind: "space-request" });
+      await insertMessage(
+        sid,
+        "user",
+        "Place this in my space",
+        spaceDisplayUrl ? [spaceDisplayUrl] : [],
+        { kind: "space-request", attachments: spaceDisplayUrl ? [{ kind: "space", name: "space", fileUrl: spaceDisplayUrl }] : [] },
+      );
       const placeholder = await insertMessage(
         sid,
         "assistant",
