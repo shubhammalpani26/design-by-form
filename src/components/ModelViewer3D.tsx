@@ -1,35 +1,13 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, AlertCircle, Loader2, RefreshCw } from "lucide-react";
-
-// Global flag to track if model-viewer script is loaded
-let modelViewerScriptLoaded = false;
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // Global cache for loaded models - persists across component mounts/unmounts
 const loadedModelsCache = new Map<string, string>();
-
-// Extend the JSX types to include model-viewer
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': React.DetailedHTMLProps<
-        React.HTMLAttributes<HTMLElement> & {
-          src?: string;
-          alt?: string;
-          'auto-rotate'?: boolean;
-          'camera-controls'?: boolean;
-          'shadow-intensity'?: string;
-          loading?: string;
-          'interaction-prompt'?: string;
-          ar?: boolean;
-          'ar-modes'?: string;
-        },
-        HTMLElement
-      >;
-    }
-  }
-}
 
 interface ModelViewer3DProps {
   modelUrl?: string;
@@ -37,7 +15,7 @@ interface ModelViewer3DProps {
   onError?: (error: string) => void;
 }
 
-type LoadingState = 'idle' | 'loading-script' | 'loading-model' | 'loaded' | 'error';
+type LoadingState = 'idle' | 'loading-model' | 'loaded' | 'error';
 
 export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DProps) => {
   const [scriptReady, setScriptReady] = useState(() => modelViewerScriptLoaded || !!customElements.get('model-viewer'));
