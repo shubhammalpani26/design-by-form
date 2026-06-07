@@ -488,6 +488,7 @@ export default function DesignStudioChat() {
         const userTurns = messages.filter((m) => m.role === "user" && (m.content ?? "").trim().length > 0);
         const originalPrompt = userTurns[0]?.content ?? "";
         const priorEdits = userTurns.slice(1).map((m) => (m.content ?? "").trim()).filter(Boolean);
+        const isGeneralMode = category === "General";
 
         const results = await Promise.allSettled(
           [1, 2, 3].map(() =>
@@ -499,6 +500,7 @@ export default function DesignStudioChat() {
                 category,
                 originalPrompt,
                 priorEdits,
+                mode: isGeneralMode ? "general" : "product",
               },
             })
           )
