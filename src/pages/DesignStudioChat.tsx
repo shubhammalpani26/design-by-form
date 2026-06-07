@@ -52,10 +52,10 @@ const DB_CATEGORY: Record<string, string> = {
 
 const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
   General: [
-    "Here's a photo of my living room — redesign the whole space in warm minimalism with custom pieces",
-    "I'm a designer working on a client's bedroom — let's create a full custom set together",
-    "Reimagine this dining area end-to-end: table, chairs, lighting, and a console",
-    "Plan a cohesive entryway — console, mirror, bench, and accent lighting in travertine and oak",
+    "A sculptural travertine accent chair, all tonal cream",
+    "A pebble-form table lamp in matte bone ceramic",
+    "A solid walnut slatted console with brass-tipped feet",
+    "A monolithic plaster side table, organic form",
   ],
   Chair: [
     "A sculptural travertine accent chair, all tonal cream",
