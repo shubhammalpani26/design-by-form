@@ -96,6 +96,42 @@ export default function DesignStudioChat() {
   const spacePreviewInputRef = useRef<HTMLInputElement>(null);
   const [arOpen, setArOpen] = useState(false);
   const [arImage, setArImage] = useState<string | null>(null);
+  const runIdRef = useRef(0);
+  const cancelledRunsRef = useRef<Set<number>>(new Set());
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
+
+  function bumpRun() {
+    runIdRef.current += 1;
+    return runIdRef.current;
+  }
+  function isStale(runId: number) {
+    return runId !== runIdRef.current || cancelledRunsRef.current.has(runId);
+  }
+  function stopGeneration() {
+    if (!busy) return;
+    const stoppedId = runIdRef.current;
+    cancelledRunsRef.current.add(stoppedId);
+    runIdRef.current += 1; // any future state writes from in-flight handlers will see stale id
+    setBusy(false);
+    // Mark any currently-pending placeholder messages as stopped
+    void markPendingAsStopped();
+    toast({ title: "Stopped" });
+  }
+
+  async function markPendingAsStopped() {
+    if (!activeSessionId) return;
+    const pending = messages.filter((m) => m.role === "assistant" && (m.metadata as any)?.status === "pending");
+    for (const m of pending) {
+      const md = { ...(m.metadata ?? {}), status: "stopped" } as Record<string, unknown>;
+      await supabase.from("design_messages").update({
+        content: "Stopped.",
+        metadata: md as any,
+      }).eq("id", m.id);
+    }
+    await loadMessages(activeSessionId);
+  }
 
   // Auth gate
   useEffect(() => {
@@ -104,9 +140,30 @@ export default function DesignStudioChat() {
         navigate("/auth?redirect=/studio");
       } else {
         setUserId(data.user.id);
+        setUserEmail(data.user.email ?? null);
+        const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+        const fullName = (meta.full_name as string) || (meta.name as string) || "";
+        setUserName(fullName);
       }
     });
   }, [navigate]);
+
+  // Load existing designer profile id once we know the user
+  useEffect(() => {
+    if (!userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("designer_profiles")
+        .select("id,name")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (data?.id) {
+        setDesignerProfileId(data.id);
+        if (data.name && !userName) setUserName(data.name);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Load sessions
   useEffect(() => {
