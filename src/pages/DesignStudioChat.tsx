@@ -840,6 +840,24 @@ export default function DesignStudioChat() {
           </div>
         </main>
       </div>
+
+      <Dialog open={arOpen} onOpenChange={setArOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm font-medium">View in your space (AR)</DialogTitle>
+          </DialogHeader>
+          <div className="h-[70vh] w-full">
+            {arImage && (
+              <ARViewer
+                productName="Studio design"
+                imageUrl={arImage}
+                isDesignStudio={true}
+                category={category}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
