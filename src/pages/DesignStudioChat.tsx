@@ -1088,6 +1088,11 @@ export default function DesignStudioChat() {
           ))}
         </div>
       </ScrollArea>
+      <div className="p-3 border-t border-border">
+        <p className="text-[10px] leading-snug text-muted-foreground text-center">
+          Chats are saved and synced for <span className="text-foreground font-medium">30 days</span>, then automatically deleted.
+        </p>
+      </div>
     </div>
   );
 

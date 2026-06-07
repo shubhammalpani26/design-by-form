@@ -1544,6 +1544,7 @@ export type Database = {
           status: string
         }[]
       }
+      cleanup_old_design_sessions: { Args: never; Returns: undefined }
       create_sales_milestone_post: {
         Args: {
           p_designer_id: string
