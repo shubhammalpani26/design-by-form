@@ -1285,6 +1285,7 @@ function MessageBubble({
   const isUser = message.role === "user";
   const kind = (message.metadata?.kind as string) ?? "";
   const status = (message.metadata?.status as string) ?? "ready";
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   if (isUser) {
     return (
