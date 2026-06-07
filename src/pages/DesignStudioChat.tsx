@@ -220,6 +220,17 @@ export default function DesignStudioChat() {
     if (!busy) inputRef.current?.focus();
   }, [busy, activeSessionId]);
 
+  // Handle ?prompt= query param: prefill and auto-send once user is ready
+  const autoPromptHandledRef = useRef(false);
+  useEffect(() => {
+    if (!userId || autoPromptHandledRef.current) return;
+    const p = searchParams.get("prompt");
+    if (!p) return;
+    autoPromptHandledRef.current = true;
+    void handleSend(p);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
+
   async function startNewSession(initialPrompt?: string) {
     if (!userId) return null;
     const title = (initialPrompt ?? "Untitled design").slice(0, 80);
@@ -337,8 +348,8 @@ export default function DesignStudioChat() {
     });
   }
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(overrideText?: string) {
+    const text = (overrideText ?? input).trim();
     if ((!text && attachments.length === 0) || busy) return;
     setInput("");
     setBusy(true);
@@ -1135,7 +1146,7 @@ export default function DesignStudioChat() {
                   disabled={busy}
                 />
                 <Button
-                  onClick={busy ? stopGeneration : handleSend}
+                  onClick={busy ? stopGeneration : () => handleSend()}
                   disabled={!busy && (!input.trim() && attachments.length === 0)}
                   size="icon"
                   className="h-[56px] w-[56px] shrink-0"
