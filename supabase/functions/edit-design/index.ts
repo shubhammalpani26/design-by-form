@@ -12,7 +12,8 @@ const MANUFACTURING_CONSTRAINTS = `CRITICAL MANUFACTURING CONSTRAINTS (non-negot
 - Flat, stable base that sits flush on the floor.
 - One cohesive tonal palette (1-2 closely related tones + at most one small accent material).
 - Manufacturable via solid wood joinery, upholstery on solid frames, metalwork, stone, or sculpted resin/composite.
-- Maintain the same furniture category, overall silhouette, and core proportions as the source image unless the user explicitly requests a category/silhouette change.`;
+- Maintain the same furniture category, overall silhouette, and core proportions as the source image unless the user explicitly requests a category/silhouette change.
+- If the user's edit is vague (e.g. "make it bigger", "can't see it", "show better"), treat it as a framing/quality request and KEEP the exact same piece — do not change its type, form, or materials.`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -48,6 +49,10 @@ serve(async (req) => {
     const editPrompt: string = (body.editPrompt ?? "").toString().trim();
     const sessionId: string | undefined = body.sessionId;
     const category: string | undefined = body.category;
+    const originalPrompt: string = (body.originalPrompt ?? "").toString().trim().slice(0, 800);
+    const priorEdits: string[] = Array.isArray(body.priorEdits)
+      ? body.priorEdits.slice(-6).map((s: unknown) => String(s ?? "").trim()).filter(Boolean)
+      : [];
 
     if (!baseImageUrl || !editPrompt) {
       return new Response(JSON.stringify({ error: "baseImageUrl and editPrompt are required" }), {
@@ -76,17 +81,25 @@ serve(async (req) => {
       }
     }
 
+    const sessionContextBlock = [
+      originalPrompt ? `ORIGINAL DESIGN BRIEF (the piece in the reference image was created from this prompt — preserve its essence):\n"${originalPrompt}"` : "",
+      priorEdits.length ? `PRIOR REFINEMENTS the user already requested (in order):\n${priorEdits.map((e, i) => `${i + 1}. ${e}`).join("\n")}` : "",
+    ].filter(Boolean).join("\n\n");
+
     const systemText = `You are a world-class furniture designer and product photographer.
-You will receive a reference image of a furniture piece and a user edit instruction.
-Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent.
+You are iterating on a single ongoing design with a creator. You will receive the current reference image of the piece plus their next instruction.
+Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent across the whole session.
 
 ${MANUFACTURING_CONSTRAINTS}
 
-Category: ${category ?? "furniture"}
+${sessionContextBlock || (category ? `Category hint: ${category}` : "")}
 
-Output a clean studio product photograph on a neutral backdrop — no room context, no people, no text overlays.`;
+Rules for this turn:
+- The reference image is the source of truth for the piece. Never substitute it for a different product type (e.g. don't turn a lamp into a chair) unless the user EXPLICITLY says "make it a <new type>".
+- Apply only the new instruction below, on top of the existing piece and the prior refinements.
+- Output a clean studio product photograph on a neutral backdrop — no room context, no people, no text overlays.`;
 
-    const userInstruction = `Edit instruction: ${editPrompt}`;
+    const userInstruction = `Next instruction from the creator: ${editPrompt}`;
 
     console.log("edit-design: generating with prompt:", editPrompt.slice(0, 120));
 
