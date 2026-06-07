@@ -51,8 +51,10 @@ serve(async (req) => {
     const category: string | undefined = body.category;
     const originalPrompt: string = (body.originalPrompt ?? "").toString().trim().slice(0, 800);
     const priorEdits: string[] = Array.isArray(body.priorEdits)
-      ? body.priorEdits.slice(-6).map((s: unknown) => String(s ?? "").trim()).filter(Boolean)
+      ? body.priorEdits.slice(-12).map((s: unknown) => String(s ?? "").trim()).filter(Boolean)
       : [];
+    const mode: string = (body.mode ?? "product").toString();
+    const isGeneral = mode === "general";
 
     if (!baseImageUrl || !editPrompt) {
       return new Response(JSON.stringify({ error: "baseImageUrl and editPrompt are required" }), {
@@ -86,11 +88,22 @@ serve(async (req) => {
       priorEdits.length ? `PRIOR REFINEMENTS the user already requested (in order):\n${priorEdits.map((e, i) => `${i + 1}. ${e}`).join("\n")}` : "",
     ].filter(Boolean).join("\n\n");
 
-    const systemText = `You are a world-class furniture designer and product photographer.
+    const PRODUCT_CONSTRAINTS = `${MANUFACTURING_CONSTRAINTS}
+- Maintain the same furniture category, overall silhouette, and core proportions as the source image unless the user explicitly requests a category/silhouette change.`;
+
+    const GENERAL_CONSTRAINTS = `CRITICAL MANUFACTURING CONSTRAINTS for every individual piece in the scene:
+- Each furniture piece must be a solid, monolithic form. NO lattice, perforations, mesh, filigree, or open cellular structures.
+- Each piece must have a flat, stable base.
+- Cohesive tonal palette across the whole scene (1-2 closely related tones + small accents).
+- All pieces must be manufacturable via solid wood joinery, upholstery on solid frames, metalwork, stone, or sculpted resin/composite.
+- You MAY redesign multiple pieces, change layouts, swap furniture categories, or fully reimagine the space when the user asks for that — this is a full custom-project conversation.
+- If the user's edit is vague (e.g. "make it bigger", "can't see it"), treat it as a framing/quality request and KEEP the same scene composition.`;
+
+    const productSystem = `You are a world-class furniture designer and product photographer.
 You are iterating on a single ongoing design with a creator. You will receive the current reference image of the piece plus their next instruction.
 Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent across the whole session.
 
-${MANUFACTURING_CONSTRAINTS}
+${PRODUCT_CONSTRAINTS}
 
 ${sessionContextBlock || (category ? `Category hint: ${category}` : "")}
 
@@ -98,6 +111,23 @@ Rules for this turn:
 - The reference image is the source of truth for the piece. Never substitute it for a different product type (e.g. don't turn a lamp into a chair) unless the user EXPLICITLY says "make it a <new type>".
 - Apply only the new instruction below, on top of the existing piece and the prior refinements.
 - Output a clean studio product photograph on a neutral backdrop — no room context, no people, no text overlays.`;
+
+    const generalSystem = `You are a world-class interior designer, furniture designer, and architectural photographer.
+You are in a free-form custom-project conversation with a creator or designer. The reference image may be a single product, a room/space photo, or a scene you previously generated. The user may ask you to redesign one piece, swap pieces, reimagine the whole room, or build a full custom set.
+Produce a single photorealistic image that applies the requested change while honoring everything discussed earlier in this session.
+
+${GENERAL_CONSTRAINTS}
+
+${sessionContextBlock}
+
+Rules for this turn:
+- Treat the reference image and the full PRIOR REFINEMENTS list above as the running context of this session — do not forget earlier instructions.
+- If the reference is a real space photo, preserve the architecture (walls, windows, floor, ceiling) and only replace/redesign the furniture and styling unless the user explicitly asks to change the architecture.
+- If the user asks for a full redesign of the space, render a cohesive interior scene with our custom pieces in place.
+- If the user asks about a single piece, output that piece as a clean product photograph on a neutral backdrop.
+- Never overlay text, captions, or watermarks.`;
+
+    const systemText = isGeneral ? generalSystem : productSystem;
 
     const userInstruction = `Next instruction from the creator: ${editPrompt}`;
 
