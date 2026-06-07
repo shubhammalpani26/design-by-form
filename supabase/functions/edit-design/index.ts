@@ -101,7 +101,7 @@ Output a clean studio product photograph on a neutral backdrop — no room conte
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-2.5-flash-image",
+          model: "google/gemini-3.1-flash-image-preview",
           modalities: ["image", "text"],
           messages: [
             { role: "system", content: systemText },
