@@ -847,6 +847,45 @@ export default function DesignStudioChat() {
     }
   }
 
+  async function generateProductionDrawing(
+    sid: string,
+    imageUrl: string,
+    productName: string,
+    dbCategory: string,
+    dimensions: { length: number; breadth: number; height: number },
+  ) {
+    const placeholder = await insertMessage(
+      sid,
+      "assistant",
+      "Drafting a production-reference drawing — front, side & top views with dimensions…",
+      [],
+      { kind: "production-drawing", status: "pending" },
+    );
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-production-drawing", {
+        body: { imageUrl, productName, category: dbCategory, dimensions },
+      });
+      if (error || !data?.imageUrl) throw error ?? new Error("No drawing returned");
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "📐 AI-predicted production drawing. This is a manufacturing reference — your assigned maker will refine the final shop drawing before cutting.",
+          image_urls: [data.imageUrl],
+          metadata: { kind: "production-drawing", status: "ready" } as any,
+        }).eq("id", placeholder.id);
+      }
+      await loadMessages(sid);
+    } catch (e) {
+      console.warn("Production drawing failed", e);
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "Couldn't generate the production drawing this time — but you can still publish; makers will draft one from the reference image.",
+          metadata: { kind: "production-drawing", status: "failed" } as any,
+        }).eq("id", placeholder.id);
+        await loadMessages(sid);
+      }
+    }
+  }
+
   async function handlePublishListing(
     messageId: string,
     edits: {
