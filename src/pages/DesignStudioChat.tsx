@@ -1132,7 +1132,7 @@ export default function DesignStudioChat() {
                   disabled={busy}
                 />
                 <Button
-                  onClick={handleSend}
+                  onClick={busy ? stopGeneration : handleSend}
                   disabled={!busy && (!input.trim() && attachments.length === 0)}
                   size="icon"
                   className="h-[56px] w-[56px] shrink-0"
