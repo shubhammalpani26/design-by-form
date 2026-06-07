@@ -1358,8 +1358,16 @@ function MessageBubble({
 
       {/* AI-predicted production drawing */}
       {isProductionDrawing && status === "ready" && images[0] && (
-        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md">
-          <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+        <div className="rounded-lg overflow-hidden border border-border bg-white max-w-md relative group">
+          <button
+            type="button"
+            onClick={() => setLightboxUrl(images[0])}
+            className="block w-full"
+            aria-label="Preview drawing"
+          >
+            <img src={images[0]} alt="Production drawing" className="w-full aspect-[4/3] object-contain bg-white" />
+          </button>
+          <ImageOverlayActions url={images[0]} onExpand={() => setLightboxUrl(images[0])} filename="production-drawing.png" />
           <div className="px-3 py-2 border-t border-border bg-card text-[10px] uppercase tracking-wider text-muted-foreground flex items-center justify-between">
             <span>Manufacturing Reference</span>
             <span>Nyzora · AI predicted</span>
@@ -1379,6 +1387,7 @@ function MessageBubble({
               }`}
             >
               <img src={url} alt={`Option ${i + 1}`} className="w-full h-full object-contain bg-muted" />
+              <ImageOverlayActions url={url} onExpand={() => setLightboxUrl(url)} filename={`variation-${i + 1}.png`} />
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 to-transparent p-1.5 text-[10px] text-white opacity-0 group-hover:opacity-100 transition-opacity text-center">
                 {url === activeImage ? "Selected" : "Pick this"}
               </div>
@@ -1394,14 +1403,14 @@ function MessageBubble({
 
       {/* Single-result image (finish / space preview) */}
       {singleResultUrl && (
-        <button
-          onClick={() => onPickVariation(singleResultUrl)}
-          className={`block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
-            singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
-          }`}
-        >
-          <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
-        </button>
+        <div className={`relative group block w-full max-w-md rounded-lg overflow-hidden border-2 transition-all ${
+          singleResultUrl === activeImage ? "border-primary ring-2 ring-primary/30" : "border-border hover:border-primary/50"
+        }`}>
+          <button onClick={() => onPickVariation(singleResultUrl)} className="block w-full">
+            <img src={singleResultUrl} alt="" className="w-full aspect-square object-contain bg-muted" />
+          </button>
+          <ImageOverlayActions url={singleResultUrl} onExpand={() => setLightboxUrl(singleResultUrl)} filename="result.png" />
+        </div>
       )}
 
       {/* 3D model result */}
