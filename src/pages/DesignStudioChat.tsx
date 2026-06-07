@@ -748,7 +748,6 @@ export default function DesignStudioChat() {
   }
 
   async function beginPricingFlow(sid: string, profileId: string) {
-    void profileId; // referenced via card metadata
     if (!activeImage) return;
     setBusy(true);
     const runId = bumpRun();
