@@ -11,6 +11,8 @@ import { Header } from "@/components/Header";
 import { SEOHead } from "@/components/SEOHead";
 import { storeDesignImages } from "@/lib/designTransfer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
+import { ARViewer } from "@/components/ARViewer";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 type Role = "user" | "assistant";
 
@@ -77,6 +79,8 @@ export default function DesignStudioChat() {
   const sketchInputRef = useRef<HTMLInputElement>(null);
   const modelInputRef = useRef<HTMLInputElement>(null);
   const spacePreviewInputRef = useRef<HTMLInputElement>(null);
+  const [arOpen, setArOpen] = useState(false);
+  const [arImage, setArImage] = useState<string | null>(null);
 
   // Auth gate
   useEffect(() => {
@@ -620,10 +624,8 @@ export default function DesignStudioChat() {
 
   function handleViewInAR() {
     if (!activeImage) return;
-    try {
-      sessionStorage.setItem("ar-product-image", activeImage);
-    } catch {}
-    navigate("/ar-viewer");
+    setArImage(activeImage);
+    setArOpen(true);
   }
 
   const hasMessages = messages.length > 0;
@@ -838,6 +840,24 @@ export default function DesignStudioChat() {
           </div>
         </main>
       </div>
+
+      <Dialog open={arOpen} onOpenChange={setArOpen}>
+        <DialogContent className="max-w-4xl w-[95vw] p-0 overflow-hidden">
+          <DialogHeader className="px-4 pt-4">
+            <DialogTitle className="text-sm font-medium">View in your space (AR)</DialogTitle>
+          </DialogHeader>
+          <div className="h-[70vh] w-full">
+            {arImage && (
+              <ARViewer
+                productName="Studio design"
+                imageUrl={arImage}
+                isDesignStudio={true}
+                category={category}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
