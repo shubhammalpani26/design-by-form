@@ -65,6 +65,17 @@ serve(async (req) => {
     }
 
     const volume = (dimensions.width * dimensions.depth * dimensions.height) / 1000000;
+
+    // Beni Enterprise (Mumbai solid-wood workshop) routing — these categories
+    // and material cues route to a traditional-craft maker with a lower
+    // manufacturing base price than Cyanique additive-manufacturing tier.
+    const benCats = ['dining-table', 'dining-tables', 'console', 'consoles', 'coffee-table', 'coffee-tables', 'bench', 'benches', 'shelving', 'bed', 'beds', 'table', 'tables'];
+    const benWoodKeywords = /(teak|sheesham|walnut|oak|mango|acacia|rosewood|wood|wooden|hardwood|solid wood|carved|fluted|reeded|turned leg|hand-carved)/i;
+    const catLower = (category || '').toLowerCase();
+    const isBeniRoute = benCats.some((c) => catLower.includes(c)) || benWoodKeywords.test(`${productName} ${description}`);
+    const pricingNote = isBeniRoute
+      ? '\n\nIMPORTANT: This piece routes to a traditional solid-wood/craft maker (workshop tier, not premium additive manufacturing). Price MBP at the LOW-to-MID end of the category range (typically 50–65% of the upper bound). Wood furniture from a Mumbai workshop should NOT be priced like sculptural resin pieces.'
+      : '';
     
     const prompt = `You are a premium furniture pricing analyst for handcrafted designer pieces. Calculate a manufacturing base price for this designer furniture piece.
 
@@ -90,7 +101,7 @@ Consider:
 - Premium artisan craftsmanship
 - Unique, non-mass-produced pieces
 - Volume-based scaling within category ranges
-- Complexity of design from description
+- Complexity of design from description${pricingNote}
 
 Return ONLY a JSON object with this structure (no markdown, no explanation):
 {
@@ -130,6 +141,16 @@ Designer price should be approximately 1.25-1.5x the base manufacturing cost.`;
     }
     
     const pricing = JSON.parse(jsonMatch[0]);
+
+    // Hard cap MBP for Beni-routed (wood/workshop) pieces — never priced at Cyanique tier.
+    if (isBeniRoute && typeof pricing.base_price === 'number' && typeof pricing.designer_price === 'number') {
+      const originalBase = pricing.base_price;
+      pricing.base_price = Math.round(originalBase * 0.6);
+      // Preserve the markup ratio when scaling base down.
+      const ratio = pricing.designer_price > 0 ? pricing.designer_price / originalBase : 1.35;
+      pricing.designer_price = Math.round(pricing.base_price * Math.max(1.25, Math.min(ratio, 1.6)));
+      pricing.reasoning = (pricing.reasoning ? pricing.reasoning + ' ' : '') + '(Adjusted for solid-wood workshop tier.)';
+    }
     
     console.log(`Pricing calculated for ${productName}:`, pricing);
 
