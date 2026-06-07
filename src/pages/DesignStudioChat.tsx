@@ -442,9 +442,30 @@ export default function DesignStudioChat() {
       let sid = activeSessionId;
       const isFirstMessage = !sid || messages.length === 0;
 
+      // Auto-switch category from prompt content if it clearly belongs elsewhere.
+      // On the very first message we always trust the prompt over the category chip.
+      // On follow-ups we only switch if the user explicitly names a different category
+      // (e.g. "actually, make it a lamp instead").
+      let effectiveCategory = category;
+      const detected = detectCategoryFromPrompt(text);
+      if (detected && detected !== category) {
+        if (isFirstMessage) {
+          effectiveCategory = detected;
+          setCategory(detected);
+        } else if (/\b(make it (a|an)|turn it into|change it to|switch to)\b/i.test(text)) {
+          effectiveCategory = detected;
+          setCategory(detected);
+        }
+      }
+
       if (!sid) {
         sid = await startNewSession(text);
         if (!sid) return;
+        if (effectiveCategory !== category) {
+          await supabase.from("design_sessions").update({ category: effectiveCategory }).eq("id", sid);
+        }
+      } else if (effectiveCategory !== category) {
+        await supabase.from("design_sessions").update({ category: effectiveCategory }).eq("id", sid);
       }
 
       // Upload image attachments (space/sketch) so they persist in chat history
