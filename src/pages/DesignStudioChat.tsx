@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette } from "lucide-react";
+import { Send, Plus, Sparkles, ImageIcon, Box, Eye, Tag, Wand2, Loader2, Menu, X, Home, Pencil, Paperclip, Palette, Square, Check, Link as LinkIcon, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { toast } from "@/hooks/use-toast";
@@ -36,11 +37,25 @@ interface DBSession {
 
 const CATEGORIES = ["Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor"];
 
+// Map free-form category labels to canonical DB categories used on /browse
+const DB_CATEGORY: Record<string, string> = {
+  Chair: "chairs",
+  Sofa: "sofas",
+  Table: "dining-tables",
+  Console: "consoles",
+  Lamp: "lighting",
+  Shelving: "shelving",
+  Bed: "beds",
+  Decor: "decor",
+};
+
 const STARTER_PROMPTS = [
-  "A sculptural walnut accent chair with brass legs",
-  "A sinuous travertine console, all in one tonal cream",
-  "A monolithic blackened-oak dining table, six seats",
+  "A solid teak 6-seater dining table with tapered legs",
+  "A walnut slatted console with brass-tipped feet",
+  "A sculptural travertine accent chair, all tonal cream",
+  "A mango wood round coffee table with chunky pedestal",
   "A pebble-form lamp in matte bone ceramic",
+  "An oak slat entryway bench, clean lines",
 ];
 
 const FINISHES: { name: string; prompt: string }[] = [
@@ -81,6 +96,42 @@ export default function DesignStudioChat() {
   const spacePreviewInputRef = useRef<HTMLInputElement>(null);
   const [arOpen, setArOpen] = useState(false);
   const [arImage, setArImage] = useState<string | null>(null);
+  const runIdRef = useRef(0);
+  const cancelledRunsRef = useRef<Set<number>>(new Set());
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userName, setUserName] = useState<string>("");
+  const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
+
+  function bumpRun() {
+    runIdRef.current += 1;
+    return runIdRef.current;
+  }
+  function isStale(runId: number) {
+    return runId !== runIdRef.current || cancelledRunsRef.current.has(runId);
+  }
+  function stopGeneration() {
+    if (!busy) return;
+    const stoppedId = runIdRef.current;
+    cancelledRunsRef.current.add(stoppedId);
+    runIdRef.current += 1; // any future state writes from in-flight handlers will see stale id
+    setBusy(false);
+    // Mark any currently-pending placeholder messages as stopped
+    void markPendingAsStopped();
+    toast({ title: "Stopped" });
+  }
+
+  async function markPendingAsStopped() {
+    if (!activeSessionId) return;
+    const pending = messages.filter((m) => m.role === "assistant" && (m.metadata as any)?.status === "pending");
+    for (const m of pending) {
+      const md = { ...(m.metadata ?? {}), status: "stopped" } as Record<string, unknown>;
+      await supabase.from("design_messages").update({
+        content: "Stopped.",
+        metadata: md as any,
+      }).eq("id", m.id);
+    }
+    await loadMessages(activeSessionId);
+  }
 
   // Auth gate
   useEffect(() => {
@@ -89,9 +140,30 @@ export default function DesignStudioChat() {
         navigate("/auth?redirect=/studio");
       } else {
         setUserId(data.user.id);
+        setUserEmail(data.user.email ?? null);
+        const meta = (data.user.user_metadata ?? {}) as Record<string, unknown>;
+        const fullName = (meta.full_name as string) || (meta.name as string) || "";
+        setUserName(fullName);
       }
     });
   }, [navigate]);
+
+  // Load existing designer profile id once we know the user
+  useEffect(() => {
+    if (!userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("designer_profiles")
+        .select("id,name")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (data?.id) {
+        setDesignerProfileId(data.id);
+        if (data.name && !userName) setUserName(data.name);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   // Load sessions
   useEffect(() => {
@@ -608,18 +680,250 @@ export default function DesignStudioChat() {
   }
 
   async function handleMakeManufacturable() {
-    if (!activeImage) return;
-    try {
-      // Hand off via the same channel the homepage mini-studio uses so the
-      // full pricing/submission flow restores it automatically.
-      await storeDesignImages([activeImage]);
-    } catch (e) {
-      console.warn("Handoff store failed, falling back to sessionStorage", e);
-      try { sessionStorage.setItem("homepage-generated-image", activeImage); } catch {}
+    if (!activeImage || !activeSessionId || busy) return;
+    const sid = activeSessionId;
+    if (!designerProfileId) {
+      await insertMessage(
+        sid,
+        "assistant",
+        "Quick step — I just need your name to set up your creator account. Your designs will go out as you.",
+        [],
+        { kind: "creator-register", status: "ready", suggestedName: userName, email: userEmail },
+      );
+      return;
     }
-    const params = new URLSearchParams({ fromStudio: "1" });
-    if (category) params.set("category", category);
-    navigate(`/design-studio?${params.toString()}`);
+    await beginPricingFlow(sid, designerProfileId);
+  }
+
+  async function handleCreatorRegister(messageId: string, name: string) {
+    if (!userId || !userEmail) {
+      toast({ title: "Please sign in", variant: "destructive" });
+      return;
+    }
+    const clean = name.trim();
+    if (clean.length < 2) {
+      toast({ title: "Name required", description: "Please enter your full name.", variant: "destructive" });
+      return;
+    }
+    const sid = activeSessionId!;
+    setBusy(true);
+    try {
+      const { data: profile, error } = await supabase
+        .from("designer_profiles")
+        .insert({
+          user_id: userId,
+          name: clean,
+          email: userEmail,
+          terms_accepted: true,
+          terms_accepted_at: new Date().toISOString(),
+          status: "approved",
+        })
+        .select("id")
+        .single();
+      if (error || !profile) throw error ?? new Error("Could not create profile");
+      setDesignerProfileId(profile.id);
+      setUserName(clean);
+      await supabase.from("design_messages").update({
+        content: `✓ Welcome, ${clean}. You're set up as a creator.`,
+        metadata: { kind: "creator-register", status: "done", name: clean } as any,
+      }).eq("id", messageId);
+      await loadMessages(sid);
+      await beginPricingFlow(sid, profile.id);
+    } catch (e) {
+      toast({ title: "Couldn't create profile", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function beginPricingFlow(sid: string, profileId: string) {
+    if (!activeImage) return;
+    setBusy(true);
+    const runId = bumpRun();
+    const dbCategory = DB_CATEGORY[category] ?? category.toLowerCase();
+    const placeholder = await insertMessage(
+      sid,
+      "assistant",
+      "Sizing this up and pricing it — give me a few seconds…",
+      [],
+      { kind: "confirm-listing", status: "pending" },
+    );
+    try {
+      const baseImageUrl = await storeStudioImageUrl(activeImage, sid);
+      if (baseImageUrl !== activeImage) await updateSessionActiveImage(sid, baseImageUrl);
+
+      // Derive working title from the latest user prompt or session title
+      const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+      const seedTitle = (lastUserMsg?.content || sessions.find((s) => s.id === sid)?.title || `${category} design`).slice(0, 80);
+
+      // 1) Default dimensions per category (will be confirmed/edited by user)
+      const defaults: Record<string, { length: number; breadth: number; height: number }> = {
+        "dining-tables": { length: 180, breadth: 90, height: 75 },
+        "coffee-tables": { length: 110, breadth: 60, height: 40 },
+        "consoles": { length: 120, breadth: 35, height: 80 },
+        "chairs": { length: 65, breadth: 70, height: 85 },
+        "sofas": { length: 200, breadth: 90, height: 80 },
+        "lighting": { length: 35, breadth: 35, height: 150 },
+        "shelving": { length: 80, breadth: 35, height: 180 },
+        "beds": { length: 200, breadth: 165, height: 110 },
+        "decor": { length: 30, breadth: 30, height: 40 },
+      };
+      const dims = defaults[dbCategory] ?? { length: 80, breadth: 50, height: 60 };
+
+      // 2) Ask AI for pricing
+      let basePrice = 12000;
+      let suggestedPrice = 18000;
+      let pricingReasoning = "";
+      try {
+        const { data: priceData } = await supabase.functions.invoke("recalculate-pricing", {
+          body: {
+            productName: seedTitle,
+            category: dbCategory,
+            description: lastUserMsg?.content ?? "",
+            dimensions: { width: dims.length, depth: dims.breadth, height: dims.height },
+          },
+        });
+        if (priceData?.base_price) basePrice = Math.round(Number(priceData.base_price));
+        if (priceData?.designer_price) suggestedPrice = Math.round(Number(priceData.designer_price));
+        if (priceData?.reasoning) pricingReasoning = priceData.reasoning;
+      } catch (e) {
+        console.warn("Pricing fallback", e);
+      }
+
+      // 3) Ask AI for a polished title in background (non-blocking)
+      let polishedTitle = seedTitle;
+      try {
+        const { data: titleData } = await supabase.functions.invoke("generate-product-title", {
+          body: { prompt: lastUserMsg?.content ?? seedTitle, category: dbCategory },
+        });
+        if (titleData?.title) polishedTitle = String(titleData.title).slice(0, 80);
+      } catch (e) { /* keep seed title */ }
+
+      if (isStale(runId)) return;
+
+      // 4) Render confirmation card
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "Here's everything ready to publish. Review and tweak anything — I'll list it the moment you confirm.",
+          metadata: {
+            kind: "confirm-listing",
+            status: "ready",
+            profileId,
+            imageUrl: baseImageUrl,
+            title: polishedTitle,
+            dbCategory,
+            dimensions: dims,
+            basePrice,
+            suggestedPrice,
+            pricingReasoning,
+          } as any,
+        }).eq("id", placeholder.id);
+      }
+      await loadMessages(sid);
+    } catch (e) {
+      if (placeholder) {
+        await supabase.from("design_messages").update({
+          content: "Couldn't prepare the listing. Please try again.",
+          metadata: { kind: "confirm-listing", status: "failed" } as any,
+        }).eq("id", placeholder.id);
+      }
+      toast({ title: "Pricing failed", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handlePublishListing(
+    messageId: string,
+    edits: {
+      title: string;
+      dbCategory: string;
+      dimensions: { length: number; breadth: number; height: number };
+      basePrice: number;
+      designerPrice: number;
+      imageUrl: string;
+      profileId: string;
+    },
+  ) {
+    if (!activeSessionId) return;
+    const sid = activeSessionId;
+    setBusy(true);
+    try {
+      // Generate description in background
+      let description = edits.title;
+      try {
+        const { data: descData } = await supabase.functions.invoke("generate-product-description", {
+          body: {
+            productName: edits.title,
+            category: edits.dbCategory,
+            materials: "High-grade resin reinforced with composite fibre, or solid wood with hand-finished joinery — material chosen to match the design.",
+            dimensions: { width: edits.dimensions.length, depth: edits.dimensions.breadth, height: edits.dimensions.height },
+          },
+        });
+        if (descData?.description) description = descData.description;
+      } catch { /* keep title as fallback description */ }
+
+      // Calculate weight (best-effort)
+      let weight = 15;
+      try {
+        const { data: weightData } = await supabase.functions.invoke("calculate-weight", {
+          body: {
+            dimensions: { width: edits.dimensions.length, depth: edits.dimensions.breadth, height: edits.dimensions.height },
+            category: edits.dbCategory,
+            productName: edits.title,
+          },
+        });
+        if (weightData?.weight) weight = Number(weightData.weight);
+      } catch { /* default */ }
+
+      const { data: newProduct, error: productError } = await supabase
+        .from("designer_products")
+        .insert({
+          designer_id: edits.profileId,
+          name: edits.title,
+          description: description.length >= 10 ? description : `${edits.title} — a Nyzora-crafted piece, made on demand by our maker network.`,
+          category: edits.dbCategory,
+          base_price: edits.basePrice,
+          designer_price: edits.designerPrice,
+          original_designer_price: edits.designerPrice,
+          image_url: edits.imageUrl,
+          weight,
+          dimensions: edits.dimensions,
+          status: "approved",
+        })
+        .select("id, slug")
+        .single();
+      if (productError || !newProduct) throw productError ?? new Error("Insert failed");
+
+      // Listing record (fee waived per current policy)
+      await supabase.from("design_listings").insert({
+        product_id: newProduct.id,
+        listing_fee_paid: true,
+        three_d_fee_paid: false,
+      });
+
+      const slugOrId = newProduct.slug || newProduct.id;
+      const productPath = `/product/${slugOrId}`;
+
+      await supabase.from("design_messages").update({
+        content: `✓ Listed. Your product is live now — ${edits.title}.`,
+        metadata: {
+          kind: "listing-published",
+          status: "done",
+          productId: newProduct.id,
+          productPath,
+          productTitle: edits.title,
+          imageUrl: edits.imageUrl,
+          designerPrice: edits.designerPrice,
+        } as any,
+      }).eq("id", messageId);
+      await loadMessages(sid);
+      toast({ title: "Published", description: "Your product is live on Nyzora." });
+    } catch (e) {
+      toast({ title: "Couldn't publish", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   function handleViewInAR() {
@@ -756,6 +1060,9 @@ export default function DesignStudioChat() {
                   onGen3D={handleGenerate3D}
                   onSeeInSpace={triggerSeeInSpace}
                   onMakeManufacturable={handleMakeManufacturable}
+                  onCreatorRegister={handleCreatorRegister}
+                  onPublishListing={handlePublishListing}
+                  onOpenProduct={(path) => navigate(path)}
                   busy={busy}
                 />
               ))}
@@ -828,12 +1135,14 @@ export default function DesignStudioChat() {
                   disabled={busy}
                 />
                 <Button
-                  onClick={handleSend}
-                  disabled={(!input.trim() && attachments.length === 0) || busy}
+                  onClick={busy ? stopGeneration : handleSend}
+                  disabled={!busy && (!input.trim() && attachments.length === 0)}
                   size="icon"
                   className="h-[56px] w-[56px] shrink-0"
+                  variant={busy ? "outline" : "default"}
+                  title={busy ? "Stop" : "Send"}
                 >
-                  {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
+                  {busy ? <Square className="w-4 h-4 fill-current" /> : <Send className="w-4 h-4" />}
                 </Button>
               </div>
             </div>
@@ -890,6 +1199,9 @@ function MessageBubble({
   onGen3D,
   onSeeInSpace,
   onMakeManufacturable,
+  onCreatorRegister,
+  onPublishListing,
+  onOpenProduct,
   busy,
 }: {
   message: DBMessage;
@@ -901,6 +1213,20 @@ function MessageBubble({
   onGen3D: () => void;
   onSeeInSpace: () => void;
   onMakeManufacturable: () => void;
+  onCreatorRegister: (messageId: string, name: string) => void;
+  onPublishListing: (
+    messageId: string,
+    edits: {
+      title: string;
+      dbCategory: string;
+      dimensions: { length: number; breadth: number; height: number };
+      basePrice: number;
+      designerPrice: number;
+      imageUrl: string;
+      profileId: string;
+    },
+  ) => void;
+  onOpenProduct: (path: string) => void;
   busy?: boolean;
 }) {
   const isUser = message.role === "user";
@@ -924,6 +1250,9 @@ function MessageBubble({
   const isFinishResult = kind === "finish-result";
   const isSpaceResult = kind === "space-result";
   const is3DResult = kind === "3d-result";
+  const isCreatorRegister = kind === "creator-register";
+  const isConfirmListing = kind === "confirm-listing";
+  const isListingPublished = kind === "listing-published";
   const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
@@ -935,10 +1264,41 @@ function MessageBubble({
         <p className="text-sm text-foreground/90 leading-relaxed">{message.content}</p>
       )}
 
-      {status === "pending" && (
+      {status === "pending" && !isConfirmListing && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="w-3.5 h-3.5 animate-spin" /> generating…
         </div>
+      )}
+
+      {/* Inline creator registration card */}
+      {isCreatorRegister && status === "ready" && (
+        <CreatorRegisterCard
+          messageId={message.id}
+          suggestedName={(message.metadata?.suggestedName as string) || ""}
+          email={(message.metadata?.email as string) || ""}
+          onSubmit={onCreatorRegister}
+          busy={!!busy}
+        />
+      )}
+
+      {/* Inline pricing & publish card */}
+      {isConfirmListing && status === "pending" && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> sizing &amp; pricing…
+        </div>
+      )}
+      {isConfirmListing && status === "ready" && (
+        <ConfirmListingCard
+          messageId={message.id}
+          metadata={message.metadata as any}
+          onPublish={onPublishListing}
+          busy={!!busy}
+        />
+      )}
+
+      {/* Listing published success card */}
+      {isListingPublished && (
+        <PublishedCard metadata={message.metadata as any} onOpenProduct={onOpenProduct} />
       )}
 
       {/* Variation grid (initial OR per-edit candidates) */}
@@ -1048,6 +1408,172 @@ function FinishMenu({ onPick, disabled }: { onPick: (name: string) => void; disa
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function CreatorRegisterCard({
+  messageId,
+  suggestedName,
+  email,
+  onSubmit,
+  busy,
+}: {
+  messageId: string;
+  suggestedName: string;
+  email: string;
+  onSubmit: (id: string, name: string) => void;
+  busy: boolean;
+}) {
+  const [name, setName] = useState(suggestedName);
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 max-w-md space-y-3">
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Your name</label>
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Full name" className="h-9 text-sm" />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-[11px] uppercase tracking-wider text-muted-foreground">Email</label>
+        <div className="text-sm text-muted-foreground">{email}</div>
+      </div>
+      <Button
+        onClick={() => onSubmit(messageId, name)}
+        disabled={busy || name.trim().length < 2}
+        size="sm"
+        className="w-full"
+      >
+        {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : "Create account & continue"}
+      </Button>
+      <p className="text-[10px] text-muted-foreground">By continuing you accept the Nyzora creator terms. You can edit your profile anytime.</p>
+    </div>
+  );
+}
+
+function formatINR(n: number) {
+  try {
+    return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(n);
+  } catch {
+    return `₹${n.toLocaleString("en-IN")}`;
+  }
+}
+
+function ConfirmListingCard({
+  messageId,
+  metadata,
+  onPublish,
+  busy,
+}: {
+  messageId: string;
+  metadata: any;
+  onPublish: (id: string, edits: any) => void;
+  busy: boolean;
+}) {
+  const [title, setTitle] = useState<string>(metadata?.title ?? "");
+  const [dims, setDims] = useState<{ length: number; breadth: number; height: number }>(
+    metadata?.dimensions ?? { length: 100, breadth: 50, height: 60 },
+  );
+  const [price, setPrice] = useState<number>(Number(metadata?.suggestedPrice ?? 0));
+  const basePrice = Number(metadata?.basePrice ?? 0);
+  const imageUrl = metadata?.imageUrl as string;
+  const profileId = metadata?.profileId as string;
+  const dbCategory = metadata?.dbCategory as string;
+  const markup = Math.max(0, price - basePrice);
+
+  return (
+    <div className="rounded-lg border border-border bg-card p-3 max-w-md space-y-3">
+      <div className="flex gap-3 items-start">
+        {imageUrl && (
+          <img src={imageUrl} alt="" className="w-20 h-20 rounded object-contain bg-muted shrink-0" />
+        )}
+        <div className="flex-1 space-y-1.5">
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Product name</label>
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} className="h-8 text-sm" />
+          <div className="text-[10px] text-muted-foreground capitalize">Category: {dbCategory?.replace(/-/g, " ")}</div>
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Dimensions (cm)</label>
+        <div className="grid grid-cols-3 gap-2">
+          <Input type="number" value={dims.length} onChange={(e) => setDims({ ...dims, length: Number(e.target.value) })} placeholder="W" className="h-8 text-sm" />
+          <Input type="number" value={dims.breadth} onChange={(e) => setDims({ ...dims, breadth: Number(e.target.value) })} placeholder="D" className="h-8 text-sm" />
+          <Input type="number" value={dims.height} onChange={(e) => setDims({ ...dims, height: Number(e.target.value) })} placeholder="H" className="h-8 text-sm" />
+        </div>
+      </div>
+
+      <div className="space-y-1.5">
+        <div className="flex items-baseline justify-between">
+          <label className="text-[10px] uppercase tracking-wider text-muted-foreground">Selling price</label>
+          <span className="text-[10px] text-muted-foreground">Your earnings: {formatINR(markup)}</span>
+        </div>
+        <Input type="number" value={price} onChange={(e) => setPrice(Number(e.target.value))} className="h-9 text-sm" min={basePrice} />
+        <div className="text-[10px] text-muted-foreground">You keep 100% of the markup. Manufacturing cost is set by our maker network.</div>
+      </div>
+
+      <Button
+        onClick={() =>
+          onPublish(messageId, {
+            title: title.trim(),
+            dbCategory,
+            dimensions: dims,
+            basePrice,
+            designerPrice: Math.max(price, basePrice),
+            imageUrl,
+            profileId,
+          })
+        }
+        disabled={busy || !title.trim() || !profileId || !imageUrl}
+        size="sm"
+        className="w-full"
+      >
+        {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <><Tag className="w-3.5 h-3.5 mr-1.5" /> Publish to marketplace</>}
+      </Button>
+    </div>
+  );
+}
+
+function PublishedCard({
+  metadata,
+  onOpenProduct,
+}: {
+  metadata: any;
+  onOpenProduct: (path: string) => void;
+}) {
+  const path = metadata?.productPath as string;
+  const title = metadata?.productTitle as string;
+  const imageUrl = metadata?.imageUrl as string;
+  const price = Number(metadata?.designerPrice ?? 0);
+  const fullUrl = typeof window !== "undefined" ? `${window.location.origin}${path}` : path;
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(fullUrl);
+      toast({ title: "Link copied" });
+    } catch {
+      toast({ title: "Copy failed", variant: "destructive" });
+    }
+  }
+
+  return (
+    <div className="rounded-lg border border-primary/40 bg-primary/5 p-3 max-w-md space-y-3">
+      <div className="flex gap-3 items-center">
+        {imageUrl && <img src={imageUrl} alt="" className="w-16 h-16 rounded object-contain bg-background shrink-0" />}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-primary">
+            <Check className="w-3 h-3" /> Live on Nyzora
+          </div>
+          <div className="text-sm font-medium truncate">{title}</div>
+          <div className="text-xs text-muted-foreground">{formatINR(price)}</div>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        <Button size="sm" onClick={() => onOpenProduct(path)} className="gap-1.5 h-8 text-xs">
+          <ExternalLink className="w-3 h-3" /> Open product page
+        </Button>
+        <Button size="sm" variant="outline" onClick={copyLink} className="gap-1.5 h-8 text-xs">
+          <LinkIcon className="w-3 h-3" /> Copy link
+        </Button>
+      </div>
     </div>
   );
 }
