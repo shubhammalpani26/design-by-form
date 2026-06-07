@@ -1199,6 +1199,9 @@ function MessageBubble({
   onGen3D,
   onSeeInSpace,
   onMakeManufacturable,
+  onCreatorRegister,
+  onPublishListing,
+  onOpenProduct,
   busy,
 }: {
   message: DBMessage;
@@ -1210,6 +1213,20 @@ function MessageBubble({
   onGen3D: () => void;
   onSeeInSpace: () => void;
   onMakeManufacturable: () => void;
+  onCreatorRegister: (messageId: string, name: string) => void;
+  onPublishListing: (
+    messageId: string,
+    edits: {
+      title: string;
+      dbCategory: string;
+      dimensions: { length: number; breadth: number; height: number };
+      basePrice: number;
+      designerPrice: number;
+      imageUrl: string;
+      profileId: string;
+    },
+  ) => void;
+  onOpenProduct: (path: string) => void;
   busy?: boolean;
 }) {
   const isUser = message.role === "user";
@@ -1233,6 +1250,9 @@ function MessageBubble({
   const isFinishResult = kind === "finish-result";
   const isSpaceResult = kind === "space-result";
   const is3DResult = kind === "3d-result";
+  const isCreatorRegister = kind === "creator-register";
+  const isConfirmListing = kind === "confirm-listing";
+  const isListingPublished = kind === "listing-published";
   const modelUrl = (message.metadata?.modelUrl as string | undefined) ?? undefined;
   const images = message.image_urls ?? [];
   const hasActiveInGrid = isVariations && images.some((u) => u === activeImage);
@@ -1244,10 +1264,41 @@ function MessageBubble({
         <p className="text-sm text-foreground/90 leading-relaxed">{message.content}</p>
       )}
 
-      {status === "pending" && (
+      {status === "pending" && !isConfirmListing && (
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Loader2 className="w-3.5 h-3.5 animate-spin" /> generating…
         </div>
+      )}
+
+      {/* Inline creator registration card */}
+      {isCreatorRegister && status === "ready" && (
+        <CreatorRegisterCard
+          messageId={message.id}
+          suggestedName={(message.metadata?.suggestedName as string) || ""}
+          email={(message.metadata?.email as string) || ""}
+          onSubmit={onCreatorRegister}
+          busy={!!busy}
+        />
+      )}
+
+      {/* Inline pricing & publish card */}
+      {isConfirmListing && status === "pending" && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> sizing &amp; pricing…
+        </div>
+      )}
+      {isConfirmListing && status === "ready" && (
+        <ConfirmListingCard
+          messageId={message.id}
+          metadata={message.metadata as any}
+          onPublish={onPublishListing}
+          busy={!!busy}
+        />
+      )}
+
+      {/* Listing published success card */}
+      {isListingPublished && (
+        <PublishedCard metadata={message.metadata as any} onOpenProduct={onOpenProduct} />
       )}
 
       {/* Variation grid (initial OR per-edit candidates) */}
