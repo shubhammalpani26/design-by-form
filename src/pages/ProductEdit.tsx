@@ -27,6 +27,7 @@ interface ProductData {
   weight: number | null;
   dimensions: any;
   materials_description: string | null;
+  angle_views: any[];
 }
 
 const ProductEdit = () => {
@@ -41,6 +42,10 @@ const ProductEdit = () => {
   const [aiBusy, setAiBusy] = useState(false);
   const [aiPreview, setAiPreview] = useState<string | null>(null);
   const [genTextBusy, setGenTextBusy] = useState<'title' | 'description' | null>(null);
+  const [variantPrompt, setVariantPrompt] = useState('');
+  const [variantLabel, setVariantLabel] = useState('');
+  const [variantBusy, setVariantBusy] = useState(false);
+  const [variantPreview, setVariantPreview] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProduct();
@@ -87,7 +92,7 @@ const ProductEdit = () => {
         return;
       }
 
-      setProduct(productData);
+      setProduct({ ...productData, angle_views: Array.isArray((productData as any).angle_views) ? (productData as any).angle_views : [] } as any);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -118,6 +123,7 @@ const ProductEdit = () => {
           dimensions: product.dimensions,
           materials_description: product.materials_description,
           image_url: product.image_url,
+          angle_views: product.angle_views,
           status: newStatus,
           rejection_reason: wasApproved ? null : product.rejection_reason,
         })
