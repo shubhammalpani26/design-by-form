@@ -533,6 +533,72 @@ const ProductEdit = () => {
                       {aiBusy ? 'Generating…' : 'Generate edit'}
                     </Button>
                   </div>
+
+                  <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Wand2 className="h-4 w-4 text-primary" />
+                      <p className="text-sm font-semibold">Color &amp; finish variants</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Generate the same piece in different colors / finishes. Accepted variants are added as additional slides on your product page.
+                    </p>
+
+                    {product.angle_views && product.angle_views.length > 0 && (
+                      <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                        {product.angle_views.map((v: any, i: number) => (
+                          <div key={i} className="relative group">
+                            <img src={v.url || v} alt={v.angle || `Variant ${i + 1}`} className="w-full aspect-square object-contain rounded border bg-background" />
+                            <p className="text-[10px] text-center mt-1 truncate">{v.angle || `Variant ${i + 1}`}</p>
+                            <button
+                              type="button"
+                              onClick={() => removeVariant(i)}
+                              className="absolute top-1 right-1 bg-background/90 border rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
+                              aria-label="Remove variant"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <Input
+                        placeholder='Label (e.g. "Walnut", "Sage Green")'
+                        value={variantLabel}
+                        onChange={(e) => setVariantLabel(e.target.value)}
+                        disabled={variantBusy}
+                      />
+                      <Input
+                        placeholder='Finish prompt (e.g. "deep walnut stain with brass accents")'
+                        value={variantPrompt}
+                        onChange={(e) => setVariantPrompt(e.target.value)}
+                        disabled={variantBusy}
+                      />
+                    </div>
+                    <Button type="button" onClick={handleGenerateVariant} disabled={variantBusy || !variantPrompt.trim()}>
+                      {variantBusy ? <Loader2 className="h-4 w-4 mr-1 animate-spin" /> : <Wand2 className="h-4 w-4 mr-1" />}
+                      {variantBusy ? 'Generating variant…' : 'Generate variant'}
+                    </Button>
+
+                    {variantPreview && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">Preview</p>
+                        <img src={variantPreview} alt="Variant preview" className="w-full max-w-xs rounded border object-contain bg-background" />
+                        <div className="flex gap-2">
+                          <Button size="sm" type="button" onClick={addVariantToGallery}>
+                            <Check className="h-4 w-4 mr-1" /> Add to gallery
+                          </Button>
+                          <Button size="sm" type="button" variant="outline" onClick={() => setVariantPreview(null)}>
+                            <X className="h-4 w-4 mr-1" /> Discard
+                          </Button>
+                          <Button size="sm" type="button" variant="ghost" onClick={handleGenerateVariant} disabled={variantBusy}>
+                            <RefreshCcw className="h-4 w-4 mr-1" /> Retry
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
