@@ -165,7 +165,7 @@ Rules for this turn:
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          model: "google/gemini-3.1-flash-image-preview",
+          model: "google/gemini-3-pro-image-preview",
           modalities: ["image", "text"],
           messages: [
             { role: "system", content: systemText },
