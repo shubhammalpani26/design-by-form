@@ -186,6 +186,47 @@ const ProductEdit = () => {
     toast({ title: 'Image updated', description: 'Click "Save Changes" to submit for admin review.' });
   };
 
+  const handleGenerateVariant = async () => {
+    if (!product || !variantPrompt.trim()) return;
+    setVariantBusy(true);
+    setVariantPreview(null);
+    try {
+      const { data, error } = await supabase.functions.invoke('edit-design', {
+        body: {
+          baseImageUrl: product.image_url,
+          editPrompt: `Re-render this exact product in a different color/finish variant. Keep the SAME shape, angle, proportions, lighting, and background. Only change the surface color/material/finish to: ${variantPrompt.trim()}.`,
+          category: product.category,
+          mode: 'product',
+        },
+      });
+      if (error) throw error;
+      if (!data?.imageUrl) throw new Error('No image returned');
+      setVariantPreview(data.imageUrl);
+    } catch (e: any) {
+      console.error('Variant generation failed', e);
+      toast({ title: 'Variant generation failed', description: e?.message ?? 'Try a different prompt', variant: 'destructive' });
+    } finally {
+      setVariantBusy(false);
+    }
+  };
+
+  const addVariantToGallery = () => {
+    if (!variantPreview || !product) return;
+    const label = (variantLabel.trim() || variantPrompt.trim() || 'Variant').slice(0, 60);
+    const next = [...(product.angle_views || []), { url: variantPreview, angle: label }];
+    setProduct({ ...product, angle_views: next });
+    setVariantPreview(null);
+    setVariantPrompt('');
+    setVariantLabel('');
+    toast({ title: 'Variant added', description: 'Save changes to submit for admin review.' });
+  };
+
+  const removeVariant = (idx: number) => {
+    if (!product) return;
+    const next = (product.angle_views || []).filter((_: any, i: number) => i !== idx);
+    setProduct({ ...product, angle_views: next });
+  };
+
   const regenerateTitle = async () => {
     if (!product) return;
     setGenTextBusy('title');
