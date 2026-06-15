@@ -257,6 +257,7 @@ export default function DesignStudioChat() {
     const { data, error } = await supabase
       .from("design_sessions")
       .select("id,title,active_image_url,category,updated_at")
+      .eq("user_id", userId)
       .order("updated_at", { ascending: false });
     if (!error && data) setSessions(data as DBSession[]);
   }
@@ -272,6 +273,19 @@ export default function DesignStudioChat() {
   }, [activeSessionId]);
 
   async function loadMessages(sid: string) {
+    // Defense in depth: verify this session belongs to the current user before
+    // loading any messages. Admins technically see everything via RLS, but the
+    // chat sidebar is personal — never surface another user's conversation.
+    const { data: sess } = await supabase
+      .from("design_sessions")
+      .select("user_id")
+      .eq("id", sid)
+      .maybeSingle();
+    if (!sess || sess.user_id !== userId) {
+      setMessages([]);
+      setActiveImage(null);
+      return;
+    }
     const { data, error } = await supabase
       .from("design_messages")
       .select("id,session_id,role,content,image_urls,metadata,created_at")
