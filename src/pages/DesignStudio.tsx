@@ -671,7 +671,7 @@ const DesignStudio = () => {
       // Only generate base designs initially (3 AI calls instead of 18!)
       const variationPromises = [1, 2, 3].map(async (variationNum) => {
         try {
-          const response = await supabase.functions.invoke('generate-design', {
+          const response = await supabase.functions.invoke('orchestrate-design', {
             body: { 
               prompt: enhancedPrompt, 
               variationNumber: variationNum,
@@ -1065,7 +1065,7 @@ const DesignStudio = () => {
     try {
       const colorFinishPrompt = `Apply ${colorToApply} color and ${finishToApply} finish to this furniture design. Keep the exact same design shape, only change the color and surface finish.`;
       
-      const response = await supabase.functions.invoke('generate-design', {
+      const response = await supabase.functions.invoke('orchestrate-design', {
         body: { 
           prompt: colorFinishPrompt,
           imageUrl: selectedVar.imageUrl,
@@ -2823,7 +2823,7 @@ const DesignStudio = () => {
                                       description: "Creating your 3D model from the design...",
                                     });
                                     
-                                    const { data, error } = await supabase.functions.invoke('generate-design', {
+                                    const { data, error } = await supabase.functions.invoke('orchestrate-design', {
                                       body: {
                                         generate3D: true,
                                         imageUrl: generatedDesign
