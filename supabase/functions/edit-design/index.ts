@@ -233,16 +233,19 @@ Rules for this turn:
         const t = await resp.text();
         console.error("AI gateway error", resp.status, t.slice(0, 300));
         if (resp.status === 429) {
+          await refundCredit("rate-limited");
           return new Response(JSON.stringify({ error: "Rate limit hit. Try again shortly." }), {
             status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         if (resp.status === 402) {
+          await refundCredit("ai-credits-depleted");
           return new Response(JSON.stringify({ error: "AI credits depleted." }), {
             status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
         if (attempt === maxRetries) {
+          await refundCredit("edit-failed");
           return new Response(JSON.stringify({ error: "Edit failed" }), {
             status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
@@ -258,6 +261,7 @@ Rules for this turn:
     }
 
     if (!newImageDataUrl) {
+      await refundCredit("no-image-returned");
       return new Response(JSON.stringify({ error: "No image returned by model" }), {
         status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
