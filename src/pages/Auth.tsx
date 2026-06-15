@@ -152,9 +152,10 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
+      const returnTo = getReturnToPath();
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/` },
+        options: { redirectTo: `${window.location.origin}${returnTo}` },
       });
       if (error) throw error;
     } catch (error: any) {
