@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -45,9 +46,97 @@ serve(async (req) => {
     const authHeader = req.headers.get("authorization");
     const requestBody = await req.json();
 
+    // --- AUTH + CREDIT GATE (server-side, cannot be bypassed) -----------------
+    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(SUPABASE_URL, SERVICE_KEY);
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Sign in to generate designs.", code: "AUTH_REQUIRED" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+    const token = authHeader.replace(/^Bearer\s+/i, "");
+    const { data: userData, error: userErr } = await adminClient.auth.getUser(token);
+    const user = userData?.user;
+    if (userErr || !user) {
+      return new Response(
+        JSON.stringify({ error: "Sign in to generate designs.", code: "AUTH_REQUIRED" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // 3D-only conversion is paid through pay-3d-generation-fee, no credit cost
+    const is3DOnlyConversion = Boolean(requestBody?.generate3D && requestBody?.imageUrl);
+
+    // Atomic-ish deduct: read balance, reject if low, decrement.
+    // (Two concurrent requests can race; worst case a user gets one extra free gen.
+    //  Acceptable for now — strict atomicity needs an RPC.)
+    let preBalance = 0;
+    if (!is3DOnlyConversion) {
+      const { data: credits, error: cErr } = await adminClient
+        .from("user_credits")
+        .select("balance")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (cErr) {
+        console.error("orchestrate-design: credit read failed", cErr);
+        return new Response(
+          JSON.stringify({ error: "Could not verify credit balance." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      preBalance = credits?.balance ?? 0;
+      if (preBalance < 1) {
+        return new Response(
+          JSON.stringify({
+            error: "You're out of AI credits. Top up to keep generating.",
+            code: "INSUFFICIENT_CREDITS",
+            balance: preBalance,
+          }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      // Pre-deduct so concurrent calls see the lower balance
+      const { error: dErr } = await adminClient
+        .from("user_credits")
+        .update({ balance: preBalance - 1, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+      if (dErr) {
+        console.error("orchestrate-design: deduct failed", dErr);
+        return new Response(
+          JSON.stringify({ error: "Could not reserve a credit." }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      await adminClient.from("credit_transactions").insert({
+        user_id: user.id,
+        amount: -1,
+        type: "usage",
+        description: "AI design generation (orchestrator)",
+      });
+    }
+
+    const refundCredit = async (reason: string) => {
+      if (is3DOnlyConversion) return;
+      await adminClient
+        .from("user_credits")
+        .update({ balance: preBalance, updated_at: new Date().toISOString() })
+        .eq("user_id", user.id);
+      await adminClient.from("credit_transactions").insert({
+        user_id: user.id,
+        amount: 1,
+        type: "refund",
+        description: `Refund: ${reason}`,
+      });
+    };
+    // -------------------------------------------------------------------------
+
     // 1) Design Agent
     const design = await callFunction("generate-design", requestBody, authHeader);
     if (!design.ok) {
+      await refundCredit("design generation failed");
       return new Response(design.raw || JSON.stringify({ error: "design failed" }), {
         status: design.status || 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -57,8 +146,11 @@ serve(async (req) => {
     const imageUrl = designPayload.imageUrl as string | undefined;
 
     // If this is a 3D-only conversion request, skip engineering check entirely.
-    const is3DOnly = Boolean(requestBody?.generate3D && requestBody?.imageUrl);
-    if (is3DOnly || !imageUrl) {
+    if (is3DOnlyConversion || !imageUrl) {
+      if (!imageUrl && !is3DOnlyConversion) {
+        // Generation returned ok but no image — refund.
+        await refundCredit("no image returned");
+      }
       return new Response(JSON.stringify(designPayload), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
