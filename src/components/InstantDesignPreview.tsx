@@ -189,6 +189,15 @@ const InstantDesignPreview = () => {
   };
 
   const handleGenerate = async () => {
+    // Require login before generating — no more free AI burn for anonymous visitors
+    if (!user) {
+      toast.error("Sign in to try AI design", {
+        description: "Free generations are for signed-in users only.",
+        action: { label: "Sign in", onClick: () => navigate("/auth") },
+      });
+      return;
+    }
+
     if (!prompt.trim() && !uploadedImage && !roomImage) {
       toast.error("Please enter a description, upload a sketch, or add a space photo");
       return;
@@ -239,7 +248,7 @@ const InstantDesignPreview = () => {
       
       // Generate 3 variations in parallel
       const variationPromises = [1, 2, 3].map(async (variationNumber) => {
-        const { data, error } = await supabase.functions.invoke('generate-design', {
+        const { data, error } = await supabase.functions.invoke('orchestrate-design', {
           body: { 
             prompt: fullPrompt,
             variationNumber,
