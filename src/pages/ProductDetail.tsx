@@ -321,7 +321,7 @@ const ProductDetail = () => {
                   return (
                     <>
                       <div className="aspect-square rounded-xl overflow-hidden bg-accent relative group">
-                        <img src={finishImage || mainImage} alt={product.name} className="w-full h-full object-cover transition-opacity duration-200" />
+                        <img src={finishImage || mainImage} alt={product.name} className="w-full h-full object-contain transition-opacity duration-200" />
                         {allImages.length > 1 && (
                           <>
                             {hasPrev && (
@@ -359,8 +359,8 @@ const ProductDetail = () => {
                         <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
                           {allImages.map((img, idx) => (
                             <button key={idx} onClick={() => { setMainImage(img.url); setFinishImage(''); }}
-                              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors ${mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'}`}>
-                              <img src={img.url} alt={img.label} className="w-full h-full object-cover" />
+                              className={`flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden border-2 bg-accent transition-colors ${mainImage === img.url ? 'border-primary' : 'border-border hover:border-primary/50'}`}>
+                              <img src={img.url} alt={img.label} className="w-full h-full object-contain" />
                             </button>
                           ))}
                         </div>
