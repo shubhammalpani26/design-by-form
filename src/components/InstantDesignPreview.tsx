@@ -189,15 +189,6 @@ const InstantDesignPreview = () => {
   };
 
   const handleGenerate = async () => {
-    // Require login before generating — no more free AI burn for anonymous visitors
-    if (!user) {
-      toast.error("Sign in to try AI design", {
-        description: "Free generations are for signed-in users only.",
-        action: { label: "Sign in", onClick: () => navigate("/auth") },
-      });
-      return;
-    }
-
     if (!prompt.trim() && !uploadedImage && !roomImage) {
       toast.error("Please enter a description, upload a sketch, or add a space photo");
       return;
@@ -205,6 +196,18 @@ const InstantDesignPreview = () => {
 
     if (prompt.trim().length > 0 && prompt.trim().length < 10 && !uploadedImage && !roomImage) {
       toast.error("Please describe your design in more detail (at least 10 characters)");
+      return;
+    }
+
+    // Require login before generating — preserve their input and redirect to /auth.
+    if (!user) {
+      try {
+        sessionStorage.setItem("pending-homepage-generate", JSON.stringify({
+          prompt, category, ts: Date.now(),
+        }));
+      } catch {}
+      toast.info("Sign in to generate — we'll bring you right back.");
+      navigate(`/auth?returnTo=${encodeURIComponent("/?resumeGenerate=1")}`);
       return;
     }
 
