@@ -501,7 +501,7 @@ export default function DesignStudioChat() {
 
         const results = await Promise.allSettled(
           [1, 2, 3].map((n) =>
-            supabase.functions.invoke("generate-design", {
+            supabase.functions.invoke("orchestrate-design", {
               body: {
                 prompt: promptWithModel,
                 variationNumber: n,
@@ -848,7 +848,7 @@ export default function DesignStudioChat() {
         { kind: "3d-result", status: "pending", basedOn: baseImageUrl },
       );
 
-      const { data, error } = await supabase.functions.invoke("generate-design", {
+      const { data, error } = await supabase.functions.invoke("orchestrate-design", {
         body: { generate3D: true, imageUrl: baseImageUrl },
       });
 
