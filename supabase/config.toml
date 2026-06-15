@@ -3,6 +3,12 @@ project_id = "rdcfakdhgndnhgzfkuvw"
 [functions.generate-design]
 verify_jwt = false
 
+[functions.engineering-check]
+verify_jwt = false
+
+[functions.orchestrate-design]
+verify_jwt = false
+
 [functions.generate-product-description]
 verify_jwt = false
 
