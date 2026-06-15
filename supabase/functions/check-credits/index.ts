@@ -57,8 +57,9 @@ serve(async (req) => {
         .from('user_credits')
         .insert({
           user_id: user.id,
-          balance: 10,
-          free_credits_reset_at: new Date(new Date().setMonth(new Date().getMonth() + 1))
+          balance: 5,
+          // Free credits are a one-time grant — set far future so no auto-refill
+          free_credits_reset_at: new Date('9999-12-31T00:00:00Z')
         })
         .select()
         .single();
@@ -74,36 +75,15 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           hasCredits: true, 
-          balance: 10,
+          balance: 5,
           creditsNeeded 
         }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Check if credits need to be reset
-    const resetDate = new Date(userCredits.free_credits_reset_at);
-    if (resetDate <= new Date()) {
-      // Reset monthly credits
-      const { error: updateError } = await supabase
-        .from('user_credits')
-        .update({
-          balance: userCredits.balance + 10,
-          free_credits_reset_at: new Date(new Date().setMonth(new Date().getMonth() + 1))
-        })
-        .eq('user_id', user.id);
-
-      if (!updateError) {
-        await supabase.from('credit_transactions').insert({
-          user_id: user.id,
-          amount: 10,
-          type: 'monthly_reset',
-          description: 'Monthly free credits reset'
-        });
-        
-        userCredits.balance += 10;
-      }
-    }
+    // Monthly free credit refill is disabled.
+    // Free users get a one-time grant on signup; top-ups require purchase or admin grant.
 
     if (action === 'check') {
       return new Response(
