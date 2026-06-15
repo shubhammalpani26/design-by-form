@@ -57,6 +57,19 @@ serve(async (req) => {
     const { data: { user } } = await supabase.auth.getUser();
     console.log('Authenticated user:', user?.id || 'anonymous');
 
+    // Require an authenticated user. Anonymous calls are no longer accepted —
+    // generate-design is now either invoked by an authed user OR by orchestrate-design
+    // (which passes the user's auth header through).
+    if (!user) {
+      return new Response(
+        JSON.stringify({
+          error: "Sign in to generate designs.",
+          code: "AUTH_REQUIRED",
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
