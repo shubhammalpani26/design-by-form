@@ -1,55 +1,83 @@
-## Goal
-Make the chat at `/studio` the entire workflow — from idea → image → manufacturable → listed → shareable product link — without ever leaving the page. Add cheaper Beni Enterprises products so the catalog isn't only premium Cyanique pieces, and teach the AI to propose both styles.
+# Multi-Agent Orchestration — Invisible Upgrade
 
-## Scope (all 4 in this loop)
+User-facing UX **does not change**. Same Design Studio, same "Generate" button, same "Get a Quote" mode. Behind the scenes, each generation now runs through a coordinated agent pipeline instead of a single model call. The user just sees better results, fewer manufacturability rejections, and tighter pricing.
 
-### 1. Stop button in chat
-- Wire an `AbortController` into `handleSend`, `handleApplyFinish`, `handleSeeInSpaceFile`, `handleGenerate3D`, and the new inline pricing/listing calls.
-- While `busy === true`, the composer's send button becomes a Stop button (square icon) that calls `controller.abort()` and resets `busy`.
-- On abort: update any pending assistant placeholder message to "Stopped." instead of leaving it spinning.
+## Pipeline (server-side)
 
-### 2. Full end-to-end listing inside the chat
-Triggered by the existing "Make manufacturable & price" chip — but now it stays in chat instead of navigating to `/design-studio`.
+```text
+User prompt
+   │
+   ▼
+[1] Design Agent          → generates concept image + dims (existing: generate-design)
+   │
+   ▼
+[2] Engineering Agent     → NEW: AI manufacturability check
+   │   (wall thickness, base stability, overhangs, joinery fit per maker)
+   │   ├─ PASS → continue
+   │   └─ FAIL → auto-revise once via Design Agent with engineering notes, then continue
+   │
+   ▼
+[3] Material/Maker Agent  → routes to Cyanique / Beni / U.G. Agawane
+   │   (existing: suggest-maker, with intelligence learnings)
+   │
+   ▼
+[4] Costing Agent         → MBP from dims + category + maker tier
+       (existing: recalculate-pricing, already Beni-aware)
+   │
+   ▼
+Final result returned to UI (image + dims + maker + price)
+```
 
-Flow (each step is a new assistant message with an inline card):
+## What's new
 
-1. **Creator registration** — if the user has no `designer_profiles` row:
-   - Assistant asks for name + email (email pre-filled from auth).
-   - On submit, insert a `designer_profiles` row with `status='approved'`, `terms_accepted=true` (same shortcut the personal-mode flow already uses). No redirect.
+1. **`engineering-check` edge function** (new)
+   - Inputs: design image URL, dimensions, category, target maker
+   - Uses `google/gemini-3.1-pro-preview` (vision + reasoning) to assess:
+     - Wall thickness / structural integrity
+     - Base stability for stated dims
+     - Process feasibility (FGF print envelope, wood joinery feasibility, canvas size)
+     - Material-form fit (e.g. organic curves → resin, not solid wood)
+   - Returns `{ pass: bool, issues: string[], revision_prompt?: string, confidence }`
 
-2. **Auto dimensions & weight** — assistant invokes `calculate-weight` + a new lightweight dimension-estimator (or reuses Gemini via `recalculate-pricing` with sensible defaults). Renders an editable card: `Width × Depth × Height (cm)` + estimated weight + category, all pre-filled. User clicks **Confirm & price**.
+2. **`orchestrate-design` edge function** (new, thin coordinator)
+   - Single entrypoint the frontend can call
+   - Sequentially invokes: generate-design → engineering-check → (revise if needed) → suggest-maker → recalculate-pricing
+   - Returns one consolidated payload + a hidden `agent_trace` (logged to `manufacturing_intelligence` for the flywheel; not shown in UI)
 
-3. **Pricing** — calls existing `recalculate-pricing` edge function. Shows MBP (private), suggested selling price, and an editable selling price slider (creator keeps 100% of markup, per existing monetization rule).
+3. **Wire into existing surfaces (no UI change)**
+   - `DesignStudio.tsx` and `DesignStudioChat.tsx` continue calling what looks like one function; the orchestrator replaces the direct `generate-design` call
+   - Loading state messaging stays generic ("Generating your design…")
+   - Optional: tiny `data-agent-step` attribute streamed for future telemetry, invisible to users
 
-4. **Title + description** — auto-generated in background via `generate-product-title` + `generate-product-description`. Editable inline.
+## What's NOT in this pass
+- No new page, no "agent thinking" transcript UI, no chat surface
+- No real-time maker inventory lookup (Material Agent stays rule-based + learnings)
+- No costing feedback loop (if over-budget, we don't re-run Design — that's the "full loop" scope)
 
-5. **Publish** — inserts into `designer_products` (status `approved` for personal mode, or `pending` for designer mode — keep current behavior; for demo, default to `approved` so the link works immediately). Inserts `design_listings` row with `listing_fee_paid: true` (waived). Posts the final assistant message:
-   > ✓ Listed. View live product → `/product/<slug>`  
-   > Copy link · Share · Open dashboard
+## Files
 
-All steps reuse existing edge functions; no new backend infra required besides one tiny `register-creator-inline` helper (or just direct insert from client — RLS allows the user to create their own profile, and we'll keep the insert client-side).
+**New:**
+- `supabase/functions/engineering-check/index.ts`
+- `supabase/functions/orchestrate-design/index.ts`
+- `supabase/config.toml` — register both with `verify_jwt = false` (matches existing generate-design)
 
-### 3. Beni Enterprises cheaper catalog
-Seed ~8 products into `designer_products` priced ₹3,500 – ₹18,000 across the categories Beni covers (dining table, console, coffee table, bench, shelving, chair, side table, sideboard). All `status='approved'`, attributed to a new "Beni Studio" creator profile (or reuse an existing seeded profile if present). Use existing curated stock-style images or generate via `generate-design` with traditional-wood prompts.
+**Edit:**
+- `src/pages/DesignStudio.tsx` — swap `supabase.functions.invoke('generate-design', …)` for `'orchestrate-design'` at the single call site
+- `src/pages/DesignStudioChat.tsx` — same swap
+- Keep payload shape backward-compatible so callers don't change
 
-These will show on `/browse` immediately and route to Beni Enterprise as the maker (already wired in `src/data/makers.ts`).
+**Unchanged:**
+- `generate-design`, `recalculate-pricing`, `suggest-maker`, `calculate-weight` — reused as-is
 
-### 4. Broaden AI prompts (Cyanique + Beni)
-In `supabase/functions/generate-design/index.ts` and the `STARTER_PROMPTS` / surprise-me lists:
-- Tell the model the platform makes BOTH sculptural additive pieces (Cyanique) AND traditional solid wood / craft furniture (Beni Enterprises).
-- Allow rectilinear, slatted, joinery-based silhouettes for `Table`, `Console`, `Shelving`, `Bed`, `Chair` when the user's prompt implies traditional/wood/craft.
-- Adjust the "solid monolithic flat-base" hard constraint so it only applies to additive/resin categories (decor, sculptures, accent pieces) — wood furniture can have legs, slats, and joinery.
-- Add Beni-style starter prompts: e.g. "A walnut slatted bench with brass inlays", "A teak 4-drawer console with tapered legs", "A solid oak dining table with breadboard ends".
+## Models
+- Design Agent: existing (Gemini 3 Pro Image)
+- Engineering Agent: `google/gemini-3.1-pro-preview` (highest reasoning, vision-capable)
+- Maker/Costing Agents: existing (Gemini 2.5 Flash — fast structured output)
 
-## Technical notes
-- New file: `src/components/studio/InlineListingFlow.tsx` (registration card, dim/price card, publish card, success card). Rendered as special `MessageBubble` kinds (`creator-register`, `confirm-dims`, `confirm-price`, `listing-published`).
-- Reuse: `calculate-weight`, `recalculate-pricing`, `generate-product-description`, `generate-product-title`. No new edge functions.
-- Beni seeding: one `supabase--insert` call.
-- Abort: stored in a `useRef<AbortController | null>`; passed to `supabase.functions.invoke` via `{ signal: controller.signal }` where supported, otherwise we just stop processing the result and mark `busy = false`.
-- `handleMakeManufacturable` no longer navigates — it inserts a `creator-register` assistant message (or skips straight to `confirm-dims` if profile exists).
-- Slug for the success link comes from the existing `set_slug_on_product` trigger.
+## Verification
+1. Curl `orchestrate-design` with a known prompt → confirm all 4 steps run and final payload matches current `generate-design` shape
+2. Force an engineering fail (tiny wall-thickness brief) → confirm one revision pass happens
+3. Open Design Studio in preview, generate one design → confirm UI is unchanged and result lands as before
+4. Check `manufacturing_intelligence` for new trace row
 
-## Out of scope (defer)
-- 3D model generation paywall (regular ₹750) — keep existing flow; the demo path uses 2D image listing.
-- Stripe / Razorpay payment for listing fee — keep "waived" per existing messaging memory.
-- Multi-step creator approval review — demo auto-approves.
+Ready to build on approval.
