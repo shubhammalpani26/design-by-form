@@ -83,6 +83,55 @@ serve(async (req) => {
       }
     }
 
+    // --- CREDIT GATE: 1 credit per edit, pre-deducted with refund on failure ---
+    const { data: creditRow, error: cErr } = await admin
+      .from("user_credits")
+      .select("balance")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (cErr) {
+      return new Response(JSON.stringify({ error: "Could not verify credit balance." }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const preBalance = creditRow?.balance ?? 0;
+    if (preBalance < 1) {
+      return new Response(JSON.stringify({
+        error: "You're out of AI credits. Top up to keep refining.",
+        code: "INSUFFICIENT_CREDITS",
+        balance: preBalance,
+      }), { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
+    const { error: dErr } = await admin
+      .from("user_credits")
+      .update({ balance: preBalance - 1, updated_at: new Date().toISOString() })
+      .eq("user_id", userId);
+    if (dErr) {
+      return new Response(JSON.stringify({ error: "Could not reserve a credit." }), {
+        status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    await admin.from("credit_transactions").insert({
+      user_id: userId,
+      amount: -1,
+      type: "usage",
+      description: "AI design edit / refinement",
+      metadata: { sessionId: sessionId ?? null, mode },
+    });
+    const refundCredit = async (reason: string) => {
+      await admin
+        .from("user_credits")
+        .update({ balance: preBalance, updated_at: new Date().toISOString() })
+        .eq("user_id", userId);
+      await admin.from("credit_transactions").insert({
+        user_id: userId,
+        amount: 1,
+        type: "refund",
+        description: `Refund: ${reason}`,
+        metadata: { sessionId: sessionId ?? null },
+      });
+    };
+
     const sessionContextBlock = [
       originalPrompt ? `ORIGINAL DESIGN BRIEF (the piece in the reference image was created from this prompt — preserve its essence):\n"${originalPrompt}"` : "",
       priorEdits.length ? `PRIOR REFINEMENTS the user already requested (in order):\n${priorEdits.map((e, i) => `${i + 1}. ${e}`).join("\n")}` : "",
