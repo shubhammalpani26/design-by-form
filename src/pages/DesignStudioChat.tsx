@@ -247,18 +247,35 @@ export default function DesignStudioChat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  // Track admin status so admins can continue to see all sessions (support/debug),
+  // while regular users only ever see their own.
+  const [isAdmin, setIsAdmin] = useState(false);
+  useEffect(() => {
+    if (!userId) return;
+    void (async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      setIsAdmin(!!data);
+    })();
+  }, [userId]);
+
   // Load sessions
   useEffect(() => {
     if (!userId) return;
     void refreshSessions();
-  }, [userId]);
+  }, [userId, isAdmin]);
 
   async function refreshSessions() {
-    const { data, error } = await supabase
+    let query = supabase
       .from("design_sessions")
       .select("id,title,active_image_url,category,updated_at")
-      .eq("user_id", userId)
       .order("updated_at", { ascending: false });
+    if (!isAdmin) query = query.eq("user_id", userId);
+    const { data, error } = await query;
     if (!error && data) setSessions(data as DBSession[]);
   }
 
@@ -273,18 +290,19 @@ export default function DesignStudioChat() {
   }, [activeSessionId]);
 
   async function loadMessages(sid: string) {
-    // Defense in depth: verify this session belongs to the current user before
-    // loading any messages. Admins technically see everything via RLS, but the
-    // chat sidebar is personal — never surface another user's conversation.
-    const { data: sess } = await supabase
-      .from("design_sessions")
-      .select("user_id")
-      .eq("id", sid)
-      .maybeSingle();
-    if (!sess || sess.user_id !== userId) {
-      setMessages([]);
-      setActiveImage(null);
-      return;
+    // Defense in depth: regular users can only load their own sessions.
+    // Admins are allowed to view any session (support/debugging).
+    if (!isAdmin) {
+      const { data: sess } = await supabase
+        .from("design_sessions")
+        .select("user_id")
+        .eq("id", sid)
+        .maybeSingle();
+      if (!sess || sess.user_id !== userId) {
+        setMessages([]);
+        setActiveImage(null);
+        return;
+      }
     }
     const { data, error } = await supabase
       .from("design_messages")
