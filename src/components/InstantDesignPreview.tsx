@@ -54,6 +54,29 @@ const InstantDesignPreview = () => {
     checkUser();
   }, []);
 
+  // Resume a pending generation after the user signs in and returns here.
+  useEffect(() => {
+    if (!user) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("resumeGenerate") !== "1") return;
+    try {
+      const raw = sessionStorage.getItem("pending-homepage-generate");
+      if (!raw) return;
+      const pending = JSON.parse(raw) as { prompt?: string; category?: string };
+      if (pending.prompt) setPrompt(pending.prompt);
+      if (pending.category) setCategory(pending.category);
+      sessionStorage.removeItem("pending-homepage-generate");
+      // Strip the query param without reload
+      const cleanUrl = window.location.pathname + window.location.hash;
+      window.history.replaceState({}, "", cleanUrl);
+      // Fire generation on next tick so state has settled
+      setTimeout(() => { void handleGenerate(); }, 50);
+    } catch (e) {
+      console.warn("resume generate failed", e);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
   useEffect(() => {
     // Only auto-rotate if we haven't generated custom images
     if (designs.length > 1 && generatedVariations.length === 0) {
@@ -189,15 +212,6 @@ const InstantDesignPreview = () => {
   };
 
   const handleGenerate = async () => {
-    // Require login before generating — no more free AI burn for anonymous visitors
-    if (!user) {
-      toast.error("Sign in to try AI design", {
-        description: "Free generations are for signed-in users only.",
-        action: { label: "Sign in", onClick: () => navigate("/auth") },
-      });
-      return;
-    }
-
     if (!prompt.trim() && !uploadedImage && !roomImage) {
       toast.error("Please enter a description, upload a sketch, or add a space photo");
       return;
@@ -205,6 +219,18 @@ const InstantDesignPreview = () => {
 
     if (prompt.trim().length > 0 && prompt.trim().length < 10 && !uploadedImage && !roomImage) {
       toast.error("Please describe your design in more detail (at least 10 characters)");
+      return;
+    }
+
+    // Require login before generating — preserve their input and redirect to /auth.
+    if (!user) {
+      try {
+        sessionStorage.setItem("pending-homepage-generate", JSON.stringify({
+          prompt, category, ts: Date.now(),
+        }));
+      } catch {}
+      toast.info("Sign in to generate — we'll bring you right back.");
+      navigate(`/auth?returnTo=${encodeURIComponent("/?resumeGenerate=1")}`);
       return;
     }
 
