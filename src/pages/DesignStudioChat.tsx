@@ -1120,7 +1120,7 @@ export default function DesignStudioChat() {
           image_url: edits.imageUrl,
           weight,
           dimensions: edits.dimensions,
-          status: "approved",
+          status: "pending",
         })
         .select("id, slug")
         .single();
@@ -1137,7 +1137,7 @@ export default function DesignStudioChat() {
       const productPath = `/product/${slugOrId}`;
 
       await supabase.from("design_messages").update({
-        content: `✓ Listed. Your product is live now — ${edits.title}.`,
+        content: `✓ Submitted for review — ${edits.title}. We'll publish it to the marketplace once our team approves it (usually within 24 hours).`,
         metadata: {
           kind: "listing-published",
           status: "done",
@@ -1149,9 +1149,16 @@ export default function DesignStudioChat() {
         } as any,
       }).eq("id", messageId);
       await loadMessages(sid);
-      toast({ title: "Published", description: "Your product is live on Nyzora." });
+      toast({ title: "Submitted for review", description: "We'll publish it once approved (usually within 24 hours)." });
     } catch (e) {
-      toast({ title: "Couldn't publish", description: e instanceof Error ? e.message : String(e), variant: "destructive" });
+      const msg =
+        e instanceof Error
+          ? e.message
+          : (e && typeof e === "object" && "message" in e && typeof (e as any).message === "string")
+            ? (e as any).message
+            : "Something went wrong. Please try again.";
+      console.error("Publish failed:", e);
+      toast({ title: "Couldn't publish", description: msg, variant: "destructive" });
     } finally {
       setBusy(false);
     }
