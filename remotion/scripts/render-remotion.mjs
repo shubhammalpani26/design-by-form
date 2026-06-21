@@ -30,7 +30,7 @@ await renderMedia({
   codec: "h264",
   outputLocation: "/mnt/documents/nyzora-marketing.mp4",
   puppeteerInstance: browser,
-  muted: true,
+  muted: false,
   concurrency: 1,
 });
 
