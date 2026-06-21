@@ -16,7 +16,7 @@ export const Scene2Describe: React.FC = () => {
   const imgScale = interpolate(frame, [70, 150], [1.15, 1.0]);
 
   const labelOpacity = interpolate(frame, [0, 25], [0, 1], { extrapolateRight: "clamp" });
-  const exit = interpolate(frame, [130, 150], [1, 0], { extrapolateRight: "clamp" });
+  const exit = interpolate(frame, [160, 180], [1, 0], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: colors.ink, opacity: exit }}>

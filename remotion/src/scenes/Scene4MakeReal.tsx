@@ -12,12 +12,12 @@ export const Scene4MakeReal: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const zoom = interpolate(frame, [0, 180], [1.15, 1.3]);
-  const pan = interpolate(frame, [0, 180], [0, -40]);
-  const imgOpacity = interpolate(frame, [0, 20, 160, 180], [0, 1, 1, 0]);
+  const zoom = interpolate(frame, [0, 210], [1.15, 1.32]);
+  const pan = interpolate(frame, [0, 210], [0, -50]);
+  const imgOpacity = interpolate(frame, [0, 20, 190, 210], [0, 1, 1, 0]);
 
   const labelOpacity = interpolate(frame, [0, 25], [0, 1], { extrapolateRight: "clamp" });
-  const exit = interpolate(frame, [160, 180], [1, 0], { extrapolateRight: "clamp" });
+  const exit = interpolate(frame, [190, 210], [1, 0], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: colors.ink, opacity: exit }}>
