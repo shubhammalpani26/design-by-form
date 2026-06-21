@@ -15,7 +15,7 @@ export const Scene3Imagine: React.FC = () => {
   const { fps } = useVideoConfig();
 
   const labelOpacity = interpolate(frame, [0, 25], [0, 1], { extrapolateRight: "clamp" });
-  const exit = interpolate(frame, [150, 170], [1, 0], { extrapolateRight: "clamp" });
+  const exit = interpolate(frame, [160, 180], [1, 0], { extrapolateRight: "clamp" });
 
   return (
     <AbsoluteFill style={{ backgroundColor: colors.ink, opacity: exit }}>
