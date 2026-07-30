@@ -589,9 +589,11 @@ export type Database = {
           designer_id: string
           designer_price: number
           dimensions: Json | null
+          dimensions_verified: boolean
           id: string
           image_url: string | null
           lead_time_days: number | null
+          manufacturing_method: string
           materials_description: string | null
           model_url: string | null
           name: string
@@ -601,6 +603,7 @@ export type Database = {
           pricing_complexity: string | null
           pricing_per_cubic_foot: number | null
           pricing_reasoning: string | null
+          production_region: string
           rejection_reason: string | null
           slug: string | null
           status: string
@@ -621,9 +624,11 @@ export type Database = {
           designer_id: string
           designer_price: number
           dimensions?: Json | null
+          dimensions_verified?: boolean
           id?: string
           image_url?: string | null
           lead_time_days?: number | null
+          manufacturing_method?: string
           materials_description?: string | null
           model_url?: string | null
           name: string
@@ -633,6 +638,7 @@ export type Database = {
           pricing_complexity?: string | null
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
+          production_region?: string
           rejection_reason?: string | null
           slug?: string | null
           status?: string
@@ -653,9 +659,11 @@ export type Database = {
           designer_id?: string
           designer_price?: number
           dimensions?: Json | null
+          dimensions_verified?: boolean
           id?: string
           image_url?: string | null
           lead_time_days?: number | null
+          manufacturing_method?: string
           materials_description?: string | null
           model_url?: string | null
           name?: string
@@ -665,6 +673,7 @@ export type Database = {
           pricing_complexity?: string | null
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
+          production_region?: string
           rejection_reason?: string | null
           slug?: string | null
           status?: string
@@ -934,6 +943,69 @@ export type Database = {
           source?: string
           stage?: string
           value?: string
+        }
+        Relationships: []
+      }
+      manufacturing_tiers: {
+        Row: {
+          active: boolean
+          created_at: string
+          description: string | null
+          example_products: string | null
+          id: string
+          manufacturing_method: string
+          max_depth_mm: number
+          max_height_mm: number
+          max_overhang_deg: number
+          max_width_mm: number
+          min_wall_mm: number
+          modular_allowed: boolean
+          price_max_usd: number
+          price_min_usd: number
+          sort_order: number
+          tier_key: string
+          tier_name: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          example_products?: string | null
+          id?: string
+          manufacturing_method?: string
+          max_depth_mm: number
+          max_height_mm: number
+          max_overhang_deg?: number
+          max_width_mm: number
+          min_wall_mm?: number
+          modular_allowed?: boolean
+          price_max_usd: number
+          price_min_usd: number
+          sort_order?: number
+          tier_key: string
+          tier_name: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          description?: string | null
+          example_products?: string | null
+          id?: string
+          manufacturing_method?: string
+          max_depth_mm?: number
+          max_height_mm?: number
+          max_overhang_deg?: number
+          max_width_mm?: number
+          min_wall_mm?: number
+          modular_allowed?: boolean
+          price_max_usd?: number
+          price_min_usd?: number
+          sort_order?: number
+          tier_key?: string
+          tier_name?: string
+          updated_at?: string
         }
         Relationships: []
       }
