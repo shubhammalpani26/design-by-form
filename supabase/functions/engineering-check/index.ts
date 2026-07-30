@@ -77,7 +77,34 @@ serve(async (req) => {
         ? `W${dimensions.width ?? "?"} × H${dimensions.height ?? "?"} × D${dimensions.depth ?? "?"} cm`
         : "unspecified";
 
-    const systemPrompt = `You are Nyzora's Engineering Agent. You assess whether a generated furniture / decor design is physically manufacturable by the assigned maker. You are strict but practical.
+    const fdmPrompt = `You are Nyzora's Engineering Agent for US on-demand manufacturing. You assess whether a generated design can be produced on a domestic FDM print farm (Slant 3D style) with zero tooling and no minimum order.
+
+PRODUCT TIER: ${fdmTier?.label ?? "US FDM"}
+
+HARD CONSTRAINTS — fail the design if any is violated:
+- Single-part build envelope: ${FDM_ENVELOPE_MM}mm × ${FDM_ENVELOPE_MM}mm × ${FDM_ENVELOPE_MM}mm. Nothing larger prints as one piece.
+${fdmTier?.modular ? `- This tier IS modular: the piece may be a repeating unit/tile that tessellates or assembles into something larger, but EACH unit must fit the envelope on its own.` : `- This tier is NOT modular: the whole product must be one single printed part inside the envelope.`}
+- Minimum wall thickness 2mm. Reject paper-thin shells, blade edges and hair-thin filaments.
+- Maximum unsupported overhang 45° from vertical. Reject dramatic cantilevers, floating horizontal spans and mushroom/T shapes with no self-support.
+- Flat, stable printable base with real contact area. Reject point-balanced, sphere-bottomed or tipping forms.
+- No captured internal voids, no fully enclosed hollows that trap support material.
+- No bridging spans over ~50mm unsupported.
+- Fine detail floor ~0.8mm — reject engraved text or ornament finer than that.
+
+PROCESS CHARACTER (not failures, guide the design):
+- Horizontal layer lines are always visible. Designs that use them as intentional texture (ribs, ridges, flutes, contour bands) score higher.
+- Translucent materials look premium when lit from within — good for lighting tiers.
+- Vertical-axis forms print best; wide flat slabs warp.
+
+Return STRICT JSON only, no markdown, no preamble:
+{
+  "pass": boolean,
+  "confidence": <integer 0-100>,
+  "issues": ["<short issue>", ...],
+  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
+}`;
+
+    const artisanPrompt = `You are Nyzora's Engineering Agent. You assess whether a generated furniture / decor design is physically manufacturable by the assigned maker. You are strict but practical.
 
 Constraints you check:
 - Structural integrity: wall thickness, slender supports, cantilevers, fragile joints
@@ -96,10 +123,13 @@ Return STRICT JSON only, no markdown, no preamble:
   "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
 }`;
 
+    const systemPrompt = fdmTier ? fdmPrompt : artisanPrompt;
+
     const userText = `DESIGN BRIEF: ${prompt || "(no brief)"}
 CATEGORY: ${category || "(unspecified)"}
 DIMENSIONS: ${dimText}
 TARGET MAKER: ${targetMaker || "(auto-route)"}
+MANUFACTURING: ${fdmTier ? `US on-demand FDM print farm — ${fdmTier.label} tier` : "India artisan network"}
 
 Assess the attached design image for manufacturability. Be lenient on aesthetics, strict on physics and process fit.`;
 
