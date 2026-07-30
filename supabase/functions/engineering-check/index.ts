@@ -22,6 +22,29 @@ const inputSchema = z.object({
   targetMaker: z.string().max(80).optional().default(""),
 });
 
+// US on-demand FDM tiers (Slant 3D style print farms).
+// Anything in these categories must fit a single print envelope of 250mm cubed.
+const US_FDM_TIERS: Record<string, { label: string; modular: boolean }> = {
+  objects: { label: "Objects", modular: false },
+  lighting: { label: "Lighting", modular: false },
+  "wall tiles": { label: "Wall Systems", modular: true },
+  "wall systems": { label: "Wall Systems", modular: true },
+  desk: { label: "Desk", modular: false },
+  "furniture parts": { label: "Furniture Parts", modular: true },
+  figurine: { label: "Figurines & Miniatures", modular: false },
+  figurines: { label: "Figurines & Miniatures", modular: false },
+  miniature: { label: "Figurines & Miniatures", modular: false },
+};
+
+const FDM_ENVELOPE_MM = 250;
+
+function resolveFdmTier(category: string, manufacturingMethod: string) {
+  if (manufacturingMethod === "fdm_us") {
+    return US_FDM_TIERS[category.trim().toLowerCase()] ?? { label: "US FDM", modular: false };
+  }
+  return US_FDM_TIERS[category.trim().toLowerCase()] ?? null;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
