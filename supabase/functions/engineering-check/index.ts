@@ -20,9 +20,8 @@ const inputSchema = z.object({
     .optional()
     .default({}),
   targetMaker: z.string().max(80).optional().default(""),
+  manufacturingMethod: z.enum(["artisan_in", "fdm_us"]).optional().default("artisan_in"),
 });
-
-const _mfgMethodSchema = z.enum(["artisan_in", "fdm_us"]);
 
 // US on-demand FDM tiers (Slant 3D style print farms).
 // Anything in these categories must fit a single print envelope of 250mm cubed.
@@ -61,7 +60,8 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    const { imageUrl, prompt, category, dimensions, targetMaker } = parsed.data;
+    const { imageUrl, prompt, category, dimensions, targetMaker, manufacturingMethod } = parsed.data;
+    const fdmTier = resolveFdmTier(category, manufacturingMethod);
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
