@@ -35,7 +35,16 @@ interface DBSession {
   updated_at: string;
 }
 
-const CATEGORIES = ["General", "Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor"];
+const CATEGORIES = [
+  "General", "Chair", "Sofa", "Table", "Console", "Lamp", "Shelving", "Bed", "Decor",
+  // US on-demand tiers — made in the USA, no minimums, ships in days
+  "Objects", "Wall Tiles", "Desk", "Figurine",
+];
+
+// Categories fulfilled by the US on-demand print network.
+// These enforce a 250mm single-part envelope at generation time.
+export const US_FDM_CATEGORIES = new Set(["Objects", "Wall Tiles", "Desk", "Figurine"]);
+export const FDM_ENVELOPE_CM = 25;
 
 // Map free-form category labels to canonical DB categories used on /browse
 const DB_CATEGORY: Record<string, string> = {
@@ -48,6 +57,10 @@ const DB_CATEGORY: Record<string, string> = {
   Shelving: "shelving",
   Bed: "beds",
   Decor: "decor",
+  Objects: "decor",
+  "Wall Tiles": "wall-art",
+  Desk: "decor",
+  Figurine: "decor",
 };
 
 const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
@@ -105,6 +118,30 @@ const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
     "A solid walnut hand-turned bowl, organic form",
     "A tonal cream plaster sculpture, monolithic form",
   ],
+  Objects: [
+    "A ribbed vessel with contour bands, matte bone, 20cm tall",
+    "A faceted catchall bowl with a wide flat base",
+    "A pair of monolithic bookends, soft arch profile",
+    "An incense holder shaped like an eroded stone",
+  ],
+  "Wall Tiles": [
+    "A tessellating hexagonal wall tile with a rippled surface",
+    "A modular wave tile that continues across neighbouring tiles",
+    "A geometric relief tile with deep angular fluting",
+    "A rounded pebble-form wall hook in matte cream",
+  ],
+  Desk: [
+    "A ridged pen cup with a weighted flat base",
+    "A sculptural monitor riser with arched supports",
+    "A phone dock carved like a folded ribbon",
+    "A desk organiser with soft rounded compartments",
+  ],
+  Figurine: [
+    "A stylised human bust, smooth planar faceting, 18cm tall",
+    "A seated figure in flowing robes, monolithic and solid",
+    "A minimal abstract human form, elongated and standing",
+    "A tabletop character miniature in a grounded stance",
+  ],
 };
 
 const FINISHES: { name: string; prompt: string }[] = [
@@ -125,6 +162,10 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   Shelving: ["shelf", "shelving", "bookshelf", "bookcase", "etagere"],
   Bed: ["bed", "headboard", "bedframe"],
   Decor: ["vase", "bowl", "sculpture", "bookend", "decor", "ornament"],
+  Objects: ["catchall", "incense", "vessel", "trinket tray", "planter"],
+  "Wall Tiles": ["wall tile", "tessellat", "wall panel", "wall hook", "modular tile"],
+  Desk: ["pen cup", "monitor riser", "desk organiser", "desk organizer", "phone dock", "desk tidy"],
+  Figurine: ["figurine", "miniature", "bust", "statuette", "action figure", "character model"],
   General: ["my room", "my space", "my living", "my bedroom", "my dining", "redesign the", "whole room", "whole space", "entire room", "entire space", "full set", "client's "],
 };
 
