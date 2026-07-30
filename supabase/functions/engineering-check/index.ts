@@ -22,6 +22,8 @@ const inputSchema = z.object({
   targetMaker: z.string().max(80).optional().default(""),
 });
 
+const _mfgMethodSchema = z.enum(["artisan_in", "fdm_us"]);
+
 // US on-demand FDM tiers (Slant 3D style print farms).
 // Anything in these categories must fit a single print envelope of 250mm cubed.
 const US_FDM_TIERS: Record<string, { label: string; modular: boolean }> = {
