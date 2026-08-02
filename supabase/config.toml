@@ -74,3 +74,9 @@ verify_jwt = false
 
 [functions.agent-api]
 verify_jwt = false
+
+[functions.sync-product-to-shopify]
+verify_jwt = false
+
+[functions.shopify-order-webhook]
+verify_jwt = false
