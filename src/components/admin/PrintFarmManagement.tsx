@@ -115,7 +115,11 @@ export function PrintFarmManagement() {
         title: "MBP updated",
         description: `${product.name}: $${Number(data.mbp_usd).toFixed(2)}/unit (≈ ₹${Number(
           data.mbp_inr,
-        ).toLocaleString("en-IN")}), incl. 25% margin`,
+        ).toLocaleString("en-IN")}) — print $${Number(data.print_usd ?? 0).toFixed(
+          2,
+        )} + shipping $${Number(data.shipping_usd ?? 0).toFixed(2)} + 25% margin${
+          data.shipping_estimated ? "" : " (shipping estimate unavailable)"
+        }`,
       });
       await load();
     } catch (e) {
@@ -201,7 +205,8 @@ export function PrintFarmManagement() {
             <Factory className="h-4 w-4" /> US-made catalogue — MBP quoting
           </CardTitle>
           <p className="mt-1 text-xs text-muted-foreground">
-            MBP = landed print cost + 25% Nyzora manufacturing margin.
+            MBP = print cost + average US shipping + 25% Nyzora margin. Customers see free
+            shipping at checkout.
           </p>
         </CardHeader>
         <CardContent>
