@@ -15,13 +15,14 @@ const DesignerBankDetails = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [designerId, setDesignerId] = useState<string | null>(null);
-  const [bankCountry, setBankCountry] = useState<"India" | "International">("India");
+  const [bankCountry, setBankCountry] = useState<"India" | "US" | "International">("India");
   const [formData, setFormData] = useState({
     accountHolderName: "",
     accountNumber: "",
     ifscCode: "",
     swiftCode: "",
     iban: "",
+    routingNumber: "",
   });
 
   useEffect(() => {
