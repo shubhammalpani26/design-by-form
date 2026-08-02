@@ -419,7 +419,10 @@ const PayoutRequests = () => {
                             <span className="capitalize">{request.status}</span>
                           </div>
                         </Badge>
-                        <span className="text-2xl font-bold">{formatPrice(request.amount)}</span>
+                        <span className="text-2xl font-bold">
+                          {request.payout_currency === 'USD' ? `$${Number(request.amount).toFixed(2)}` : formatPrice(request.amount)}
+                        </span>
+                        <Badge variant="outline">{request.payout_currency || 'INR'}</Badge>
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <p>Requested: {new Date(request.requested_at).toLocaleDateString()}</p>
