@@ -95,10 +95,17 @@ const DesignerBankDetails = () => {
         updateData.bank_ifsc_code = formData.ifscCode;
         updateData.bank_swift_code = null;
         updateData.bank_iban = null;
+        updateData.bank_routing_number = null;
+      } else if (bankCountry === "US") {
+        updateData.bank_routing_number = formData.routingNumber;
+        updateData.bank_swift_code = null;
+        updateData.bank_iban = null;
+        updateData.bank_ifsc_code = null;
       } else {
         updateData.bank_swift_code = formData.swiftCode;
         updateData.bank_iban = formData.iban;
         updateData.bank_ifsc_code = null;
+        updateData.bank_routing_number = null;
       }
 
       const { error } = await supabase
