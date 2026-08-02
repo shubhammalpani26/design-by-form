@@ -128,6 +128,15 @@ const ProductDetail = () => {
         ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H`
         : 'Dimensions available upon request';
 
+      const manufacturingMethod = data.manufacturing_method || 'artisan_in';
+      const defaultFilament = data.slant3d_filament || 'PLA BLACK';
+      const normalizedFinishes = normalizeFinishes(data.available_finishes, defaultFilament);
+
+      setAvailableFinishes(normalizedFinishes);
+      if (normalizedFinishes.length > 0) {
+        setSelectedFinish(normalizedFinishes[0].name);
+      }
+
       setProduct({
         id: data.id,
         slug: canonicalSlug,
@@ -146,7 +155,9 @@ const ProductDetail = () => {
         materials: 'High-grade resin reinforced with composite fibre. Weather-resistant.',
         designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
         model_url: data.model_url,
-        angle_views: data.angle_views || []
+        angle_views: data.angle_views || [],
+        manufacturing_method: manufacturingMethod,
+        default_filament: defaultFilament,
       });
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -154,6 +165,34 @@ const ProductDetail = () => {
       setLoading(false);
     }
   };
+
+  // Load the US manufacturing partner's filament catalog so finish swatches can show
+  // real colors and the selected filament is passed through to fulfillment.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('partner-filaments', {
+          method: 'GET',
+        });
+        if (cancelled || error || !data?.filaments) return;
+        const map: Record<string, { hexColor: string; profile: string }> = {};
+        (data.filaments as any[]).forEach((f: any) => {
+          if (f?.filament) {
+            map[String(f.filament).toUpperCase()] = {
+              hexColor: f.hexColor || '#D4A574',
+              profile: f.profile || 'PLA',
+            };
+          }
+        });
+        setFilamentCatalog(map);
+      } catch (e) {
+        console.error('Failed to load filament catalog:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const handleAddToCart = async () => {
     if (!product?.id) return;
