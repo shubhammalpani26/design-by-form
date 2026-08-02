@@ -1,5 +1,4 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { shopifyAdminGraphQL } from "../_shared/shopify-admin.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -14,33 +13,39 @@ const supabase = createClient(
 /** Platform commission on the manufacturing base price, per unit. */
 const MAKER_COMMISSION_RATE = 0.2;
 
-const ORDER_LOOKUP = `
-  query order($id: ID!) {
-    order(id: $id) {
-      id
-      name
-      displayFinancialStatus
-      currentTotalPriceSet { shopMoney { amount currencyCode } }
-    }
-  }
-`;
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
 
 /**
- * Authenticates the payload by confirming the order actually exists in the store,
- * using our own Admin API credentials. A forged POST cannot fabricate a real order id.
+ * Verifies Shopify's HMAC signature. The secret comes from the store's
+ * Settings -> Notifications -> Webhooks page and is stored as SHOPIFY_WEBHOOK_SECRET.
+ * Fails closed when the secret is absent so forged payloads can never create earnings.
  */
-async function verifyOrderExists(orderId: unknown): Promise<any | null> {
-  if (orderId === undefined || orderId === null) return null;
-  const gid = String(orderId).startsWith("gid://")
-    ? String(orderId)
-    : `gid://shopify/Order/${orderId}`;
-  try {
-    const data = await shopifyAdminGraphQL(ORDER_LOOKUP, { id: gid });
-    return data?.order ?? null;
-  } catch (e) {
-    console.error("Order verification lookup failed:", e instanceof Error ? e.message : e);
-    return null;
+async function verifyShopifyHmac(rawBody: string, hmacHeader: string | null): Promise<boolean> {
+  const secret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET");
+  if (!secret) {
+    console.error(
+      "SHOPIFY_WEBHOOK_SECRET is not configured — rejecting webhook. " +
+        "Copy the signing secret from Shopify admin > Settings > Notifications > Webhooks.",
+    );
+    return false;
   }
+  if (!hmacHeader) return false;
+
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
+  const expected = btoa(String.fromCharCode(...new Uint8Array(signature)));
+  return timingSafeEqual(expected, hmacHeader);
 }
 
 function extractNyzoraProductId(lineItem: any): string | null {
@@ -199,17 +204,16 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
 
   try {
-    const order = JSON.parse(rawBody);
-
-    const verified = await verifyOrderExists(order?.id);
-    if (!verified) {
-      console.error("Rejected Shopify webhook: order could not be verified against the store");
-      return new Response(JSON.stringify({ error: "Unverified order" }), {
+    const valid = await verifyShopifyHmac(rawBody, req.headers.get("x-shopify-hmac-sha256"));
+    if (!valid) {
+      console.error("Rejected Shopify webhook: invalid or unverifiable signature");
+      return new Response(JSON.stringify({ error: "Invalid signature" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
+    const order = JSON.parse(rawBody);
     const result = await handleOrder(order);
     console.log("Shopify order processed:", JSON.stringify(result));
 
