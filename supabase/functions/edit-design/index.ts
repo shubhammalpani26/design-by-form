@@ -137,7 +137,18 @@ serve(async (req) => {
       priorEdits.length ? `PRIOR REFINEMENTS the user already requested (in order):\n${priorEdits.map((e, i) => `${i + 1}. ${e}`).join("\n")}` : "",
     ].filter(Boolean).join("\n\n");
 
-    const PRODUCT_CONSTRAINTS = `${MANUFACTURING_CONSTRAINTS}
+    const isFigurine = /figurine|miniature|statuette|bust|character model|action figure/i.test(
+      `${category ?? ""} ${originalPrompt} ${editPrompt}`,
+    );
+    const FIGURINE_CONSTRAINTS = `CRITICAL RULES — this is a sculpted collectible figurine, not a person:
+- Stylized, non-photorealistic sculpture: planar, faceted, low-poly or smoothly abstracted forms.
+- No real person, no portrait likeness, no identifiable face.
+- Single-colour sculpted material (matte resin, bone ceramic, stone-look composite).
+- Overhangs no steeper than 45°, no thin fragile protrusions, solid monolithic body.
+- Flat, stable base; fits inside a 250mm cube.
+- Keep the same figure/subject as the reference image unless the user explicitly asks to change it.`;
+
+    const PRODUCT_CONSTRAINTS = isFigurine ? FIGURINE_CONSTRAINTS : `${MANUFACTURING_CONSTRAINTS}
 - Maintain the same furniture category, overall silhouette, and core proportions as the source image unless the user explicitly requests a category/silhouette change.`;
 
     const GENERAL_CONSTRAINTS = `CRITICAL MANUFACTURING CONSTRAINTS for every individual piece in the scene:
@@ -148,7 +159,7 @@ serve(async (req) => {
 - You MAY redesign multiple pieces, change layouts, swap furniture categories, or fully reimagine the space when the user asks for that — this is a full custom-project conversation.
 - If the user's edit is vague (e.g. "make it bigger", "can't see it"), treat it as a framing/quality request and KEEP the same scene composition.`;
 
-    const productSystem = `You are a world-class furniture designer and product photographer.
+    const productSystem = `You are a world-class ${isFigurine ? "sculptor" : "furniture designer"} and product photographer.
 You are iterating on a single ongoing design with a creator. You will receive the current reference image of the piece plus their next instruction.
 Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent across the whole session.
 
