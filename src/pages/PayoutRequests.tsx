@@ -31,6 +31,7 @@ interface PayoutRequest {
   bank_account_holder_name: string;
   bank_account_number: string;
   bank_ifsc_code: string;
+  payout_currency: string;
 }
 
 interface DesignerProfile {
@@ -41,6 +42,10 @@ interface BankDetails {
   bank_account_holder_name: string | null;
   bank_account_number: string | null;
   bank_ifsc_code: string | null;
+  bank_routing_number: string | null;
+  bank_swift_code: string | null;
+  bank_iban: string | null;
+  bank_country: string | null;
   bank_details_verified: boolean;
 }
 
