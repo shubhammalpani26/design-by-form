@@ -53,7 +53,9 @@ const PayoutRequests = () => {
   const [requests, setRequests] = useState<PayoutRequest[]>([]);
   const [profile, setProfile] = useState<DesignerProfile | null>(null);
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
-  const [availableBalance, setAvailableBalance] = useState(0);
+  const [inrBalance, setInrBalance] = useState(0);
+  const [usdBalance, setUsdBalance] = useState(0);
+  const [activeCurrency, setActiveCurrency] = useState<'INR' | 'USD'>('INR');
   const [requestAmount, setRequestAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -61,7 +63,8 @@ const PayoutRequests = () => {
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
 
-  const MINIMUM_PAYOUT = 5000;
+  const MINIMUM_PAYOUT_INR = 5000;
+  const MINIMUM_PAYOUT_USD = 100;
 
   useEffect(() => {
     fetchData();
