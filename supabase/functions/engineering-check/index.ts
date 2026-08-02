@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
+import { buildBudgetBrief } from "../_shared/budget.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -21,6 +22,13 @@ const inputSchema = z.object({
     .default({}),
   targetMaker: z.string().max(80).optional().default(""),
   manufacturingMethod: z.enum(["artisan_in", "fdm_us"]).optional().default("artisan_in"),
+  budget: z
+    .object({
+      min: z.number().nonnegative(),
+      max: z.number().positive(),
+      currency: z.enum(["INR", "USD"]).optional().default("INR"),
+    })
+    .optional(),
 });
 
 // US on-demand FDM tiers (Slant 3D style print farms).
@@ -60,8 +68,26 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    const { imageUrl, prompt, category, dimensions, targetMaker, manufacturingMethod } = parsed.data;
+    const { imageUrl, prompt, category, dimensions, targetMaker, manufacturingMethod, budget } = parsed.data;
     const fdmTier = resolveFdmTier(category, manufacturingMethod);
+
+    // Budget agent input: the engineering agent also verifies the design can be
+    // built inside the creator's target manufacturing base price band.
+    const budgetBrief = budget
+      ? buildBudgetBrief(budget.min, budget.max, budget.currency ?? (fdmTier ? "USD" : "INR"), Boolean(fdmTier))
+      : null;
+    const budgetSection = budgetBrief
+      ? `
+
+BUDGET ENVELOPE — the creator is designing for a target manufacturing base price:
+${budgetBrief.text}
+Also judge COST FIT:
+- Estimate the finished piece's bounding volume from the image and stated dimensions.
+- If it is clearly larger, heavier, or more materially complex than this budget allows, set "budget_fit" to "over" and add a cost issue.
+- If it is far smaller/simpler than the budget allows (leaving value on the table), set "budget_fit" to "under".
+- Otherwise "within".
+- A "over" budget_fit alone should NOT set pass=false unless it is severe (more than ~2x the envelope); it should always produce a revision_prompt that reduces scale/mass/material count.`
+      : "";
 
     const apiKey = Deno.env.get("LOVABLE_API_KEY");
     if (!apiKey) {
