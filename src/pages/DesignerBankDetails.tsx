@@ -153,9 +153,10 @@ const DesignerBankDetails = () => {
             <Card>
               <CardContent className="p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <Tabs value={bankCountry} onValueChange={(v) => setBankCountry(v as "India" | "International")}>
-                    <TabsList className="grid w-full grid-cols-2">
+                  <Tabs value={bankCountry} onValueChange={(v) => setBankCountry(v as "India" | "US" | "International")}>
+                    <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="India">India</TabsTrigger>
+                      <TabsTrigger value="US">US</TabsTrigger>
                       <TabsTrigger value="International">International</TabsTrigger>
                     </TabsList>
 
