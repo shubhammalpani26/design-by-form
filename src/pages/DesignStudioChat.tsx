@@ -236,10 +236,6 @@ export default function DesignStudioChat() {
   const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
 
   function bumpRun() {
-    return bumpRunInner();
-  }
-
-  function bumpRunInner() {
     runIdRef.current += 1;
     return runIdRef.current;
   }
