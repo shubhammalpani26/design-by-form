@@ -114,7 +114,15 @@ Deno.serve(async (req) => {
 
       const fileUrl = product.print_file_url ?? product.model_url ?? null;
       const quantity = Number(item.quantity ?? 1);
-      const color = (product.slant3d_filament ?? "PLA BLACK").toString();
+
+      // Shoppers can choose a finish/filament at checkout. The selected filament string
+      // is stored in order_items.customizations.filament and takes precedence over the
+      // product default so each line item prints in the chosen color.
+      const selectedFilament =
+        (item.customizations as Record<string, unknown> | null)?.filament ??
+        product.slant3d_filament ??
+        "PLA BLACK";
+      const color = String(selectedFilament).toUpperCase();
 
       const line: Slant3DOrderLine = {
         email,
@@ -145,6 +153,7 @@ Deno.serve(async (req) => {
         order_item_color: color.split(" ").slice(-1)[0].toLowerCase(),
         profile: color.split(" ")[0],
       };
+
 
       const baseRow = {
         order_id: order.id,
