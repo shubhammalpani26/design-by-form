@@ -20,6 +20,8 @@ import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
+import { normalizeFinishes, type FinishOption } from "@/lib/finishes";
+
 
 const ProductDetail = () => {
   const { slug } = useParams();
@@ -36,9 +38,12 @@ const ProductDetail = () => {
   const [descExpanded, setDescExpanded] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [isOwnDesign, setIsOwnDesign] = useState(false);
+  const [availableFinishes, setAvailableFinishes] = useState<FinishOption[]>([]);
+  const [filamentCatalog, setFilamentCatalog] = useState<Record<string, { hexColor: string; profile: string }>>({});
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
+
 
   useEffect(() => {
     if (slug) fetchProduct();
@@ -123,6 +128,15 @@ const ProductDetail = () => {
         ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H`
         : 'Dimensions available upon request';
 
+      const manufacturingMethod = data.manufacturing_method || 'artisan_in';
+      const defaultFilament = data.slant3d_filament || 'PLA BLACK';
+      const normalizedFinishes = normalizeFinishes(data.available_finishes, defaultFilament);
+
+      setAvailableFinishes(normalizedFinishes);
+      if (normalizedFinishes.length > 0) {
+        setSelectedFinish(normalizedFinishes[0].name);
+      }
+
       setProduct({
         id: data.id,
         slug: canonicalSlug,
@@ -141,7 +155,9 @@ const ProductDetail = () => {
         materials: 'High-grade resin reinforced with composite fibre. Weather-resistant.',
         designerBio: `${data.designer_profiles?.name} creates innovative designs with sustainability in mind.`,
         model_url: data.model_url,
-        angle_views: data.angle_views || []
+        angle_views: data.angle_views || [],
+        manufacturing_method: manufacturingMethod,
+        default_filament: defaultFilament,
       });
     } catch (error) {
       console.error('Error fetching product:', error);
@@ -150,12 +166,49 @@ const ProductDetail = () => {
     }
   };
 
+  // Load the US manufacturing partner's filament catalog so finish swatches can show
+  // real colors and the selected filament is passed through to fulfillment.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('partner-filaments', {
+          body: {},
+        });
+        if (cancelled || error || !data?.filaments) return;
+        const map: Record<string, { hexColor: string; profile: string }> = {};
+        (data.filaments as any[]).forEach((f: any) => {
+          if (f?.filament) {
+            map[String(f.filament).toUpperCase()] = {
+              hexColor: f.hexColor || '#D4A574',
+              profile: f.profile || 'PLA',
+            };
+          }
+        });
+        setFilamentCatalog(map);
+      } catch (e) {
+        console.error('Failed to load filament catalog:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
+
+
   const handleAddToCart = async () => {
     if (!product?.id) return;
     try {
-      await addToCart(product.id, { finish: selectedFinish, size: selectedSize });
+      const selected = availableFinishes.find((f) => f.name === selectedFinish);
+      const isUsMade = product.manufacturing_method === 'fdm_us';
+      await addToCart(product.id, {
+        finish: selectedFinish,
+        size: selectedSize,
+        ...(isUsMade ? { filament: selected?.filament || product.default_filament || 'PLA BLACK' } : {}),
+      });
     } catch (error) { console.error('Add to cart error:', error); }
   };
+
+
 
   const handleSave = () => {
     setIsSaved(!isSaved);
@@ -230,14 +283,23 @@ const ProductDetail = () => {
 
   const maker = getMakerForProduct(product.id, product.category);
 
-  const finishes = [
-    { name: 'Natural', color: '#D4A574' },
-    { name: 'Matte Black', color: '#2D2D2D' },
-    { name: 'Glossy White', color: '#F5F5F0' },
-    { name: 'Walnut', color: '#5C3A1E' },
-    { name: 'Concrete', color: '#A0A09B' },
-  ];
+  // For US-made (FDM) products, use the creator-defined finishes mapped to partner filaments.
+  // For all other products, fall back to the generic finish preview palette.
+  const isUsMade = product.manufacturing_method === 'fdm_us';
+  const finishes = isUsMade && availableFinishes.length > 0
+    ? availableFinishes.map((f) => ({
+        name: f.name,
+        color: filamentCatalog[f.filament.toUpperCase()]?.hexColor || f.hex || '#D4A574',
+      }))
+    : [
+        { name: 'Natural', color: '#D4A574' },
+        { name: 'Matte Black', color: '#2D2D2D' },
+        { name: 'Glossy White', color: '#F5F5F0' },
+        { name: 'Walnut', color: '#5C3A1E' },
+        { name: 'Concrete', color: '#A0A09B' },
+      ];
   const canonicalPath = `/product/${product.slug || slugify(product.name)}`;
+
   const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   return (
@@ -423,9 +485,11 @@ const ProductDetail = () => {
               );
             })()}
 
-            {/* Finish selector — compact */}
+            {/* Finish / filament selector — compact */}
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1.5 block">Finish</label>
+              <label className="text-xs font-semibold text-foreground mb-1.5 block">
+                {isUsMade ? 'Color / Filament' : 'Finish'}
+              </label>
               <div className="flex flex-wrap gap-1.5">
                 {finishes.map((finish) => (
                   <button key={finish.name} onClick={() => setSelectedFinish(finish.name)}
@@ -435,7 +499,13 @@ const ProductDetail = () => {
                   </button>
                 ))}
               </div>
+              {isUsMade && (
+                <p className="text-[10px] text-muted-foreground mt-1.5">
+                  Selected filament will be used for US manufacturing.
+                </p>
+              )}
             </div>
+
 
             {/* Size selector — compact */}
             <div>

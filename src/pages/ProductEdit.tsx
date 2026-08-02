@@ -10,10 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Trash2, Wand2, Loader2, RefreshCcw, Check, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Wand2, Loader2, RefreshCcw, Check, X, Plus } from 'lucide-react';
 import { PriceCalculator } from '@/components/PriceCalculator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { SEOHead } from "@/components/SEOHead";
+import { normalizeFinishes, type FinishOption } from '@/lib/finishes';
 
 interface ProductData {
   name: string;
@@ -28,7 +29,11 @@ interface ProductData {
   dimensions: any;
   materials_description: string | null;
   angle_views: any[];
+  available_finishes: unknown;
+  manufacturing_method: string;
+  slant3d_filament: string;
 }
+
 
 const ProductEdit = () => {
   const { id } = useParams();
@@ -46,6 +51,9 @@ const ProductEdit = () => {
   const [variantLabel, setVariantLabel] = useState('');
   const [variantBusy, setVariantBusy] = useState(false);
   const [variantPreview, setVariantPreview] = useState<string | null>(null);
+  const [filamentCatalog, setFilamentCatalog] = useState<string[]>([]);
+  const [finishEditor, setFinishEditor] = useState<FinishOption[]>([]);
+
 
   useEffect(() => {
     fetchProduct();
@@ -92,7 +100,18 @@ const ProductEdit = () => {
         return;
       }
 
-      setProduct({ ...productData, angle_views: Array.isArray((productData as any).angle_views) ? (productData as any).angle_views : [] } as any);
+      const normalized = normalizeFinishes(
+        (productData as any).available_finishes,
+        (productData as any).slant3d_filament || 'PLA BLACK',
+      );
+
+      setProduct({
+        ...productData,
+        angle_views: Array.isArray((productData as any).angle_views) ? (productData as any).angle_views : [],
+        manufacturing_method: (productData as any).manufacturing_method || 'artisan_in',
+        slant3d_filament: (productData as any).slant3d_filament || 'PLA BLACK',
+      } as any);
+      setFinishEditor(normalized.length > 0 ? normalized : [{ name: 'Natural', filament: (productData as any).slant3d_filament || 'PLA BLACK' }]);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -104,6 +123,25 @@ const ProductEdit = () => {
       setIsLoading(false);
     }
   };
+
+  // Load the partner filament catalog so creators can map each finish to a real filament.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('partner-filaments', { body: {} });
+        if (cancelled || error || !data?.filaments) return;
+        const names = (data.filaments as any[])
+          .map((f: any) => f?.filament)
+          .filter((f): f is string => typeof f === 'string');
+        setFilamentCatalog(names);
+      } catch (e) {
+        console.error('Failed to load filament catalog:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const handleSave = async () => {
     if (!product) return;
@@ -126,8 +164,13 @@ const ProductEdit = () => {
           angle_views: product.angle_views,
           status: newStatus,
           rejection_reason: wasApproved ? null : product.rejection_reason,
+          ...(product.manufacturing_method === 'fdm_us'
+            ? { available_finishes: finishEditor.map((f) => ({ name: f.name, filament: f.filament })) }
+            : {}),
         })
         .eq('id', id);
+
+
 
       if (error) throw error;
 
@@ -603,7 +646,81 @@ const ProductEdit = () => {
               )}
             </div>
 
+            {/* Finish-to-filament mapping for US-manufactured pieces */}
+            {product.manufacturing_method === 'fdm_us' && (
+              <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold">Finish &amp; color mapping</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Map each finish you offer to the exact partner filament. Shoppers will see these as selectable color swatches on the product page.
+                </p>
+
+                <div className="space-y-2">
+                  {finishEditor.map((finish, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-2 items-end">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Finish name</Label>
+                        <Input
+                          value={finish.name}
+                          onChange={(e) => {
+                            const next = [...finishEditor];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setFinishEditor(next);
+                          }}
+                          placeholder="e.g. Matte Black"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Partner filament</Label>
+                        <Select
+                          value={finish.filament}
+                          onValueChange={(value) => {
+                            const next = [...finishEditor];
+                            next[idx] = { ...next[idx], filament: value };
+                            setFinishEditor(next);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select filament" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filamentCatalog.map((name) => (
+                              <SelectItem key={name} value={name}>{name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFinishEditor([...finishEditor, { name: '', filament: product.slant3d_filament || 'PLA BLACK' }])}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add finish
+                  </Button>
+                  {finishEditor.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFinishEditor(finishEditor.slice(0, -1))}
+                    >
+                      Remove last
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-4 pt-4">
+
               {product.status === 'rejected' && (
                 <Button
                   onClick={handleResubmit}

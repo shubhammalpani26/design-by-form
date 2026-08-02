@@ -1,78 +1,57 @@
 ## Goal
+Let shoppers choose the exact Slant 3D filament/color for each US-made product, store that choice on the order line, and fulfill with the selected color.
 
-Move buying onto Shopify (both India and US) while keeping the Nyzora business model exactly as it is: MBP is private and stays in Nyzora, only the final list price goes to Shopify, and creator/maker economics are still calculated on our side.
+## Out of scope / confirmed limitation
+True multi-color within a single printed object is not supported by the partner API (one line = one `order_item_color` + `profile`). Multi-color pieces would need separate parts assembled post-print; that is not part of this change.
 
-## The split of responsibility
+## Plan
 
-```text
-NYZORA (source of truth)              SHOPIFY (storefront + money)
-------------------------------        ----------------------------
-AI design studio                      Product catalog (list price only)
-Admin approval                        Cart + checkout
-MBP  (never leaves Nyzora)            Payments via Stripe
-Creator markup / maker commission     Shipping + taxes
-Creator earnings + payouts            Order records
-Manufacturing routing
-        |                                      |
-        |---- push on approval --------------->|
-        |<--- order webhook ------------------ |
-```
+### 1. Data model: map finishes to partner filaments
+- Evolve `designer_products.available_finishes` to support objects: `{ name, filament, hex? }` while keeping string entries backward-compatible.
+- Add a helper to normalize finishes (string → object with `filament` defaulting to `product.slant3d_filament`).
+- Backfill existing products: if `available_finishes` is an array of strings, treat each string as both display name and filament name, defaulting to `slant3d_filament`.
 
-MBP is never written to Shopify — not as a price, not as a metafield, not as a tag. Shopify only ever receives the final list price (`designer_price`).
+### 2. Fetch & cache partner filament catalog
+- Add `getFilaments()` call from `slant3d.ts` to an edge function or admin-only RPC.
+- Cache the catalog (filament name, hex color, profile) in a new `pricing_config` row or a short-lived Supabase cache table so the product page can render real color swatches without exposing the partner API directly to the browser.
+- Refresh cache daily or on admin demand.
 
-## Step 1: Link the two catalogs
+### 3. Product detail page color selector
+- In `ProductDetail.tsx`, when `manufacturing_method === 'fdm_us'` and `available_finishes` has entries, render a filament/color swatch row.
+- Show color name + hex swatch when the filament exists in the cached catalog; fallback to a generic chip if unknown.
+- Selected finish is stored in component state and passed into `addToCart` as `customizations.finish` and `customizations.filament`.
 
-Add to `designer_products`: `shopify_product_id`, `shopify_variant_id`, `shopify_synced_at`, `shopify_sync_error`. Nothing else about pricing changes.
+### 4. Cart & checkout persistence
+- `CartContext` / `cart` table already supports `customizations` jsonb.
+- Ensure `addToCart` writes `{ finish: "Matte Black", filament: "PLA BLACK" }` into `customizations`.
+- Ensure checkout/order creation copies `customizations` from cart to `order_items.customizations`.
 
-## Step 2: Push approved products to Shopify
+### 5. Fulfillment uses selected filament
+- Update `slant3d-fulfill/index.ts`: read `item.customizations?.filament` first, then fall back to `product.slant3d_filament`.
+- Validate the filament string against the partner catalog before placing the order; if invalid, record `status: 'needs_file'` (or a new `invalid_color`) and surface the error.
+- Log selected finish/filament in `slant3d_fulfillments.request_payload`.
 
-A `sync-product-to-shopify` edge function, triggered when admin approves a product (and when an approved product is edited and re-approved). It sends:
+### 6. Creator / admin UI
+- In `ProductEdit.tsx` and the admin product edit, add a small "Finish → Filament" mapping panel when `manufacturing_method === 'fdm_us'`.
+- Let creators pick from the cached partner filament catalog for each finish, or type a custom filament string.
+- Save normalized `{ name, filament, hex? }` objects into `available_finishes`.
 
-- Title, description, category, image
-- Price = `designer_price` (the list price)
-- SKU = the Nyzora product id, so orders map back cleanly
-- Tags for creator, category, manufacturing method, production region
-- `requires_shipping: true`, weight from our dimensions data
+### 7. Quote behavior
+- `slant3d-quote` continues to quote using the product's default `slant3d_filament` because partner pricing is largely material/profile-driven, not color-driven.
+- If later we find large price deltas between filaments, we can extend quoting per variant; not needed now.
 
-It does **not** send: MBP, markup, commission rate, creator earnings.
+### 8. Testing
+- Verify a non-US product does not show the selector.
+- Verify selecting a finish updates cart customizations.
+- Verify `slant3d-fulfill` uses the custom filament string and falls back correctly.
+- Verify legacy string-only `available_finishes` still render and fulfill.
 
-## Step 3: One store, two markets
-
-The store is INR-based, which matches your India catalog today. US selling runs through Shopify Markets: same products, USD presentment, US shipping profile. When you start listing FDM-made pieces (`manufacturing_method = fdm_us`), those get tagged for the US market and a US fulfilment profile so India-made and US-made items route differently.
-
-## Step 4: Storefront and checkout
-
-The Nyzora site keeps its own look — Browse, product pages, creator profiles, design studio all stay. What changes is the buy path:
-
-- "Add to cart" now creates a real Shopify cart via the Storefront API
-- Cart drawer reads live Shopify prices and currency
-- Checkout opens the Shopify-hosted checkout, which is where Stripe collects payment
-
-The existing Razorpay subscription checkout for creator plans stays untouched — that's separate from product sales.
-
-## Step 5: Pull orders back for creator earnings
-
-A `shopify-order-webhook` edge function receives paid orders, matches each line item's SKU to the Nyzora product, then writes `orders`, `order_items` and `designer_earnings` using our private numbers:
-
-- Creator earnings = (list price − MBP) × quantity
-- Maker commission = 20% of MBP × quantity
-- Product sale counts and creator dashboards update as they do today
-
-So the creator dashboard, leaderboard and payout flow keep working with no change to the model.
-
-## Step 6: Retire the custom checkout
-
-Once orders flow correctly, the old `create-order` path, cart table and GST-invoice checkout become read-only history. Existing orders stay intact and visible in order history; new sales come from Shopify.
-
-## What I need from you
-
-1. Confirm you want the Nyzora-branded storefront kept (buy button goes to Shopify checkout) rather than replacing the site with a Shopify theme.
-2. Whether to backfill all 58 approved products into Shopify now, or start with a smaller batch to verify pricing and shipping first.
-
-## Technical notes
-
-- Storefront API version 2025-07, cart via `cartCreate`/`cartLines*` mutations, checkout URL from the API with `channel=online_store`.
-- Cart state in Zustand with localStorage persistence, synced against Shopify on tab focus.
-- Product sync is idempotent — keyed on `shopify_product_id`, so re-approval updates rather than duplicates.
-- Order webhook is idempotent on Shopify order id to survive Shopify's retries.
-- India GST invoicing currently generated by `generate-invoice` will need to read from Shopify order data instead; flagging this as follow-up work rather than part of the first cut.
+## Files expected to change
+- `supabase/functions/slant3d-fulfill/index.ts`
+- `src/pages/ProductDetail.tsx`
+- `src/pages/ProductEdit.tsx`
+- `src/contexts/CartContext.tsx`
+- `src/pages/Cart.tsx` / `Checkout.tsx` (display selected finish)
+- `src/components/admin/ProductsManagement.tsx` or `AdminProductEdit.tsx`
+- New edge function or RPC to expose cached filament catalog
+- Migration for `available_finishes` normalization (if needed beyond app-level handling)
