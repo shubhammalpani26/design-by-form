@@ -148,7 +148,8 @@ Deno.serve(async (req) => {
       ui_mode: "embedded_page",
       return_url: returnUrl,
       customer: customerId,
-      automatic_tax: { enabled: true },
+      // Stripe Tax is unavailable for India-based accounts, so tax is handled
+      // outside checkout (GST invoicing) rather than calculated here.
       metadata: { userId: user.id, lovablePriceId: priceId },
       ...(!isRecurring && { payment_intent_data: { description: productDescription } }),
       ...(isRecurring && {
