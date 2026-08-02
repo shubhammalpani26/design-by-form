@@ -116,7 +116,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signUp({
         email: signupData.email,
         password: signupData.password,
-        options: { emailRedirectTo: `${window.location.origin}/` },
+        options: { emailRedirectTo: `${window.location.origin}${getReturnToPath()}` },
       });
       if (error) throw error;
       toast({ title: "Account created!", description: "Welcome to Nyzora. You can now submit creator applications." });
