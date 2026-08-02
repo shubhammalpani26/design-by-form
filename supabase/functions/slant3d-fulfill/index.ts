@@ -157,14 +157,11 @@ Deno.serve(async (req) => {
       };
 
       if (!isPrintableFileUrl(fileUrl)) {
-        await admin.from("slant3d_fulfillments").upsert(
-          {
-            ...baseRow,
-            status: "needs_file",
-            error: "No .stl/.3mf/.obj print file on this product",
-          },
-          { onConflict: "id" },
-        );
+        await admin.from("slant3d_fulfillments").insert({
+          ...baseRow,
+          status: "needs_file",
+          error: "No .stl/.3mf/.obj print file on this product",
+        });
         results.push({ order_item_id: item.id, status: "needs_file" });
         continue;
       }

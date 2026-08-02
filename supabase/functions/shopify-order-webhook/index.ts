@@ -217,6 +217,26 @@ Deno.serve(async (req) => {
     const result = await handleOrder(order);
     console.log("Shopify order processed:", JSON.stringify(result));
 
+    // Route any US-printed (fdm_us) items to the Slant 3D print farm.
+    if (result.orderId) {
+      try {
+        const res = await fetch(
+          `${Deno.env.get("SUPABASE_URL")}/functions/v1/slant3d-fulfill`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "x-internal-key": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+            },
+            body: JSON.stringify({ order_id: result.orderId }),
+          },
+        );
+        console.log("Slant 3D routing:", res.status, (await res.text()).slice(0, 500));
+      } catch (e) {
+        console.error("Slant 3D routing failed:", e instanceof Error ? e.message : e);
+      }
+    }
+
     return new Response(JSON.stringify({ received: true, ...result }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
