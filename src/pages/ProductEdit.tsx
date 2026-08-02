@@ -51,6 +51,9 @@ const ProductEdit = () => {
   const [variantLabel, setVariantLabel] = useState('');
   const [variantBusy, setVariantBusy] = useState(false);
   const [variantPreview, setVariantPreview] = useState<string | null>(null);
+  const [filamentCatalog, setFilamentCatalog] = useState<string[]>([]);
+  const [finishEditor, setFinishEditor] = useState<FinishOption[]>([]);
+
 
   useEffect(() => {
     fetchProduct();
