@@ -75,65 +75,12 @@ const Cart = () => {
     })();
   }, [addToCart]);
   
-  // Checkout form state
-  const [checkoutForm, setCheckoutForm] = useState({
-    name: "",
-    address: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    phone: "",
-    gstin: ""
-  });
-
-  const indianStates = [
-    "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh",
-    "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka",
-    "Kerala", "Madhya Pradesh", "Maharashtra", "Manipur", "Meghalaya", "Mizoram",
-    "Nagaland", "Odisha", "Punjab", "Rajasthan", "Sikkim", "Tamil Nadu",
-    "Telangana", "Tripura", "Uttar Pradesh", "Uttarakhand", "West Bengal"
-  ];
-
-  const handleCheckout = async () => {
-    // Validate form
-    if (!checkoutForm.name || !checkoutForm.address || !checkoutForm.city || 
-        !checkoutForm.state || !checkoutForm.zipCode || !checkoutForm.phone) {
-      toast.error("Please fill in all required fields");
+  const handleCheckout = () => {
+    if (!checkoutUrl) {
+      toast.error("Checkout is not ready yet. Please try again in a moment.");
       return;
     }
-
-    setIsCheckingOut(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke("create-order", {
-        body: {
-          shippingAddress: {
-            name: checkoutForm.name,
-            address: checkoutForm.address,
-            city: checkoutForm.city,
-            state: checkoutForm.state,
-            zipCode: checkoutForm.zipCode,
-            phone: checkoutForm.phone
-          },
-          paymentMethod: "razorpay",
-          paymentId: `pay_${Date.now()}`,
-          customerGSTIN: checkoutForm.gstin || undefined,
-          customerState: checkoutForm.state
-        }
-      });
-
-      if (error) throw error;
-
-      toast.success("Order placed successfully! You can download your invoice from order history.");
-      await clearCart();
-      setShowCheckoutDialog(false);
-      navigate("/order-history");
-    } catch (error: any) {
-      console.error("Checkout error:", error);
-      toast.error(error.message || "Failed to place order");
-    } finally {
-      setIsCheckingOut(false);
-    }
+    window.open(checkoutUrl, "_blank");
   };
 
   if (isLoading) {
