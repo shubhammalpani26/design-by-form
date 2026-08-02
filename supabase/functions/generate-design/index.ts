@@ -180,10 +180,44 @@ serve(async (req) => {
       "Create organic, flowing lines inspired by natural geological or botanical forms"
     ];
 
+    // ── Category routing ────────────────────────────────────────
+    // Small-format US FDM tiers (Objects / Wall Tiles / Desk / Figurine) are NOT
+    // furniture. Using the furniture prompt for them produced off-brief or blocked
+    // generations (especially figurines, where photoreal human likeness gets refused).
+    const catLower = (category || '').toLowerCase();
+    const promptLowerCat = (prompt || '').toLowerCase();
+    const looksFigurine = /figurine|miniature|statuette|bust|character model|action figure/.test(
+      `${catLower} ${promptLowerCat}`,
+    );
+    const isSmallObject = ['objects', 'wall tiles', 'desk', 'figurine', 'decor'].includes(catLower)
+      || looksFigurine;
+    const subjectNoun = looksFigurine
+      ? 'sculptural figurine'
+      : isSmallObject
+        ? 'small-format design object'
+        : 'furniture piece';
+
+    const figurineConstraints = `
+FIGURINE / MINIATURE RULES (this is a sculpted collectible object, not a person):
+- Render a STYLIZED, non-photorealistic sculpture: planar, faceted, low-poly or smoothly abstracted forms.
+- No real person, no portrait likeness, no identifiable face — features are simplified or omitted entirely.
+- Single-colour sculpted material (matte resin, bone ceramic, matte plastic, stone-look composite).
+- Overhangs no steeper than 45°, no thin fragile protrusions (no separate fingers, hair strands, thin swords).
+- Solid, monolithic body on a flat, stable base that sits flush on the surface.
+- Fits inside a 250mm cube — desk/shelf scale collectible.`;
+
+    const smallObjectConstraints = `
+SMALL-FORMAT MANUFACTURING RULES (US FDM print farm, single part):
+- The piece must fit inside a 250mm × 250mm × 250mm build envelope.
+- Minimum 2mm wall thickness, no overhangs steeper than 45°, no unsupported bridges.
+- Flat, stable base that sits flush; single solid part (no assemblies or hardware).
+- One cohesive matte material story — resin/plastic/ceramic-look, ribbing and faceting encouraged.
+- Detail expressed through form and surface texture, not fragile thin elements.`;
+
     // Manufacturing capabilities — Nyzora now supports BOTH advanced 3D printing
     // AND traditional craft manufacturing (via Beni Enterprises and our maker network).
     // The AI should design freely across the full furniture spectrum.
-    const manufacturingConstraints = `
+    const furnitureConstraints = `
 MANUFACTURING CAPABILITIES — Nyzora's maker network can produce a wide range of furniture:
 
 1. LARGE-FORMAT 3D PRINTING (resin/composite): best for sculptural, organic, monolithic forms,
@@ -212,6 +246,12 @@ BASELINE QUALITY RULES (apply to everything):
 - Stable, well-proportioned base / footprint.
 - Real-world manufacturable at furniture scale by skilled makers.
 - Cohesive material story — materials chosen should make sense together.`;
+
+    const manufacturingConstraints = looksFigurine
+      ? figurineConstraints
+      : isSmallObject
+        ? smallObjectConstraints
+        : furnitureConstraints;
 
     // ─────────────────────────────────────────────────────────────
     // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
