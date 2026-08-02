@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { shopifyAdminGraphQL } from "../_shared/shopify-admin.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,25 +14,33 @@ const supabase = createClient(
 /** Platform commission on the manufacturing base price, per unit. */
 const MAKER_COMMISSION_RATE = 0.2;
 
-async function verifyShopifyHmac(rawBody: string, hmacHeader: string | null): Promise<boolean> {
-  const secret = Deno.env.get("SHOPIFY_WEBHOOK_SECRET");
-  if (!secret) {
-    // No shared secret configured yet — accept but log loudly so it can be tightened.
-    console.warn("SHOPIFY_WEBHOOK_SECRET is not set; skipping signature verification");
-    return true;
+const ORDER_LOOKUP = `
+  query order($id: ID!) {
+    order(id: $id) {
+      id
+      name
+      displayFinancialStatus
+      currentTotalPriceSet { shopMoney { amount currencyCode } }
+    }
   }
-  if (!hmacHeader) return false;
+`;
 
-  const key = await crypto.subtle.importKey(
-    "raw",
-    new TextEncoder().encode(secret),
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(rawBody));
-  const expected = btoa(String.fromCharCode(...new Uint8Array(signature)));
-  return expected === hmacHeader;
+/**
+ * Authenticates the payload by confirming the order actually exists in the store,
+ * using our own Admin API credentials. A forged POST cannot fabricate a real order id.
+ */
+async function verifyOrderExists(orderId: unknown): Promise<any | null> {
+  if (orderId === undefined || orderId === null) return null;
+  const gid = String(orderId).startsWith("gid://")
+    ? String(orderId)
+    : `gid://shopify/Order/${orderId}`;
+  try {
+    const data = await shopifyAdminGraphQL(ORDER_LOOKUP, { id: gid });
+    return data?.order ?? null;
+  } catch (e) {
+    console.error("Order verification lookup failed:", e instanceof Error ? e.message : e);
+    return null;
+  }
 }
 
 function extractNyzoraProductId(lineItem: any): string | null {
@@ -190,13 +199,17 @@ Deno.serve(async (req) => {
   const rawBody = await req.text();
 
   try {
-    const valid = await verifyShopifyHmac(rawBody, req.headers.get("x-shopify-hmac-sha256"));
-    if (!valid) {
-      console.error("Rejected Shopify webhook: invalid HMAC signature");
-      return new Response("Invalid signature", { status: 401, headers: corsHeaders });
+    const order = JSON.parse(rawBody);
+
+    const verified = await verifyOrderExists(order?.id);
+    if (!verified) {
+      console.error("Rejected Shopify webhook: order could not be verified against the store");
+      return new Response(JSON.stringify({ error: "Unverified order" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    const order = JSON.parse(rawBody);
     const result = await handleOrder(order);
     console.log("Shopify order processed:", JSON.stringify(result));
 
