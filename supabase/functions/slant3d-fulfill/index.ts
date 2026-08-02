@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
 
     const { data: items, error: itemsErr } = await admin
       .from("order_items")
-      .select("id, product_id, designer_id, quantity")
+      .select("id, product_id, designer_id, quantity, customizations")
       .eq("order_id", orderId);
     if (itemsErr) throw itemsErr;
     if (!items?.length) return json({ error: "Order has no items" }, 400);
