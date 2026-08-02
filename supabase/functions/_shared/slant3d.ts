@@ -161,3 +161,65 @@ export function isPrintableFileUrl(url: string | null | undefined): boolean {
 export function partnerCostToMbpUsd(partnerCostUsd: number): number {
   return Math.round(partnerCostUsd * US_PARTNER_MARKUP * 100) / 100;
 }
+
+/**
+ * Representative US destination used to fold an average shipping cost into the
+ * MBP at quote time (customers are then shipped free). Mid-country residential
+ * address keeps the estimate close to the national average.
+ */
+const REFERENCE_US_DESTINATION = {
+  street1: "1 N Central Ave",
+  city: "Kansas City",
+  state: "MO",
+  zip: "64105",
+};
+
+/**
+ * Landed unit cost in USD (print + shipping) for a single piece, using a
+ * reference US destination. Falls back to the slicer-only price when the
+ * partner cannot estimate shipping.
+ */
+export async function estimateLandedUnitCost(
+  fileUrl: string,
+  itemName: string,
+  color = "PLA BLACK",
+): Promise<{ landedUsd: number; printUsd: number; shippingUsd: number; estimated: boolean }> {
+  const printUsd = await sliceModel(fileUrl);
+
+  const line: Slant3DOrderLine = {
+    email: "orders@nyzora.ai",
+    phone: "000-000-0000",
+    name: "Nyzora Quote",
+    orderNumber: `quote-${Date.now()}`,
+    filename: fileUrl.split("/").pop() ?? "model.stl",
+    fileURL: fileUrl,
+    bill_to_street_1: REFERENCE_US_DESTINATION.street1,
+    bill_to_city: REFERENCE_US_DESTINATION.city,
+    bill_to_state: REFERENCE_US_DESTINATION.state,
+    bill_to_zip: REFERENCE_US_DESTINATION.zip,
+    bill_to_country_as_iso: "US",
+    bill_to_is_US_residential: "true",
+    ship_to_name: "Nyzora Quote",
+    ship_to_street_1: REFERENCE_US_DESTINATION.street1,
+    ship_to_city: REFERENCE_US_DESTINATION.city,
+    ship_to_state: REFERENCE_US_DESTINATION.state,
+    ship_to_zip: REFERENCE_US_DESTINATION.zip,
+    ship_to_country_as_iso: "US",
+    ship_to_is_US_residential: "true",
+    order_item_name: itemName.slice(0, 120) || "Nyzora piece",
+    order_quantity: "1",
+    order_item_color: color,
+  };
+
+  try {
+    const total = await estimateOrder([line]);
+    if (Number.isFinite(total) && total > 0) {
+      const landedUsd = Math.round(total * 100) / 100;
+      const shippingUsd = Math.max(0, Math.round((landedUsd - printUsd) * 100) / 100);
+      return { landedUsd, printUsd, shippingUsd, estimated: true };
+    }
+  } catch (_e) {
+    /* shipping estimate unavailable — fall back to print-only cost */
+  }
+  return { landedUsd: printUsd, printUsd, shippingUsd: 0, estimated: false };
+}
