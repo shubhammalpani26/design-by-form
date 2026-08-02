@@ -1,5 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { isPrintableFileUrl, sliceModel, Slant3DError } from "../_shared/slant3d.ts";
+import {
+  isPrintableFileUrl,
+  partnerCostToMbpUsd,
+  PartnerApiError,
+  sliceModel,
+  US_PARTNER_MARKUP,
+} from "../_shared/slant3d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +22,19 @@ const admin = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
+
+const FALLBACK_USD_INR = 88;
+
+async function usdToInrRate(): Promise<number> {
+  const { data } = await admin
+    .from("currency_rates")
+    .select("rate")
+    .eq("base_currency", "USD")
+    .eq("target_currency", "INR")
+    .maybeSingle();
+  const rate = Number(data?.rate);
+  return Number.isFinite(rate) && rate > 0 ? rate : FALLBACK_USD_INR;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -38,12 +57,16 @@ Deno.serve(async (req) => {
       print_file_url: string | null;
       model_url: string | null;
       manufacturing_method: string;
+      base_price: number | null;
+      designer_price: number | null;
     } | null = null;
 
     if (productId) {
       const { data, error } = await admin
         .from("designer_products")
-        .select("id, designer_id, print_file_url, model_url, manufacturing_method")
+        .select(
+          "id, designer_id, print_file_url, model_url, manufacturing_method, base_price, designer_price",
+        )
         .eq("id", productId)
         .maybeSingle();
       if (error) throw error;
@@ -68,9 +91,9 @@ Deno.serve(async (req) => {
       );
     }
 
-    let price: number;
+    let partnerCost: number;
     try {
-      price = await sliceModel(fileUrl);
+      partnerCost = await sliceModel(fileUrl);
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       if (product) {
@@ -79,8 +102,13 @@ Deno.serve(async (req) => {
           .update({ slant3d_quote_error: message.slice(0, 500), slant3d_quoted_at: new Date().toISOString() })
           .eq("id", product.id);
       }
-      return json({ error: message }, e instanceof Slant3DError ? e.status : 502);
+      return json({ error: message }, e instanceof PartnerApiError ? e.status : 502);
     }
+
+    // Nyzora's manufacturing base price carries a 25% margin over partner cost.
+    const mbpUsd = partnerCostToMbpUsd(partnerCost);
+    const rate = await usdToInrRate();
+    const mbpInr = Math.round(mbpUsd * rate);
 
     if (product) {
       // Persist only for the owning creator or an admin.
@@ -89,22 +117,46 @@ Deno.serve(async (req) => {
         admin.rpc("has_role", { _user_id: user.id, _role: "admin" }),
       ]);
       if (profile || isAdmin === true) {
+        // Preserve the creator's markup percentage when the MBP moves.
+        const oldBase = Number(product.base_price) || 0;
+        const oldSelling = Number(product.designer_price) || 0;
+        const markupRatio = oldBase > 0 && oldSelling > 0 ? oldSelling / oldBase : 1.35;
+        const newSelling = Math.max(mbpInr, Math.round(mbpInr * markupRatio));
+
         await admin
           .from("designer_products")
           .update({
-            slant3d_price_usd: price,
+            slant3d_price_usd: partnerCost,
             slant3d_quoted_at: new Date().toISOString(),
             slant3d_quote_error: null,
             print_file_url: fileUrl,
+            base_price: mbpInr,
+            designer_price: newSelling,
+            pricing_calculated_at: new Date().toISOString(),
           })
           .eq("id", product.id);
+
+        if (oldBase > 0 && oldBase !== mbpInr) {
+          await admin.from("product_pricing_history").insert({
+            product_id: product.id,
+            old_price: oldSelling || oldBase,
+            new_price: newSelling,
+            reason: "us_manufacturing_quote",
+            changed_by: user.id,
+          });
+        }
       }
     }
 
-    return json({ price_usd: price, file_url: fileUrl });
+    return json({
+      mbp_usd: mbpUsd,
+      mbp_inr: mbpInr,
+      markup_applied: US_PARTNER_MARKUP,
+      file_url: fileUrl,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("slant3d-quote error:", message);
-    return json({ error: message }, e instanceof Slant3DError ? e.status : 500);
+    return json({ error: message }, e instanceof PartnerApiError ? e.status : 500);
   }
 });
