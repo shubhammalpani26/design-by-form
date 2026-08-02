@@ -482,9 +482,11 @@ const ProductDetail = () => {
               );
             })()}
 
-            {/* Finish selector — compact */}
+            {/* Finish / filament selector — compact */}
             <div>
-              <label className="text-xs font-semibold text-foreground mb-1.5 block">Finish</label>
+              <label className="text-xs font-semibold text-foreground mb-1.5 block">
+                {isUsMade ? 'Color / Filament' : 'Finish'}
+              </label>
               <div className="flex flex-wrap gap-1.5">
                 {finishes.map((finish) => (
                   <button key={finish.name} onClick={() => setSelectedFinish(finish.name)}
@@ -494,7 +496,13 @@ const ProductDetail = () => {
                   </button>
                 ))}
               </div>
+              {isUsMade && (
+                <p className="text-[10px] text-muted-foreground mt-1.5">
+                  Selected filament will be used for US manufacturing.
+                </p>
+              )}
             </div>
+
 
             {/* Size selector — compact */}
             <div>
