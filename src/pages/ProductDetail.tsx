@@ -31,6 +31,8 @@ const ProductDetail = () => {
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
+  const [engravedText, setEngravedText] = useState("");
+  const [giftNote, setGiftNote] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [mainImage, setMainImage] = useState<string>("");
   const [finishImage, setFinishImage] = useState<string>("");
