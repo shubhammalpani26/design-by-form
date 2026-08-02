@@ -532,6 +532,36 @@ const ProductDetail = () => {
               </div>
             </div>
 
+            {/* Personalization — US-made products only */}
+            {isUsMade && (
+              <div className="space-y-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <p className="text-xs font-semibold text-foreground">Personalize your piece</p>
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Engraved text (optional)</label>
+                  <Input
+                    value={engravedText}
+                    onChange={(e) => setEngravedText(e.target.value)}
+                    placeholder="e.g., initials, date, short message"
+                    maxLength={40}
+                    className="text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Max 40 characters. Will appear on production paperwork.</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Gift note (optional)</label>
+                  <Textarea
+                    value={giftNote}
+                    onChange={(e) => setGiftNote(e.target.value)}
+                    placeholder="Add a short gift message..."
+                    maxLength={120}
+                    rows={2}
+                    className="text-sm resize-none"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Max 120 characters.</p>
+                </div>
+              </div>
+            )}
+
             {/* Key specs — minimal row */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] tracking-[0.15em] uppercase py-3 border-t border-b border-border/50 text-muted-foreground/60 font-medium">
               <span>{Math.round(product.weight * 10) / 10} kg</span>
