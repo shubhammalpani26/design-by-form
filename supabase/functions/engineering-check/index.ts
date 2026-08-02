@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
-import { buildBudgetBrief } from "../_shared/budget.ts";
+import { buildBudgetBrief, formatMoney } from "../_shared/budget.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -160,7 +160,7 @@ CATEGORY: ${category || "(unspecified)"}
 DIMENSIONS: ${dimText}
 TARGET MAKER: ${targetMaker || "(auto-route)"}
 MANUFACTURING: ${fdmTier ? `US on-demand FDM print farm — ${fdmTier.label} tier` : "India artisan network"}
-${budgetBrief ? `TARGET BASE PRICE: ${budgetBrief.label} per unit (~${budgetBrief.cubeMinCm.toFixed(0)}–${budgetBrief.cubeMaxCm.toFixed(0)} cm scale, ${budgetBrief.complexity} complexity)` : ""}
+${budgetBrief ? `TARGET BASE PRICE: ${formatMoney(budgetBrief.min, budgetBrief.currency)}–${formatMoney(budgetBrief.max, budgetBrief.currency)} per unit (~${budgetBrief.cubeMinCm.toFixed(0)}–${budgetBrief.cubeMaxCm.toFixed(0)} cm scale, ${budgetBrief.complexity} complexity)` : ""}
 
 Assess the attached design image for manufacturability. Be lenient on aesthetics, strict on physics and process fit.`;
 
