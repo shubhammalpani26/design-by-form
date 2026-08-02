@@ -38,9 +38,12 @@ const ProductDetail = () => {
   const [descExpanded, setDescExpanded] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [isOwnDesign, setIsOwnDesign] = useState(false);
+  const [availableFinishes, setAvailableFinishes] = useState<FinishOption[]>([]);
+  const [filamentCatalog, setFilamentCatalog] = useState<Record<string, { hexColor: string; profile: string }>>({});
   const { addToCart } = useCart();
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
+
 
   useEffect(() => {
     if (slug) fetchProduct();
