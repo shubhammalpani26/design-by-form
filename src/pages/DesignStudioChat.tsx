@@ -1368,6 +1368,48 @@ export default function DesignStudioChat() {
             </div>
           </div>
 
+          {/* Budget-first brief: pick the manufacturing base price your audience buys at */}
+          <div className="px-3 md:px-6 py-2 border-b border-border bg-muted/30">
+            <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                Manufacturing base price
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => selectBudget(null)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                    !activeBand
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Any
+                </button>
+                {budgetBands.map((b) => (
+                  <button
+                    key={b.key}
+                    onClick={() => selectBudget(b.key)}
+                    title={b.audience}
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                      activeBand?.key === b.key
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+              {budgetBrief && (
+                <span className="text-[11px] text-muted-foreground">
+                  → designing to ~{budgetBrief.cubeMinCm.toFixed(0)}–{budgetBrief.cubeMaxCm.toFixed(0)} cm scale,{" "}
+                  {budgetBrief.complexity} complexity
+                  {activeBand ? ` · ${activeBand.audience.toLowerCase()}` : ""}
+                </span>
+              )}
+            </div>
+          </div>
+
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto">
             <div className="max-w-3xl mx-auto px-3 md:px-6 py-6 space-y-6">
