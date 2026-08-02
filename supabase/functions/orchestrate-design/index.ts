@@ -171,6 +171,8 @@ serve(async (req) => {
       category: inferredCategory,
       dimensions: inferredDims,
       targetMaker: requestBody?.targetMaker ?? "",
+      manufacturingMethod: requestBody?.manufacturingMethod ?? "artisan_in",
+      budget: requestBody?.budget,
     }, authHeader);
 
     const engResult = (eng.json as {
@@ -179,11 +181,15 @@ serve(async (req) => {
       issues?: string[];
       revision_prompt?: string;
       skipped?: boolean;
+      budget_fit?: "within" | "over" | "under";
     }) ?? { pass: true, confidence: 0, issues: [], skipped: true };
 
     // 3) Optional one-shot revision when engineering fails and we have a text prompt
     let revisedPayload: Record<string, unknown> | null = null;
-    const canRevise = engResult.pass === false
+    // Revise when the design fails manufacturability OR clearly overshoots the
+    // creator's target manufacturing base price.
+    const needsRevision = engResult.pass === false || engResult.budget_fit === "over";
+    const canRevise = needsRevision
       && typeof requestBody?.prompt === "string"
       && requestBody.prompt.trim().length >= 10
       && (engResult.revision_prompt?.trim().length ?? 0) > 0;
