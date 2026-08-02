@@ -322,7 +322,7 @@ PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
 - Clean, neutral backdrop (light grey seamless paper or concrete floor)
 - Subtle contact shadows and ambient occlusion grounding the piece
 - Material should read as real: show surface texture, subtle reflections, material grain
-- The furniture must look like it physically exists — real weight, real presence
+- The piece must look like it physically exists — real weight, real presence
 - Color palette: sophisticated and muted — think concrete grey, warm sand, matte black, ivory, terracotta
 - NO flat colors, NO plastic-looking surfaces, NO CGI/video-game aesthetic
 - Reference aesthetic: Zaha Hadid Design, Ross Lovegrove, Neri Oxman furniture pieces`;
@@ -331,11 +331,11 @@ PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
     let messages: any[];
     
     if (sketchImageBase64) {
-      const sketchPrompt = `You are a world-class furniture designer and product photographer. Based on this sketch/reference image, create a refined, photorealistic furniture design.
+      const sketchPrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Based on this sketch/reference image, create a refined, photorealistic ${subjectNoun}.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
-${prompt || 'Refine and elevate this design into a premium, gallery-worthy furniture piece'}
+${prompt || `Refine and elevate this design into a premium, gallery-worthy ${subjectNoun}`}
 
 ${manufacturingConstraints}
 
@@ -343,7 +343,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece.`;
+Generate a single photorealistic product photograph of this ${subjectNoun}.`;
 
       messages = [{
         role: 'user',
@@ -353,7 +353,7 @@ Generate a single photorealistic product photograph of this furniture piece.`;
         ]
       }];
     } else if (roomImageBase64) {
-      const roomAwarePrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece that would complement this space.
+      const roomAwarePrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Design a photorealistic ${subjectNoun} that would complement this space.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
@@ -365,7 +365,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece — shown on its own against a clean backdrop, NOT placed in the room.`;
+Generate a single photorealistic product photograph of this ${subjectNoun} — shown on its own against a clean backdrop, NOT placed in the room.`;
 
       messages = [{
         role: 'user',
@@ -375,7 +375,7 @@ Generate a single photorealistic product photograph of this furniture piece — 
         ]
       }];
     } else {
-      const refinedPrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece.
+      const refinedPrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Design a photorealistic ${subjectNoun}.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
@@ -387,7 +387,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece.`;
+Generate a single photorealistic product photograph of this ${subjectNoun}.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }
