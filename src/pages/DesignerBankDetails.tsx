@@ -47,7 +47,7 @@ const DesignerBankDetails = () => {
       // Get bank details from separate table
       const { data: bankDetails } = await supabase
         .from("designer_bank_details")
-        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_country")
+        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_routing_number, bank_country")
         .eq("designer_id", profile.id)
         .single();
 
@@ -58,9 +58,10 @@ const DesignerBankDetails = () => {
           ifscCode: bankDetails.bank_ifsc_code || "",
           swiftCode: bankDetails.bank_swift_code || "",
           iban: bankDetails.bank_iban || "",
+          routingNumber: bankDetails.bank_routing_number || "",
         });
         if (bankDetails.bank_country) {
-          setBankCountry(bankDetails.bank_country as "India" | "International");
+          setBankCountry(bankDetails.bank_country as "India" | "US" | "International");
         }
       }
     } catch (error) {
