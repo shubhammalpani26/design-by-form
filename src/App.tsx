@@ -37,6 +37,7 @@ const About = lazy(() => import("./pages/About"));
 
 const Contact = lazy(() => import("./pages/Contact"));
 const Auth = lazy(() => import("./pages/Auth"));
+const OAuthConsent = lazy(() => import("./pages/OAuthConsent"));
 const ShopperFAQ = lazy(() => import("./pages/ShopperFAQ"));
 const CreatorFAQ = lazy(() => import("./pages/CreatorFAQ"));
 const Plans = lazy(() => import("./pages/Plans"));
@@ -177,6 +178,7 @@ const App = () => (
               
               <Route path="/contact" element={<Contact />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
               <Route path="/designer-onboarding" element={<DesignerOnboarding />} />
               <Route path="/shopper-faq" element={<ShopperFAQ />} />
               <Route path="/creator-faq" element={<CreatorFAQ />} />

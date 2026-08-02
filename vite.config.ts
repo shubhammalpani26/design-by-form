@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { writeFileSync, mkdirSync, existsSync } from "node:fs";
 import { componentTagger } from "lovable-tagger";
+import { mcpPlugin } from "@lovable.dev/mcp-js/stacks/supabase/vite";
 
 const SITEMAP_URL =
   "https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/sitemap";
@@ -63,6 +64,7 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === "development" && componentTagger(),
     sitemapPlugin(),
+    mcpPlugin(),
   ].filter(Boolean),
   resolve: {
     alias: {
