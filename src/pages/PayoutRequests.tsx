@@ -111,21 +111,30 @@ const PayoutRequests = () => {
 
       setRequests(requestsData || []);
 
-      // Calculate available balance
+      // Calculate available balance per currency
       const { data: earnings } = await supabase
         .from('designer_earnings')
-        .select('royalty_amount')
+        .select('royalty_amount, currency')
         .eq('designer_id', profileData.id)
         .eq('paid_at', null);
 
-      const totalEarnings = earnings?.reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
+      const inrEarnings = earnings
+        ?.filter(e => (e.currency || 'INR') === 'INR')
+        .reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
+      const usdEarnings = earnings
+        ?.filter(e => e.currency === 'USD')
+        .reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
       
-      // Subtract pending payout requests
-      const pendingPayouts = requestsData
-        ?.filter(r => r.status === 'pending' || r.status === 'approved')
+      // Subtract pending payout requests by currency
+      const pendingInr = requestsData
+        ?.filter(r => (r.payout_currency || 'INR') === 'INR' && (r.status === 'pending' || r.status === 'approved'))
+        ?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
+      const pendingUsd = requestsData
+        ?.filter(r => r.payout_currency === 'USD' && (r.status === 'pending' || r.status === 'approved'))
         ?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
 
-      setAvailableBalance(totalEarnings - pendingPayouts);
+      setInrBalance(inrEarnings - pendingInr);
+      setUsdBalance(usdEarnings - pendingUsd);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
