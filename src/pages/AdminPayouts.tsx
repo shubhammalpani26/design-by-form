@@ -28,9 +28,14 @@ interface PayoutRequest {
   status: string;
   rejection_reason: string | null;
   requested_at: string;
+  payout_currency: string;
   bank_account_holder_name: string;
   bank_account_number: string;
   bank_ifsc_code: string;
+  bank_routing_number: string;
+  bank_swift_code: string;
+  bank_iban: string;
+  bank_country: string;
   designer: {
     name: string;
     email: string;
