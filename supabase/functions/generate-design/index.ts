@@ -253,11 +253,25 @@ BASELINE QUALITY RULES (apply to everything):
 - Real-world manufacturable at furniture scale by skilled makers.
 - Cohesive material story — materials chosen should make sense together.`;
 
-    const manufacturingConstraints = looksFigurine
+    // ── Budget back-tracking ────────────────────────────────────
+    // The creator picks a manufacturing base price band for their audience;
+    // we translate it into volume + complexity limits the design must respect.
+    const budgetBrief = budget
+      ? buildBudgetBrief(
+          budget.min,
+          budget.max,
+          isSmallObject ? 'USD' : (budget.currency ?? 'INR'),
+          isSmallObject,
+        )
+      : null;
+    const budgetBlock = budgetBrief ? `\n\n${budgetBrief.text}` : '';
+
+    const baseConstraints = looksFigurine
       ? figurineConstraints
       : isSmallObject
         ? smallObjectConstraints
         : furnitureConstraints;
+    const manufacturingConstraints = `${baseConstraints}${budgetBlock}`;
 
     // ─────────────────────────────────────────────────────────────
     // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
