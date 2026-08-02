@@ -49,6 +49,7 @@ const AdminProductEdit = lazy(() => import("./pages/AdminProductEdit"));
 const Cart = lazy(() => import("./pages/Cart"));
 const ProductComparison = lazy(() => import("./pages/ProductComparison"));
 const Checkout = lazy(() => import("./pages/Checkout"));
+const BillingReturn = lazy(() => import("./pages/BillingReturn"));
 const PayoutRequests = lazy(() => import("./pages/PayoutRequests"));
 const AdminPayouts = lazy(() => import("./pages/AdminPayouts"));
 const ProductStatusTracker = lazy(() => import("./pages/ProductStatusTracker"));
@@ -188,6 +189,7 @@ const App = () => (
               <Route path="/luxury-furniture-india" element={<LuxuryFurnitureIndia />} />
               <Route path="/ai-designed-furniture" element={<AIDesignedFurniture />} />
               <Route path="/checkout" element={<Checkout />} />
+              <Route path="/billing/return" element={<BillingReturn />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
               </Routes>

@@ -225,6 +225,42 @@ export type Database = {
         }
         Relationships: []
       }
+      credit_purchases: {
+        Row: {
+          amount: number
+          created_at: string
+          credits: number
+          currency: string
+          environment: string
+          id: string
+          price_id: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          credits: number
+          currency: string
+          environment?: string
+          id?: string
+          price_id: string
+          stripe_session_id: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          credits?: number
+          currency?: string
+          environment?: string
+          id?: string
+          price_id?: string
+          stripe_session_id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       credit_transactions: {
         Row: {
           amount: number
@@ -713,6 +749,7 @@ export type Database = {
           id: string
           name: string
           phone_number: string | null
+          plan_tier: string
           portfolio_url: string | null
           profile_picture_url: string | null
           slug: string | null
@@ -731,6 +768,7 @@ export type Database = {
           id?: string
           name: string
           phone_number?: string | null
+          plan_tier?: string
           portfolio_url?: string | null
           profile_picture_url?: string | null
           slug?: string | null
@@ -749,6 +787,7 @@ export type Database = {
           id?: string
           name?: string
           phone_number?: string | null
+          plan_tier?: string
           portfolio_url?: string | null
           profile_picture_url?: string | null
           slug?: string | null
@@ -1476,14 +1515,19 @@ export type Database = {
           billing_cycle: string | null
           cancel_at_period_end: boolean
           created_at: string
+          credits_refilled_at: string | null
           current_period_end: string
           current_period_start: string
+          environment: string
           id: string
           listings_limit: number | null
           listings_used: number | null
+          monthly_credits: number
           plan_type: string
+          price_id: string | null
           razorpay_subscription_id: string | null
           status: string
+          stripe_customer_id: string | null
           stripe_subscription_id: string | null
           three_d_models_limit: number | null
           three_d_models_used: number | null
@@ -1494,14 +1538,19 @@ export type Database = {
           billing_cycle?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
+          credits_refilled_at?: string | null
           current_period_end: string
           current_period_start: string
+          environment?: string
           id?: string
           listings_limit?: number | null
           listings_used?: number | null
+          monthly_credits?: number
           plan_type: string
+          price_id?: string | null
           razorpay_subscription_id?: string | null
           status: string
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           three_d_models_limit?: number | null
           three_d_models_used?: number | null
@@ -1512,14 +1561,19 @@ export type Database = {
           billing_cycle?: string | null
           cancel_at_period_end?: boolean
           created_at?: string
+          credits_refilled_at?: string | null
           current_period_end?: string
           current_period_start?: string
+          environment?: string
           id?: string
           listings_limit?: number | null
           listings_used?: number | null
+          monthly_credits?: number
           plan_type?: string
+          price_id?: string | null
           razorpay_subscription_id?: string | null
           status?: string
+          stripe_customer_id?: string | null
           stripe_subscription_id?: string | null
           three_d_models_limit?: number | null
           three_d_models_used?: number | null
@@ -1665,6 +1719,10 @@ export type Database = {
           profile_picture_url: string
           status: string
         }[]
+      }
+      has_active_subscription: {
+        Args: { check_env?: string; user_uuid: string }
+        Returns: boolean
       }
       has_role: {
         Args: {
