@@ -93,7 +93,7 @@ const PayoutRequests = () => {
       // Fetch bank details from separate table
       const { data: bankData } = await supabase
         .from('designer_bank_details')
-        .select('bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_details_verified')
+        .select('bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_routing_number, bank_swift_code, bank_iban, bank_country, bank_details_verified')
         .eq('designer_id', profileData.id)
         .single();
 
