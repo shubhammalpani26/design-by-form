@@ -195,6 +195,41 @@ const DesignerBankDetails = () => {
                       </div>
                     </TabsContent>
 
+                    <TabsContent value="US" className="space-y-6 mt-6">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Account Holder Name *</label>
+                        <Input 
+                          placeholder="Full name as per bank account" 
+                          value={formData.accountHolderName}
+                          onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Account Number *</label>
+                        <Input 
+                          placeholder="Your US bank account number"
+                          value={formData.accountNumber}
+                          onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Routing Number *</label>
+                        <Input 
+                          placeholder="e.g., 021000021"
+                          value={formData.routingNumber}
+                          onChange={(e) => setFormData({ ...formData, routingNumber: e.target.value })}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          9-digit ABA routing number for ACH transfers
+                        </p>
+                      </div>
+                    </TabsContent>
+
                     <TabsContent value="International" className="space-y-6 mt-6">
                       <div>
                         <label className="text-sm font-medium mb-2 block text-foreground">Account Holder Name *</label>
