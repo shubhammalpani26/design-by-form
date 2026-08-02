@@ -75,11 +75,12 @@ export function buildBudgetBrief(
   const hi = Math.max(min, max);
 
   if (fdm || currency === "USD") {
-    // US FDM: material volume drives cost. Roughly $1 per 10cm³ of printed part
-    // at collectible density, capped by the 250mm single-part envelope.
-    const cubeMinCm = Math.max(6, Math.min(25, Math.cbrt(lo * 10)));
-    const cubeMaxCm = Math.max(8, Math.min(25, Math.cbrt(hi * 10)));
-    const complexity = hi >= 60 ? "high" : hi >= 25 ? "medium" : "low";
+    // US FDM: printed volume drives cost. At sparse infill a part costs roughly
+    // $0.02 per cm³ of bounding volume, capped by the 250mm single-part envelope.
+    const USD_PER_CM3 = 0.02;
+    const cubeMinCm = Math.max(5, Math.min(25, Math.cbrt(lo / USD_PER_CM3)));
+    const cubeMaxCm = Math.max(7, Math.min(25, Math.cbrt(hi / USD_PER_CM3)));
+    const complexity = hi >= 100 ? "high" : hi >= 40 ? "medium" : "low";
     return {
       min: lo,
       max: hi,
