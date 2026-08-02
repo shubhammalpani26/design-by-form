@@ -54,12 +54,23 @@ function apiKey(): string {
   return key;
 }
 
+/**
+ * Partner-issued platform identifier. Attributes every slice/order call to
+ * Nyzora on the partner side (volume tiers, support, partner-rate pricing).
+ * Optional: calls still work without it, just unattributed.
+ */
+function platformId(): string | null {
+  return Deno.env.get("SLANT3D_PLATFORM_ID") ?? null;
+}
+
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const pid = platformId();
   const res = await fetch(`${BASE_URL}${path}`, {
     ...init,
     headers: {
       "api-key": apiKey(),
       "Content-Type": "application/json",
+      ...(pid ? { "platform-id": pid, "x-platform-id": pid } : {}),
       ...(init.headers ?? {}),
     },
   });
