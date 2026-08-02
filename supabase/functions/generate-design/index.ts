@@ -74,7 +74,7 @@ serve(async (req) => {
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl } = validatedData;
+    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category } = validatedData;
     console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
