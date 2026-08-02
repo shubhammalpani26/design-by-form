@@ -280,14 +280,23 @@ const ProductDetail = () => {
 
   const maker = getMakerForProduct(product.id, product.category);
 
-  const finishes = [
-    { name: 'Natural', color: '#D4A574' },
-    { name: 'Matte Black', color: '#2D2D2D' },
-    { name: 'Glossy White', color: '#F5F5F0' },
-    { name: 'Walnut', color: '#5C3A1E' },
-    { name: 'Concrete', color: '#A0A09B' },
-  ];
+  // For US-made (FDM) products, use the creator-defined finishes mapped to partner filaments.
+  // For all other products, fall back to the generic finish preview palette.
+  const isUsMade = product.manufacturing_method === 'fdm_us';
+  const finishes = isUsMade && availableFinishes.length > 0
+    ? availableFinishes.map((f) => ({
+        name: f.name,
+        color: filamentCatalog[f.filament.toUpperCase()]?.hexColor || f.hex || '#D4A574',
+      }))
+    : [
+        { name: 'Natural', color: '#D4A574' },
+        { name: 'Matte Black', color: '#2D2D2D' },
+        { name: 'Glossy White', color: '#F5F5F0' },
+        { name: 'Walnut', color: '#5C3A1E' },
+        { name: 'Concrete', color: '#A0A09B' },
+      ];
   const canonicalPath = `/product/${product.slug || slugify(product.name)}`;
+
   const canonicalUrl = getCanonicalUrl(canonicalPath);
 
   return (
