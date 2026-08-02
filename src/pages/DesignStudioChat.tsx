@@ -235,6 +235,27 @@ export default function DesignStudioChat() {
   const [userName, setUserName] = useState<string>("");
   const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
 
+  // ── Budget-first design ────────────────────────────────────────
+  // Creators pick the manufacturing base price band their audience buys at,
+  // and we back-track it into size + complexity limits for the design agent.
+  const isFdmCategory = US_FDM_CATEGORIES.has(category);
+  const budgetBands: BudgetBand[] = isFdmCategory ? USD_BUDGET_BANDS : INR_BUDGET_BANDS;
+  const activeBand = budgetBands.find((b) => b.key === budgetKey) ?? null;
+  const budgetBrief = activeBand
+    ? buildBudgetBrief(activeBand.min, activeBand.max, activeBand.currency, isFdmCategory)
+    : null;
+  const budgetPayload = activeBand
+    ? { min: activeBand.min, max: activeBand.max, currency: activeBand.currency }
+    : undefined;
+
+  function selectBudget(key: string | null) {
+    setBudgetKey(key);
+    try {
+      if (key) localStorage.setItem("nyzora_mbp_band", key);
+      else localStorage.removeItem("nyzora_mbp_band");
+    } catch { /* storage unavailable */ }
+  }
+
   function bumpRun() {
     runIdRef.current += 1;
     return runIdRef.current;
