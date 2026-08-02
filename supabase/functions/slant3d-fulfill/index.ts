@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   isPrintableFileUrl,
   placeOrder,
-  Slant3DError,
+  PartnerApiError,
   type Slant3DOrderLine,
 } from "../_shared/slant3d.ts";
 
@@ -179,7 +179,7 @@ Deno.serve(async (req) => {
         results.push({ order_item_id: item.id, status: "submitted", slant_order_id: slantOrderId });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        console.error("Slant 3D order failed:", message);
+        console.error("US print order failed:", message);
         await admin.from("slant3d_fulfillments").insert({
           ...baseRow,
           status: "failed",
@@ -192,7 +192,7 @@ Deno.serve(async (req) => {
     return json({ order_id: orderId, results });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
-    console.error("slant3d-fulfill error:", message);
-    return json({ error: message }, e instanceof Slant3DError ? e.status : 500);
+    console.error("us-print fulfill error:", message);
+    return json({ error: message }, e instanceof PartnerApiError ? e.status : 500);
   }
 });
