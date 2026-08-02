@@ -61,6 +61,24 @@ const PUBLISH = `
   }
 `;
 
+const PRODUCT_BY_HANDLE = `
+  query productByHandle($handle: String!) {
+    productByIdentifier(identifier: { handle: $handle }) {
+      id
+      variants(first: 1) { nodes { id } }
+    }
+  }
+`;
+
+/** Adopts a product that already exists in Shopify (e.g. from a partially failed earlier sync). */
+async function findExistingByHandle(handle: string | null) {
+  if (!handle) return null;
+  const data = await shopifyAdminGraphQL(PRODUCT_BY_HANDLE, { handle });
+  const found = data?.productByIdentifier;
+  if (!found?.id) return null;
+  return { id: found.id as string, variantId: found.variants?.nodes?.[0]?.id ?? null };
+}
+
 let cachedPublicationIds: string[] | null = null;
 async function getPublicationIds(): Promise<string[]> {
   if (cachedPublicationIds) return cachedPublicationIds;
@@ -165,6 +183,14 @@ async function syncProduct(productId: string) {
   let shopifyProductId = product.shopify_product_id as string | null;
   let shopifyVariantId = product.shopify_variant_id as string | null;
 
+  if (!shopifyProductId) {
+    const adopted = await findExistingByHandle(product.slug);
+    if (adopted) {
+      shopifyProductId = adopted.id;
+      shopifyVariantId = adopted.variantId;
+    }
+  }
+
   if (shopifyProductId) {
     const data = await shopifyAdminGraphQL(PRODUCT_UPDATE, {
       product: {
@@ -200,6 +226,12 @@ async function syncProduct(productId: string) {
     assertNoUserErrors("productCreate", data?.productCreate?.userErrors);
     shopifyProductId = data.productCreate.product.id;
     shopifyVariantId = data.productCreate.product.variants.nodes[0]?.id ?? null;
+
+    // Persist immediately so a later media/publish failure never orphans the Shopify product.
+    await supabase
+      .from("designer_products")
+      .update({ shopify_product_id: shopifyProductId, shopify_variant_id: shopifyVariantId })
+      .eq("id", product.id);
 
     const imageUrl = await resolveImageUrl(product);
     if (imageUrl) {
