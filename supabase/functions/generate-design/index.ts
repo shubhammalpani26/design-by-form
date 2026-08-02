@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { buildBudgetBrief, formatMoney } from '../_shared/budget.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,6 +18,11 @@ const generateDesignSchema = z.object({
   generate3D: z.boolean().optional().default(false),
   imageUrl: z.string().optional(), // For generating 3D from existing image
   category: z.string().trim().max(60).optional(),
+  budget: z.object({
+    min: z.number().nonnegative(),
+    max: z.number().positive(),
+    currency: z.enum(['INR', 'USD']).optional().default('INR'),
+  }).optional(),
 }).refine(
   (data) => {
     // For 3D-only generation (converting existing 2D to 3D)
@@ -74,7 +80,7 @@ serve(async (req) => {
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category } = validatedData;
+    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category, budget } = validatedData;
     console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
