@@ -643,7 +643,81 @@ const ProductEdit = () => {
               )}
             </div>
 
+            {/* Finish-to-filament mapping for US-manufactured pieces */}
+            {product.manufacturing_method === 'fdm_us' && (
+              <div className="border rounded-lg p-4 bg-muted/20 space-y-3">
+                <div className="flex items-center gap-2">
+                  <Wand2 className="h-4 w-4 text-primary" />
+                  <p className="text-sm font-semibold">Finish &amp; color mapping</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Map each finish you offer to the exact partner filament. Shoppers will see these as selectable color swatches on the product page.
+                </p>
+
+                <div className="space-y-2">
+                  {finishEditor.map((finish, idx) => (
+                    <div key={idx} className="grid grid-cols-1 md:grid-cols-2 gap-2 items-end">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Finish name</Label>
+                        <Input
+                          value={finish.name}
+                          onChange={(e) => {
+                            const next = [...finishEditor];
+                            next[idx] = { ...next[idx], name: e.target.value };
+                            setFinishEditor(next);
+                          }}
+                          placeholder="e.g. Matte Black"
+                        />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Partner filament</Label>
+                        <Select
+                          value={finish.filament}
+                          onValueChange={(value) => {
+                            const next = [...finishEditor];
+                            next[idx] = { ...next[idx], filament: value };
+                            setFinishEditor(next);
+                          }}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select filament" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filamentCatalog.map((name) => (
+                              <SelectItem key={name} value={name}>{name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setFinishEditor([...finishEditor, { name: '', filament: product.slant3d_filament || 'PLA BLACK' }])}
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> Add finish
+                  </Button>
+                  {finishEditor.length > 1 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setFinishEditor(finishEditor.slice(0, -1))}
+                    >
+                      Remove last
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="flex gap-4 pt-4">
+
               {product.status === 'rejected' && (
                 <Button
                   onClick={handleResubmit}
