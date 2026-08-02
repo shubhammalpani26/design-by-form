@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
+  estimateLandedUnitCost,
   isPrintableFileUrl,
   partnerCostToMbpUsd,
   PartnerApiError,
-  sliceModel,
   US_PARTNER_MARKUP,
 } from "../_shared/slant3d.ts";
 
@@ -54,6 +54,8 @@ Deno.serve(async (req) => {
     let product: {
       id: string;
       designer_id: string;
+      name?: string | null;
+      slant3d_filament?: string | null;
       print_file_url: string | null;
       model_url: string | null;
       manufacturing_method: string;
@@ -65,7 +67,7 @@ Deno.serve(async (req) => {
       const { data, error } = await admin
         .from("designer_products")
         .select(
-          "id, designer_id, print_file_url, model_url, manufacturing_method, base_price, designer_price",
+          "id, designer_id, name, slant3d_filament, print_file_url, model_url, manufacturing_method, base_price, designer_price",
         )
         .eq("id", productId)
         .maybeSingle();
@@ -92,8 +94,19 @@ Deno.serve(async (req) => {
     }
 
     let partnerCost: number;
+    let printUsd = 0;
+    let shippingUsd = 0;
+    let shippingEstimated = false;
     try {
-      partnerCost = await sliceModel(fileUrl);
+      const landed = await estimateLandedUnitCost(
+        fileUrl,
+        product?.name ?? "Nyzora piece",
+        (product?.slant3d_filament ?? "PLA BLACK").toString(),
+      );
+      partnerCost = landed.landedUsd;
+      printUsd = landed.printUsd;
+      shippingUsd = landed.shippingUsd;
+      shippingEstimated = landed.estimated;
     } catch (e) {
       const message = e instanceof Error ? e.message : String(e);
       if (product) {
@@ -151,6 +164,9 @@ Deno.serve(async (req) => {
     return json({
       mbp_usd: mbpUsd,
       mbp_inr: mbpInr,
+      print_usd: printUsd,
+      shipping_usd: shippingUsd,
+      shipping_estimated: shippingEstimated,
       markup_applied: US_PARTNER_MARKUP,
       file_url: fileUrl,
     });
