@@ -94,8 +94,23 @@ Deno.serve(async (req) => {
 
     let catalog = forceRefresh ? null : await getCachedCatalog();
     if (!catalog) {
-      catalog = await getFilaments();
-      await setCachedCatalog(catalog);
+      try {
+        catalog = await getFilaments();
+        await setCachedCatalog(catalog);
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("partner-filaments fetch failed, using fallback:", message);
+        // Fallback palette so product pages still render color swatches even if the
+        // partner API is temporarily unavailable.
+        catalog = [
+          { filament: "PLA BLACK", hexColor: "#2D2D2D", colorTag: "black", profile: "PLA" },
+          { filament: "PLA WHITE", hexColor: "#F5F5F0", colorTag: "white", profile: "PLA" },
+          { filament: "PLA RED", hexColor: "#C0392B", colorTag: "red", profile: "PLA" },
+          { filament: "PLA BLUE", hexColor: "#2980B9", colorTag: "blue", profile: "PLA" },
+          { filament: "PLA GREEN", hexColor: "#27AE60", colorTag: "green", profile: "PLA" },
+          { filament: "PLA SILVER", hexColor: "#BDC3C7", colorTag: "silver", profile: "PLA" },
+        ];
+      }
     }
 
     return new Response(JSON.stringify({ filaments: catalog }), {
@@ -110,4 +125,5 @@ Deno.serve(async (req) => {
     });
   }
 });
+
 
