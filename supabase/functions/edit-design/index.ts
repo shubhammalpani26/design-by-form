@@ -175,7 +175,7 @@ serve(async (req) => {
 You are iterating on a single ongoing design with a creator. You will receive the current reference image of the piece plus their next instruction.
 Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent across the whole session.
 
-${PRODUCT_CONSTRAINTS}
+${PRODUCT_CONSTRAINTS}${budgetBlock}
 
 ${sessionContextBlock || (category ? `Category hint: ${category}` : "")}
 
