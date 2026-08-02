@@ -100,7 +100,18 @@ const ProductEdit = () => {
         return;
       }
 
-      setProduct({ ...productData, angle_views: Array.isArray((productData as any).angle_views) ? (productData as any).angle_views : [] } as any);
+      const normalized = normalizeFinishes(
+        (productData as any).available_finishes,
+        (productData as any).slant3d_filament || 'PLA BLACK',
+      );
+
+      setProduct({
+        ...productData,
+        angle_views: Array.isArray((productData as any).angle_views) ? (productData as any).angle_views : [],
+        manufacturing_method: (productData as any).manufacturing_method || 'artisan_in',
+        slant3d_filament: (productData as any).slant3d_filament || 'PLA BLACK',
+      } as any);
+      setFinishEditor(normalized.length > 0 ? normalized : [{ name: 'Natural', filament: (productData as any).slant3d_filament || 'PLA BLACK' }]);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -112,6 +123,25 @@ const ProductEdit = () => {
       setIsLoading(false);
     }
   };
+
+  // Load the partner filament catalog so creators can map each finish to a real filament.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('partner-filaments', { body: {} });
+        if (cancelled || error || !data?.filaments) return;
+        const names = (data.filaments as any[])
+          .map((f: any) => f?.filament)
+          .filter((f): f is string => typeof f === 'string');
+        setFilamentCatalog(names);
+      } catch (e) {
+        console.error('Failed to load filament catalog:', e);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
 
   const handleSave = async () => {
     if (!product) return;
