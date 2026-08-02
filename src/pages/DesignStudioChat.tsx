@@ -613,6 +613,7 @@ export default function DesignStudioChat() {
                 category: effectiveCategory,
                 roomImageBase64: space?.base64,
                 sketchImageBase64: sketch?.base64,
+                budget: budgetPayload,
               },
             })
           )
@@ -677,6 +678,7 @@ export default function DesignStudioChat() {
                 originalPrompt,
                 priorEdits,
                 mode: isGeneralMode ? "general" : "product",
+                budget: budgetPayload,
               },
             })
           )
