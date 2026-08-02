@@ -275,17 +275,31 @@ const PayoutRequests = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card className="md:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{formatPrice(availableBalance)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Minimum payout: {formatPrice(MINIMUM_PAYOUT)}
-              </p>
+              <Tabs value={activeCurrency} onValueChange={(v) => setActiveCurrency(v as 'INR' | 'USD')}>
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="INR">INR</TabsTrigger>
+                  <TabsTrigger value="USD">USD</TabsTrigger>
+                </TabsList>
+                <TabsContent value="INR" className="mt-0">
+                  <div className="text-2xl font-bold text-green-600">{formatPrice(inrBalance)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Minimum payout: {formatPrice(MINIMUM_PAYOUT_INR)}
+                  </p>
+                </TabsContent>
+                <TabsContent value="USD" className="mt-0">
+                  <div className="text-2xl font-bold text-green-600">${usdBalance.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Minimum payout: ${MINIMUM_PAYOUT_USD.toFixed(2)}
+                  </p>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -320,28 +334,30 @@ const PayoutRequests = () => {
           <h2 className="text-2xl font-bold">Request History</h2>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-              <Button disabled={availableBalance < MINIMUM_PAYOUT}>
-                Request Payout
+              <Button disabled={activeBalance < activeMinimum}>
+                Request {activeCurrency} Payout
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request Payout</DialogTitle>
+                <DialogTitle>Request {activeCurrency} Payout</DialogTitle>
                 <DialogDescription>
-                  Request a withdrawal of your earnings. Minimum amount is {formatPrice(MINIMUM_PAYOUT)}.
+                  Request a withdrawal of your {activeCurrency} earnings. Minimum amount is {activeCurrency === 'INR' ? formatPrice(activeMinimum) : `$${activeMinimum.toFixed(2)}`}.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label>Available Balance</Label>
-                  <p className="text-2xl font-bold text-green-600">{formatPrice(availableBalance)}</p>
+                  <Label>Available {activeCurrency} Balance</Label>
+                  <p className="text-2xl font-bold text-green-600">
+                    {activeCurrency === 'INR' ? formatPrice(activeBalance) : `$${activeBalance.toFixed(2)}`}
+                  </p>
                 </div>
                 <div>
-                  <Label htmlFor="amount">Payout Amount (₹)</Label>
+                  <Label htmlFor="amount">Payout Amount ({activeCurrency})</Label>
                   <Input
                     id="amount"
                     type="number"
-                    placeholder={`Minimum ${MINIMUM_PAYOUT}`}
+                    placeholder={`Minimum ${activeCurrency === 'INR' ? activeMinimum : activeMinimum.toFixed(2)}`}
                     value={requestAmount}
                     onChange={(e) => setRequestAmount(e.target.value)}
                   />
@@ -351,8 +367,17 @@ const PayoutRequests = () => {
                     <p className="text-sm font-semibold">Bank Details</p>
                     <p className="text-sm">Account Holder: {bankDetails.bank_account_holder_name}</p>
                     <p className="text-sm">Account Number: {bankDetails.bank_account_number}</p>
-                    {bankDetails.bank_ifsc_code && (
+                    {bankDetails.bank_country && (
+                      <p className="text-sm">Country: {bankDetails.bank_country}</p>
+                    )}
+                    {activeCurrency === 'INR' && bankDetails.bank_ifsc_code && (
                       <p className="text-sm">IFSC Code: {bankDetails.bank_ifsc_code}</p>
+                    )}
+                    {activeCurrency === 'USD' && bankDetails.bank_routing_number && (
+                      <p className="text-sm">Routing Number: {bankDetails.bank_routing_number}</p>
+                    )}
+                    {activeCurrency === 'USD' && bankDetails.bank_swift_code && (
+                      <p className="text-sm">SWIFT: {bankDetails.bank_swift_code}</p>
                     )}
                   </div>
                 )}
