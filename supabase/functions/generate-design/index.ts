@@ -16,6 +16,7 @@ const generateDesignSchema = z.object({
   sketchImageBase64: z.string().optional(), // User's uploaded sketch
   generate3D: z.boolean().optional().default(false),
   imageUrl: z.string().optional(), // For generating 3D from existing image
+  category: z.string().trim().max(60).optional(),
 }).refine(
   (data) => {
     // For 3D-only generation (converting existing 2D to 3D)
