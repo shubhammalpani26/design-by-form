@@ -183,6 +183,8 @@ async function syncProduct(productId: string) {
   let shopifyProductId = product.shopify_product_id as string | null;
   let shopifyVariantId = product.shopify_variant_id as string | null;
 
+  const isFirstLink = !product.shopify_product_id;
+
   if (!shopifyProductId) {
     const adopted = await findExistingByHandle(product.slug);
     if (adopted) {
@@ -232,18 +234,16 @@ async function syncProduct(productId: string) {
       .from("designer_products")
       .update({ shopify_product_id: shopifyProductId, shopify_variant_id: shopifyVariantId })
       .eq("id", product.id);
+  }
 
+  // Attach imagery and publish on the first successful link, including products
+  // adopted after an earlier partial sync.
+  if (isFirstLink) {
     const imageUrl = await resolveImageUrl(product);
     if (imageUrl) {
       const mediaData = await shopifyAdminGraphQL(CREATE_MEDIA, {
         productId: shopifyProductId,
-        media: [
-          {
-            originalSource: imageUrl,
-            alt: product.name,
-            mediaContentType: "IMAGE",
-          },
-        ],
+        media: [{ originalSource: imageUrl, alt: product.name, mediaContentType: "IMAGE" }],
       });
       assertNoUserErrors("productCreateMedia", mediaData?.productCreateMedia?.mediaUserErrors);
     }
