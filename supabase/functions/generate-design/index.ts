@@ -54,14 +54,17 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
     
-    const supabase = createClient(supabaseUrl, supabaseKey, {
-      global: { 
-        headers: authHeader ? { Authorization: authHeader } : {}
-      }
-    });
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Try to get the user - this will work if they're authenticated
-    const { data: { user } } = await supabase.auth.getUser();
+    // Verify the caller's JWT explicitly. Passing the token to getUser() is required —
+    // relying on a global Authorization header returns no user (no client session),
+    // which previously made every authenticated generation fail with AUTH_REQUIRED.
+    const bearer = (authHeader ?? '').replace(/^Bearer\s+/i, '').trim();
+    const { data: userData, error: authError } = bearer
+      ? await supabase.auth.getUser(bearer)
+      : { data: { user: null }, error: null as unknown };
+    const user = userData?.user ?? null;
+    if (authError) console.error('Auth verification failed:', authError);
     console.log('Authenticated user:', user?.id || 'anonymous');
 
     // Require an authenticated user. Anonymous calls are no longer accepted —
