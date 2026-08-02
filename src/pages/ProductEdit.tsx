@@ -10,10 +10,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, Trash2, Wand2, Loader2, RefreshCcw, Check, X } from 'lucide-react';
+import { ArrowLeft, Trash2, Wand2, Loader2, RefreshCcw, Check, X, Plus } from 'lucide-react';
 import { PriceCalculator } from '@/components/PriceCalculator';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { SEOHead } from "@/components/SEOHead";
+import { normalizeFinishes, type FinishOption } from '@/lib/finishes';
 
 interface ProductData {
   name: string;
@@ -28,7 +29,11 @@ interface ProductData {
   dimensions: any;
   materials_description: string | null;
   angle_views: any[];
+  available_finishes: unknown;
+  manufacturing_method: string;
+  slant3d_filament: string;
 }
+
 
 const ProductEdit = () => {
   const { id } = useParams();
