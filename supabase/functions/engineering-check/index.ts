@@ -31,7 +31,7 @@ const inputSchema = z.object({
     .optional(),
 });
 
-// US on-demand FDM tiers (Slant 3D style print farms).
+// US on-demand FDM tiers (domestic print-farm envelope).
 // Anything in these categories must fit a single print envelope of 250mm cubed.
 const US_FDM_TIERS: Record<string, { label: string; modular: boolean }> = {
   objects: { label: "Objects", modular: false },
@@ -103,7 +103,7 @@ Also judge COST FIT:
         ? `W${dimensions.width ?? "?"} × H${dimensions.height ?? "?"} × D${dimensions.depth ?? "?"} cm`
         : "unspecified";
 
-    const fdmPrompt = `You are Nyzora's Engineering Agent for US on-demand manufacturing. You assess whether a generated design can be produced on a domestic FDM print farm (Slant 3D style) with zero tooling and no minimum order.
+    const fdmPrompt = `You are Nyzora's Engineering Agent for US on-demand manufacturing. You assess whether a generated design can be produced on a domestic FDM print farm with zero tooling and no minimum order.
 
 PRODUCT TIER: ${fdmTier?.label ?? "US FDM"}
 

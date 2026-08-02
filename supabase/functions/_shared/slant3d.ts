@@ -1,8 +1,11 @@
 /**
- * Slant 3D API v1 client (https://www.slant3dapi.com).
- * Auth is a plain `api-key` header. All prices are USD.
+ * US print-partner API client. Internal only — never surface the partner's
+ * name in any user-facing string. Auth is a plain `api-key` header, USD prices.
  */
 const BASE_URL = "https://www.slant3dapi.com/api";
+
+/** Nyzora's manufacturing margin on top of the partner's landed print cost. */
+export const US_PARTNER_MARKUP = 1.25;
 
 export interface Slant3DOrderLine {
   email: string;
@@ -34,7 +37,7 @@ export interface Slant3DOrderLine {
   profile?: string;
 }
 
-export class Slant3DError extends Error {
+export class PartnerApiError extends Error {
   status: number;
   constructor(message: string, status = 502) {
     super(message);
@@ -42,9 +45,12 @@ export class Slant3DError extends Error {
   }
 }
 
+/** @deprecated internal alias */
+export { PartnerApiError as Slant3DError };
+
 function apiKey(): string {
   const key = Deno.env.get("SLANT3D_API_KEY");
-  if (!key) throw new Slant3DError("SLANT3D_API_KEY is not configured", 503);
+  if (!key) throw new PartnerApiError("US manufacturing partner is not configured", 503);
   return key;
 }
 
@@ -71,7 +77,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
       typeof body === "object" && body && "error" in (body as Record<string, unknown>)
         ? JSON.stringify((body as Record<string, unknown>).error)
         : String(text).slice(0, 400);
-    throw new Slant3DError(`Slant 3D ${path} failed (${res.status}): ${detail}`, res.status);
+    throw new PartnerApiError(
+      `US manufacturing partner request failed (${res.status}): ${detail}`,
+      res.status,
+    );
   }
   return body as T;
 }
@@ -84,7 +93,7 @@ export async function sliceModel(fileURL: string): Promise<number> {
   });
   const price = data?.data?.price;
   if (typeof price !== "number") {
-    throw new Slant3DError("Slant 3D did not return a price for this file");
+    throw new PartnerApiError("The US manufacturing partner could not price this file");
   }
   return price;
 }
@@ -96,7 +105,7 @@ export async function estimateOrder(lines: Slant3DOrderLine[]): Promise<number> 
     body: JSON.stringify(lines),
   });
   if (typeof data?.totalPrice !== "number") {
-    throw new Slant3DError("Slant 3D did not return an estimate");
+    throw new PartnerApiError("The US manufacturing partner did not return an estimate");
   }
   return data.totalPrice;
 }
@@ -110,7 +119,7 @@ export async function placeOrder(
     body: JSON.stringify(lines),
   });
   const id = Array.isArray(data?.orderId) ? data.orderId[0] : data?.orderId;
-  if (!id) throw new Slant3DError("Slant 3D did not return an order id");
+  if (!id) throw new PartnerApiError("The US manufacturing partner did not return an order id");
   return { orderId: String(id), raw: data };
 }
 
@@ -146,4 +155,9 @@ export async function getFilaments(): Promise<
 export function isPrintableFileUrl(url: string | null | undefined): boolean {
   if (!url) return false;
   return /\.(stl|3mf|obj)(\?|$)/i.test(url);
+}
+
+/** Manufacturing base price (USD) = partner landed cost + Nyzora's 25% margin. */
+export function partnerCostToMbpUsd(partnerCostUsd: number): number {
+  return Math.round(partnerCostUsd * US_PARTNER_MARKUP * 100) / 100;
 }

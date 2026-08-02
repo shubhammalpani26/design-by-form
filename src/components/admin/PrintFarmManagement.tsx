@@ -28,7 +28,11 @@ interface QuotableProduct {
   model_url: string | null;
   slant3d_price_usd: number | null;
   slant3d_quote_error: string | null;
+  base_price: number | null;
 }
+
+/** Nyzora margin applied on top of the partner's landed print cost. */
+const US_MARKUP = 1.25;
 
 const statusTone: Record<string, string> = {
   shipped: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
@@ -57,7 +61,9 @@ export function PrintFarmManagement() {
         .limit(50),
       supabase
         .from("designer_products")
-        .select("id, name, print_file_url, model_url, slant3d_price_usd, slant3d_quote_error")
+        .select(
+          "id, name, print_file_url, model_url, slant3d_price_usd, slant3d_quote_error, base_price",
+        )
         .eq("manufacturing_method", "fdm_us")
         .order("created_at", { ascending: false })
         .limit(50),
@@ -106,8 +112,10 @@ export function PrintFarmManagement() {
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       toast({
-        title: "Quote received",
-        description: `${product.name}: $${Number(data.price_usd).toFixed(2)} per unit`,
+        title: "MBP updated",
+        description: `${product.name}: $${Number(data.mbp_usd).toFixed(2)}/unit (≈ ₹${Number(
+          data.mbp_inr,
+        ).toLocaleString("en-IN")}), incl. 25% margin`,
       });
       await load();
     } catch (e) {
@@ -168,7 +176,7 @@ export function PrintFarmManagement() {
                       </p>
                       <p className="truncate text-xs text-muted-foreground">
                         {job.slant_order_id
-                          ? `Slant order ${job.slant_order_id}`
+                          ? `Print job ${job.slant_order_id}`
                           : "Not submitted"}
                         {tracking.length > 0 && ` · ${tracking.join(", ")}`}
                       </p>
@@ -190,8 +198,11 @@ export function PrintFarmManagement() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base font-medium tracking-tight">
-            <Factory className="h-4 w-4" /> Slicer quotes (US-made catalogue)
+            <Factory className="h-4 w-4" /> US-made catalogue — MBP quoting
           </CardTitle>
+          <p className="mt-1 text-xs text-muted-foreground">
+            MBP = landed print cost + 25% Nyzora manufacturing margin.
+          </p>
         </CardHeader>
         <CardContent>
           {products.length === 0 ? (
@@ -207,7 +218,13 @@ export function PrintFarmManagement() {
                       <p className="truncate text-sm font-medium">{product.name}</p>
                       <p className="text-xs text-muted-foreground">
                         {product.slant3d_price_usd != null
-                          ? `Print cost $${Number(product.slant3d_price_usd).toFixed(2)}/unit`
+                          ? `MBP $${(Number(product.slant3d_price_usd) * US_MARKUP).toFixed(
+                              2,
+                            )}/unit${
+                              product.base_price
+                                ? ` · ₹${Number(product.base_price).toLocaleString("en-IN")}`
+                                : ""
+                            }`
                           : "Not quoted"}
                       </p>
                       {product.slant3d_quote_error && (
