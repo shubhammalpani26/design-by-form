@@ -69,6 +69,44 @@ async function getPublicationIds(): Promise<string[]> {
   return cachedPublicationIds!;
 }
 
+const SITE_ORIGIN = Deno.env.get("SITE_URL") ?? "https://nyzora.ai";
+
+/**
+ * Shopify can only ingest a publicly reachable image URL under 2048 chars.
+ * Relative app assets get the site origin; inline base64 gets uploaded to storage.
+ */
+async function resolveImageUrl(product: any): Promise<string | null> {
+  const raw: string | null = product.image_url;
+  if (!raw) return null;
+
+  if (raw.startsWith("http://") || raw.startsWith("https://")) return raw;
+  if (raw.startsWith("/")) return `${SITE_ORIGIN}${raw}`;
+
+  if (raw.startsWith("data:image/")) {
+    const match = raw.match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/);
+    if (!match) return null;
+    const [, subtype, base64] = match;
+    const ext = subtype === "jpeg" ? "jpg" : subtype;
+    const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+    const path = `shopify-sync/${product.id}.${ext}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, bytes, { contentType: `image/${subtype}`, upsert: true });
+    if (uploadError) throw new Error(`Image upload failed: ${uploadError.message}`);
+
+    const { data } = supabase.storage.from("product-images").getPublicUrl(path);
+    // Persist the hosted URL so the app stops carrying a multi-MB base64 string.
+    await supabase
+      .from("designer_products")
+      .update({ image_url: data.publicUrl })
+      .eq("id", product.id);
+    return data.publicUrl;
+  }
+
+  return `${SITE_ORIGIN}/${raw}`;
+}
+
 function buildDescriptionHtml(product: any): string {
   const parts: string[] = [];
   if (product.description) parts.push(`<p>${escapeHtml(product.description)}</p>`);
@@ -163,12 +201,13 @@ async function syncProduct(productId: string) {
     shopifyProductId = data.productCreate.product.id;
     shopifyVariantId = data.productCreate.product.variants.nodes[0]?.id ?? null;
 
-    if (product.image_url) {
+    const imageUrl = await resolveImageUrl(product);
+    if (imageUrl) {
       const mediaData = await shopifyAdminGraphQL(CREATE_MEDIA, {
         productId: shopifyProductId,
         media: [
           {
-            originalSource: product.image_url,
+            originalSource: imageUrl,
             alt: product.name,
             mediaContentType: "IMAGE",
           },
