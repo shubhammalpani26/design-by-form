@@ -149,13 +149,18 @@ Return STRICT JSON only, no markdown, no preamble:
   "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
 }`;
 
-    const systemPrompt = fdmTier ? fdmPrompt : artisanPrompt;
+    const systemPrompt = `${fdmTier ? fdmPrompt : artisanPrompt}${budgetSection}${
+      budgetBrief
+        ? `\nAdd "budget_fit": "within" | "over" | "under" to the JSON object.`
+        : ""
+    }`;
 
     const userText = `DESIGN BRIEF: ${prompt || "(no brief)"}
 CATEGORY: ${category || "(unspecified)"}
 DIMENSIONS: ${dimText}
 TARGET MAKER: ${targetMaker || "(auto-route)"}
 MANUFACTURING: ${fdmTier ? `US on-demand FDM print farm — ${fdmTier.label} tier` : "India artisan network"}
+${budgetBrief ? `TARGET BASE PRICE: ${budgetBrief.label} per unit (~${budgetBrief.cubeMinCm.toFixed(0)}–${budgetBrief.cubeMaxCm.toFixed(0)} cm scale, ${budgetBrief.complexity} complexity)` : ""}
 
 Assess the attached design image for manufacturability. Be lenient on aesthetics, strict on physics and process fit.`;
 
@@ -195,7 +200,13 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
     const raw_content: string = aiJson?.choices?.[0]?.message?.content ?? "";
     const cleaned = raw_content.replace(/^```json\s*/i, "").replace(/```\s*$/i, "").trim();
 
-    let result: { pass: boolean; confidence: number; issues: string[]; revision_prompt: string };
+    let result: {
+      pass: boolean;
+      confidence: number;
+      issues: string[];
+      revision_prompt: string;
+      budget_fit?: "within" | "over" | "under";
+    };
     try {
       const obj = JSON.parse(cleaned);
       result = {
@@ -204,6 +215,11 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
         issues: Array.isArray(obj.issues) ? obj.issues.slice(0, 8).map((s: unknown) => String(s)) : [],
         revision_prompt: typeof obj.revision_prompt === "string" ? obj.revision_prompt.slice(0, 600) : "",
       };
+      if (budgetBrief) {
+        result.budget_fit = ["within", "over", "under"].includes(obj.budget_fit)
+          ? obj.budget_fit
+          : "within";
+      }
     } catch (_e) {
       // Permissive fallback
       result = { pass: true, confidence: 0, issues: [], revision_prompt: "" };
