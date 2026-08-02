@@ -191,7 +191,9 @@ const handler = async (req: Request): Promise<Response> => {
       royalty_percentage: 100,
       royalty_amount: item.designer_earnings,
       commission_amount: 0,
-      status: "pending"
+      status: "pending",
+      currency: "INR",
+      country: "IN"
     }));
 
     const { error: earningsError } = await supabase
