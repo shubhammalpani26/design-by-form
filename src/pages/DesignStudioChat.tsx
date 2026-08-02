@@ -18,7 +18,6 @@ import {
   INR_BUDGET_BANDS,
   USD_BUDGET_BANDS,
   buildBudgetBrief,
-  formatMoney,
   type BudgetBand,
 } from "@/lib/budgetTiers";
 
