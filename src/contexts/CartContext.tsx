@@ -1,19 +1,11 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { cartCustomizationsSchema } from '@/lib/validations';
+import { useShopifyCart, ShopifyCartItem } from '@/stores/shopifyCart';
+import { useCartSync } from '@/hooks/useCartSync';
 
-interface CartItem {
-  id: string;
-  product_id: string;
-  quantity: number;
-  customizations: any;
-  product: {
-    name: string;
-    designer_price: number;
-    image_url: string;
-  };
-}
+type CartItem = ShopifyCartItem;
 
 interface CartContextType {
   cart: CartItem[];
@@ -24,6 +16,7 @@ interface CartContextType {
   cartTotal: number;
   cartCount: number;
   isLoading: boolean;
+  checkoutUrl: string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -37,63 +30,60 @@ export const useCart = () => {
 };
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
+  const cart = useShopifyCart((s) => s.items);
+  const isLoading = useShopifyCart((s) => s.isLoading);
+  const checkoutUrl = useShopifyCart((s) => s.checkoutUrl);
+  const addItem = useShopifyCart((s) => s.addItem);
+  const removeItem = useShopifyCart((s) => s.removeItem);
+  const updateLineQuantity = useShopifyCart((s) => s.updateQuantity);
+  const clearShopifyCart = useShopifyCart((s) => s.clearCart);
 
-  const fetchCart = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { data, error } = await supabase
-        .from('cart')
-        .select(`
-          *,
-          product:designer_products(name, designer_price, image_url)
-        `)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setCart(data || []);
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchCart();
-  }, []);
+  useCartSync();
 
   const addToCart = async (productId: string, customizations = {}) => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      const validatedCustomizations = cartCustomizationsSchema.parse(customizations);
+
+      const { data: product, error } = await supabase
+        .from('designer_products')
+        .select('id, name, designer_price, image_url, status, shopify_variant_id')
+        .eq('id', productId)
+        .maybeSingle();
+
+      if (error) throw error;
+      if (!product || product.status !== 'approved') {
         toast({
-          title: 'Please sign in',
-          description: 'You need to be logged in to add items to cart',
+          title: 'Unavailable',
+          description: 'This piece is not available for purchase right now.',
           variant: 'destructive',
         });
         return;
       }
 
-      // Validate customizations
-      const validatedCustomizations = cartCustomizationsSchema.parse(customizations);
+      if (!product.shopify_variant_id) {
+        toast({
+          title: 'Not yet purchasable',
+          description: 'This piece is still being set up in the store. Please check back shortly.',
+          variant: 'destructive',
+        });
+        return;
+      }
 
-      const { error } = await supabase.from('cart').upsert([{
-        user_id: user.id,
-        product_id: productId,
+      const ok = await addItem({
+        product_id: product.id,
+        variantId: product.shopify_variant_id,
         quantity: 1,
-        customizations: validatedCustomizations as any,
-      }], {
-        onConflict: 'user_id,product_id',
+        customizations: (validatedCustomizations || {}) as Record<string, any>,
+        product: {
+          name: product.name,
+          designer_price: Number(product.designer_price),
+          image_url: product.image_url || '',
+        },
       });
 
-      if (error) throw error;
+      if (!ok) throw new Error('Failed to add item to cart');
 
-      await fetchCart();
       toast({
         title: 'Added to cart',
         description: 'Item successfully added to your cart',
@@ -117,66 +107,24 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const removeFromCart = async (cartItemId: string) => {
-    try {
-      const { error } = await supabase
-        .from('cart')
-        .delete()
-        .eq('id', cartItemId);
-
-      if (error) throw error;
-      await fetchCart();
-      toast({
-        title: 'Removed from cart',
-        description: 'Item removed successfully',
-      });
-    } catch (error) {
-      console.error('Error removing from cart:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to remove item',
-        variant: 'destructive',
-      });
-    }
+    await removeItem(cartItemId);
+    toast({
+      title: 'Removed from cart',
+      description: 'Item removed successfully',
+    });
   };
 
   const updateQuantity = async (cartItemId: string, quantity: number) => {
-    try {
-      const { error } = await supabase
-        .from('cart')
-        .update({ quantity })
-        .eq('id', cartItemId);
-
-      if (error) throw error;
-      await fetchCart();
-    } catch (error) {
-      console.error('Error updating quantity:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to update quantity',
-        variant: 'destructive',
-      });
-    }
+    await updateLineQuantity(cartItemId, quantity);
   };
 
   const clearCart = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const { error } = await supabase
-        .from('cart')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      setCart([]);
-    } catch (error) {
-      console.error('Error clearing cart:', error);
-    }
+    clearShopifyCart();
   };
 
-  const cartTotal = cart.reduce((sum, item) => 
-    sum + (item.product?.designer_price || 0) * item.quantity, 0
+  const cartTotal = cart.reduce(
+    (sum, item) => sum + (item.product?.designer_price || 0) * item.quantity,
+    0
   );
 
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
@@ -192,6 +140,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         cartTotal,
         cartCount,
         isLoading,
+        checkoutUrl,
       }}
     >
       {children}
