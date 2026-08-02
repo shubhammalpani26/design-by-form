@@ -504,6 +504,9 @@ Generate a single photorealistic product photograph of this ${subjectNoun}.`;
       const pricingPrompt = `You are Aarav, the Master Maker and AI craftsman for premium designer furniture. Analyze this furniture design and provide pricing.
 
 Design Prompt: ${prompt}
+${budgetBrief && budgetBrief.currency === 'INR'
+  ? `\nTARGET MANUFACTURING BASE PRICE: ${formatMoney(budgetBrief.min, 'INR')}–${formatMoney(budgetBrief.max, 'INR')} per unit.\nThe piece was briefed to ${budgetBrief.complexity.toUpperCase()} complexity and roughly ${budgetBrief.volumeMinFt3?.toFixed(2)}–${budgetBrief.volumeMaxFt3?.toFixed(2)} cubic feet. Choose a rate consistent with that brief.\n`
+  : ''}
 
 This is PREMIUM DESIGNER FURNITURE — handcrafted unique pieces. Our maker network covers BOTH
 advanced large-format 3D printing AND traditional craft (wood joinery, upholstery, metalwork,
