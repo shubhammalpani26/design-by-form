@@ -199,13 +199,15 @@ const ProductDetail = () => {
     if (!product?.id) return;
     try {
       const selected = availableFinishes.find((f) => f.name === selectedFinish);
+      const isUsMade = product.manufacturing_method === 'fdm_us';
       await addToCart(product.id, {
         finish: selectedFinish,
         size: selectedSize,
-        filament: selected?.filament || product.default_filament || 'PLA BLACK',
+        ...(isUsMade ? { filament: selected?.filament || product.default_filament || 'PLA BLACK' } : {}),
       });
     } catch (error) { console.error('Add to cart error:', error); }
   };
+
 
 
   const handleSave = () => {
