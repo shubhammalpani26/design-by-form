@@ -197,9 +197,15 @@ const ProductDetail = () => {
   const handleAddToCart = async () => {
     if (!product?.id) return;
     try {
-      await addToCart(product.id, { finish: selectedFinish, size: selectedSize });
+      const selected = availableFinishes.find((f) => f.name === selectedFinish);
+      await addToCart(product.id, {
+        finish: selectedFinish,
+        size: selectedSize,
+        filament: selected?.filament || product.default_filament || 'PLA BLACK',
+      });
     } catch (error) { console.error('Add to cart error:', error); }
   };
+
 
   const handleSave = () => {
     setIsSaved(!isSaved);
