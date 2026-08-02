@@ -8,20 +8,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useEffect, useRef } from "react";
 import { SEOHead } from "@/components/SEOHead";
+import { ExternalLink } from "lucide-react";
 
 const Cart = () => {
-  const { cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, clearCart } = useCart();
+  const { cart, addToCart, removeFromCart, updateQuantity, cartTotal, cartCount, isLoading, checkoutUrl } = useCart();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
-  const [showCheckoutDialog, setShowCheckoutDialog] = useState(false);
   const prefillHandled = useRef(false);
 
   // Agent deep-link prefill: /cart?prefill=[{"id":"...","qty":1}]
