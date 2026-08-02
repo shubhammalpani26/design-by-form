@@ -643,7 +643,9 @@ Respond ONLY in valid JSON format (no markdown):
         taskId: taskId,
         has3DSupport: !!taskId,
         polling: !!taskId,
-        pricing: pricingData,
+        pricing: budgetBrief
+          ? { ...pricingData, targetMbp: { min: budgetBrief.min, max: budgetBrief.max, currency: budgetBrief.currency, complexity: budgetBrief.complexity } }
+          : pricingData,
         flywheel: miContext,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
