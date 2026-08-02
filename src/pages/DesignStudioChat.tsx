@@ -579,6 +579,7 @@ export default function DesignStudioChat() {
                 prompt: promptWithModel,
                 variationNumber: n,
                 generate3D: false,
+                category: effectiveCategory,
                 roomImageBase64: space?.base64,
                 sketchImageBase64: sketch?.base64,
               },
