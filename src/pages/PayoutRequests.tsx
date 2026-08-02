@@ -401,7 +401,7 @@ const PayoutRequests = () => {
               <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-20" />
               <p className="text-muted-foreground mb-2">No payout requests yet</p>
               <p className="text-sm text-muted-foreground">
-                Request your first payout when your balance reaches {formatPrice(MINIMUM_PAYOUT)}
+                Request your first INR payout at {formatPrice(MINIMUM_PAYOUT_INR)} or USD payout at ${MINIMUM_PAYOUT_USD.toFixed(2)}
               </p>
             </CardContent>
           </Card>
