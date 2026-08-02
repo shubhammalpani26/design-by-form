@@ -83,6 +83,9 @@ export const cartCustomizationsSchema = z.object({
   finish: z.string().max(50).optional(),
   color: z.string().max(50).optional(),
   notes: z.string().max(500).optional(),
+  filament: z.string().max(100).optional(),
+  engraved_text: z.string().max(50).optional(),
+  gift_note: z.string().max(500).optional(),
 }).passthrough(); // Allow additional properties but validate known ones
 
 // Edge function validations
