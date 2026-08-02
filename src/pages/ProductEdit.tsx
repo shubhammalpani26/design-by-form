@@ -164,9 +164,12 @@ const ProductEdit = () => {
           angle_views: product.angle_views,
           status: newStatus,
           rejection_reason: wasApproved ? null : product.rejection_reason,
-          available_finishes: finishEditor.map((f) => ({ name: f.name, filament: f.filament })),
+          ...(product.manufacturing_method === 'fdm_us'
+            ? { available_finishes: finishEditor.map((f) => ({ name: f.name, filament: f.filament })) }
+            : {}),
         })
         .eq('id', id);
+
 
 
       if (error) throw error;
