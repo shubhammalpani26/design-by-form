@@ -85,7 +85,7 @@ Deno.serve(async (req) => {
       return json(
         {
           error:
-            "Slant 3D needs an .stl, .3mf or .obj file. Upload a print-ready mesh for this design first.",
+            "A print-ready .stl, .3mf or .obj file is required. Upload a mesh for this design first.",
         },
         400,
       );
