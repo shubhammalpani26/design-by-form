@@ -54,7 +54,7 @@ async function setCachedCatalog(
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
-  if (req.method !== "GET" && req.method !== "POST") {
+  if (req.method !== "POST") {
     return new Response(JSON.stringify({ error: "Method not allowed" }), {
       status: 405,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -62,8 +62,9 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const body = await req.json().catch(() => ({}));
     // Allow public reads; only admins can force a refresh.
-    const forceRefresh = req.method === "POST";
+    const forceRefresh = body?.refresh === true;
     if (forceRefresh) {
       const token = req.headers.get("authorization")?.replace("Bearer ", "");
       if (!token) {
@@ -109,3 +110,4 @@ Deno.serve(async (req) => {
     });
   }
 });
+
