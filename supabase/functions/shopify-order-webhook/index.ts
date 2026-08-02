@@ -217,7 +217,7 @@ Deno.serve(async (req) => {
     const result = await handleOrder(order);
     console.log("Shopify order processed:", JSON.stringify(result));
 
-    // Route any US-printed (fdm_us) items to the Slant 3D print farm.
+    // Route any US-printed (fdm_us) items to the US manufacturing partner.
     if (result.orderId) {
       try {
         const res = await fetch(
@@ -231,9 +231,9 @@ Deno.serve(async (req) => {
             body: JSON.stringify({ order_id: result.orderId }),
           },
         );
-        console.log("Slant 3D routing:", res.status, (await res.text()).slice(0, 500));
+        console.log("US print routing:", res.status, (await res.text()).slice(0, 500));
       } catch (e) {
-        console.error("Slant 3D routing failed:", e instanceof Error ? e.message : e);
+        console.error("US print routing failed:", e instanceof Error ? e.message : e);
       }
     }
 
