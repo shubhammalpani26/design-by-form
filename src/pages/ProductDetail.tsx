@@ -173,7 +173,7 @@ const ProductDetail = () => {
     (async () => {
       try {
         const { data, error } = await supabase.functions.invoke('partner-filaments', {
-          method: 'GET',
+          body: {},
         });
         if (cancelled || error || !data?.filaments) return;
         const map: Record<string, { hexColor: string; profile: string }> = {};
@@ -192,6 +192,7 @@ const ProductDetail = () => {
     })();
     return () => { cancelled = true; };
   }, []);
+
 
 
   const handleAddToCart = async () => {
