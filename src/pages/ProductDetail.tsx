@@ -205,7 +205,11 @@ const ProductDetail = () => {
       await addToCart(product.id, {
         finish: selectedFinish,
         size: selectedSize,
-        ...(isUsMade ? { filament: selected?.filament || product.default_filament || 'PLA BLACK' } : {}),
+        ...(isUsMade ? {
+          filament: selected?.filament || product.default_filament || 'PLA BLACK',
+          engraved_text: engravedText.trim(),
+          gift_note: giftNote.trim(),
+        } : {}),
       });
     } catch (error) { console.error('Add to cart error:', error); }
   };
