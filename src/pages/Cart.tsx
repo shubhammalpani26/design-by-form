@@ -184,139 +184,27 @@ const Cart = () => {
                       <span>{formatPrice(cartTotal)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Shipping</span>
-                      <span className="text-green-600">FREE</span>
+                      <span>Shipping &amp; taxes</span>
+                      <span className="text-muted-foreground">Calculated at checkout</span>
                     </div>
                     <div className="border-t pt-3 flex justify-between text-xl font-bold">
-                      <span>Total</span>
+                      <span>Subtotal</span>
                       <span>{formatPrice(cartTotal)}</span>
                     </div>
                   </div>
 
-                  <Dialog open={showCheckoutDialog} onOpenChange={setShowCheckoutDialog}>
-                    <DialogTrigger asChild>
-                      <Button className="w-full" size="lg">
-                        Proceed to Checkout
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-[95vw] sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-                      <DialogHeader>
-                        <DialogTitle>Checkout - Shipping Details</DialogTitle>
-                      </DialogHeader>
-                      
-                      <div className="space-y-4 py-4">
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="name">Full Name *</Label>
-                            <Input
-                              id="name"
-                              value={checkoutForm.name}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })}
-                              placeholder="John Doe"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="phone">Phone Number *</Label>
-                            <Input
-                              id="phone"
-                              value={checkoutForm.phone}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })}
-                              placeholder="+91 9876543210"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="address">Address *</Label>
-                          <Input
-                            id="address"
-                            value={checkoutForm.address}
-                            onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })}
-                            placeholder="123 Main Street, Apartment 4B"
-                          />
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="city">City *</Label>
-                            <Input
-                              id="city"
-                              value={checkoutForm.city}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, city: e.target.value })}
-                              placeholder="Mumbai"
-                            />
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <Label htmlFor="zipCode">Pin Code *</Label>
-                            <Input
-                              id="zipCode"
-                              value={checkoutForm.zipCode}
-                              onChange={(e) => setCheckoutForm({ ...checkoutForm, zipCode: e.target.value })}
-                              placeholder="400001"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="state">State *</Label>
-                          <Select
-                            value={checkoutForm.state}
-                            onValueChange={(value) => setCheckoutForm({ ...checkoutForm, state: value })}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select State" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {indianStates.map((state) => (
-                                <SelectItem key={state} value={state}>
-                                  {state}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="gstin">GSTIN (Optional - for businesses)</Label>
-                          <Input
-                            id="gstin"
-                            value={checkoutForm.gstin}
-                            onChange={(e) => setCheckoutForm({ ...checkoutForm, gstin: e.target.value })}
-                            placeholder="22AAAAA0000A1Z5"
-                          />
-                          <p className="text-sm text-muted-foreground">
-                            Enter your GSTIN if you need a GST invoice for business purposes
-                          </p>
-                        </div>
-
-                        <div className="border-t pt-4 space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Subtotal</span>
-                            <span>{formatPrice(cartTotal)}</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>GST @ 18%</span>
-                            <span>{formatPrice(cartTotal * 0.18)}</span>
-                          </div>
-                          <div className="flex justify-between font-bold text-lg">
-                            <span>Total (incl. GST)</span>
-                            <span>{formatPrice(cartTotal * 1.18)}</span>
-                          </div>
-                        </div>
-
-                        <Button 
-                          className="w-full" 
-                          size="lg"
-                          onClick={handleCheckout}
-                          disabled={isCheckingOut}
-                        >
-                          {isCheckingOut ? "Processing..." : "Place Order"}
-                        </Button>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
+                  <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={handleCheckout}
+                    disabled={cart.length === 0 || isLoading || !checkoutUrl}
+                  >
+                    <ExternalLink className="w-4 h-4 mr-2" />
+                    Proceed to Checkout
+                  </Button>
+                  <p className="mt-3 text-xs text-muted-foreground text-center">
+                    Secure checkout. Shipping and taxes are calculated on the next step.
+                  </p>
                   
                   <Link to="/browse" className="block mt-4">
                     <Button variant="outline" className="w-full">
