@@ -136,9 +136,11 @@ const Cart = () => {
                         {item.customizations && Object.keys(item.customizations).length > 0 && (
                           <div className="text-sm text-muted-foreground mb-4">
                             {item.customizations.finish && <p>Finish: {item.customizations.finish}</p>}
+                            {item.customizations.filament && <p>Color: {item.customizations.filament}</p>}
                             {item.customizations.size && <p>Size: {item.customizations.size}</p>}
                           </div>
                         )}
+
 
                         <div className="flex flex-wrap items-center gap-2 sm:gap-4">
                           <div className="flex items-center gap-1 sm:gap-2">
