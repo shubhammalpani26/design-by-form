@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
       return json({ error: message }, e instanceof PartnerApiError ? e.status : 502);
     }
 
-    // Nyzora's manufacturing base price carries a 25% margin over partner cost.
+    // Nyzora's manufacturing base price carries a 100% margin over partner cost.
     const mbpUsd = partnerCostToMbpUsd(partnerCost);
     const rate = await usdToInrRate();
     const mbpInr = Math.round(mbpUsd * rate);

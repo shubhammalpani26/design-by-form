@@ -5,7 +5,7 @@
 const BASE_URL = "https://www.slant3dapi.com/api";
 
 /** Nyzora's manufacturing margin on top of the partner's landed print cost. */
-export const US_PARTNER_MARKUP = 1.25;
+export const US_PARTNER_MARKUP = 2.0;
 
 export interface Slant3DOrderLine {
   email: string;
