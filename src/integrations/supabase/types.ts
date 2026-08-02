@@ -639,12 +639,17 @@ export type Database = {
           pricing_complexity: string | null
           pricing_per_cubic_foot: number | null
           pricing_reasoning: string | null
+          print_file_url: string | null
           production_region: string
           rejection_reason: string | null
           shopify_product_id: string | null
           shopify_sync_error: string | null
           shopify_synced_at: string | null
           shopify_variant_id: string | null
+          slant3d_filament: string
+          slant3d_price_usd: number | null
+          slant3d_quote_error: string | null
+          slant3d_quoted_at: string | null
           slug: string | null
           status: string
           total_sales: number
@@ -678,12 +683,17 @@ export type Database = {
           pricing_complexity?: string | null
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
+          print_file_url?: string | null
           production_region?: string
           rejection_reason?: string | null
           shopify_product_id?: string | null
           shopify_sync_error?: string | null
           shopify_synced_at?: string | null
           shopify_variant_id?: string | null
+          slant3d_filament?: string
+          slant3d_price_usd?: number | null
+          slant3d_quote_error?: string | null
+          slant3d_quoted_at?: string | null
           slug?: string | null
           status?: string
           total_sales?: number
@@ -717,12 +727,17 @@ export type Database = {
           pricing_complexity?: string | null
           pricing_per_cubic_foot?: number | null
           pricing_reasoning?: string | null
+          print_file_url?: string | null
           production_region?: string
           rejection_reason?: string | null
           shopify_product_id?: string | null
           shopify_sync_error?: string | null
           shopify_synced_at?: string | null
           shopify_variant_id?: string | null
+          slant3d_filament?: string
+          slant3d_price_usd?: number | null
+          slant3d_quote_error?: string | null
+          slant3d_quoted_at?: string | null
           slug?: string | null
           status?: string
           total_sales?: number
@@ -1462,6 +1477,95 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      slant3d_fulfillments: {
+        Row: {
+          created_at: string
+          designer_id: string | null
+          error: string | null
+          id: string
+          last_synced_at: string | null
+          order_id: string | null
+          order_item_id: string | null
+          order_number: string | null
+          product_id: string | null
+          quantity: number
+          quoted_price_usd: number | null
+          request_payload: Json | null
+          response_payload: Json | null
+          slant_order_id: string | null
+          status: string
+          tracking_numbers: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          designer_id?: string | null
+          error?: string | null
+          id?: string
+          last_synced_at?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number
+          quoted_price_usd?: number | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          slant_order_id?: string | null
+          status?: string
+          tracking_numbers?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          designer_id?: string | null
+          error?: string | null
+          id?: string
+          last_synced_at?: string | null
+          order_id?: string | null
+          order_item_id?: string | null
+          order_number?: string | null
+          product_id?: string | null
+          quantity?: number
+          quoted_price_usd?: number | null
+          request_payload?: Json | null
+          response_payload?: Json | null
+          slant_order_id?: string | null
+          status?: string
+          tracking_numbers?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "slant3d_fulfillments_designer_id_fkey"
+            columns: ["designer_id"]
+            isOneToOne: false
+            referencedRelation: "designer_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slant3d_fulfillments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slant3d_fulfillments_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "slant3d_fulfillments_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscription_transactions: {
         Row: {
