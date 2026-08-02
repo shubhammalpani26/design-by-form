@@ -16,6 +16,7 @@ const generateDesignSchema = z.object({
   sketchImageBase64: z.string().optional(), // User's uploaded sketch
   generate3D: z.boolean().optional().default(false),
   imageUrl: z.string().optional(), // For generating 3D from existing image
+  category: z.string().trim().max(60).optional(),
 }).refine(
   (data) => {
     // For 3D-only generation (converting existing 2D to 3D)
@@ -73,7 +74,7 @@ serve(async (req) => {
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl } = validatedData;
+    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category } = validatedData;
     console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
@@ -179,10 +180,44 @@ serve(async (req) => {
       "Create organic, flowing lines inspired by natural geological or botanical forms"
     ];
 
+    // ── Category routing ────────────────────────────────────────
+    // Small-format US FDM tiers (Objects / Wall Tiles / Desk / Figurine) are NOT
+    // furniture. Using the furniture prompt for them produced off-brief or blocked
+    // generations (especially figurines, where photoreal human likeness gets refused).
+    const catLower = (category || '').toLowerCase();
+    const promptLowerCat = (prompt || '').toLowerCase();
+    const looksFigurine = /figurine|miniature|statuette|bust|character model|action figure/.test(
+      `${catLower} ${promptLowerCat}`,
+    );
+    const isSmallObject = ['objects', 'wall tiles', 'desk', 'figurine', 'decor'].includes(catLower)
+      || looksFigurine;
+    const subjectNoun = looksFigurine
+      ? 'sculptural figurine'
+      : isSmallObject
+        ? 'small-format design object'
+        : 'furniture piece';
+
+    const figurineConstraints = `
+FIGURINE / MINIATURE RULES (this is a sculpted collectible object, not a person):
+- Render a STYLIZED, non-photorealistic sculpture: planar, faceted, low-poly or smoothly abstracted forms.
+- No real person, no portrait likeness, no identifiable face — features are simplified or omitted entirely.
+- Single-colour sculpted material (matte resin, bone ceramic, matte plastic, stone-look composite).
+- Overhangs no steeper than 45°, no thin fragile protrusions (no separate fingers, hair strands, thin swords).
+- Solid, monolithic body on a flat, stable base that sits flush on the surface.
+- Fits inside a 250mm cube — desk/shelf scale collectible.`;
+
+    const smallObjectConstraints = `
+SMALL-FORMAT MANUFACTURING RULES (US FDM print farm, single part):
+- The piece must fit inside a 250mm × 250mm × 250mm build envelope.
+- Minimum 2mm wall thickness, no overhangs steeper than 45°, no unsupported bridges.
+- Flat, stable base that sits flush; single solid part (no assemblies or hardware).
+- One cohesive matte material story — resin/plastic/ceramic-look, ribbing and faceting encouraged.
+- Detail expressed through form and surface texture, not fragile thin elements.`;
+
     // Manufacturing capabilities — Nyzora now supports BOTH advanced 3D printing
     // AND traditional craft manufacturing (via Beni Enterprises and our maker network).
     // The AI should design freely across the full furniture spectrum.
-    const manufacturingConstraints = `
+    const furnitureConstraints = `
 MANUFACTURING CAPABILITIES — Nyzora's maker network can produce a wide range of furniture:
 
 1. LARGE-FORMAT 3D PRINTING (resin/composite): best for sculptural, organic, monolithic forms,
@@ -211,6 +246,12 @@ BASELINE QUALITY RULES (apply to everything):
 - Stable, well-proportioned base / footprint.
 - Real-world manufacturable at furniture scale by skilled makers.
 - Cohesive material story — materials chosen should make sense together.`;
+
+    const manufacturingConstraints = looksFigurine
+      ? figurineConstraints
+      : isSmallObject
+        ? smallObjectConstraints
+        : furnitureConstraints;
 
     // ─────────────────────────────────────────────────────────────
     // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
@@ -281,7 +322,7 @@ PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
 - Clean, neutral backdrop (light grey seamless paper or concrete floor)
 - Subtle contact shadows and ambient occlusion grounding the piece
 - Material should read as real: show surface texture, subtle reflections, material grain
-- The furniture must look like it physically exists — real weight, real presence
+- The piece must look like it physically exists — real weight, real presence
 - Color palette: sophisticated and muted — think concrete grey, warm sand, matte black, ivory, terracotta
 - NO flat colors, NO plastic-looking surfaces, NO CGI/video-game aesthetic
 - Reference aesthetic: Zaha Hadid Design, Ross Lovegrove, Neri Oxman furniture pieces`;
@@ -290,11 +331,11 @@ PHOTOGRAPHY & RENDERING STYLE — this must look like a real product photo:
     let messages: any[];
     
     if (sketchImageBase64) {
-      const sketchPrompt = `You are a world-class furniture designer and product photographer. Based on this sketch/reference image, create a refined, photorealistic furniture design.
+      const sketchPrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Based on this sketch/reference image, create a refined, photorealistic ${subjectNoun}.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
-${prompt || 'Refine and elevate this design into a premium, gallery-worthy furniture piece'}
+${prompt || `Refine and elevate this design into a premium, gallery-worthy ${subjectNoun}`}
 
 ${manufacturingConstraints}
 
@@ -302,7 +343,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece.`;
+Generate a single photorealistic product photograph of this ${subjectNoun}.`;
 
       messages = [{
         role: 'user',
@@ -312,7 +353,7 @@ Generate a single photorealistic product photograph of this furniture piece.`;
         ]
       }];
     } else if (roomImageBase64) {
-      const roomAwarePrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece that would complement this space.
+      const roomAwarePrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Design a photorealistic ${subjectNoun} that would complement this space.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
@@ -324,7 +365,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece — shown on its own against a clean backdrop, NOT placed in the room.`;
+Generate a single photorealistic product photograph of this ${subjectNoun} — shown on its own against a clean backdrop, NOT placed in the room.`;
 
       messages = [{
         role: 'user',
@@ -334,7 +375,7 @@ Generate a single photorealistic product photograph of this furniture piece — 
         ]
       }];
     } else {
-      const refinedPrompt = `You are a world-class furniture designer and product photographer. Design a photorealistic furniture piece.
+      const refinedPrompt = `You are a world-class ${looksFigurine ? 'sculptor' : isSmallObject ? 'industrial designer' : 'furniture designer'} and product photographer. Design a photorealistic ${subjectNoun}.
 
 Style direction: ${variationHints[variationNumber - 1] || variationHints[0]}
 
@@ -346,7 +387,7 @@ ${learningsBlock}
 
 ${photographyDirection}
 
-Generate a single photorealistic product photograph of this furniture piece.`;
+Generate a single photorealistic product photograph of this ${subjectNoun}.`;
 
       messages = [{ role: 'user', content: refinedPrompt }];
     }

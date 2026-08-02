@@ -137,10 +137,10 @@ const STARTER_PROMPTS_BY_CATEGORY: Record<string, string[]> = {
     "A desk organiser with soft rounded compartments",
   ],
   Figurine: [
-    "A stylised human bust, smooth planar faceting, 18cm tall",
-    "A seated figure in flowing robes, monolithic and solid",
-    "A minimal abstract human form, elongated and standing",
-    "A tabletop character miniature in a grounded stance",
+    "A low-poly faceted bust sculpture, matte bone resin, 18cm tall",
+    "A seated abstract figure in flowing planar robes, one solid form",
+    "A minimal elongated standing form, smooth and monolithic",
+    "A stylised geometric character miniature on a flat base",
   ],
 };
 
@@ -579,6 +579,7 @@ export default function DesignStudioChat() {
                 prompt: promptWithModel,
                 variationNumber: n,
                 generate3D: false,
+                category: effectiveCategory,
                 roomImageBase64: space?.base64,
                 sketchImageBase64: sketch?.base64,
               },
