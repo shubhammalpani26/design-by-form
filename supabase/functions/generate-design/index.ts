@@ -2,6 +2,7 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { buildBudgetBrief, formatMoney } from '../_shared/budget.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,6 +18,11 @@ const generateDesignSchema = z.object({
   generate3D: z.boolean().optional().default(false),
   imageUrl: z.string().optional(), // For generating 3D from existing image
   category: z.string().trim().max(60).optional(),
+  budget: z.object({
+    min: z.number().nonnegative(),
+    max: z.number().positive(),
+    currency: z.enum(['INR', 'USD']).optional().default('INR'),
+  }).optional(),
 }).refine(
   (data) => {
     // For 3D-only generation (converting existing 2D to 3D)
@@ -74,7 +80,7 @@ serve(async (req) => {
     const requestData = await req.json();
     
     const validatedData = generateDesignSchema.parse(requestData);
-    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category } = validatedData;
+    const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category, budget } = validatedData;
     console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
@@ -247,11 +253,25 @@ BASELINE QUALITY RULES (apply to everything):
 - Real-world manufacturable at furniture scale by skilled makers.
 - Cohesive material story — materials chosen should make sense together.`;
 
-    const manufacturingConstraints = looksFigurine
+    // ── Budget back-tracking ────────────────────────────────────
+    // The creator picks a manufacturing base price band for their audience;
+    // we translate it into volume + complexity limits the design must respect.
+    const budgetBrief = budget
+      ? buildBudgetBrief(
+          budget.min,
+          budget.max,
+          isSmallObject ? 'USD' : (budget.currency ?? 'INR'),
+          isSmallObject,
+        )
+      : null;
+    const budgetBlock = budgetBrief ? `\n\n${budgetBrief.text}` : '';
+
+    const baseConstraints = looksFigurine
       ? figurineConstraints
       : isSmallObject
         ? smallObjectConstraints
         : furnitureConstraints;
+    const manufacturingConstraints = `${baseConstraints}${budgetBlock}`;
 
     // ─────────────────────────────────────────────────────────────
     // 🌀 MANUFACTURING INTELLIGENCE FLYWHEEL
@@ -484,6 +504,9 @@ Generate a single photorealistic product photograph of this ${subjectNoun}.`;
       const pricingPrompt = `You are Aarav, the Master Maker and AI craftsman for premium designer furniture. Analyze this furniture design and provide pricing.
 
 Design Prompt: ${prompt}
+${budgetBrief && budgetBrief.currency === 'INR'
+  ? `\nTARGET MANUFACTURING BASE PRICE: ${formatMoney(budgetBrief.min, 'INR')}–${formatMoney(budgetBrief.max, 'INR')} per unit.\nThe piece was briefed to ${budgetBrief.complexity.toUpperCase()} complexity and roughly ${budgetBrief.volumeMinFt3?.toFixed(2)}–${budgetBrief.volumeMaxFt3?.toFixed(2)} cubic feet. Choose a rate consistent with that brief.\n`
+  : ''}
 
 This is PREMIUM DESIGNER FURNITURE — handcrafted unique pieces. Our maker network covers BOTH
 advanced large-format 3D printing AND traditional craft (wood joinery, upholstery, metalwork,
@@ -620,7 +643,9 @@ Respond ONLY in valid JSON format (no markdown):
         taskId: taskId,
         has3DSupport: !!taskId,
         polling: !!taskId,
-        pricing: pricingData,
+        pricing: budgetBrief
+          ? { ...pricingData, targetMbp: { min: budgetBrief.min, max: budgetBrief.max, currency: budgetBrief.currency, complexity: budgetBrief.complexity } }
+          : pricingData,
         flywheel: miContext,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

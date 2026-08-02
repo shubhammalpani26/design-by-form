@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { buildBudgetBrief } from "../_shared/budget.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,6 +56,13 @@ serve(async (req) => {
       : [];
     const mode: string = (body.mode ?? "product").toString();
     const isGeneral = mode === "general";
+    const budget = body.budget && typeof body.budget === "object"
+      ? {
+          min: Number(body.budget.min) || 0,
+          max: Number(body.budget.max) || 0,
+          currency: body.budget.currency === "USD" ? "USD" as const : "INR" as const,
+        }
+      : null;
 
     if (!baseImageUrl || !editPrompt) {
       return new Response(JSON.stringify({ error: "baseImageUrl and editPrompt are required" }), {
@@ -151,6 +159,11 @@ serve(async (req) => {
     const PRODUCT_CONSTRAINTS = isFigurine ? FIGURINE_CONSTRAINTS : `${MANUFACTURING_CONSTRAINTS}
 - Maintain the same furniture category, overall silhouette, and core proportions as the source image unless the user explicitly requests a category/silhouette change.`;
 
+    // Keep refinements inside the creator's manufacturing base price band.
+    const budgetBlock = budget && budget.max > 0
+      ? `\n\n${buildBudgetBrief(budget.min, budget.max, budget.currency, budget.currency === "USD").text}\n- Stay inside this budget while applying the edit: if the change adds mass, material or hardware, compensate elsewhere.`
+      : "";
+
     const GENERAL_CONSTRAINTS = `CRITICAL MANUFACTURING CONSTRAINTS for every individual piece in the scene:
 - Each furniture piece must be a solid, monolithic form. NO lattice, perforations, mesh, filigree, or open cellular structures.
 - Each piece must have a flat, stable base.
@@ -163,7 +176,7 @@ serve(async (req) => {
 You are iterating on a single ongoing design with a creator. You will receive the current reference image of the piece plus their next instruction.
 Produce a single photorealistic product photograph that applies the requested edit while preserving the design intent across the whole session.
 
-${PRODUCT_CONSTRAINTS}
+${PRODUCT_CONSTRAINTS}${budgetBlock}
 
 ${sessionContextBlock || (category ? `Category hint: ${category}` : "")}
 

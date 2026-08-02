@@ -14,6 +14,12 @@ import { storeDesignImages } from "@/lib/designTransfer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  INR_BUDGET_BANDS,
+  USD_BUDGET_BANDS,
+  buildBudgetBrief,
+  type BudgetBand,
+} from "@/lib/budgetTiers";
 
 type Role = "user" | "assistant";
 
@@ -207,6 +213,9 @@ export default function DesignStudioChat() {
   const [messages, setMessages] = useState<DBMessage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [category, setCategory] = useState<string>("Chair");
+  const [budgetKey, setBudgetKey] = useState<string | null>(() => {
+    try { return localStorage.getItem("nyzora_mbp_band"); } catch { return null; }
+  });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -224,6 +233,27 @@ export default function DesignStudioChat() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string>("");
   const [designerProfileId, setDesignerProfileId] = useState<string | null>(null);
+
+  // ── Budget-first design ────────────────────────────────────────
+  // Creators pick the manufacturing base price band their audience buys at,
+  // and we back-track it into size + complexity limits for the design agent.
+  const isFdmCategory = US_FDM_CATEGORIES.has(category);
+  const budgetBands: BudgetBand[] = isFdmCategory ? USD_BUDGET_BANDS : INR_BUDGET_BANDS;
+  const activeBand = budgetBands.find((b) => b.key === budgetKey) ?? null;
+  const budgetBrief = activeBand
+    ? buildBudgetBrief(activeBand.min, activeBand.max, activeBand.currency, isFdmCategory)
+    : null;
+  const budgetPayload = activeBand
+    ? { min: activeBand.min, max: activeBand.max, currency: activeBand.currency }
+    : undefined;
+
+  function selectBudget(key: string | null) {
+    setBudgetKey(key);
+    try {
+      if (key) localStorage.setItem("nyzora_mbp_band", key);
+      else localStorage.removeItem("nyzora_mbp_band");
+    } catch { /* storage unavailable */ }
+  }
 
   function bumpRun() {
     runIdRef.current += 1;
@@ -582,6 +612,7 @@ export default function DesignStudioChat() {
                 category: effectiveCategory,
                 roomImageBase64: space?.base64,
                 sketchImageBase64: sketch?.base64,
+                budget: budgetPayload,
               },
             })
           )
@@ -646,6 +677,7 @@ export default function DesignStudioChat() {
                 originalPrompt,
                 priorEdits,
                 mode: isGeneralMode ? "general" : "product",
+                budget: budgetPayload,
               },
             })
           )
@@ -1332,6 +1364,48 @@ export default function DesignStudioChat() {
                   {c}
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Budget-first brief: pick the manufacturing base price your audience buys at */}
+          <div className="px-3 md:px-6 py-2 border-b border-border bg-muted/30">
+            <div className="max-w-3xl mx-auto flex flex-wrap items-center gap-x-3 gap-y-2">
+              <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">
+                Manufacturing base price
+              </span>
+              <div className="flex flex-wrap items-center gap-1.5">
+                <button
+                  onClick={() => selectBudget(null)}
+                  className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                    !activeBand
+                      ? "border-primary text-primary"
+                      : "border-border text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  Any
+                </button>
+                {budgetBands.map((b) => (
+                  <button
+                    key={b.key}
+                    onClick={() => selectBudget(b.key)}
+                    title={b.audience}
+                    className={`text-[11px] px-2.5 py-1 rounded-full border transition-colors ${
+                      activeBand?.key === b.key
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "border-border text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {b.label}
+                  </button>
+                ))}
+              </div>
+              {budgetBrief && (
+                <span className="text-[11px] text-muted-foreground">
+                  → designing to ~{budgetBrief.cubeMinCm.toFixed(0)}–{budgetBrief.cubeMaxCm.toFixed(0)} cm scale,{" "}
+                  {budgetBrief.complexity} complexity
+                  {activeBand ? ` · ${activeBand.audience.toLowerCase()}` : ""}
+                </span>
+              )}
             </div>
           </div>
 
