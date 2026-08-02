@@ -18,11 +18,28 @@ async function resolveOrCreateCustomer(
 ): Promise<string> {
   if (!/^[a-zA-Z0-9_-]+$/.test(options.userId)) throw new Error("Invalid userId");
 
-  const found = await stripe.customers.search({
-    query: `metadata['userId']:'${options.userId}'`,
-    limit: 1,
-  });
-  if (found.data.length) return found.data[0].id;
+  // Fastest and most reliable: the customer id we already recorded ourselves.
+  const { data: known } = await supabase
+    .from("subscriptions")
+    .select("stripe_customer_id")
+    .eq("user_id", options.userId)
+    .not("stripe_customer_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (known?.stripe_customer_id) return known.stripe_customer_id;
+
+  // Stripe Search is not available in every account region — treat it as a
+  // best-effort lookup and fall through to the email match when it fails.
+  try {
+    const found = await stripe.customers.search({
+      query: `metadata['userId']:'${options.userId}'`,
+      limit: 1,
+    });
+    if (found.data.length) return found.data[0].id;
+  } catch (searchError) {
+    console.warn("customers.search unavailable, falling back to email lookup:", searchError);
+  }
 
   if (options.email) {
     const existing = await stripe.customers.list({ email: options.email, limit: 1 });
