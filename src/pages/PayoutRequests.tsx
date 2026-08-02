@@ -147,24 +147,27 @@ const PayoutRequests = () => {
     }
   };
 
+  const activeBalance = activeCurrency === 'INR' ? inrBalance : usdBalance;
+  const activeMinimum = activeCurrency === 'INR' ? MINIMUM_PAYOUT_INR : MINIMUM_PAYOUT_USD;
+
   const handleRequestPayout = async () => {
     if (!profile || !bankDetails) return;
 
     const amount = parseFloat(requestAmount);
 
-    if (isNaN(amount) || amount < MINIMUM_PAYOUT) {
+    if (isNaN(amount) || amount < activeMinimum) {
       toast({
         title: 'Invalid amount',
-        description: `Minimum payout amount is ${formatPrice(MINIMUM_PAYOUT)}`,
+        description: `Minimum ${activeCurrency} payout amount is ${activeCurrency === 'INR' ? formatPrice(activeMinimum) : '$' + activeMinimum.toFixed(2)}`,
         variant: 'destructive',
       });
       return;
     }
 
-    if (amount > availableBalance) {
+    if (amount > activeBalance) {
       toast({
         title: 'Insufficient balance',
-        description: `You can only request up to ${formatPrice(availableBalance)}`,
+        description: `You can only request up to ${activeCurrency === 'INR' ? formatPrice(activeBalance) : '$' + activeBalance.toFixed(2)}`,
         variant: 'destructive',
       });
       return;
@@ -186,9 +189,14 @@ const PayoutRequests = () => {
         .insert({
           designer_id: profile.id,
           amount,
+          payout_currency: activeCurrency,
           bank_account_holder_name: bankDetails.bank_account_holder_name || '',
           bank_account_number: bankDetails.bank_account_number || '',
           bank_ifsc_code: bankDetails.bank_ifsc_code || '',
+          bank_routing_number: bankDetails.bank_routing_number || '',
+          bank_swift_code: bankDetails.bank_swift_code || '',
+          bank_iban: bankDetails.bank_iban || '',
+          bank_country: bankDetails.bank_country || '',
         });
 
       if (error) throw error;
