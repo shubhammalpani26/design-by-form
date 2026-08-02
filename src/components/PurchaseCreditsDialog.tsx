@@ -1,5 +1,4 @@
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -9,27 +8,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Sparkles, Check } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
-
-interface Package {
-  id: string;
-  name: string;
-  credits: number;
-  price: number;
-  popular?: boolean;
-}
-
-const packages: Package[] = [
-  { id: 'basic', name: 'Starter', credits: 10, price: 299 },
-  { id: 'standard', name: 'Creator', credits: 20, price: 499, popular: true },
-  { id: 'premium', name: 'Pro', credits: 50, price: 999 },
-];
+import { useCurrency } from "@/contexts/CurrencyContext";
+import { billingCurrency, CREDIT_PACKS } from "@/lib/billingPrices";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 interface PurchaseCreditsDialogProps {
   open: boolean;
@@ -40,168 +22,131 @@ interface PurchaseCreditsDialogProps {
 export const PurchaseCreditsDialog = ({
   open,
   onOpenChange,
-  onSuccess,
 }: PurchaseCreditsDialogProps) => {
-  const [loading, setLoading] = useState<string | null>(null);
-  const { toast } = useToast();
+  const { currency } = useCurrency();
+  const cur = billingCurrency(currency);
+  const symbol = cur === "inr" ? "₹" : "$";
+  const { openCheckout, closeCheckout, isOpen, checkoutElement } = useStripeCheckout();
+  const [selected, setSelected] = useState<string | null>(null);
 
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-    script.async = true;
-    document.body.appendChild(script);
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
-
-  const handlePurchase = async (packageType: string) => {
-    setLoading(packageType);
-    try {
-      const { data, error } = await supabase.functions.invoke('purchase-credits', {
-        body: { packageType }
-      });
-
-      if (error) throw error;
-
-      const options = {
-        key: data.keyId,
-        amount: data.amount,
-        currency: data.currency,
-        name: 'AI Credits',
-        description: `${data.credits} AI generation credits`,
-        order_id: data.orderId,
-        handler: async function (response: any) {
-          try {
-            const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
-              'verify-credits-payment',
-              {
-                body: {
-                  razorpay_order_id: response.razorpay_order_id,
-                  razorpay_payment_id: response.razorpay_payment_id,
-                  razorpay_signature: response.razorpay_signature,
-                  packageType: data.packageType,
-                  credits: data.credits,
-                },
-              }
-            );
-
-            if (verifyError) throw verifyError;
-
-            toast({
-              title: "Credits Purchased!",
-              description: `Successfully added ${verifyData.credits} credits to your account.`,
-            });
-
-            onSuccess();
-            onOpenChange(false);
-          } catch (error) {
-            console.error('Verification error:', error);
-            toast({
-              title: "Verification Failed",
-              description: error instanceof Error ? error.message : "Failed to verify payment",
-              variant: "destructive",
-            });
-          }
-        },
-        modal: {
-          ondismiss: function () {
-            setLoading(null);
-          },
-        },
-        theme: {
-          color: '#8B5CF6',
-        },
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
-    } catch (error) {
-      console.error('Purchase error:', error);
-      toast({
-        title: "Purchase Failed",
-        description: error instanceof Error ? error.message : "Failed to initiate payment",
-        variant: "destructive",
-      });
-      setLoading(null);
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      closeCheckout();
+      setSelected(null);
     }
+    onOpenChange(next);
+  };
+
+  const handlePurchase = (pack: (typeof CREDIT_PACKS)[number]) => {
+    setSelected(pack.id);
+    openCheckout({
+      priceId: pack.priceIds[cur],
+      returnUrl: `${window.location.origin}/billing/return?session_id={CHECKOUT_SESSION_ID}`,
+    });
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[95vw] sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Get More Credits
+            {isOpen ? "Complete your purchase" : "Get More Credits"}
           </DialogTitle>
           <DialogDescription>
-            Choose a credit package to continue creating amazing designs
+            {isOpen
+              ? "Credits are added to your balance as soon as the payment clears."
+              : "Choose a credit package to continue creating amazing designs"}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 py-4">
-          {packages.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={`relative p-4 rounded-lg border-2 transition-all ${
-                pkg.popular
-                  ? 'border-primary bg-primary/5'
-                  : 'border-border hover:border-primary/50'
-              }`}
+        {isOpen ? (
+          <div className="py-2">
+            <PaymentTestModeBanner />
+            {checkoutElement}
+            <Button
+              variant="ghost"
+              className="mt-4 w-full"
+              onClick={() => {
+                closeCheckout();
+                setSelected(null);
+              }}
             >
-              {pkg.popular && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
-                  Most Popular
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{pkg.name}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {pkg.credits} AI generation credits
-                  </p>
-                  <div className="mt-2 flex items-baseline gap-1">
-                    <span className="text-2xl font-bold">₹{pkg.price}</span>
-                    <span className="text-sm text-muted-foreground">
-                      (~₹{Math.round(pkg.price / pkg.credits)}/credit)
-                    </span>
-                  </div>
-                </div>
+              Choose a different pack
+            </Button>
+          </div>
+        ) : (
+          <>
+            <div className="grid gap-4 py-4">
+              {CREDIT_PACKS.map((pkg) => {
+                const price = cur === "inr" ? pkg.inr : pkg.usd;
+                const popular = "popular" in pkg && pkg.popular;
+                return (
+                  <div
+                    key={pkg.id}
+                    className={`relative p-4 rounded-lg border-2 transition-all ${
+                      popular ? "border-primary bg-primary/5" : "border-border hover:border-primary/50"
+                    }`}
+                  >
+                    {popular && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-primary text-primary-foreground text-xs font-medium rounded-full">
+                        Most Popular
+                      </div>
+                    )}
 
-                <Button
-                  onClick={() => handlePurchase(pkg.id)}
-                  disabled={loading !== null}
-                  className={pkg.popular ? 'bg-primary' : ''}
-                >
-                  {loading === pkg.id ? 'Processing...' : 'Buy Now'}
-                </Button>
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <h3 className="font-semibold text-lg">{pkg.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          {pkg.credits} AI generation credits
+                        </p>
+                        <div className="mt-2 flex items-baseline gap-1 flex-wrap">
+                          <span className="text-2xl font-bold">
+                            {symbol}
+                            {price}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            (~{symbol}
+                            {(price / pkg.credits).toFixed(cur === "inr" ? 0 : 2)}/credit)
+                          </span>
+                        </div>
+                      </div>
+
+                      <Button
+                        onClick={() => handlePurchase(pkg)}
+                        disabled={selected !== null}
+                        className={popular ? "bg-primary" : ""}
+                      >
+                        Buy Now
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="rounded-lg bg-muted p-4 space-y-2">
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-primary mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  Credits never expire — use them anytime
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-primary mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  1 credit = 1 AI-generated furniture design
+                </p>
+              </div>
+              <div className="flex items-start gap-2">
+                <Check className="h-4 w-4 text-primary mt-0.5" />
+                <p className="text-sm text-muted-foreground">
+                  Paid plans include a monthly credit refill
+                </p>
               </div>
             </div>
-          ))}
-        </div>
-
-        <div className="rounded-lg bg-muted p-4 space-y-2">
-          <div className="flex items-start gap-2">
-            <Check className="h-4 w-4 text-primary mt-0.5" />
-            <p className="text-sm text-muted-foreground">
-              10 free credits every month for all users
-            </p>
-          </div>
-          <div className="flex items-start gap-2">
-            <Check className="h-4 w-4 text-primary mt-0.5" />
-            <p className="text-sm text-muted-foreground">
-              Credits never expire - use them anytime
-            </p>
-          </div>
-          <div className="flex items-start gap-2">
-            <Check className="h-4 w-4 text-primary mt-0.5" />
-            <p className="text-sm text-muted-foreground">
-              1 credit = 1 AI-generated furniture design
-            </p>
-          </div>
-        </div>
+          </>
+        )}
       </DialogContent>
     </Dialog>
   );

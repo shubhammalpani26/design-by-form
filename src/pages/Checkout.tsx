@@ -9,34 +9,20 @@ import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { SEOHead } from "@/components/SEOHead";
-
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import { billingCurrency, subscriptionPriceId } from "@/lib/billingPrices";
+import { useStripeCheckout } from "@/hooks/useStripeCheckout";
+import { PaymentTestModeBanner } from "@/components/PaymentTestModeBanner";
 
 const Checkout = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { formatPrice } = useCurrency();
+  const { formatPrice, currency } = useCurrency();
   const [loading, setLoading] = useState(false);
   const [planDetails, setPlanDetails] = useState<any>(null);
+  const { openCheckout, isOpen, checkoutElement } = useStripeCheckout();
 
   const planType = searchParams.get("plan");
   const billingCycle = searchParams.get("cycle") || "monthly";
-
-  useEffect(() => {
-    // Load Razorpay script
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      document.body.removeChild(script);
-    };
-  }, []);
 
   useEffect(() => {
     if (planType) {
@@ -141,49 +127,14 @@ const Checkout = () => {
         return;
       }
 
-      // Create subscription
-      const { data, error } = await supabase.functions.invoke('create-razorpay-subscription', {
-        body: { planType, billingCycle }
+      openCheckout({
+        priceId: subscriptionPriceId(
+          planType as "creator" | "pro",
+          billingCycle === "yearly" ? "yearly" : "monthly",
+          billingCurrency(currency),
+        ),
+        returnUrl: `${window.location.origin}/billing/return?session_id={CHECKOUT_SESSION_ID}`,
       });
-
-      if (error) throw error;
-
-      const options = {
-        key: data.razorpayKeyId,
-        amount: data.amount,
-        currency: data.currency,
-        order_id: data.orderId,
-        name: "Fractal Furniture",
-        description: `${planDetails?.name} Plan - ${billingCycle}`,
-        handler: async function (response: any) {
-          try {
-            // Verify payment
-            const { error: verifyError } = await supabase.functions.invoke('verify-razorpay-payment', {
-              body: {
-                razorpay_payment_id: response.razorpay_payment_id,
-                razorpay_order_id: response.razorpay_order_id,
-                razorpay_signature: response.razorpay_signature,
-              }
-            });
-
-            if (verifyError) throw verifyError;
-
-            toast.success("Subscription activated successfully!");
-            navigate("/designer-dashboard");
-          } catch (err: any) {
-            toast.error(err.message || "Payment verification failed");
-          }
-        },
-        prefill: {
-          email: session.user.email,
-        },
-        theme: {
-          color: "#8B5CF6"
-        }
-      };
-
-      const razorpay = new window.Razorpay(options);
-      razorpay.open();
     } catch (error: any) {
       console.error("Checkout error:", error);
       toast.error(error.message || "Failed to initiate checkout");
@@ -203,6 +154,7 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
+      <PaymentTestModeBanner />
       <Header />
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-2xl mx-auto">
@@ -255,25 +207,31 @@ const Checkout = () => {
                 </ul>
               </div>
 
-              <Button 
-                onClick={handleCheckout} 
-                disabled={loading}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  "Proceed to Payment"
-                )}
-              </Button>
+              {isOpen ? (
+                checkoutElement
+              ) : (
+                <>
+                  <Button
+                    onClick={handleCheckout}
+                    disabled={loading}
+                    className="w-full"
+                    size="lg"
+                  >
+                    {loading ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      "Proceed to Payment"
+                    )}
+                  </Button>
 
-              <p className="text-sm text-muted-foreground text-center">
-                Secure payment powered by Razorpay
-              </p>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Secure payment powered by Stripe
+                  </p>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>
