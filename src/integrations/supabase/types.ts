@@ -476,6 +476,7 @@ export type Database = {
           bank_details_verified: boolean | null
           bank_iban: string | null
           bank_ifsc_code: string | null
+          bank_routing_number: string | null
           bank_swift_code: string | null
           created_at: string
           designer_id: string
@@ -489,6 +490,7 @@ export type Database = {
           bank_details_verified?: boolean | null
           bank_iban?: string | null
           bank_ifsc_code?: string | null
+          bank_routing_number?: string | null
           bank_swift_code?: string | null
           created_at?: string
           designer_id: string
@@ -502,6 +504,7 @@ export type Database = {
           bank_details_verified?: boolean | null
           bank_iban?: string | null
           bank_ifsc_code?: string | null
+          bank_routing_number?: string | null
           bank_swift_code?: string | null
           created_at?: string
           designer_id?: string
@@ -521,7 +524,9 @@ export type Database = {
       designer_earnings: {
         Row: {
           commission_amount: number
+          country: string | null
           created_at: string
+          currency: string | null
           designer_id: string
           id: string
           order_id: string | null
@@ -534,7 +539,9 @@ export type Database = {
         }
         Insert: {
           commission_amount: number
+          country?: string | null
           created_at?: string
+          currency?: string | null
           designer_id: string
           id?: string
           order_id?: string | null
@@ -547,7 +554,9 @@ export type Database = {
         }
         Update: {
           commission_amount?: number
+          country?: string | null
           created_at?: string
+          currency?: string | null
           designer_id?: string
           id?: string
           order_id?: string | null
@@ -1249,10 +1258,15 @@ export type Database = {
           amount: number
           bank_account_holder_name: string
           bank_account_number: string
+          bank_country: string | null
+          bank_iban: string | null
           bank_ifsc_code: string | null
+          bank_routing_number: string | null
+          bank_swift_code: string | null
           created_at: string
           designer_id: string
           id: string
+          payout_currency: string | null
           processed_at: string | null
           processed_by: string | null
           rejection_reason: string | null
@@ -1264,10 +1278,15 @@ export type Database = {
           amount: number
           bank_account_holder_name: string
           bank_account_number: string
+          bank_country?: string | null
+          bank_iban?: string | null
           bank_ifsc_code?: string | null
+          bank_routing_number?: string | null
+          bank_swift_code?: string | null
           created_at?: string
           designer_id: string
           id?: string
+          payout_currency?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null
@@ -1279,10 +1298,15 @@ export type Database = {
           amount?: number
           bank_account_holder_name?: string
           bank_account_number?: string
+          bank_country?: string | null
+          bank_iban?: string | null
           bank_ifsc_code?: string | null
+          bank_routing_number?: string | null
+          bank_swift_code?: string | null
           created_at?: string
           designer_id?: string
           id?: string
+          payout_currency?: string | null
           processed_at?: string | null
           processed_by?: string | null
           rejection_reason?: string | null

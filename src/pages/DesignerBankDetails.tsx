@@ -15,13 +15,14 @@ const DesignerBankDetails = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [designerId, setDesignerId] = useState<string | null>(null);
-  const [bankCountry, setBankCountry] = useState<"India" | "International">("India");
+  const [bankCountry, setBankCountry] = useState<"India" | "US" | "International">("India");
   const [formData, setFormData] = useState({
     accountHolderName: "",
     accountNumber: "",
     ifscCode: "",
     swiftCode: "",
     iban: "",
+    routingNumber: "",
   });
 
   useEffect(() => {
@@ -46,7 +47,7 @@ const DesignerBankDetails = () => {
       // Get bank details from separate table
       const { data: bankDetails } = await supabase
         .from("designer_bank_details")
-        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_country")
+        .select("bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_swift_code, bank_iban, bank_routing_number, bank_country")
         .eq("designer_id", profile.id)
         .single();
 
@@ -57,9 +58,10 @@ const DesignerBankDetails = () => {
           ifscCode: bankDetails.bank_ifsc_code || "",
           swiftCode: bankDetails.bank_swift_code || "",
           iban: bankDetails.bank_iban || "",
+          routingNumber: bankDetails.bank_routing_number || "",
         });
         if (bankDetails.bank_country) {
-          setBankCountry(bankDetails.bank_country as "India" | "International");
+          setBankCountry(bankDetails.bank_country as "India" | "US" | "International");
         }
       }
     } catch (error) {
@@ -93,10 +95,17 @@ const DesignerBankDetails = () => {
         updateData.bank_ifsc_code = formData.ifscCode;
         updateData.bank_swift_code = null;
         updateData.bank_iban = null;
+        updateData.bank_routing_number = null;
+      } else if (bankCountry === "US") {
+        updateData.bank_routing_number = formData.routingNumber;
+        updateData.bank_swift_code = null;
+        updateData.bank_iban = null;
+        updateData.bank_ifsc_code = null;
       } else {
         updateData.bank_swift_code = formData.swiftCode;
         updateData.bank_iban = formData.iban;
         updateData.bank_ifsc_code = null;
+        updateData.bank_routing_number = null;
       }
 
       const { error } = await supabase
@@ -144,9 +153,10 @@ const DesignerBankDetails = () => {
             <Card>
               <CardContent className="p-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <Tabs value={bankCountry} onValueChange={(v) => setBankCountry(v as "India" | "International")}>
-                    <TabsList className="grid w-full grid-cols-2">
+                  <Tabs value={bankCountry} onValueChange={(v) => setBankCountry(v as "India" | "US" | "International")}>
+                    <TabsList className="grid w-full grid-cols-3">
                       <TabsTrigger value="India">India</TabsTrigger>
+                      <TabsTrigger value="US">US</TabsTrigger>
                       <TabsTrigger value="International">International</TabsTrigger>
                     </TabsList>
 
@@ -181,6 +191,41 @@ const DesignerBankDetails = () => {
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           Indian Financial System Code for domestic transfers
+                        </p>
+                      </div>
+                    </TabsContent>
+
+                    <TabsContent value="US" className="space-y-6 mt-6">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Account Holder Name *</label>
+                        <Input 
+                          placeholder="Full name as per bank account" 
+                          value={formData.accountHolderName}
+                          onChange={(e) => setFormData({ ...formData, accountHolderName: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Account Number *</label>
+                        <Input 
+                          placeholder="Your US bank account number"
+                          value={formData.accountNumber}
+                          onChange={(e) => setFormData({ ...formData, accountNumber: e.target.value })}
+                          required
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium mb-2 block text-foreground">Routing Number *</label>
+                        <Input 
+                          placeholder="e.g., 021000021"
+                          value={formData.routingNumber}
+                          onChange={(e) => setFormData({ ...formData, routingNumber: e.target.value })}
+                          required
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          9-digit ABA routing number for ACH transfers
                         </p>
                       </div>
                     </TabsContent>

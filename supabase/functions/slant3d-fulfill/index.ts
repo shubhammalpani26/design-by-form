@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
 
     const { data: items, error: itemsErr } = await admin
       .from("order_items")
-      .select("id, product_id, designer_id, quantity")
+      .select("id, product_id, designer_id, quantity, customizations")
       .eq("order_id", orderId);
     if (itemsErr) throw itemsErr;
     if (!items?.length) return json({ error: "Order has no items" }, 400);
@@ -124,6 +124,18 @@ Deno.serve(async (req) => {
         "PLA BLACK";
       const color = String(selectedFilament).toUpperCase();
 
+      const customizations = (item.customizations ?? {}) as Record<string, unknown>;
+      const engravedText = typeof customizations.engraved_text === "string" ? customizations.engraved_text.trim() : "";
+      const giftNote = typeof customizations.gift_note === "string" ? customizations.gift_note.trim() : "";
+
+      // Build a personalized item name for the partner. Include engraving so it appears
+      // on their production paperwork; gift note is appended if space allows.
+      let personalizedName = product.name;
+      if (engravedText) personalizedName += ` — Engrave: "${engravedText}"`;
+      if (giftNote && personalizedName.length + giftNote.length < 250) {
+        personalizedName += ` — Gift: ${giftNote}`;
+      }
+
       const line: Slant3DOrderLine = {
         email,
         phone: String(addr.phone),
@@ -146,7 +158,7 @@ Deno.serve(async (req) => {
         ship_to_zip: addr.zip,
         ship_to_country_as_iso: addr.country,
         ship_to_is_US_residential: "true",
-        order_item_name: product.name,
+        order_item_name: personalizedName.slice(0, 255),
         order_quantity: String(quantity),
         order_image_url: product.image_url ?? undefined,
         order_sku: product.id,

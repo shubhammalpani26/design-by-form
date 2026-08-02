@@ -4,6 +4,7 @@ import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrency } from '@/contexts/CurrencyContext';
@@ -31,6 +32,7 @@ interface PayoutRequest {
   bank_account_holder_name: string;
   bank_account_number: string;
   bank_ifsc_code: string;
+  payout_currency: string;
 }
 
 interface DesignerProfile {
@@ -41,6 +43,10 @@ interface BankDetails {
   bank_account_holder_name: string | null;
   bank_account_number: string | null;
   bank_ifsc_code: string | null;
+  bank_routing_number: string | null;
+  bank_swift_code: string | null;
+  bank_iban: string | null;
+  bank_country: string | null;
   bank_details_verified: boolean;
 }
 
@@ -48,7 +54,9 @@ const PayoutRequests = () => {
   const [requests, setRequests] = useState<PayoutRequest[]>([]);
   const [profile, setProfile] = useState<DesignerProfile | null>(null);
   const [bankDetails, setBankDetails] = useState<BankDetails | null>(null);
-  const [availableBalance, setAvailableBalance] = useState(0);
+  const [inrBalance, setInrBalance] = useState(0);
+  const [usdBalance, setUsdBalance] = useState(0);
+  const [activeCurrency, setActiveCurrency] = useState<'INR' | 'USD'>('INR');
   const [requestAmount, setRequestAmount] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -56,7 +64,8 @@ const PayoutRequests = () => {
   const { toast } = useToast();
   const { formatPrice } = useCurrency();
 
-  const MINIMUM_PAYOUT = 5000;
+  const MINIMUM_PAYOUT_INR = 5000;
+  const MINIMUM_PAYOUT_USD = 100;
 
   useEffect(() => {
     fetchData();
@@ -88,7 +97,7 @@ const PayoutRequests = () => {
       // Fetch bank details from separate table
       const { data: bankData } = await supabase
         .from('designer_bank_details')
-        .select('bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_details_verified')
+        .select('bank_account_holder_name, bank_account_number, bank_ifsc_code, bank_routing_number, bank_swift_code, bank_iban, bank_country, bank_details_verified')
         .eq('designer_id', profileData.id)
         .single();
 
@@ -103,21 +112,30 @@ const PayoutRequests = () => {
 
       setRequests(requestsData || []);
 
-      // Calculate available balance
+      // Calculate available balance per currency
       const { data: earnings } = await supabase
         .from('designer_earnings')
-        .select('royalty_amount')
+        .select('royalty_amount, currency')
         .eq('designer_id', profileData.id)
         .eq('paid_at', null);
 
-      const totalEarnings = earnings?.reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
+      const inrEarnings = earnings
+        ?.filter(e => (e.currency || 'INR') === 'INR')
+        .reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
+      const usdEarnings = earnings
+        ?.filter(e => e.currency === 'USD')
+        .reduce((sum, e) => sum + Number(e.royalty_amount), 0) || 0;
       
-      // Subtract pending payout requests
-      const pendingPayouts = requestsData
-        ?.filter(r => r.status === 'pending' || r.status === 'approved')
+      // Subtract pending payout requests by currency
+      const pendingInr = requestsData
+        ?.filter(r => (r.payout_currency || 'INR') === 'INR' && (r.status === 'pending' || r.status === 'approved'))
+        ?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
+      const pendingUsd = requestsData
+        ?.filter(r => r.payout_currency === 'USD' && (r.status === 'pending' || r.status === 'approved'))
         ?.reduce((sum, r) => sum + Number(r.amount), 0) || 0;
 
-      setAvailableBalance(totalEarnings - pendingPayouts);
+      setInrBalance(inrEarnings - pendingInr);
+      setUsdBalance(usdEarnings - pendingUsd);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast({
@@ -130,24 +148,27 @@ const PayoutRequests = () => {
     }
   };
 
+  const activeBalance = activeCurrency === 'INR' ? inrBalance : usdBalance;
+  const activeMinimum = activeCurrency === 'INR' ? MINIMUM_PAYOUT_INR : MINIMUM_PAYOUT_USD;
+
   const handleRequestPayout = async () => {
     if (!profile || !bankDetails) return;
 
     const amount = parseFloat(requestAmount);
 
-    if (isNaN(amount) || amount < MINIMUM_PAYOUT) {
+    if (isNaN(amount) || amount < activeMinimum) {
       toast({
         title: 'Invalid amount',
-        description: `Minimum payout amount is ${formatPrice(MINIMUM_PAYOUT)}`,
+        description: `Minimum ${activeCurrency} payout amount is ${activeCurrency === 'INR' ? formatPrice(activeMinimum) : '$' + activeMinimum.toFixed(2)}`,
         variant: 'destructive',
       });
       return;
     }
 
-    if (amount > availableBalance) {
+    if (amount > activeBalance) {
       toast({
         title: 'Insufficient balance',
-        description: `You can only request up to ${formatPrice(availableBalance)}`,
+        description: `You can only request up to ${activeCurrency === 'INR' ? formatPrice(activeBalance) : '$' + activeBalance.toFixed(2)}`,
         variant: 'destructive',
       });
       return;
@@ -169,9 +190,14 @@ const PayoutRequests = () => {
         .insert({
           designer_id: profile.id,
           amount,
+          payout_currency: activeCurrency,
           bank_account_holder_name: bankDetails.bank_account_holder_name || '',
           bank_account_number: bankDetails.bank_account_number || '',
           bank_ifsc_code: bankDetails.bank_ifsc_code || '',
+          bank_routing_number: bankDetails.bank_routing_number || '',
+          bank_swift_code: bankDetails.bank_swift_code || '',
+          bank_iban: bankDetails.bank_iban || '',
+          bank_country: bankDetails.bank_country || '',
         });
 
       if (error) throw error;
@@ -250,17 +276,31 @@ const PayoutRequests = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          <Card>
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <Card className="md:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Available Balance</CardTitle>
               <DollarSign className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">{formatPrice(availableBalance)}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Minimum payout: {formatPrice(MINIMUM_PAYOUT)}
-              </p>
+              <Tabs value={activeCurrency} onValueChange={(v) => setActiveCurrency(v as 'INR' | 'USD')}>
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="INR">INR</TabsTrigger>
+                  <TabsTrigger value="USD">USD</TabsTrigger>
+                </TabsList>
+                <TabsContent value="INR" className="mt-0">
+                  <div className="text-2xl font-bold text-green-600">{formatPrice(inrBalance)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Minimum payout: {formatPrice(MINIMUM_PAYOUT_INR)}
+                  </p>
+                </TabsContent>
+                <TabsContent value="USD" className="mt-0">
+                  <div className="text-2xl font-bold text-green-600">${usdBalance.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Minimum payout: ${MINIMUM_PAYOUT_USD.toFixed(2)}
+                  </p>
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -295,28 +335,30 @@ const PayoutRequests = () => {
           <h2 className="text-2xl font-bold">Request History</h2>
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
-              <Button disabled={availableBalance < MINIMUM_PAYOUT}>
-                Request Payout
+              <Button disabled={activeBalance < activeMinimum}>
+                Request {activeCurrency} Payout
               </Button>
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Request Payout</DialogTitle>
+                <DialogTitle>Request {activeCurrency} Payout</DialogTitle>
                 <DialogDescription>
-                  Request a withdrawal of your earnings. Minimum amount is {formatPrice(MINIMUM_PAYOUT)}.
+                  Request a withdrawal of your {activeCurrency} earnings. Minimum amount is {activeCurrency === 'INR' ? formatPrice(activeMinimum) : `$${activeMinimum.toFixed(2)}`}.
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div>
-                  <Label>Available Balance</Label>
-                  <p className="text-2xl font-bold text-green-600">{formatPrice(availableBalance)}</p>
+                  <Label>Available {activeCurrency} Balance</Label>
+                  <p className="text-2xl font-bold text-green-600">
+                    {activeCurrency === 'INR' ? formatPrice(activeBalance) : `$${activeBalance.toFixed(2)}`}
+                  </p>
                 </div>
                 <div>
-                  <Label htmlFor="amount">Payout Amount (₹)</Label>
+                  <Label htmlFor="amount">Payout Amount ({activeCurrency})</Label>
                   <Input
                     id="amount"
                     type="number"
-                    placeholder={`Minimum ${MINIMUM_PAYOUT}`}
+                    placeholder={`Minimum ${activeCurrency === 'INR' ? activeMinimum : activeMinimum.toFixed(2)}`}
                     value={requestAmount}
                     onChange={(e) => setRequestAmount(e.target.value)}
                   />
@@ -326,8 +368,17 @@ const PayoutRequests = () => {
                     <p className="text-sm font-semibold">Bank Details</p>
                     <p className="text-sm">Account Holder: {bankDetails.bank_account_holder_name}</p>
                     <p className="text-sm">Account Number: {bankDetails.bank_account_number}</p>
-                    {bankDetails.bank_ifsc_code && (
+                    {bankDetails.bank_country && (
+                      <p className="text-sm">Country: {bankDetails.bank_country}</p>
+                    )}
+                    {activeCurrency === 'INR' && bankDetails.bank_ifsc_code && (
                       <p className="text-sm">IFSC Code: {bankDetails.bank_ifsc_code}</p>
+                    )}
+                    {activeCurrency === 'USD' && bankDetails.bank_routing_number && (
+                      <p className="text-sm">Routing Number: {bankDetails.bank_routing_number}</p>
+                    )}
+                    {activeCurrency === 'USD' && bankDetails.bank_swift_code && (
+                      <p className="text-sm">SWIFT: {bankDetails.bank_swift_code}</p>
                     )}
                   </div>
                 )}
@@ -350,7 +401,7 @@ const PayoutRequests = () => {
               <DollarSign className="h-12 w-12 mx-auto mb-4 text-muted-foreground opacity-20" />
               <p className="text-muted-foreground mb-2">No payout requests yet</p>
               <p className="text-sm text-muted-foreground">
-                Request your first payout when your balance reaches {formatPrice(MINIMUM_PAYOUT)}
+                Request your first INR payout at {formatPrice(MINIMUM_PAYOUT_INR)} or USD payout at ${MINIMUM_PAYOUT_USD.toFixed(2)}
               </p>
             </CardContent>
           </Card>
@@ -368,7 +419,10 @@ const PayoutRequests = () => {
                             <span className="capitalize">{request.status}</span>
                           </div>
                         </Badge>
-                        <span className="text-2xl font-bold">{formatPrice(request.amount)}</span>
+                        <span className="text-2xl font-bold">
+                          {request.payout_currency === 'USD' ? `$${Number(request.amount).toFixed(2)}` : formatPrice(request.amount)}
+                        </span>
+                        <Badge variant="outline">{request.payout_currency || 'INR'}</Badge>
                       </div>
                       <div className="space-y-1 text-sm text-muted-foreground">
                         <p>Requested: {new Date(request.requested_at).toLocaleDateString()}</p>

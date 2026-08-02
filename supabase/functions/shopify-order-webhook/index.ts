@@ -167,6 +167,8 @@ async function handleOrder(order: any) {
       royalty_amount: designerEarnings,
       commission_amount: commissionAmount,
       status: "pending",
+      currency,
+      country: (order.shipping_address?.country_code ?? order.billing_address?.country_code ?? null) as string | null,
     });
     if (earningsError) throw earningsError;
 

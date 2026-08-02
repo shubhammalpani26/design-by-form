@@ -138,6 +138,12 @@ const Cart = () => {
                             {item.customizations.finish && <p>Finish: {item.customizations.finish}</p>}
                             {item.customizations.filament && <p>Color: {item.customizations.filament}</p>}
                             {item.customizations.size && <p>Size: {item.customizations.size}</p>}
+                            {item.customizations.engraved_text && (
+                              <p className="truncate">Engraving: "{item.customizations.engraved_text}"</p>
+                            )}
+                            {item.customizations.gift_note && (
+                              <p className="truncate">Gift note: "{item.customizations.gift_note}"</p>
+                            )}
                           </div>
                         )}
 

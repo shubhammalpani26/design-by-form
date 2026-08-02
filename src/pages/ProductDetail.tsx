@@ -7,6 +7,8 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { ARViewer } from "@/components/ARViewer";
 import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +33,8 @@ const ProductDetail = () => {
   const [viewMode, setViewMode] = useState<"image" | "ar">("image");
   const [selectedFinish, setSelectedFinish] = useState("Natural");
   const [selectedSize, setSelectedSize] = useState("Standard");
+  const [engravedText, setEngravedText] = useState("");
+  const [giftNote, setGiftNote] = useState("");
   const [isSaved, setIsSaved] = useState(false);
   const [mainImage, setMainImage] = useState<string>("");
   const [finishImage, setFinishImage] = useState<string>("");
@@ -203,7 +207,11 @@ const ProductDetail = () => {
       await addToCart(product.id, {
         finish: selectedFinish,
         size: selectedSize,
-        ...(isUsMade ? { filament: selected?.filament || product.default_filament || 'PLA BLACK' } : {}),
+        ...(isUsMade ? {
+          filament: selected?.filament || product.default_filament || 'PLA BLACK',
+          engraved_text: engravedText.trim(),
+          gift_note: giftNote.trim(),
+        } : {}),
       });
     } catch (error) { console.error('Add to cart error:', error); }
   };
@@ -523,6 +531,36 @@ const ProductDetail = () => {
                 ))}
               </div>
             </div>
+
+            {/* Personalization — US-made products only */}
+            {isUsMade && (
+              <div className="space-y-3 p-3 rounded-lg bg-muted/30 border border-border/50">
+                <p className="text-xs font-semibold text-foreground">Personalize your piece</p>
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Engraved text (optional)</label>
+                  <Input
+                    value={engravedText}
+                    onChange={(e) => setEngravedText(e.target.value)}
+                    placeholder="e.g., initials, date, short message"
+                    maxLength={40}
+                    className="text-sm"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Max 40 characters. Will appear on production paperwork.</p>
+                </div>
+                <div>
+                  <label className="text-[10px] font-medium text-muted-foreground mb-1 block">Gift note (optional)</label>
+                  <Textarea
+                    value={giftNote}
+                    onChange={(e) => setGiftNote(e.target.value)}
+                    placeholder="Add a short gift message..."
+                    maxLength={120}
+                    rows={2}
+                    className="text-sm resize-none"
+                  />
+                  <p className="text-[10px] text-muted-foreground mt-1">Max 120 characters.</p>
+                </div>
+              </div>
+            )}
 
             {/* Key specs — minimal row */}
             <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-[10px] tracking-[0.15em] uppercase py-3 border-t border-b border-border/50 text-muted-foreground/60 font-medium">

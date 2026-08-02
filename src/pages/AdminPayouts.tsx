@@ -28,9 +28,14 @@ interface PayoutRequest {
   status: string;
   rejection_reason: string | null;
   requested_at: string;
+  payout_currency: string;
   bank_account_holder_name: string;
   bank_account_number: string;
   bank_ifsc_code: string;
+  bank_routing_number: string;
+  bank_swift_code: string;
+  bank_iban: string;
+  bank_country: string;
   designer: {
     name: string;
     email: string;
@@ -298,7 +303,10 @@ const AdminPayouts = () => {
                               <Badge className={getStatusColor(request.status)}>
                                 {request.status.toUpperCase()}
                               </Badge>
-                              <span className="text-2xl font-bold">{formatPrice(request.amount)}</span>
+                              <span className="text-2xl font-bold">
+                                {request.payout_currency === 'USD' ? `$${Number(request.amount).toFixed(2)}` : formatPrice(request.amount)}
+                              </span>
+                              <Badge variant="outline">{request.payout_currency || 'INR'}</Badge>
                             </div>
                             
                             <div className="space-y-2 text-sm">
@@ -309,11 +317,23 @@ const AdminPayouts = () => {
                             </div>
 
                             <div className="mt-4 p-4 bg-muted/50 rounded-lg">
-                              <p className="text-sm font-semibold mb-2">Bank Details:</p>
+                              <p className="text-sm font-semibold mb-2">Bank Details ({request.payout_currency || 'INR'}):</p>
                               <p className="text-sm">Holder: {request.bank_account_holder_name}</p>
                               <p className="text-sm">Account: {request.bank_account_number}</p>
+                              {request.bank_country && (
+                                <p className="text-sm">Country: {request.bank_country}</p>
+                              )}
                               {request.bank_ifsc_code && (
                                 <p className="text-sm">IFSC: {request.bank_ifsc_code}</p>
+                              )}
+                              {request.bank_routing_number && (
+                                <p className="text-sm">Routing Number: {request.bank_routing_number}</p>
+                              )}
+                              {request.bank_swift_code && (
+                                <p className="text-sm">SWIFT/BIC: {request.bank_swift_code}</p>
+                              )}
+                              {request.bank_iban && (
+                                <p className="text-sm">IBAN: {request.bank_iban}</p>
                               )}
                             </div>
 

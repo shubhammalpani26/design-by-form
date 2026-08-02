@@ -33,12 +33,13 @@ export const designerSignupSchema = z.object({
     message: 'You must accept the terms and conditions',
   }),
   // Bank details (optional during signup, can be added later)
-  bankCountry: z.enum(['India', 'International']).optional(),
+  bankCountry: z.enum(['India', 'US', 'International']).optional(),
   bankAccountHolderName: z.string().trim().max(200).optional(),
   bankAccountNumber: z.string().trim().max(50).optional(),
   bankIfscCode: z.string().trim().max(20).optional(),
   bankSwiftCode: z.string().trim().max(20).optional(),
   bankIban: z.string().trim().max(50).optional(),
+  bankRoutingNumber: z.string().trim().max(20).optional(),
 });
 
 // Design submission validation
@@ -83,6 +84,9 @@ export const cartCustomizationsSchema = z.object({
   finish: z.string().max(50).optional(),
   color: z.string().max(50).optional(),
   notes: z.string().max(500).optional(),
+  filament: z.string().max(100).optional(),
+  engraved_text: z.string().max(50).optional(),
+  gift_note: z.string().max(500).optional(),
 }).passthrough(); // Allow additional properties but validate known ones
 
 // Edge function validations
