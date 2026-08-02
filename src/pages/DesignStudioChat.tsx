@@ -14,6 +14,13 @@ import { storeDesignImages } from "@/lib/designTransfer";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 import { ARViewer } from "@/components/ARViewer";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  INR_BUDGET_BANDS,
+  USD_BUDGET_BANDS,
+  buildBudgetBrief,
+  formatMoney,
+  type BudgetBand,
+} from "@/lib/budgetTiers";
 
 type Role = "user" | "assistant";
 
@@ -207,6 +214,9 @@ export default function DesignStudioChat() {
   const [messages, setMessages] = useState<DBMessage[]>([]);
   const [activeImage, setActiveImage] = useState<string | null>(null);
   const [category, setCategory] = useState<string>("Chair");
+  const [budgetKey, setBudgetKey] = useState<string | null>(() => {
+    try { return localStorage.getItem("nyzora_mbp_band"); } catch { return null; }
+  });
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
