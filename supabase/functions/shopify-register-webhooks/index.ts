@@ -33,6 +33,17 @@ Deno.serve(async (req) => {
   }
 
   try {
+    if (req.method === "GET") {
+      const scopes = await shopifyAdminGraphQL(
+        `query { currentAppInstallation { accessScopes { handle } } }`,
+      );
+      const existingSubs = await shopifyAdminGraphQL(LIST);
+      return new Response(
+        JSON.stringify({ callbackUrl: CALLBACK_URL, scopes, existing: existingSubs }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
     const existing = await shopifyAdminGraphQL(LIST);
     const nodes = existing?.webhookSubscriptions?.nodes ?? [];
     const results: any[] = [];
