@@ -80,6 +80,3 @@ verify_jwt = false
 
 [functions.shopify-order-webhook]
 verify_jwt = false
-
-[functions.shopify-register-webhooks]
-verify_jwt = false
