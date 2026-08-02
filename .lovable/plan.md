@@ -1,83 +1,78 @@
-# Multi-Agent Orchestration — Invisible Upgrade
+## Goal
 
-User-facing UX **does not change**. Same Design Studio, same "Generate" button, same "Get a Quote" mode. Behind the scenes, each generation now runs through a coordinated agent pipeline instead of a single model call. The user just sees better results, fewer manufacturability rejections, and tighter pricing.
+Move buying onto Shopify (both India and US) while keeping the Nyzora business model exactly as it is: MBP is private and stays in Nyzora, only the final list price goes to Shopify, and creator/maker economics are still calculated on our side.
 
-## Pipeline (server-side)
+## The split of responsibility
 
 ```text
-User prompt
-   │
-   ▼
-[1] Design Agent          → generates concept image + dims (existing: generate-design)
-   │
-   ▼
-[2] Engineering Agent     → NEW: AI manufacturability check
-   │   (wall thickness, base stability, overhangs, joinery fit per maker)
-   │   ├─ PASS → continue
-   │   └─ FAIL → auto-revise once via Design Agent with engineering notes, then continue
-   │
-   ▼
-[3] Material/Maker Agent  → routes to Cyanique / Beni / U.G. Agawane
-   │   (existing: suggest-maker, with intelligence learnings)
-   │
-   ▼
-[4] Costing Agent         → MBP from dims + category + maker tier
-       (existing: recalculate-pricing, already Beni-aware)
-   │
-   ▼
-Final result returned to UI (image + dims + maker + price)
+NYZORA (source of truth)              SHOPIFY (storefront + money)
+------------------------------        ----------------------------
+AI design studio                      Product catalog (list price only)
+Admin approval                        Cart + checkout
+MBP  (never leaves Nyzora)            Payments via Stripe
+Creator markup / maker commission     Shipping + taxes
+Creator earnings + payouts            Order records
+Manufacturing routing
+        |                                      |
+        |---- push on approval --------------->|
+        |<--- order webhook ------------------ |
 ```
 
-## What's new
+MBP is never written to Shopify — not as a price, not as a metafield, not as a tag. Shopify only ever receives the final list price (`designer_price`).
 
-1. **`engineering-check` edge function** (new)
-   - Inputs: design image URL, dimensions, category, target maker
-   - Uses `google/gemini-3.1-pro-preview` (vision + reasoning) to assess:
-     - Wall thickness / structural integrity
-     - Base stability for stated dims
-     - Process feasibility (FGF print envelope, wood joinery feasibility, canvas size)
-     - Material-form fit (e.g. organic curves → resin, not solid wood)
-   - Returns `{ pass: bool, issues: string[], revision_prompt?: string, confidence }`
+## Step 1: Link the two catalogs
 
-2. **`orchestrate-design` edge function** (new, thin coordinator)
-   - Single entrypoint the frontend can call
-   - Sequentially invokes: generate-design → engineering-check → (revise if needed) → suggest-maker → recalculate-pricing
-   - Returns one consolidated payload + a hidden `agent_trace` (logged to `manufacturing_intelligence` for the flywheel; not shown in UI)
+Add to `designer_products`: `shopify_product_id`, `shopify_variant_id`, `shopify_synced_at`, `shopify_sync_error`. Nothing else about pricing changes.
 
-3. **Wire into existing surfaces (no UI change)**
-   - `DesignStudio.tsx` and `DesignStudioChat.tsx` continue calling what looks like one function; the orchestrator replaces the direct `generate-design` call
-   - Loading state messaging stays generic ("Generating your design…")
-   - Optional: tiny `data-agent-step` attribute streamed for future telemetry, invisible to users
+## Step 2: Push approved products to Shopify
 
-## What's NOT in this pass
-- No new page, no "agent thinking" transcript UI, no chat surface
-- No real-time maker inventory lookup (Material Agent stays rule-based + learnings)
-- No costing feedback loop (if over-budget, we don't re-run Design — that's the "full loop" scope)
+A `sync-product-to-shopify` edge function, triggered when admin approves a product (and when an approved product is edited and re-approved). It sends:
 
-## Files
+- Title, description, category, image
+- Price = `designer_price` (the list price)
+- SKU = the Nyzora product id, so orders map back cleanly
+- Tags for creator, category, manufacturing method, production region
+- `requires_shipping: true`, weight from our dimensions data
 
-**New:**
-- `supabase/functions/engineering-check/index.ts`
-- `supabase/functions/orchestrate-design/index.ts`
-- `supabase/config.toml` — register both with `verify_jwt = false` (matches existing generate-design)
+It does **not** send: MBP, markup, commission rate, creator earnings.
 
-**Edit:**
-- `src/pages/DesignStudio.tsx` — swap `supabase.functions.invoke('generate-design', …)` for `'orchestrate-design'` at the single call site
-- `src/pages/DesignStudioChat.tsx` — same swap
-- Keep payload shape backward-compatible so callers don't change
+## Step 3: One store, two markets
 
-**Unchanged:**
-- `generate-design`, `recalculate-pricing`, `suggest-maker`, `calculate-weight` — reused as-is
+The store is INR-based, which matches your India catalog today. US selling runs through Shopify Markets: same products, USD presentment, US shipping profile. When you start listing FDM-made pieces (`manufacturing_method = fdm_us`), those get tagged for the US market and a US fulfilment profile so India-made and US-made items route differently.
 
-## Models
-- Design Agent: existing (Gemini 3 Pro Image)
-- Engineering Agent: `google/gemini-3.1-pro-preview` (highest reasoning, vision-capable)
-- Maker/Costing Agents: existing (Gemini 2.5 Flash — fast structured output)
+## Step 4: Storefront and checkout
 
-## Verification
-1. Curl `orchestrate-design` with a known prompt → confirm all 4 steps run and final payload matches current `generate-design` shape
-2. Force an engineering fail (tiny wall-thickness brief) → confirm one revision pass happens
-3. Open Design Studio in preview, generate one design → confirm UI is unchanged and result lands as before
-4. Check `manufacturing_intelligence` for new trace row
+The Nyzora site keeps its own look — Browse, product pages, creator profiles, design studio all stay. What changes is the buy path:
 
-Ready to build on approval.
+- "Add to cart" now creates a real Shopify cart via the Storefront API
+- Cart drawer reads live Shopify prices and currency
+- Checkout opens the Shopify-hosted checkout, which is where Stripe collects payment
+
+The existing Razorpay subscription checkout for creator plans stays untouched — that's separate from product sales.
+
+## Step 5: Pull orders back for creator earnings
+
+A `shopify-order-webhook` edge function receives paid orders, matches each line item's SKU to the Nyzora product, then writes `orders`, `order_items` and `designer_earnings` using our private numbers:
+
+- Creator earnings = (list price − MBP) × quantity
+- Maker commission = 20% of MBP × quantity
+- Product sale counts and creator dashboards update as they do today
+
+So the creator dashboard, leaderboard and payout flow keep working with no change to the model.
+
+## Step 6: Retire the custom checkout
+
+Once orders flow correctly, the old `create-order` path, cart table and GST-invoice checkout become read-only history. Existing orders stay intact and visible in order history; new sales come from Shopify.
+
+## What I need from you
+
+1. Confirm you want the Nyzora-branded storefront kept (buy button goes to Shopify checkout) rather than replacing the site with a Shopify theme.
+2. Whether to backfill all 58 approved products into Shopify now, or start with a smaller batch to verify pricing and shipping first.
+
+## Technical notes
+
+- Storefront API version 2025-07, cart via `cartCreate`/`cartLines*` mutations, checkout URL from the API with `channel=online_store`.
+- Cart state in Zustand with localStorage persistence, synced against Shopify on tab focus.
+- Product sync is idempotent — keyed on `shopify_product_id`, so re-approval updates rather than duplicates.
+- Order webhook is idempotent on Shopify order id to survive Shopify's retries.
+- India GST invoicing currently generated by `generate-invoice` will need to read from Shopify order data instead; flagging this as follow-up work rather than part of the first cut.

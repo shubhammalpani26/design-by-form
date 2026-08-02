@@ -72,6 +72,27 @@ serve(async (req) => {
 
     console.log(`Product ${productId} approved successfully`);
 
+    // Push the approved piece into the Shopify storefront catalog.
+    // Only the final list price goes to Shopify; MBP stays private in Nyzora.
+    let shopifySync: unknown = null;
+    try {
+      const { data: syncData, error: syncError } = await supabase.functions.invoke(
+        'sync-product-to-shopify',
+        { body: { productId } }
+      );
+      if (syncError) throw syncError;
+      shopifySync = syncData;
+    } catch (syncError) {
+      console.error('Shopify sync failed for product', productId, syncError);
+      await supabase
+        .from('designer_products')
+        .update({
+          shopify_sync_error:
+            syncError instanceof Error ? syncError.message.slice(0, 500) : 'Sync failed',
+        })
+        .eq('id', productId);
+    }
+
     // Note: Community feed post is created automatically by database trigger 'create_product_launch_post_trigger'
     // to avoid duplicate posts
 
@@ -88,7 +109,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Product approved successfully'
+        message: 'Product approved successfully',
+        shopifySync
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

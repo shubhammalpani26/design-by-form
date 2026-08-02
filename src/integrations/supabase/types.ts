@@ -605,6 +605,10 @@ export type Database = {
           pricing_reasoning: string | null
           production_region: string
           rejection_reason: string | null
+          shopify_product_id: string | null
+          shopify_sync_error: string | null
+          shopify_synced_at: string | null
+          shopify_variant_id: string | null
           slug: string | null
           status: string
           total_sales: number
@@ -640,6 +644,10 @@ export type Database = {
           pricing_reasoning?: string | null
           production_region?: string
           rejection_reason?: string | null
+          shopify_product_id?: string | null
+          shopify_sync_error?: string | null
+          shopify_synced_at?: string | null
+          shopify_variant_id?: string | null
           slug?: string | null
           status?: string
           total_sales?: number
@@ -675,6 +683,10 @@ export type Database = {
           pricing_reasoning?: string | null
           production_region?: string
           rejection_reason?: string | null
+          shopify_product_id?: string | null
+          shopify_sync_error?: string | null
+          shopify_synced_at?: string | null
+          shopify_variant_id?: string | null
           slug?: string | null
           status?: string
           total_sales?: number
@@ -1116,6 +1128,7 @@ export type Database = {
         Row: {
           cgst_amount: number | null
           created_at: string
+          currency: string
           customer_gstin: string | null
           customer_state: string | null
           gst_rate: number | null
@@ -1126,6 +1139,7 @@ export type Database = {
           payment_details: Json | null
           sgst_amount: number | null
           shipping_address: Json | null
+          shopify_order_id: string | null
           status: string
           subtotal: number | null
           total_amount: number
@@ -1135,6 +1149,7 @@ export type Database = {
         Insert: {
           cgst_amount?: number | null
           created_at?: string
+          currency?: string
           customer_gstin?: string | null
           customer_state?: string | null
           gst_rate?: number | null
@@ -1145,6 +1160,7 @@ export type Database = {
           payment_details?: Json | null
           sgst_amount?: number | null
           shipping_address?: Json | null
+          shopify_order_id?: string | null
           status?: string
           subtotal?: number | null
           total_amount: number
@@ -1154,6 +1170,7 @@ export type Database = {
         Update: {
           cgst_amount?: number | null
           created_at?: string
+          currency?: string
           customer_gstin?: string | null
           customer_state?: string | null
           gst_rate?: number | null
@@ -1164,6 +1181,7 @@ export type Database = {
           payment_details?: Json | null
           sgst_amount?: number | null
           shipping_address?: Json | null
+          shopify_order_id?: string | null
           status?: string
           subtotal?: number | null
           total_amount?: number
