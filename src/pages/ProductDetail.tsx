@@ -451,6 +451,11 @@ const ProductDetail = () => {
             {/* Name + Price */}
             <div>
               <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1">{product.name}</h1>
+              {isOriginal(product.designer) && (
+                <span className="inline-block mb-2 rounded-sm bg-foreground px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-background">
+                  Nyzora Original
+                </span>
+              )}
               <p className="text-xl sm:text-2xl font-bold text-primary">{formatPrice(product.price)}</p>
             </div>
 

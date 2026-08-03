@@ -408,6 +408,30 @@ const AdminProductEdit = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div>
+                  <Label>Nyzora Originals</Label>
+                  {isHouseProduct ? (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Listed under the Nyzora Originals house profile. Earnings are house revenue and excluded from creator payouts.
+                    </p>
+                  ) : (
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleOriginal}
+                        disabled={!houseProfileId || isTogglingOriginal}
+                      >
+                        {isTogglingOriginal ? 'Moving...' : 'List as Nyzora Original'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Moves this product to the house profile. Earnings stop being payout-eligible.
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div className="flex gap-4 pt-4">
