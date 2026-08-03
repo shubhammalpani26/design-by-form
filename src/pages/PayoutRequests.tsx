@@ -37,6 +37,7 @@ interface PayoutRequest {
 
 interface DesignerProfile {
   id: string;
+  is_house?: boolean;
 }
 
 interface BankDetails {
@@ -79,7 +80,7 @@ const PayoutRequests = () => {
       // Fetch designer profile
       const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('id')
+        .select('id, is_house')
         .eq('user_id', user.id)
         .single();
 
