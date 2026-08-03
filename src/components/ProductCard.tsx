@@ -9,6 +9,7 @@ import { Check, Shield } from "lucide-react";
 import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
 import { getMakerForProduct } from "@/data/makers";
+import { isOriginal } from "@/lib/originals";
 
 interface ProductCardProps {
   id: string;
@@ -27,6 +28,7 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
   const { formatPrice } = useCurrency();
   const inComparison = isInComparison(id);
   const maker = getMakerForProduct(id, category);
+  const original = isOriginal(designer);
 
   const toggleComparison = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,6 +45,11 @@ export const ProductCard = ({ id, name, designer, designerId, price, weight, ima
       <Link to={`/product/${slugify(name)}`} className="group block">
         <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300 relative">
           <div className="aspect-square overflow-hidden bg-accent relative max-h-[400px]">
+            {original && (
+              <span className="absolute top-2 left-2 z-10 rounded-sm bg-foreground px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-background">
+                Nyzora Original
+              </span>
+            )}
             <img
               src={image && image.length < 50000 ? image : "/placeholder.svg"}
               alt={name}
