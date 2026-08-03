@@ -22,6 +22,7 @@ import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
 import { slugify } from "@/lib/slugify";
+import { isOriginal } from "@/lib/originals";
 import { normalizeFinishes, type FinishOption } from "@/lib/finishes";
 
 
