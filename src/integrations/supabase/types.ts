@@ -771,6 +771,7 @@ export type Database = {
           email: string
           furniture_interests: string | null
           id: string
+          is_house: boolean
           name: string
           phone_number: string | null
           plan_tier: string
@@ -790,6 +791,7 @@ export type Database = {
           email: string
           furniture_interests?: string | null
           id?: string
+          is_house?: boolean
           name: string
           phone_number?: string | null
           plan_tier?: string
@@ -809,6 +811,7 @@ export type Database = {
           email?: string
           furniture_interests?: string | null
           id?: string
+          is_house?: boolean
           name?: string
           phone_number?: string | null
           plan_tier?: string

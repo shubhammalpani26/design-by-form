@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { ArrowLeft, RotateCcw } from 'lucide-react';
 import { SEOHead } from "@/components/SEOHead";
+import { HOUSE_CREATOR_SLUG } from "@/lib/originals";
 
 interface ProductData {
   name: string;
@@ -40,6 +41,9 @@ const AdminProductEdit = () => {
   const [product, setProduct] = useState<ProductData | null>(null);
   const [originalProduct, setOriginalProduct] = useState<ProductData | null>(null);
   const [autoApplyMarkup, setAutoApplyMarkup] = useState(true);
+  const [houseProfileId, setHouseProfileId] = useState<string | null>(null);
+  const [productDesignerId, setProductDesignerId] = useState<string | null>(null);
+  const [isTogglingOriginal, setIsTogglingOriginal] = useState(false);
 
   useEffect(() => {
     checkAdminAndFetchProduct();
@@ -90,6 +94,14 @@ const AdminProductEdit = () => {
 
       setProduct(productData);
       setOriginalProduct(productData);
+      setProductDesignerId((productData as any).designer_id ?? null);
+
+      const { data: house } = await supabase
+        .from('designer_profiles')
+        .select('id')
+        .eq('slug', HOUSE_CREATOR_SLUG)
+        .maybeSingle();
+      setHouseProfileId(house?.id ?? null);
     } catch (error) {
       console.error('Error fetching product:', error);
       toast({
@@ -103,6 +115,24 @@ const AdminProductEdit = () => {
   };
 
   // Calculate markup percentage from original values
+  const isHouseProduct = !!houseProfileId && productDesignerId === houseProfileId;
+
+  const toggleOriginal = async () => {
+    if (!houseProfileId || !id || isHouseProduct) return;
+    setIsTogglingOriginal(true);
+    const { error } = await supabase
+      .from('designer_products')
+      .update({ designer_id: houseProfileId })
+      .eq('id', id);
+    setIsTogglingOriginal(false);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    setProductDesignerId(houseProfileId);
+    toast({ title: 'Listed as Nyzora Original', description: 'This product now sits under the house profile.' });
+  };
+
   const getOriginalMarkupPercent = () => {
     if (!originalProduct || originalProduct.base_price <= 0) return 50;
     return ((originalProduct.designer_price - originalProduct.base_price) / originalProduct.base_price) * 100;
@@ -377,6 +407,30 @@ const AdminProductEdit = () => {
                       <SelectItem value="rejected">Rejected</SelectItem>
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div>
+                  <Label>Nyzora Originals</Label>
+                  {isHouseProduct ? (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Listed under the Nyzora Originals house profile. Earnings are house revenue and excluded from creator payouts.
+                    </p>
+                  ) : (
+                    <div className="mt-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={toggleOriginal}
+                        disabled={!houseProfileId || isTogglingOriginal}
+                      >
+                        {isTogglingOriginal ? 'Moving...' : 'List as Nyzora Original'}
+                      </Button>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Moves this product to the house profile. Earnings stop being payout-eligible.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

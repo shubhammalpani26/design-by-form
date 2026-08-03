@@ -4,6 +4,7 @@ import { useCurrency } from "@/contexts/CurrencyContext";
 import { slugify } from "@/lib/slugify";
 import { Shield } from "lucide-react";
 import { getMakerForProduct } from "@/data/makers";
+import { isOriginal } from "@/lib/originals";
 
 interface HomeProductCardProps {
   id: string;
@@ -19,11 +20,17 @@ interface HomeProductCardProps {
 export const HomeProductCard = ({ id, name, designer, designerId, price, weight, image, category }: HomeProductCardProps) => {
   const { formatPrice } = useCurrency();
   const maker = getMakerForProduct(id, category);
+  const original = isOriginal(designer);
 
   return (
     <Link to={`/product/${slugify(name)}`} className="group block">
       <Card className="overflow-hidden border-border hover:shadow-medium transition-all duration-300">
         <div className="aspect-square overflow-hidden bg-accent relative">
+          {original && (
+            <span className="absolute top-2 left-2 z-10 rounded-sm bg-foreground px-2 py-1 text-[10px] font-medium uppercase tracking-[0.12em] text-background">
+              Nyzora Original
+            </span>
+          )}
           <img
             src={image || "/placeholder.svg"}
             alt={name}

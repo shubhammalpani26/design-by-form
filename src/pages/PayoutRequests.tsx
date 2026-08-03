@@ -37,6 +37,7 @@ interface PayoutRequest {
 
 interface DesignerProfile {
   id: string;
+  is_house?: boolean;
 }
 
 interface BankDetails {
@@ -79,7 +80,7 @@ const PayoutRequests = () => {
       // Fetch designer profile
       const { data: profileData } = await supabase
         .from('designer_profiles')
-        .select('id')
+        .select('id, is_house')
         .eq('user_id', user.id)
         .single();
 
@@ -333,6 +334,11 @@ const PayoutRequests = () => {
 
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-bold">Request History</h2>
+          {profile?.is_house ? (
+            <p className="text-sm text-muted-foreground">
+              Nyzora Originals earnings are house revenue and are not payout-eligible.
+            </p>
+          ) : (
           <Dialog open={showDialog} onOpenChange={setShowDialog}>
             <DialogTrigger asChild>
               <Button disabled={activeBalance < activeMinimum}>
@@ -393,6 +399,7 @@ const PayoutRequests = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          )}
         </div>
 
         {requests.length === 0 ? (
