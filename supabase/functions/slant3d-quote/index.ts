@@ -6,6 +6,7 @@ import {
   PartnerApiError,
   US_PARTNER_MARKUP,
 } from "../_shared/slant3d.ts";
+import { ensurePrintFile } from "../_shared/printFile.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -83,14 +84,27 @@ Deno.serve(async (req) => {
     if (!/^https:\/\//i.test(fileUrl)) {
       return json({ error: "File URL must be a public https URL" }, 400);
     }
+    // Generated models arrive as .glb; auto-convert them into a sliceable
+    // .stl so creators never have to think about file formats.
+    let convertedFile = false;
     if (!isPrintableFileUrl(fileUrl)) {
-      return json(
-        {
-          error:
-            "A print-ready .stl, .3mf or .obj file is required. Upload a mesh for this design first.",
-        },
-        400,
-      );
+      try {
+        const prepared = await ensurePrintFile(admin, {
+          modelUrl: fileUrl,
+          key: product?.id ?? `${user.id}-${Date.now()}`,
+        });
+        fileUrl = prepared.url;
+        convertedFile = prepared.converted;
+      } catch (e) {
+        return json(
+          {
+            error: e instanceof Error
+              ? e.message
+              : "A print-ready .stl, .3mf or .obj file is required.",
+          },
+          400,
+        );
+      }
     }
 
     let partnerCost: number;
@@ -168,6 +182,7 @@ Deno.serve(async (req) => {
       shipping_usd: shippingUsd,
       shipping_estimated: shippingEstimated,
       markup_applied: US_PARTNER_MARKUP,
+      converted_file: convertedFile,
       file_url: fileUrl,
     });
   } catch (e) {

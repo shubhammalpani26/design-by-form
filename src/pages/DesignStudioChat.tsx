@@ -903,9 +903,10 @@ export default function DesignStudioChat() {
         if (status === "SUCCEEDED" && modelUrl) {
           await updateAssistantMessage(messageId, {
             content: "3D model ready. Drag to rotate.",
-            metadata: { kind: "3d-result", status: "ready", modelUrl, taskId } as any,
+            metadata: { kind: "3d-result", status: "ready", modelUrl, taskId, usQuote: { status: "pending" } } as any,
           });
           toast({ title: "3D model ready" });
+          void runUsQuote(messageId, modelUrl, taskId);
           return;
         }
         if (status === "FAILED") {
@@ -935,6 +936,41 @@ export default function DesignStudioChat() {
       }
     };
     setTimeout(tick, 5000);
+  }
+
+  /**
+   * Prices the freshly generated mesh through the US manufacturing route:
+   * the model is converted to a print file, quoted, and Nyzora's margin is
+   * applied server-side. Creators only ever see the resulting base price.
+   */
+  async function runUsQuote(messageId: string, modelUrl: string, taskId?: string) {
+    const base = { kind: "3d-result", status: "ready", modelUrl, taskId };
+    try {
+      const { data, error } = await supabase.functions.invoke("slant3d-quote", {
+        body: { file_url: modelUrl },
+      });
+      const err = (error as any)?.message ?? (data as any)?.error;
+      if (err || !(data as any)?.mbp_usd) {
+        await updateAssistantMessage(messageId, {
+          metadata: { ...base, usQuote: { status: "failed", error: err ?? "Quote unavailable" } } as any,
+        });
+        return;
+      }
+      await updateAssistantMessage(messageId, {
+        metadata: {
+          ...base,
+          usQuote: {
+            status: "ready",
+            mbpUsd: (data as any).mbp_usd,
+            mbpInr: (data as any).mbp_inr,
+          },
+        } as any,
+      });
+    } catch (e) {
+      await updateAssistantMessage(messageId, {
+        metadata: { ...base, usQuote: { status: "failed", error: e instanceof Error ? e.message : String(e) } } as any,
+      });
+    }
   }
 
   async function handleGenerate3D() {
@@ -1794,6 +1830,7 @@ function MessageBubble({
           <div className="h-72">
             <ModelViewer3D modelUrl={modelUrl} productName="Studio design" />
           </div>
+          <UsQuotePanel quote={(message.metadata as any)?.usQuote} />
         </div>
       )}
 
@@ -1821,6 +1858,43 @@ function MessageBubble({
       )}
 
       <ImageLightbox url={lightboxUrl} onClose={() => setLightboxUrl(null)} />
+    </div>
+  );
+}
+
+/**
+ * US manufacturing readout shown under a generated 3D model. Displays the
+ * manufacturing base price only — the partner cost and Nyzora's margin stay
+ * internal.
+ */
+function UsQuotePanel({ quote }: { quote?: { status?: string; mbpUsd?: number; mbpInr?: number; error?: string } }) {
+  if (!quote?.status) return null;
+  return (
+    <div className="px-3 py-2.5 border-t border-border bg-card text-xs">
+      <div className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">
+        US Made · Manufacturing base price
+      </div>
+      {quote.status === "pending" && (
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" /> pricing this piece for US manufacturing…
+        </div>
+      )}
+      {quote.status === "ready" && (
+        <div className="flex items-baseline gap-2">
+          <span className="text-base font-medium text-foreground">
+            ${quote.mbpUsd?.toFixed(2)}
+          </span>
+          {quote.mbpInr ? (
+            <span className="text-muted-foreground">≈ ₹{quote.mbpInr.toLocaleString("en-IN")}</span>
+          ) : null}
+          <span className="text-muted-foreground">· made &amp; shipped in the US</span>
+        </div>
+      )}
+      {quote.status === "failed" && (
+        <div className="text-muted-foreground">
+          US pricing is temporarily unavailable. {quote.error ? `(${quote.error})` : ""}
+        </div>
+      )}
     </div>
   );
 }
