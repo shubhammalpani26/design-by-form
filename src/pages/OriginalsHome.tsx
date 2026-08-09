@@ -4,7 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
-import { ScrollReveal, StaggerReveal } from "@/hooks/useScrollReveal";
+import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { ArrowRight, Wand2 } from "lucide-react";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
 import heroImg from "@/assets/originals-hero.jpg";
@@ -110,7 +110,7 @@ const OriginalsHome = () => {
           </div>
         </ScrollReveal>
 
-        <StaggerReveal className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-border">
+        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-border">
           {ORIGINALS_SKUS.map((sku) => (
             <Link
               key={sku.slug}
@@ -137,7 +137,7 @@ const OriginalsHome = () => {
               </span>
             </Link>
           ))}
-        </StaggerReveal>
+        </div>
       </section>
 
       {/* How it works */}
