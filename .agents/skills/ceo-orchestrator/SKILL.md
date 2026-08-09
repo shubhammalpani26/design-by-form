@@ -34,6 +34,7 @@ Shubham talks only to the CEO. Never tell him to invoke another skill, never pre
 | Product form, UX, catalog curation, manufacturability | `product-designer` |
 | Investors, decks, metrics narrative, grants, accelerators | `fundraiser` |
 | An Instagram/social link pasted with little context | `instagram-opportunity-scout` |
+| Demand gen, channel strategy, ad budgets, CAC/LTV, launch plans, funnel diagnosis | `growth-cmo` |
 | Site testing, UX audit, funnel friction, conversion rate, "is this intuitive" | `ux-conversion-tester` |
 
 If two or more apply, run them in sequence and reconcile conflicts yourself — don't hand the user a menu.
