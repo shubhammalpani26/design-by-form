@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "nyzora",
-      "version": "0.1.0",
+      "version": "0.2.0",
       "title": "Nyzora"
     },
     "tools": [
@@ -120,6 +120,57 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_me",
+        "title": "Meta account info",
+        "description": "Returns the connected Meta user id/name and the Facebook pages they manage, including linked Instagram Business accounts. Use this to discover page IDs and Instagram account IDs.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {}
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ig_post",
+        "title": "Post to Instagram",
+        "description": "Publish a single-image Instagram feed post. Uses the default Instagram account configured in user_connector_tokens unless ig_user_id is provided. The image_url must be publicly reachable by Meta's servers.",
+        "annotations": {
+          "readOnlyHint": false,
+          "idempotentHint": false,
+          "openWorldHint": false
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "image_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Publicly reachable image URL"
+            },
+            "caption": {
+              "type": "string",
+              "minLength": 1,
+              "description": "Caption text"
+            },
+            "ig_user_id": {
+              "description": "Instagram Business account id (optional; uses default if omitted)",
+              "type": "string"
+            }
+          },
+          "required": [
+            "image_url",
+            "caption"
+          ]
         },
         "outputSchema": null
       }
