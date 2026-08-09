@@ -33,6 +33,7 @@ const OriginalsHome = () => {
         keywords={["personalized keepsake", "pet silhouette gift", "nursery name sign", "wedding coordinates gift", "made in usa"]}
       />
       <JsonLd
+        id="originals-collection"
         data={{
           "@context": "https://schema.org",
           "@type": "ItemList",
