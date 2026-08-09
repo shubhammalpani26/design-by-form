@@ -14,6 +14,8 @@ import { getCanonicalUrl } from "@/components/SEOHead";
 
 // Eager load only the homepage for fastest initial paint
 import Home from "./pages/Home";
+import OriginalsHome from "./pages/OriginalsHome";
+const OriginalDetail = lazy(() => import("./pages/OriginalDetail"));
 
 // Lazy load everything else
 const Browse = lazy(() => import("./pages/Browse"));
@@ -128,7 +130,8 @@ const App = () => (
               <ComparisonBar />
               <Suspense fallback={<PageLoader />}>
               <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<OriginalsHome />} />
+              <Route path="/originals/:slug" element={<OriginalDetail />} />
               {/* Existing platform homepage preserved verbatim at its own route */}
               <Route path="/platform" element={<Home />} />
               <Route path="/browse" element={<Browse />} />
