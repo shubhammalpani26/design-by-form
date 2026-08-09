@@ -292,7 +292,16 @@ async function getMetaAccessToken(ctx) {
 }
 async function getMetaDefaults(ctx) {
   const { meta_defaults } = await loadStoredState(ctx);
-  return meta_defaults ?? {};
+  const stored = meta_defaults ?? {};
+  if (!stored.ig_user_id) {
+    return {
+      ...stored,
+      ig_user_id: "17841436891682401",
+      ig_username: "nyzora.ai",
+      page_id: "1087872784403919"
+    };
+  }
+  return stored;
 }
 
 // src/lib/mcp/tools/meta-me.ts
