@@ -63,7 +63,7 @@ export function formatMoney(value: number, currency: "INR" | "USD") {
 
 /**
  * Back-track a manufacturing base price window into a size + complexity brief.
- * `fdm` = US on-demand print tier (fixed 250mm envelope, priced by part size).
+ * `fdm` = US on-demand print tier (fixed 220mm envelope, priced by part size).
  */
 export function buildBudgetBrief(
   min: number,
@@ -76,10 +76,10 @@ export function buildBudgetBrief(
 
   if (fdm || currency === "USD") {
     // US FDM: printed volume drives cost. At sparse infill a part costs roughly
-    // $0.02 per cm³ of bounding volume, capped by the 250mm single-part envelope.
+    // $0.02 per cm³ of bounding volume, capped by the 220mm single-part envelope.
     const USD_PER_CM3 = 0.02;
-    const cubeMinCm = Math.max(5, Math.min(25, Math.cbrt(lo / USD_PER_CM3)));
-    const cubeMaxCm = Math.max(7, Math.min(25, Math.cbrt(hi / USD_PER_CM3)));
+    const cubeMinCm = Math.max(5, Math.min(22, Math.cbrt(lo / USD_PER_CM3)));
+    const cubeMaxCm = Math.max(7, Math.min(22, Math.cbrt(hi / USD_PER_CM3)));
     const complexity = hi >= 100 ? "high" : hi >= 40 ? "medium" : "low";
     return {
       min: lo,
@@ -91,7 +91,7 @@ export function buildBudgetBrief(
       text: [
         `BUDGET-DRIVEN BRIEF (design backwards from price):`,
         `- Target manufacturing base price: ${formatMoney(lo, "USD")}–${formatMoney(hi, "USD")} per unit, US on-demand print.`,
-        `- Keep the part roughly ${cubeMinCm.toFixed(0)}–${cubeMaxCm.toFixed(0)} cm in its largest dimension (hard ceiling 25 cm).`,
+        `- Keep the part roughly ${cubeMinCm.toFixed(0)}–${cubeMaxCm.toFixed(0)} cm in its largest dimension (hard ceiling 22 cm).`,
         `- Cost is driven by printed material volume and time: favour ${complexity === "low"
           ? "hollow-feeling, thin-walled, compact forms with minimal mass"
           : complexity === "medium"

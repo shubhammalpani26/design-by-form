@@ -32,7 +32,7 @@ const inputSchema = z.object({
 });
 
 // US on-demand FDM tiers (domestic print-farm envelope).
-// Anything in these categories must fit a single print envelope of 250mm cubed.
+// Anything in these categories must fit a single print envelope of 220mm cubed.
 const US_FDM_TIERS: Record<string, { label: string; modular: boolean }> = {
   objects: { label: "Objects", modular: false },
   lighting: { label: "Lighting", modular: false },
@@ -45,7 +45,7 @@ const US_FDM_TIERS: Record<string, { label: string; modular: boolean }> = {
   miniature: { label: "Figurines & Miniatures", modular: false },
 };
 
-const FDM_ENVELOPE_MM = 250;
+const FDM_ENVELOPE_MM = 220;
 
 function resolveFdmTier(category: string, manufacturingMethod: string) {
   if (manufacturingMethod === "fdm_us") {
