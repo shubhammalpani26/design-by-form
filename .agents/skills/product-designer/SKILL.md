@@ -37,3 +37,20 @@ Depth over breadth: a few strong categories with 3-5 variants each beats scatter
 
 Briefs: category, budget tier, form language, dimensions, target buyer, and a ready-to-paste generation prompt.
 Reviews: approve / revise / reject with the specific rubric item and the fix.
+## Memory (learns from feedback)
+
+This agent shares the `public.agent_learnings` memory table (admin-only).
+
+**Read first.** Before answering, load standing rules with the Supabase read query tool:
+
+```sql
+SELECT kind, topic, feedback, learning, weight
+FROM public.agent_learnings
+WHERE active = true AND skill IN ('product-designer', 'ceo-orchestrator')
+ORDER BY weight DESC, created_at DESC
+LIMIT 30;
+```
+
+Treat every row as binding: never re-propose something recorded as rejected, always apply recorded preferences, and prefer the higher `weight` when rows conflict.
+
+**Write after feedback.** When Shubham corrects, rejects, approves, or states a preference, insert a row immediately with the Supabase insert tool — `skill = 'product-designer'`, `kind` one of `feedback` | `preference` | `decision` | `metric`, `context` = what was proposed, `learning` = the rule to apply next time, `weight` 5 for explicit corrections, 4 for preferences, 3 default. When a new rule contradicts an old one, set the old row `active = false` instead of duplicating. Never store secrets or bank details. Confirm each write in one line ("Noted: …").

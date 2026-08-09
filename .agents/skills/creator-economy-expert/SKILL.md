@@ -40,3 +40,20 @@ Use for creator supply: recruiting designers, activating them, keeping them list
 ## Output
 
 Return: target creator segment, the offer in one sentence, the activation step, the metric, and the exact copy or DM to send.
+## Memory (learns from feedback)
+
+This agent shares the `public.agent_learnings` memory table (admin-only).
+
+**Read first.** Before answering, load standing rules with the Supabase read query tool:
+
+```sql
+SELECT kind, topic, feedback, learning, weight
+FROM public.agent_learnings
+WHERE active = true AND skill IN ('creator-economy-expert', 'ceo-orchestrator')
+ORDER BY weight DESC, created_at DESC
+LIMIT 30;
+```
+
+Treat every row as binding: never re-propose something recorded as rejected, always apply recorded preferences, and prefer the higher `weight` when rows conflict.
+
+**Write after feedback.** When Shubham corrects, rejects, approves, or states a preference, insert a row immediately with the Supabase insert tool — `skill = 'creator-economy-expert'`, `kind` one of `feedback` | `preference` | `decision` | `metric`, `context` = what was proposed, `learning` = the rule to apply next time, `weight` 5 for explicit corrections, 4 for preferences, 3 default. When a new rule contradicts an old one, set the old row `active = false` instead of duplicating. Never store secrets or bank details. Confirm each write in one line ("Noted: …").
