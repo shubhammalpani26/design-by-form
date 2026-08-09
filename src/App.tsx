@@ -129,6 +129,8 @@ const App = () => (
               <Suspense fallback={<PageLoader />}>
               <Routes>
               <Route path="/" element={<Home />} />
+              {/* Existing platform homepage preserved verbatim at its own route */}
+              <Route path="/platform" element={<Home />} />
               <Route path="/browse" element={<Browse />} />
               <Route path="/product/:slug" element={<ProductDetail />} />
               <Route path="/designer/:slug" element={<DesignerProfile />} />
