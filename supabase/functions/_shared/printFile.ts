@@ -6,7 +6,7 @@ import { glbToStl } from "./glbToStl.ts";
  */
 export const DEFAULT_PRINT_MAX_MM = 180;
 /** Hard build-envelope limit of the US print route. */
-export const US_MAX_MM = 250;
+export const US_MAX_MM = 220;
 
 export interface PreparedPrintFile {
   url: string;

@@ -48,9 +48,9 @@ const CATEGORIES = [
 ];
 
 // Categories fulfilled by the US on-demand print network.
-// These enforce a 250mm single-part envelope at generation time.
+// These enforce a 220mm single-part envelope at generation time.
 export const US_FDM_CATEGORIES = new Set(["Objects", "Wall Tiles", "Desk", "Figurine"]);
-export const FDM_ENVELOPE_CM = 25;
+export const FDM_ENVELOPE_CM = 22;
 
 // Map free-form category labels to canonical DB categories used on /browse
 const DB_CATEGORY: Record<string, string> = {

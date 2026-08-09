@@ -213,11 +213,11 @@ FIGURINE / MINIATURE RULES (this is a sculpted collectible object, not a person)
 - Single-colour sculpted material (matte resin, bone ceramic, matte plastic, stone-look composite).
 - Overhangs no steeper than 45°, no thin fragile protrusions (no separate fingers, hair strands, thin swords).
 - Solid, monolithic body on a flat, stable base that sits flush on the surface.
-- Fits inside a 250mm cube — desk/shelf scale collectible.`;
+- Fits inside a 220mm cube — desk/shelf scale collectible.`;
 
     const smallObjectConstraints = `
 SMALL-FORMAT MANUFACTURING RULES (US FDM print farm, single part):
-- The piece must fit inside a 250mm × 250mm × 250mm build envelope.
+- The piece must fit inside a 220mm × 220mm × 220mm build envelope.
 - Minimum 2mm wall thickness, no overhangs steeper than 45°, no unsupported bridges.
 - Flat, stable base that sits flush; single solid part (no assemblies or hardware).
 - One cohesive matte material story — resin/plastic/ceramic-look, ribbing and faceting encouraged.

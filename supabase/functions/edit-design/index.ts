@@ -153,7 +153,7 @@ serve(async (req) => {
 - No real person, no portrait likeness, no identifiable face.
 - Single-colour sculpted material (matte resin, bone ceramic, stone-look composite).
 - Overhangs no steeper than 45°, no thin fragile protrusions, solid monolithic body.
-- Flat, stable base; fits inside a 250mm cube.
+- Flat, stable base; fits inside a 220mm cube.
 - Keep the same figure/subject as the reference image unless the user explicitly asks to change it.`;
 
     const PRODUCT_CONSTRAINTS = isFigurine ? FIGURINE_CONSTRAINTS : `${MANUFACTURING_CONSTRAINTS}
