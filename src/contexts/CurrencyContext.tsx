@@ -60,8 +60,11 @@ const currencySymbols: Record<string, string> = {
 };
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState<string>('INR');
-  const [exchangeRate, setExchangeRate] = useState<number>(1);
+  // US-first: default to USD unless the visitor is detected in India
+  const [currency, setCurrency] = useState<string>('USD');
+  // Conservative INR→USD fallback so prices never render as raw rupee numbers
+  const FALLBACK_USD_RATE = 0.0115;
+  const [exchangeRate, setExchangeRate] = useState<number>(FALLBACK_USD_RATE);
   const [isLoading, setIsLoading] = useState(true);
 
   // Detect user location and set currency
@@ -94,10 +97,12 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
       if (data?.currency) {
         setCurrency(data.currency);
         console.log('Detected currency:', data.currency, 'for country:', data.country);
+      } else {
+        setCurrency('USD');
       }
     } catch (error) {
       console.error('Error detecting location:', error);
-      setCurrency('INR');
+      setCurrency('USD');
     }
   };
 
@@ -116,7 +121,7 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
       }
     } catch (error) {
       console.error('Error fetching exchange rate:', error);
-      setExchangeRate(1);
+      setExchangeRate(targetCurrency === 'USD' ? FALLBACK_USD_RATE : 1);
     } finally {
       setIsLoading(false);
     }
