@@ -60,7 +60,8 @@ const currencySymbols: Record<string, string> = {
 };
 
 export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
-  const [currency, setCurrency] = useState<string>('INR');
+  // US-first: default to USD unless the visitor is detected in India
+  const [currency, setCurrency] = useState<string>('USD');
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -94,10 +95,12 @@ export const CurrencyProvider = ({ children }: { children: ReactNode }) => {
       if (data?.currency) {
         setCurrency(data.currency);
         console.log('Detected currency:', data.currency, 'for country:', data.country);
+      } else {
+        setCurrency('USD');
       }
     } catch (error) {
       console.error('Error detecting location:', error);
-      setCurrency('INR');
+      setCurrency('USD');
     }
   };
 
