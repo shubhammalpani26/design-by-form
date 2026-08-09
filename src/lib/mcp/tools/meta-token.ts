@@ -163,10 +163,20 @@ export async function getMetaAccessToken(ctx: ToolContext): Promise<string> {
 
 export async function getMetaDefaults(ctx: ToolContext) {
   const { meta_defaults } = await loadStoredState(ctx);
-  return (meta_defaults ?? {}) as {
+  const stored = (meta_defaults ?? {}) as {
     ig_user_id?: string;
     ig_username?: string;
     page_id?: string;
     ad_account_id?: string;
   };
+  // Default to the Nyzora Instagram Business account when no preference is stored.
+  if (!stored.ig_user_id) {
+    return {
+      ...stored,
+      ig_user_id: "17841436891682401",
+      ig_username: "nyzora.ai",
+      page_id: "1087872784403919",
+    };
+  }
+  return stored;
 }
