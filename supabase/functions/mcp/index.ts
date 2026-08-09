@@ -165,18 +165,269 @@ var get_my_credits_default = defineTool4({
   }
 });
 
+// src/lib/mcp/tools/meta-me.ts
+import { defineTool as defineTool5, ToolError as ToolError5 } from "npm:@lovable.dev/mcp-js@0.26.1";
+
+// src/lib/mcp/tools/meta-token.ts
+import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.58.0";
+var FB_API = "https://graph.facebook.com/v18.0";
+var REFRESH_BUFFER_MS = 24 * 60 * 60 * 1e3;
+function runtimeEnv2(name) {
+  const runtime = globalThis;
+  return runtime.Deno?.env?.get?.(name) ?? runtime.process?.env?.[name];
+}
+function configuredEnv2(names) {
+  for (const name of names) {
+    const value = runtimeEnv2(name)?.trim();
+    if (value) return value;
+  }
+  return void 0;
+}
+function supabaseProjectUrl2() {
+  const url = configuredEnv2(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  if (!url) throw new Error("SUPABASE_URL (or VITE_SUPABASE_URL) is required");
+  return url;
+}
+function supabasePublishableKey2() {
+  const direct = configuredEnv2(["SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY"]);
+  if (direct) return direct;
+  const keyset = runtimeEnv2("SUPABASE_PUBLISHABLE_KEYS");
+  if (keyset) {
+    try {
+      const parsed = JSON.parse(keyset);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const keys = parsed;
+        const key = [keys.default, ...Object.values(keys)].find((v) => typeof v === "string" && v.trim().startsWith("sb_publishable_"))?.trim();
+        if (key) return key;
+      }
+    } catch {
+    }
+  }
+  const legacy = configuredEnv2(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]);
+  if (legacy) return legacy;
+  throw new Error("SUPABASE_PUBLISHABLE_KEY, SUPABASE_PUBLISHABLE_KEYS, or SUPABASE_ANON_KEY is required");
+}
+function appCreds() {
+  const appId = runtimeEnv2("META_APP_ID");
+  const appSecret = runtimeEnv2("META_APP_SECRET");
+  const currentEnvToken = runtimeEnv2("META_ACCESS_TOKEN");
+  if (!appId || !appSecret) {
+    throw new Error("META_APP_ID and META_APP_SECRET must be configured for Meta/Instagram posting");
+  }
+  if (!currentEnvToken) {
+    throw new Error("META_ACCESS_TOKEN not configured");
+  }
+  return { appId, appSecret, currentEnvToken };
+}
+async function fetchJson(url) {
+  const res = await fetch(url);
+  const text = await res.text();
+  if (!res.ok) {
+    throw new Error(`Meta token exchange failed (${res.status}): ${text.slice(0, 500)}`);
+  }
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
+  }
+}
+async function exchangeForLongLived(shortToken, appId, appSecret) {
+  const url = `${FB_API}/oauth/access_token?grant_type=fb_exchange_token&client_id=${appId}&client_secret=${appSecret}&fb_exchange_token=${shortToken}`;
+  const data = await fetchJson(url);
+  if (data.error?.message) {
+    throw new Error(`Meta token exchange error: ${data.error.message}`);
+  }
+  if (!data.access_token) {
+    throw new Error("Meta token exchange did not return an access_token");
+  }
+  const expiresInMs = (data.expires_in ?? 5184e3) * 1e3;
+  return {
+    access_token: data.access_token,
+    token_type: data.token_type ?? "bearer",
+    expires_at: new Date(Date.now() + expiresInMs).toISOString()
+  };
+}
+function supabaseForUser2(ctx) {
+  const token = ctx.getToken();
+  if (!token) throw new Error("supabaseForUser requires a verified OAuth token");
+  return createClient2(supabaseProjectUrl2(), supabasePublishableKey2(), {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+async function loadStoredState(ctx) {
+  const userId = ctx.getUserId();
+  if (!userId) throw new Error("Not authenticated");
+  const supabase = supabaseForUser2(ctx);
+  const { data, error } = await supabase.from("user_connector_tokens").select("meta_defaults").eq("user_id", userId).maybeSingle();
+  if (error) throw new Error(`Failed to load Meta token state: ${error.message}`);
+  const meta_defaults = data?.meta_defaults ?? {};
+  const tokenState = meta_defaults?.meta_token ? meta_defaults.meta_token : null;
+  return { meta_defaults, tokenState };
+}
+async function saveTokenState(ctx, meta_defaults, tokenState) {
+  const userId = ctx.getUserId();
+  if (!userId) throw new Error("Not authenticated");
+  const supabase = supabaseForUser2(ctx);
+  const next = { ...meta_defaults ?? {}, meta_token: tokenState };
+  const { error } = await supabase.from("user_connector_tokens").upsert({ user_id: userId, meta_defaults: next }, { onConflict: "user_id" });
+  if (error) throw new Error(`Failed to save Meta token state: ${error.message}`);
+}
+function isExpiringSoon(tokenState) {
+  if (!tokenState?.access_token) return true;
+  if (!tokenState.expires_at) return false;
+  const expiresAt = new Date(tokenState.expires_at).getTime();
+  return Date.now() + REFRESH_BUFFER_MS >= expiresAt;
+}
+async function getMetaAccessToken(ctx) {
+  const { appId, appSecret, currentEnvToken } = appCreds();
+  const { meta_defaults, tokenState } = await loadStoredState(ctx);
+  if (!isExpiringSoon(tokenState)) {
+    return tokenState.access_token;
+  }
+  const sourceToken = tokenState?.access_token ?? currentEnvToken;
+  const fresh = await exchangeForLongLived(sourceToken, appId, appSecret);
+  await saveTokenState(ctx, meta_defaults, fresh);
+  return fresh.access_token;
+}
+async function getMetaDefaults(ctx) {
+  const { meta_defaults } = await loadStoredState(ctx);
+  return meta_defaults ?? {};
+}
+
+// src/lib/mcp/tools/meta-me.ts
+var FB_API2 = "https://graph.facebook.com/v18.0";
+async function fb(path, token, init = {}) {
+  const res = await fetch(`${FB_API2}${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...init.headers ?? {} }
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new ToolError5(`Meta ${res.status} ${path}: ${text.slice(0, 500)}`);
+  }
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
+  }
+}
+var meta_me_default = defineTool5({
+  name: "meta_me",
+  title: "Meta account info",
+  description: "Returns the connected Meta user id/name and the Facebook pages they manage, including linked Instagram Business accounts. Use this to discover page IDs and Instagram account IDs.",
+  inputSchema: {},
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
+  handler: async (_input, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      throw new ToolError5("Not authenticated");
+    }
+    const token = await getMetaAccessToken(ctx);
+    const me = await fb(
+      "/me?fields=id,name,accounts{name,id,access_token,instagram_business_account{id,username}}",
+      token
+    );
+    return {
+      content: [{ type: "text", text: JSON.stringify(me, null, 2) }],
+      structuredContent: {
+        user_id: me.id,
+        name: me.name,
+        pages: me.accounts?.data ?? []
+      }
+    };
+  }
+});
+
+// src/lib/mcp/tools/meta-ig-post.ts
+import { defineTool as defineTool6, ToolError as ToolError6 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z4 } from "npm:zod@^4.4.3";
+var FB_API3 = "https://graph.facebook.com/v18.0";
+async function fb2(path, token, init = {}) {
+  const res = await fetch(`${FB_API3}${path}`, {
+    ...init,
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...init.headers ?? {} }
+  });
+  const text = await res.text();
+  if (!res.ok) {
+    throw new ToolError6(`Meta ${res.status} ${path}: ${text.slice(0, 500)}`);
+  }
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    return { raw: text };
+  }
+}
+var meta_ig_post_default = defineTool6({
+  name: "meta_ig_post",
+  title: "Post to Instagram",
+  description: "Publish a single-image Instagram feed post. Uses the default Instagram account configured in user_connector_tokens unless ig_user_id is provided. The image_url must be publicly reachable by Meta's servers.",
+  inputSchema: {
+    image_url: z4.string().url().describe("Publicly reachable image URL"),
+    caption: z4.string().min(1).describe("Caption text"),
+    ig_user_id: z4.string().optional().describe("Instagram Business account id (optional; uses default if omitted)")
+  },
+  annotations: { readOnlyHint: false, idempotentHint: false, openWorldHint: false },
+  handler: async ({ image_url, caption, ig_user_id }, ctx) => {
+    if (!ctx.isAuthenticated()) {
+      throw new ToolError6("Not authenticated");
+    }
+    const token = await getMetaAccessToken(ctx);
+    const defaults = await getMetaDefaults(ctx);
+    const resolvedIgUserId = ig_user_id ?? defaults.ig_user_id ?? "";
+    if (!resolvedIgUserId) {
+      throw new ToolError6(
+        "No Instagram Business account ID configured. Run meta_me to find your account ID, then store it in user_connector_tokens meta_defaults.ig_user_id."
+      );
+    }
+    const encodedImageUrl = encodeURIComponent(image_url);
+    const encodedCaption = encodeURIComponent(caption);
+    const container = await fb2(
+      `/${resolvedIgUserId}/media?image_url=${encodedImageUrl}&caption=${encodedCaption}`,
+      token,
+      { method: "POST" }
+    );
+    if (!container.id) {
+      throw new ToolError6("Instagram media container creation failed");
+    }
+    let status = "IN_PROGRESS";
+    let lastError = "";
+    for (let attempt = 0; attempt < 20; attempt++) {
+      await new Promise((r) => setTimeout(r, attempt === 0 ? 2e3 : 3e3));
+      const s = await fb2(`/${container.id}?fields=status_code,status`, token);
+      status = s.status_code ?? "IN_PROGRESS";
+      lastError = s.status ?? "";
+      if (status === "FINISHED") break;
+      if (status === "ERROR" || status === "EXPIRED") {
+        throw new ToolError6(`Instagram media processing failed (${status}): ${lastError}`);
+      }
+    }
+    if (status !== "FINISHED") {
+      throw new ToolError6(`Instagram media was still processing after ~60s (status: ${status}). ${lastError}`);
+    }
+    const published = await fb2(
+      `/${resolvedIgUserId}/media_publish?creation_id=${container.id}`,
+      token,
+      { method: "POST" }
+    );
+    return {
+      content: [{ type: "text", text: `Posted to Instagram. Media ID: ${published.id ?? "unknown"}` }],
+      structuredContent: { container_id: container.id, media_id: published.id }
+    };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "rdcfakdhgndnhgzfkuvw";
 var mcp_default = defineMcp({
   name: "nyzora",
   title: "Nyzora",
-  version: "0.1.0",
-  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits.",
+  version: "0.2.0",
+  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default]
+  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default, meta_me_default, meta_ig_post_default]
 });
 
 // lovable-mcp-supabase-entry.ts
