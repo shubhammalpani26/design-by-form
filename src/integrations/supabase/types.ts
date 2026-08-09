@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_learnings: {
+        Row: {
+          active: boolean
+          context: string | null
+          created_at: string
+          created_by: string | null
+          feedback: string
+          id: string
+          kind: string
+          learning: string | null
+          skill: string
+          topic: string | null
+          updated_at: string
+          weight: number
+        }
+        Insert: {
+          active?: boolean
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          feedback: string
+          id?: string
+          kind?: string
+          learning?: string | null
+          skill?: string
+          topic?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Update: {
+          active?: boolean
+          context?: string | null
+          created_at?: string
+          created_by?: string | null
+          feedback?: string
+          id?: string
+          kind?: string
+          learning?: string | null
+          skill?: string
+          topic?: string | null
+          updated_at?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       ar_sessions: {
         Row: {
           created_at: string
