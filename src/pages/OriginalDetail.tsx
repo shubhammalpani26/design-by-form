@@ -45,7 +45,7 @@ const OriginalDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${sku.name} — Personalized Keepsake | Nyzora Originals`}
+        title={`${sku.name} — Personalized Piece | Nyzora Originals`}
         description={`${sku.tagline} Made to order in the USA and shipped in 3–5 days. $${sku.price}.`}
         type="product"
       />
