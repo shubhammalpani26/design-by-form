@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
-import { getFilaments } from "../_shared/slant3d.ts";
+import { getFilaments, type PartnerFilament } from "../_shared/slant3d.ts";
 
 const CONFIG_KEY = "us_partner_filaments";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
@@ -10,9 +10,7 @@ const admin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-async function getCachedCatalog(): Promise<
-  { filament: string; hexColor: string; colorTag: string; profile: string }[] | null
-> {
+async function getCachedCatalog(): Promise<PartnerFilament[] | null> {
   const { data } = await admin
     .from("pricing_config")
     .select("config_value, updated_at")
@@ -30,9 +28,7 @@ async function getCachedCatalog(): Promise<
   return null;
 }
 
-async function setCachedCatalog(
-  filaments: { filament: string; hexColor: string; colorTag: string; profile: string }[],
-) {
+async function setCachedCatalog(filaments: PartnerFilament[]) {
   const { data: existing } = await admin
     .from("pricing_config")
     .select("id")
@@ -103,12 +99,12 @@ Deno.serve(async (req) => {
         // Fallback palette so product pages still render color swatches even if the
         // partner API is temporarily unavailable.
         catalog = [
-          { filament: "PLA BLACK", hexColor: "#2D2D2D", colorTag: "black", profile: "PLA" },
-          { filament: "PLA WHITE", hexColor: "#F5F5F0", colorTag: "white", profile: "PLA" },
-          { filament: "PLA RED", hexColor: "#C0392B", colorTag: "red", profile: "PLA" },
-          { filament: "PLA BLUE", hexColor: "#2980B9", colorTag: "blue", profile: "PLA" },
-          { filament: "PLA GREEN", hexColor: "#27AE60", colorTag: "green", profile: "PLA" },
-          { filament: "PLA SILVER", hexColor: "#BDC3C7", colorTag: "silver", profile: "PLA" },
+          { filament: "PLA BLACK", hexColor: "#2D2D2D", colorTag: "black", profile: "PLA", filamentId: "" },
+          { filament: "PLA WHITE", hexColor: "#F5F5F0", colorTag: "white", profile: "PLA", filamentId: "" },
+          { filament: "PLA RED", hexColor: "#C0392B", colorTag: "red", profile: "PLA", filamentId: "" },
+          { filament: "PLA BLUE", hexColor: "#2980B9", colorTag: "blue", profile: "PLA", filamentId: "" },
+          { filament: "PLA GREEN", hexColor: "#27AE60", colorTag: "green", profile: "PLA", filamentId: "" },
+          { filament: "PLA SILVER", hexColor: "#BDC3C7", colorTag: "silver", profile: "PLA", filamentId: "" },
         ];
       }
     }
