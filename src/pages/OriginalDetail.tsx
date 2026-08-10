@@ -77,7 +77,7 @@ const OriginalDetail = () => {
         <div className="border border-border bg-muted/20">
           <img
             src={sku.image}
-            alt={`${sku.name} personalized keepsake`}
+            alt={`${sku.name} personalized piece`}
             width={1024}
             height={1280}
             className="w-full object-contain"
