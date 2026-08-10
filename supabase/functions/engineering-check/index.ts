@@ -140,7 +140,7 @@ Also judge COST FIT:
     if (!apiKey) {
       // Non-blocking: if AI key missing, return permissive pass so orchestration continues
       return new Response(
-        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true }),
+        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, print_spec: normalisePrintSpec(null, { fdm: Boolean(fdmTier), longestMm: 0 }) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -274,7 +274,7 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
       console.error("engineering-check AI error:", aiRes.status, detail);
       // Non-blocking: permissive pass so we don't block design flow on infra errors
       return new Response(
-        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: `ai_${aiRes.status}` }),
+        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: `ai_${aiRes.status}`, print_spec: normalisePrintSpec(null, { fdm: Boolean(fdmTier), longestMm: 0 }) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -324,7 +324,7 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
   } catch (e) {
     console.error("engineering-check error:", e);
     return new Response(
-      JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: (e as Error).message }),
+      JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: (e as Error).message, print_spec: normalisePrintSpec(null, { fdm: true, longestMm: 0 }) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
