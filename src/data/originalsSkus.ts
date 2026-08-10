@@ -56,7 +56,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
   },
   {
     slug: "wedding-coordinates",
-    name: "Wedding Coordinates",
+    name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
       "A charcoal monolith carrying your latitude and longitude, a horizon line, and the date. A first-anniversary gift that doesn't end up in a drawer.",
@@ -69,7 +69,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "date", label: "Date", placeholder: "06.23.24" },
     ],
     promptTemplate: (v) =>
-      `A solid matte charcoal sculptural monolith keepsake with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" engraved in fine serif type, a thin horizon rule, and the date "${v.date || "06.23.24"}" below, minimal monolithic form with a flat stable base.`,
+      `A solid matte charcoal sculptural monolith personal piece with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" engraved in fine serif type, a thin horizon rule, and the date "${v.date || "06.23.24"}" below, minimal monolithic form with a flat stable base.`,
   },
 ];
 
