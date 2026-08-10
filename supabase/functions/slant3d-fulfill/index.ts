@@ -2,8 +2,11 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   isPrintableFileUrl,
   placeOrder,
+  resolveFilamentId,
+  uploadPrintFile,
   PartnerApiError,
-  type Slant3DOrderLine,
+  type PartnerAddress,
+  type PartnerPrintItem,
 } from "../_shared/slant3d.ts";
 
 const corsHeaders = {
@@ -39,12 +42,12 @@ async function authorize(req: Request): Promise<boolean> {
   return isAdmin === true;
 }
 
-function addressFrom(order: any) {
+function addressFrom(order: any): PartnerAddress & { phone: string } {
   const a = order?.shipping_address ?? {};
   return {
     name: a.name ?? [a.first_name, a.last_name].filter(Boolean).join(" ") ?? "Nyzora Customer",
-    street1: a.address1 ?? a.street ?? a.line1 ?? "",
-    street2: a.address2 ?? a.line2 ?? undefined,
+    line1: a.address1 ?? a.street ?? a.line1 ?? "",
+    line2: a.address2 ?? a.line2 ?? undefined,
     city: a.city ?? "",
     state: a.province ?? a.state ?? "",
     zip: a.zip ?? a.postal_code ?? "",
@@ -90,12 +93,15 @@ Deno.serve(async (req) => {
     const byId = new Map((products ?? []).map((p) => [p.id, p]));
 
     const addr = addressFrom(order);
+    const { phone: _phone, ...shipTo } = addr;
     const email = order?.payment_details?.email ?? "orders@nyzora.ai";
     const orderNumber = String(
       order.invoice_number ?? order.shopify_order_id ?? order.id.slice(0, 12),
     );
 
     const results: Array<Record<string, unknown>> = [];
+    const printItems: PartnerPrintItem[] = [];
+    const pendingRows: Array<Record<string, unknown>> = [];
 
     for (const item of items) {
       const product = item.product_id ? byId.get(item.product_id) : null;
@@ -118,69 +124,37 @@ Deno.serve(async (req) => {
       // Shoppers can choose a finish/filament at checkout. The selected filament string
       // is stored in order_items.customizations.filament and takes precedence over the
       // product default so each line item prints in the chosen color.
-      const selectedFilament =
-        (item.customizations as Record<string, unknown> | null)?.filament ??
-        product.slant3d_filament ??
-        "PLA BLACK";
+      const customizations = (item.customizations ?? {}) as Record<string, unknown>;
+      const selectedFilament = customizations.filament ?? product.slant3d_filament ?? "PLA BLACK";
       const color = String(selectedFilament).toUpperCase();
 
-      const customizations = (item.customizations ?? {}) as Record<string, unknown>;
-      const engravedText = typeof customizations.engraved_text === "string" ? customizations.engraved_text.trim() : "";
-      const giftNote = typeof customizations.gift_note === "string" ? customizations.gift_note.trim() : "";
+      const engravedText = typeof customizations.engraved_text === "string"
+        ? customizations.engraved_text.trim()
+        : "";
+      const giftNote = typeof customizations.gift_note === "string"
+        ? customizations.gift_note.trim()
+        : "";
 
-      // Build a personalized item name for the partner. Include engraving so it appears
-      // on their production paperwork; gift note is appended if space allows.
       let personalizedName = product.name;
       if (engravedText) personalizedName += ` — Engrave: "${engravedText}"`;
       if (giftNote && personalizedName.length + giftNote.length < 250) {
         personalizedName += ` — Gift: ${giftNote}`;
       }
 
-      const line: Slant3DOrderLine = {
-        email,
-        phone: String(addr.phone),
-        name: String(addr.name),
-        orderNumber: `${orderNumber}-${item.id.slice(0, 6)}`,
-        filename: `${product.slug ?? product.id}.stl`,
-        fileURL: fileUrl ?? "",
-        bill_to_street_1: addr.street1,
-        bill_to_street_2: addr.street2,
-        bill_to_city: addr.city,
-        bill_to_state: addr.state,
-        bill_to_zip: addr.zip,
-        bill_to_country_as_iso: addr.country,
-        bill_to_is_US_residential: "true",
-        ship_to_name: String(addr.name),
-        ship_to_street_1: addr.street1,
-        ship_to_street_2: addr.street2,
-        ship_to_city: addr.city,
-        ship_to_state: addr.state,
-        ship_to_zip: addr.zip,
-        ship_to_country_as_iso: addr.country,
-        ship_to_is_US_residential: "true",
-        order_item_name: personalizedName.slice(0, 255),
-        order_quantity: String(quantity),
-        order_image_url: product.image_url ?? undefined,
-        order_sku: product.id,
-        order_item_color: color.split(" ").slice(-1)[0].toLowerCase(),
-        profile: color.split(" ")[0],
-      };
-
-
       const baseRow = {
         order_id: order.id,
         order_item_id: item.id,
         product_id: product.id,
         designer_id: item.designer_id,
-        order_number: line.orderNumber,
+        order_number: `${orderNumber}-${item.id.slice(0, 6)}`,
         quantity,
-        request_payload: line as unknown as Record<string, unknown>,
       };
 
       if (!isPrintableFileUrl(fileUrl)) {
         await admin.from("slant3d_fulfillments").insert({
           ...baseRow,
           status: "needs_file",
+          request_payload: { file_url: fileUrl, item_name: personalizedName },
           error: "No .stl/.3mf/.obj print file on this product",
         });
         results.push({ order_item_id: item.id, status: "needs_file" });
@@ -188,25 +162,84 @@ Deno.serve(async (req) => {
       }
 
       try {
-        const { orderId: slantOrderId, raw } = await placeOrder([line]);
-        await admin.from("slant3d_fulfillments").insert({
-          ...baseRow,
-          slant_order_id: slantOrderId,
-          status: "submitted",
-          response_payload: raw as Record<string, unknown>,
-          error: null,
-          last_synced_at: new Date().toISOString(),
+        const [file, filamentId] = await Promise.all([
+          uploadPrintFile(fileUrl!, {
+            name: `${product.slug ?? product.id}.stl`,
+            ownerId: item.designer_id ?? "nyzora",
+          }),
+          resolveFilamentId(color),
+        ]);
+
+        printItems.push({
+          publicFileServiceId: file.publicFileServiceId,
+          quantity,
+          filamentId,
         });
-        results.push({ order_item_id: item.id, status: "submitted", slant_order_id: slantOrderId });
+        pendingRows.push({
+          ...baseRow,
+          request_payload: {
+            item_name: personalizedName.slice(0, 255),
+            file_id: file.publicFileServiceId,
+            filament: color,
+            filament_id: filamentId ?? null,
+            ship_to: shipTo,
+            email,
+            metrics: file.STLMetrics ?? null,
+          },
+        });
       } catch (e) {
         const message = e instanceof Error ? e.message : String(e);
-        console.error("US print order failed:", message);
+        console.error("US print file upload failed:", message);
         await admin.from("slant3d_fulfillments").insert({
           ...baseRow,
           status: "failed",
+          request_payload: { file_url: fileUrl, item_name: personalizedName },
           error: message.slice(0, 800),
         });
         results.push({ order_item_id: item.id, status: "failed", error: message });
+      }
+    }
+
+    if (printItems.length) {
+      try {
+        const { orderId: partnerOrderId, draft, raw } = await placeOrder(
+          { email, address: shipTo },
+          printItems,
+          orderNumber,
+        );
+
+        for (const row of pendingRows) {
+          await admin.from("slant3d_fulfillments").insert({
+            ...row,
+            slant_order_id: partnerOrderId,
+            status: "submitted",
+            response_payload: {
+              partner_order_id: partnerOrderId,
+              printing_cost: draft.printingCost,
+              delivery_cost: draft.deliveryCost,
+              total: draft.total,
+              raw,
+            } as Record<string, unknown>,
+            error: null,
+            last_synced_at: new Date().toISOString(),
+          });
+          results.push({
+            order_item_id: row.order_item_id,
+            status: "submitted",
+            slant_order_id: partnerOrderId,
+          });
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : String(e);
+        console.error("US print order failed:", message);
+        for (const row of pendingRows) {
+          await admin.from("slant3d_fulfillments").insert({
+            ...row,
+            status: "failed",
+            error: message.slice(0, 800),
+          });
+          results.push({ order_item_id: row.order_item_id, status: "failed", error: message });
+        }
       }
     }
 
