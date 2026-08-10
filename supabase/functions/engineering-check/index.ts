@@ -164,12 +164,25 @@ Constraints you check:
   - U.G. Agawane Studio (hand-painted canvas): 2D wall art only
 - Material-form fit (e.g. organic flowing curves should not be routed to a wood workshop)
 
+PROCESS OPTIMISATION — decide these yourself, never ask and never offer options. For FGF/print-based makers give slicing settings; for wood/canvas makers give the equivalent build spec (stock thickness, joinery, finish passes) using the same field names where they apply.
+
 Return STRICT JSON only, no markdown, no preamble:
 {
   "pass": boolean,
   "confidence": <integer 0-100>,
   "issues": ["<short issue>", ...],
-  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
+  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>",
+  "print_spec": {
+    "layer_height_mm": number,
+    "infill_percent": number,
+    "infill_pattern": "gyroid" | "grid" | "cubic",
+    "wall_loops": number,
+    "top_bottom_layers": number,
+    "print_orientation": string,
+    "supports_required": boolean,
+    "solid_or_hollow": "solid" | "shelled",
+    "rationale": string
+  }
 }`;
 
     const systemPrompt = `${fdmTier ? fdmPrompt : artisanPrompt}${budgetSection}${
