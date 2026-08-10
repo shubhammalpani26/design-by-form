@@ -53,7 +53,7 @@ const OriginalsHome = () => {
         <div className="absolute inset-0">
           <img
             src={heroImg}
-            alt="Three matte sculptural keepsake objects on a minimalist shelf"
+            alt="Three matte sculptural personal pieces on a minimalist shelf"
             className="h-full w-full object-cover"
             width={1920}
             height={1088}
