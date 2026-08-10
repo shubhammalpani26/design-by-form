@@ -42,34 +42,34 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Baby Name & Date Piece",
     tagline: "The first thing they ever owned with their name on it.",
     description:
-      "An arched monolith with the baby's name and birth date raised in clean relief. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
+      "An arched monolith carved with concentric ribbed arcs, opening onto a smooth polished panel where the baby's name and birth date are engraved. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
     price: 54,
     image: nurseryImg,
     finish: "Matte sand / bone",
-    dimensions: "170 × 200 × 40 mm",
+    dimensions: "180 × 205 × 55 mm",
     fields: [
       { key: "childName", label: "Baby's name", placeholder: "Oliver" },
       { key: "date", label: "Birth date", placeholder: "12.05.2024" },
     ],
     promptTemplate: (v) =>
-      `A solid arched matte sand-coloured nursery personal piece block with the name "${v.childName || "OLIVER"}" and the date "${v.date || "12.05.2024"}" raised in clean thin sans-serif relief, monolithic form, flat stable base, minimal luxury editorial styling.`,
+      `A solid arched matte sand-coloured personal piece, monolithic, with concentric stepped arc ribs and vertical fluting carved across its face, opening onto a smooth polished inset panel engraved with the name "${(v.childName || "OLIVER").toUpperCase()}" and the date "${v.date || "12.05.2024"}" in fine thin sans-serif capitals, sitting on a heavy chamfered rectangular plinth, no perforations, no thin unsupported spans, flat stable base, minimal luxury editorial styling.`,
   },
   {
     slug: "wedding-coordinates",
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "A charcoal monolith carrying your latitude and longitude, a horizon line, and the date. A first-anniversary gift that doesn't end up in a drawer.",
+      "A charcoal monolith with its face carved into flowing wave terraces, split by a smooth band engraved with your latitude, longitude and date. A first-anniversary gift that doesn't end up in a drawer.",
     price: 79,
     image: weddingImg,
     finish: "Matte charcoal / bone",
-    dimensions: "190 × 190 × 45 mm",
+    dimensions: "195 × 205 × 55 mm",
     fields: [
       { key: "coordinates", label: "Coordinates", placeholder: "40.7128° N, 74.0060° W" },
       { key: "date", label: "Date", placeholder: "06.23.24" },
     ],
     promptTemplate: (v) =>
-      `A solid matte charcoal sculptural monolith personal piece with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" engraved in fine serif type, a thin horizon rule, and the date "${v.date || "06.23.24"}" below, minimal monolithic form with a flat stable base.`,
+      `A solid matte charcoal sculptural arched monolith personal piece, its face carved into smooth horizontal wave-like contour terraces like a landscape section, interrupted by one flat polished band engraved with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" in fine serif type and the date "${v.date || "06.23.24"}" below, heavy chamfered plinth, solid and monolithic, no lattice, no perforations, no thin unsupported spans, flat stable base.`,
   },
 ];
 
