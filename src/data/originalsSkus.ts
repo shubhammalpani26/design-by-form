@@ -42,34 +42,34 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Baby Name & Date Piece",
     tagline: "The first thing they ever owned with their name on it.",
     description:
-      "An arched monolith carved with concentric ribbed arcs, opening onto a smooth polished panel where the baby's name and birth date are engraved. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
+      "A low, landscape-format sculpture with a soft rising wave crest and fine vertical fluting, opening onto a smooth polished panel where the baby's name and birth date are engraved. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
     price: 54,
     image: nurseryImg,
     finish: "Matte sand / bone",
-    dimensions: "180 × 205 × 55 mm",
+    dimensions: "210 × 118 × 55 mm",
     fields: [
       { key: "childName", label: "Baby's name", placeholder: "Oliver" },
       { key: "date", label: "Birth date", placeholder: "12.05.2024" },
     ],
     promptTemplate: (v) =>
-      `A solid arched matte sand-coloured personal piece, monolithic, with concentric stepped arc ribs and vertical fluting carved across its face, opening onto a smooth polished inset panel engraved with the name "${(v.childName || "OLIVER").toUpperCase()}" and the date "${v.date || "12.05.2024"}" in fine thin sans-serif capitals, sitting on a heavy chamfered rectangular plinth, no perforations, no thin unsupported spans, flat stable base, minimal luxury editorial styling.`,
+      `A solid matte sand-coloured personal piece in landscape horizontal format, wider than tall, with a soft asymmetric rising wave crest silhouette and fine vertical fluting carved across its face, opening onto a smooth polished inset panel engraved with the name "${(v.childName || "OLIVER").toUpperCase()}" and the date "${v.date || "12.05.2024"}" in fine thin sans-serif capitals, sitting on a low chamfered rectangular plinth, no arch, no rounded tombstone top, no perforations, no thin unsupported spans, flat stable base, minimal luxury editorial styling.`,
   },
   {
     slug: "wedding-coordinates",
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "A charcoal monolith with its face carved into flowing wave terraces, split by a smooth band engraved with your latitude, longitude and date. A first-anniversary gift that doesn't end up in a drawer.",
+      "A low charcoal landscape block carved into stepped topographic terraces that descend diagonally, split by a smooth band engraved with your latitude, longitude and date. A first-anniversary gift that doesn't end up in a drawer.",
     price: 79,
     image: weddingImg,
     finish: "Matte charcoal / bone",
-    dimensions: "195 × 205 × 55 mm",
+    dimensions: "215 × 105 × 60 mm",
     fields: [
       { key: "coordinates", label: "Coordinates", placeholder: "40.7128° N, 74.0060° W" },
       { key: "date", label: "Date", placeholder: "06.23.24" },
     ],
     promptTemplate: (v) =>
-      `A solid matte charcoal sculptural arched monolith personal piece, its face carved into smooth horizontal wave-like contour terraces like a landscape section, interrupted by one flat polished band engraved with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" in fine serif type and the date "${v.date || "06.23.24"}" below, heavy chamfered plinth, solid and monolithic, no lattice, no perforations, no thin unsupported spans, flat stable base.`,
+      `A solid matte charcoal sculptural personal piece in landscape horizontal format, wider than tall, shaped like a stepped topographic landscape section with smooth horizontal contour terraces descending diagonally, interrupted by one flat polished band engraved with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" in fine serif type and the date "${v.date || "06.23.24"}" below, low chamfered rectangular base, angular and monolithic, no arch, no rounded tombstone top, no lattice, no perforations, no thin unsupported spans, flat stable base.`,
   },
 ];
 
