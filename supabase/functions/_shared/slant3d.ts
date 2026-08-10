@@ -59,7 +59,10 @@ async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
 
   if (!res.ok) {
     const record = (typeof body === "object" && body ? body : {}) as Record<string, unknown>;
-    const detail = String(record.message ?? record.error ?? text).slice(0, 400);
+    const nested = (typeof record.error === "object" && record.error
+      ? (record.error as Record<string, unknown>).message
+      : record.error) as unknown;
+    const detail = String(record.message ?? nested ?? text).slice(0, 400);
     throw new PartnerApiError(
       `US manufacturing partner request failed (${res.status}): ${detail}`,
       res.status,
