@@ -28,9 +28,9 @@ const OriginalsHome = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Nyzora Originals — Personalized Keepsakes, Made in the USA"
-        description="Sculptural personalized keepsakes: pet silhouettes, nursery name pieces and wedding coordinates. Made to order in the USA and shipped in 3–5 days."
-        keywords={["personalized keepsake", "pet silhouette gift", "nursery name sign", "wedding coordinates gift", "made in usa"]}
+        title="Nyzora Originals — Personalized Pieces, Made in the USA"
+        description="Sculptural personalized pieces: pet silhouettes, baby name blocks and wedding coordinates. Made to order in the USA and shipped in 3–5 days."
+        keywords={["personalized gift", "pet silhouette gift", "baby name sign", "wedding coordinates gift", "made in usa"]}
       />
       <JsonLd
         id="originals-collection"
