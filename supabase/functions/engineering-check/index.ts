@@ -54,6 +54,53 @@ function resolveFdmTier(category: string, manufacturingMethod: string) {
   return US_FDM_TIERS[category.trim().toLowerCase()] ?? null;
 }
 
+type PrintSpec = {
+  layer_height_mm: number;
+  infill_percent: number;
+  infill_pattern: "gyroid" | "grid" | "cubic";
+  wall_loops: number;
+  top_bottom_layers: number;
+  print_orientation: string;
+  supports_required: boolean;
+  solid_or_hollow: "solid" | "shelled";
+  rationale: string;
+};
+
+const clamp = (n: unknown, lo: number, hi: number, fallback: number) =>
+  Number.isFinite(Number(n)) ? Math.min(hi, Math.max(lo, Number(n))) : fallback;
+
+/**
+ * The engineering agent always ships a resolved, optimised build spec — never a
+ * question for the user. This normalises the model's answer and back-fills a
+ * sane default when it omits or mangles a field.
+ */
+function normalisePrintSpec(raw: unknown, opts: { fdm: boolean; longestMm: number }): PrintSpec {
+  const o = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
+  const big = opts.longestMm >= 120;
+  const pattern = ["gyroid", "grid", "cubic"].includes(String(o.infill_pattern))
+    ? (String(o.infill_pattern) as PrintSpec["infill_pattern"])
+    : "gyroid";
+  return {
+    layer_height_mm: clamp(o.layer_height_mm, 0.08, 0.32, big ? 0.24 : 0.16),
+    infill_percent: Math.round(clamp(o.infill_percent, 5, 100, big ? 12 : 18)),
+    infill_pattern: pattern,
+    wall_loops: Math.round(clamp(o.wall_loops, 2, 8, 3)),
+    top_bottom_layers: Math.round(clamp(o.top_bottom_layers, 3, 10, 5)),
+    print_orientation:
+      typeof o.print_orientation === "string" && o.print_orientation.trim()
+        ? o.print_orientation.slice(0, 200)
+        : "Flat base on the build plate, engraved/visible face vertical and away from supports",
+    supports_required: Boolean(o.supports_required),
+    solid_or_hollow: o.solid_or_hollow === "solid" ? "solid" : big ? "shelled" : "solid",
+    rationale:
+      typeof o.rationale === "string" && o.rationale.trim()
+        ? o.rationale.slice(0, 300)
+        : opts.fdm
+          ? "Balanced for a premium hand-feel and crisp detail at the lowest material cost."
+          : "Balanced for finish quality against build effort.",
+  };
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -93,7 +140,7 @@ Also judge COST FIT:
     if (!apiKey) {
       // Non-blocking: if AI key missing, return permissive pass so orchestration continues
       return new Response(
-        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true }),
+        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, print_spec: normalisePrintSpec(null, { fdm: Boolean(fdmTier), longestMm: 0 }) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -122,12 +169,35 @@ PROCESS CHARACTER (not failures, guide the design):
 - Translucent materials look premium when lit from within — good for lighting tiers.
 - Vertical-axis forms print best; wide flat slabs warp.
 
+PROCESS OPTIMISATION — you MUST decide these yourself. Never ask, never hedge, never offer options.
+Choose the single best-value settings that hold the aesthetic intent (surface quality, perceived mass, engraved detail) at the lowest material/time cost:
+- layer_height_mm: 0.12 (fine detail / engraved text / figurines), 0.2 (default), 0.28 (large simple masses)
+- infill_percent: 8-12 decorative low-load, 15-20 default, 25-40 load-bearing/tall or top-heavy, 60+ only if genuinely structural
+- infill_pattern: "gyroid" (curved organic, needs isotropic strength), "grid" (fast, flat slabs), "cubic" (impact/heavy)
+- wall_loops: 2 default, 3-4 when walls carry load or must feel solid when tapped, 5 for polished/sanded finishes
+- top_bottom_layers: 4 default, 5-6 for wide flat visible tops
+- print_orientation: the exact face on the build plate, chosen so engraved/visible faces avoid supports and layer lines read as intentional
+- supports_required: true/false, plus where
+- solid_or_hollow: "solid" only when small; otherwise "shelled" with the wall/infill above
+- rationale: one sentence tying the choice to the aesthetic requirement
+
 Return STRICT JSON only, no markdown, no preamble:
 {
   "pass": boolean,
   "confidence": <integer 0-100>,
   "issues": ["<short issue>", ...],
-  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
+  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>",
+  "print_spec": {
+    "layer_height_mm": number,
+    "infill_percent": number,
+    "infill_pattern": "gyroid" | "grid" | "cubic",
+    "wall_loops": number,
+    "top_bottom_layers": number,
+    "print_orientation": string,
+    "supports_required": boolean,
+    "solid_or_hollow": "solid" | "shelled",
+    "rationale": string
+  }
 }`;
 
     const artisanPrompt = `You are Nyzora's Engineering Agent. You assess whether a generated furniture / decor design is physically manufacturable by the assigned maker. You are strict but practical.
@@ -141,12 +211,25 @@ Constraints you check:
   - U.G. Agawane Studio (hand-painted canvas): 2D wall art only
 - Material-form fit (e.g. organic flowing curves should not be routed to a wood workshop)
 
+PROCESS OPTIMISATION — decide these yourself, never ask and never offer options. For FGF/print-based makers give slicing settings; for wood/canvas makers give the equivalent build spec (stock thickness, joinery, finish passes) using the same field names where they apply.
+
 Return STRICT JSON only, no markdown, no preamble:
 {
   "pass": boolean,
   "confidence": <integer 0-100>,
   "issues": ["<short issue>", ...],
-  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
+  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>",
+  "print_spec": {
+    "layer_height_mm": number,
+    "infill_percent": number,
+    "infill_pattern": "gyroid" | "grid" | "cubic",
+    "wall_loops": number,
+    "top_bottom_layers": number,
+    "print_orientation": string,
+    "supports_required": boolean,
+    "solid_or_hollow": "solid" | "shelled",
+    "rationale": string
+  }
 }`;
 
     const systemPrompt = `${fdmTier ? fdmPrompt : artisanPrompt}${budgetSection}${
@@ -191,7 +274,7 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
       console.error("engineering-check AI error:", aiRes.status, detail);
       // Non-blocking: permissive pass so we don't block design flow on infra errors
       return new Response(
-        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: `ai_${aiRes.status}` }),
+        JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: `ai_${aiRes.status}`, print_spec: normalisePrintSpec(null, { fdm: Boolean(fdmTier), longestMm: 0 }) }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -206,7 +289,10 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
       issues: string[];
       revision_prompt: string;
       budget_fit?: "within" | "over" | "under";
+      print_spec: PrintSpec;
     };
+    const longestMm =
+      Math.max(dimensions.width ?? 0, dimensions.depth ?? 0, dimensions.height ?? 0) * 10 || 0;
     try {
       const obj = JSON.parse(cleaned);
       result = {
@@ -214,6 +300,7 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
         confidence: Number.isFinite(obj.confidence) ? Math.max(0, Math.min(100, obj.confidence)) : 0,
         issues: Array.isArray(obj.issues) ? obj.issues.slice(0, 8).map((s: unknown) => String(s)) : [],
         revision_prompt: typeof obj.revision_prompt === "string" ? obj.revision_prompt.slice(0, 600) : "",
+        print_spec: normalisePrintSpec(obj.print_spec, { fdm: Boolean(fdmTier), longestMm }),
       };
       if (budgetBrief) {
         result.budget_fit = ["within", "over", "under"].includes(obj.budget_fit)
@@ -222,7 +309,13 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
       }
     } catch (_e) {
       // Permissive fallback
-      result = { pass: true, confidence: 0, issues: [], revision_prompt: "" };
+      result = {
+        pass: true,
+        confidence: 0,
+        issues: [],
+        revision_prompt: "",
+        print_spec: normalisePrintSpec(null, { fdm: Boolean(fdmTier), longestMm }),
+      };
     }
 
     return new Response(JSON.stringify(result), {
@@ -231,7 +324,7 @@ Assess the attached design image for manufacturability. Be lenient on aesthetics
   } catch (e) {
     console.error("engineering-check error:", e);
     return new Response(
-      JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: (e as Error).message }),
+      JSON.stringify({ pass: true, confidence: 0, issues: [], skipped: true, error: (e as Error).message, print_spec: normalisePrintSpec(null, { fdm: true, longestMm: 0 }) }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   }
