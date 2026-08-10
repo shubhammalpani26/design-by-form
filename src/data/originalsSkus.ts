@@ -39,20 +39,20 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
   },
   {
     slug: "nursery-name-date",
-    name: "Name & Date Nursery Piece",
+    name: "Baby Name & Date Piece",
     tagline: "The first thing they ever owned with their name on it.",
     description:
-      "An arched monolith with the name and birth date raised in clean relief. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
+      "An arched monolith with the baby's name and birth date raised in clean relief. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
     price: 54,
     image: nurseryImg,
     finish: "Matte sand / bone",
     dimensions: "170 × 200 × 40 mm",
     fields: [
-      { key: "childName", label: "Name", placeholder: "Oliver" },
+      { key: "childName", label: "Baby's name", placeholder: "Oliver" },
       { key: "date", label: "Birth date", placeholder: "12.05.2024" },
     ],
     promptTemplate: (v) =>
-      `A solid arched matte sand-coloured nursery keepsake block with the name "${v.childName || "OLIVER"}" and the date "${v.date || "12.05.2024"}" raised in clean thin sans-serif relief, monolithic form, flat stable base, minimal luxury editorial styling.`,
+      `A solid arched matte sand-coloured nursery personal piece block with the name "${v.childName || "OLIVER"}" and the date "${v.date || "12.05.2024"}" raised in clean thin sans-serif relief, monolithic form, flat stable base, minimal luxury editorial styling.`,
   },
   {
     slug: "wedding-coordinates",
