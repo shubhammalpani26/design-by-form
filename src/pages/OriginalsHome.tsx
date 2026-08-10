@@ -28,9 +28,9 @@ const OriginalsHome = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Nyzora Originals — Personalized Keepsakes, Made in the USA"
-        description="Sculptural personalized keepsakes: pet silhouettes, nursery name pieces and wedding coordinates. Made to order in the USA and shipped in 3–5 days."
-        keywords={["personalized keepsake", "pet silhouette gift", "nursery name sign", "wedding coordinates gift", "made in usa"]}
+        title="Nyzora Originals — Personalized Pieces, Made in the USA"
+        description="Sculptural personalized pieces: pet silhouettes, baby name blocks and wedding coordinates. Made to order in the USA and shipped in 3–5 days."
+        keywords={["personalized gift", "pet silhouette gift", "baby name sign", "wedding coordinates gift", "made in usa"]}
       />
       <JsonLd
         id="originals-collection"
@@ -53,7 +53,7 @@ const OriginalsHome = () => {
         <div className="absolute inset-0">
           <img
             src={heroImg}
-            alt="Three matte sculptural keepsake objects on a minimalist shelf"
+            alt="Three matte sculptural personal pieces on a minimalist shelf"
             className="h-full w-full object-cover"
             width={1920}
             height={1088}
@@ -66,7 +66,7 @@ const OriginalsHome = () => {
               Nyzora Originals · Made in the USA
             </p>
             <h1 className="text-4xl md:text-6xl font-light leading-[1.05] tracking-tight text-foreground">
-              Keepsakes for the things
+              Personal pieces for the moments
               <br />
               you don't want to forget.
             </h1>
@@ -120,7 +120,7 @@ const OriginalsHome = () => {
               <div className="aspect-[4/5] overflow-hidden bg-muted/30 mb-5">
                 <img
                   src={sku.image}
-                  alt={`${sku.name} — personalized keepsake made in the USA`}
+                  alt={`${sku.name} — personalized piece made in the USA`}
                   loading="lazy"
                   width={1024}
                   height={1280}

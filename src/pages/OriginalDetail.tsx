@@ -45,7 +45,7 @@ const OriginalDetail = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title={`${sku.name} — Personalized Keepsake | Nyzora Originals`}
+        title={`${sku.name} — Personalized Piece | Nyzora Originals`}
         description={`${sku.tagline} Made to order in the USA and shipped in 3–5 days. $${sku.price}.`}
         type="product"
       />
@@ -77,7 +77,7 @@ const OriginalDetail = () => {
         <div className="border border-border bg-muted/20">
           <img
             src={sku.image}
-            alt={`${sku.name} personalized keepsake`}
+            alt={`${sku.name} personalized piece`}
             width={1024}
             height={1280}
             className="w-full object-contain"
