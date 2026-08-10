@@ -22,9 +22,9 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
     name: "Pet Silhouette Keepsake",
-    tagline: "Their profile, sculpted in matte stone-look composite.",
+    tagline: "Their profile, sculpted in relief — name and date engraved.",
     description:
-      "A solid, sculptural side profile of your pet on a weighted plinth. Send a photo, we translate it into a clean sculpted silhouette — no fragile parts, no fuss.",
+      "A dimensional, hand-feel sculpture of your pet's side profile on a weighted plinth, with their name and date engraved into the front face. Send a photo, we translate it into a clean sculpted form — solid, substantial, no fragile parts.",
     price: 68,
     image: petImg,
     finish: "Matte bone / sand / charcoal",
@@ -32,9 +32,10 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     fields: [
       { key: "petName", label: "Pet's name", placeholder: "Milo" },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
+      { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
     ],
     promptTemplate: (v) =>
-      `A solid sculptural side-profile silhouette keepsake of a ${v.breed || "dog"} named ${v.petName || "my pet"}, extruded matte stone-look form standing on a heavy flat rectangular plinth, minimal and monolithic, no thin fragile details, flat stable base.`,
+      `A solid three-dimensional sculptural side-profile keepsake of a ${v.breed || "dog"} named ${v.petName || "my pet"}, thick extruded matte stone-look form with softly chamfered edges, standing on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals, minimal and monolithic, no thin fragile details, flat stable base.`,
   },
   {
     slug: "nursery-name-date",
