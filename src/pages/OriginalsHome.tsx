@@ -120,7 +120,7 @@ const OriginalsHome = () => {
               <div className="aspect-[4/5] overflow-hidden bg-muted/30 mb-5">
                 <img
                   src={sku.image}
-                  alt={`${sku.name} — personalized keepsake made in the USA`}
+                  alt={`${sku.name} — personalized piece made in the USA`}
                   loading="lazy"
                   width={1024}
                   height={1280}
