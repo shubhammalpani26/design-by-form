@@ -66,7 +66,7 @@ const OriginalsHome = () => {
               Nyzora Originals · Made in the USA
             </p>
             <h1 className="text-4xl md:text-6xl font-light leading-[1.05] tracking-tight text-foreground">
-              Keepsakes for the things
+              Personal pieces for the moments
               <br />
               you don't want to forget.
             </h1>
