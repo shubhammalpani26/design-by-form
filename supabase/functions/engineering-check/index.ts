@@ -122,12 +122,35 @@ PROCESS CHARACTER (not failures, guide the design):
 - Translucent materials look premium when lit from within — good for lighting tiers.
 - Vertical-axis forms print best; wide flat slabs warp.
 
+PROCESS OPTIMISATION — you MUST decide these yourself. Never ask, never hedge, never offer options.
+Choose the single best-value settings that hold the aesthetic intent (surface quality, perceived mass, engraved detail) at the lowest material/time cost:
+- layer_height_mm: 0.12 (fine detail / engraved text / figurines), 0.2 (default), 0.28 (large simple masses)
+- infill_percent: 8-12 decorative low-load, 15-20 default, 25-40 load-bearing/tall or top-heavy, 60+ only if genuinely structural
+- infill_pattern: "gyroid" (curved organic, needs isotropic strength), "grid" (fast, flat slabs), "cubic" (impact/heavy)
+- wall_loops: 2 default, 3-4 when walls carry load or must feel solid when tapped, 5 for polished/sanded finishes
+- top_bottom_layers: 4 default, 5-6 for wide flat visible tops
+- print_orientation: the exact face on the build plate, chosen so engraved/visible faces avoid supports and layer lines read as intentional
+- supports_required: true/false, plus where
+- solid_or_hollow: "solid" only when small; otherwise "shelled" with the wall/infill above
+- rationale: one sentence tying the choice to the aesthetic requirement
+
 Return STRICT JSON only, no markdown, no preamble:
 {
   "pass": boolean,
   "confidence": <integer 0-100>,
   "issues": ["<short issue>", ...],
-  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>"
+  "revision_prompt": "<if !pass, ONE short additive instruction to append to the design prompt to fix issues; else empty string>",
+  "print_spec": {
+    "layer_height_mm": number,
+    "infill_percent": number,
+    "infill_pattern": "gyroid" | "grid" | "cubic",
+    "wall_loops": number,
+    "top_bottom_layers": number,
+    "print_orientation": string,
+    "supports_required": boolean,
+    "solid_or_hollow": "solid" | "shelled",
+    "rationale": string
+  }
 }`;
 
     const artisanPrompt = `You are Nyzora's Engineering Agent. You assess whether a generated furniture / decor design is physically manufacturable by the assigned maker. You are strict but practical.
