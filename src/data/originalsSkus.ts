@@ -21,7 +21,7 @@ export const MAX_ENVELOPE_MM = 220;
 export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
-    name: "Pet Silhouette Keepsake",
+    name: "Pet Silhouette Piece",
     tagline: "Their profile, sculpted in relief — name and date engraved.",
     description:
       "A dimensional, hand-feel sculpture of your pet's side profile on a weighted plinth, with their name and date engraved into the front face. Send a photo, we translate it into a clean sculpted form — solid, substantial, no fragile parts.",
@@ -35,7 +35,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
     ],
     promptTemplate: (v) =>
-      `A solid three-dimensional sculptural side-profile keepsake of a ${v.breed || "dog"} named ${v.petName || "my pet"}, thick extruded matte stone-look form with softly chamfered edges, standing on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals, minimal and monolithic, no thin fragile details, flat stable base.`,
+      `A solid three-dimensional sculptural side-profile personal piece of a ${v.breed || "dog"} named ${v.petName || "my pet"}, thick extruded matte stone-look form with softly chamfered edges, standing on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals, minimal and monolithic, no thin fragile details, flat stable base.`,
   },
   {
     slug: "nursery-name-date",
