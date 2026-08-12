@@ -241,6 +241,86 @@ async function fulfilCreditPack(session: any, env: StripeEnv) {
     console.error("Unrecognised credit pack price:", priceId);
     return;
   }
+  await fulfilCreditPackInner(session, env, userId, priceId, pack);
+}
+
+/** Nyzora Originals retail order — mark paid, capture shipping, confirm by email. */
+async function fulfilOriginalsOrder(session: any) {
+  const orderId = session.metadata?.originals_order_id;
+  if (!orderId) return;
+
+  const { data: order } = await db()
+    .from("originals_orders")
+    .select("id, status, sku_slug, size_label, amount_usd, preview_image_url")
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!order) {
+    console.error("Originals order not found:", orderId);
+    return;
+  }
+  if (order.status === "paid" || order.status === "in_production" || order.status === "shipped") return;
+
+  const email = session.customer_details?.email ?? session.customer_email ?? null;
+  const shipping = session.collected_information?.shipping_details
+    ?? session.shipping_details
+    ?? session.customer_details?.address
+    ?? null;
+
+  await db()
+    .from("originals_orders")
+    .update({
+      status: "paid",
+      customer_email: email,
+      stripe_session_id: session.id,
+      shipping_address: shipping,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+
+  await sendOriginalsReceipt(email, order);
+}
+
+async function sendOriginalsReceipt(email: string | null, order: any) {
+  const apiKey = Deno.env.get("RESEND_API_KEY");
+  if (!apiKey || !email) return;
+  const html = `
+    <div style="font-family:Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;color:#111;">
+      <p style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#888;">Nyzora</p>
+      <h1 style="font-size:24px;font-weight:600;margin:8px 0 16px;">Your piece is confirmed</h1>
+      ${order.preview_image_url ? `<img src="${order.preview_image_url}" alt="Your piece" style="width:100%;border-radius:4px;margin-bottom:16px;" />` : ""}
+      <p style="line-height:1.6;color:#444;">${order.size_label ?? ""} — $${order.amount_usd}</p>
+      <p style="line-height:1.6;color:#444;">We're making it now in our US workshop. It ships in 3–5 business days and you'll get tracking by email. If it isn't right, we remake it or refund you within 30 days.</p>
+      <p style="font-size:12px;color:#999;margin-top:28px;">Order ${String(order.id).slice(0, 8)} · questions? reply to this email.</p>
+    </div>`;
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Nyzora <hello@nyzora.ai>",
+      to: [email],
+      subject: "Your Nyzora piece is confirmed",
+      html,
+    }),
+  });
+  if (!res.ok) console.error("Originals receipt email failed:", res.status, await res.text());
+}
+
+async function fulfilCreditPackInner(
+  session: any,
+  env: StripeEnv,
+  userId: string,
+  priceId: string,
+  pack: { credits: number; label: string },
+) {
+  const userId = session.metadata?.userId;
+  const priceId = session.metadata?.lovablePriceId;
+  if (!userId || !priceId) return;
+
+  const pack = CREDIT_PACK_PRICES[priceId];
+  if (!pack) {
+    console.error("Unrecognised credit pack price:", priceId);
+    return;
+  }
 
   // stripe_session_id is UNIQUE — this makes redelivery idempotent.
   const { error } = await db().from("credit_purchases").insert({
