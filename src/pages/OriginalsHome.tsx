@@ -66,22 +66,24 @@ const OriginalsHome = () => {
               Nyzora Originals · Made in the USA
             </p>
             <h1 className="text-4xl md:text-6xl font-light leading-[1.05] tracking-tight text-foreground">
-              Personal pieces for the moments
+              Upload one photo.
               <br />
-              you don't want to forget.
+              Hold them in stone.
             </h1>
             <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg">
-              Sculptural objects made one at a time — your pet's profile, your child's name,
-              the coordinates of the day. Designed with AI, printed in the USA, shipped in 3–5 days.
+              A photo of your dog becomes a carved sculpture with their name on the base.
+              See it free in about a minute — made in the USA, shipped in 3–5 days, free shipping.
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="rounded-none" asChild>
-                <a href="#collection">
-                  Shop the collection <ArrowRight className="ml-2 h-4 w-4" />
-                </a>
+                <Link to="/originals/pet-silhouette-keepsake">
+                  See your pet in stone — free <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
               </Button>
-              <Button size="lg" variant="outline" className="rounded-none" onClick={() => navigate("/studio")}>
-                <Wand2 className="mr-2 h-4 w-4" /> Design something new
+              <Button size="lg" variant="outline" className="rounded-none" asChild>
+                <a href="#collection">
+                  <Wand2 className="mr-2 h-4 w-4" /> See the collection
+                </a>
               </Button>
             </div>
           </div>

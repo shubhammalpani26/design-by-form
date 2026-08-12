@@ -10,6 +10,7 @@ import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ArrowLeft, Wand2, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
+import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 
 const OriginalDetail = () => {
   const { slug } = useParams();
@@ -17,6 +18,7 @@ const OriginalDetail = () => {
   const sku = getSku(slug);
   const [values, setValues] = useState<Record<string, string>>({});
   const [remix, setRemix] = useState("");
+  const [showTemplate, setShowTemplate] = useState(false);
 
   const prompt = useMemo(() => {
     if (!sku) return "";
@@ -87,10 +89,29 @@ const OriginalDetail = () => {
         <div>
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Nyzora Originals</p>
           <h1 className="mt-3 text-3xl md:text-4xl font-light tracking-tight">{sku.name}</h1>
-          <p className="mt-3 text-lg tabular-nums">${sku.price}</p>
-          <p className="mt-5 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
+          <p className="mt-3 text-lg tabular-nums">
+            {sku.sizes.length > 1 ? `From $${Math.min(...sku.sizes.map((s) => s.price))}` : `$${sku.price}`}
+            <span className="ml-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">Free US shipping</span>
+          </p>
+          {sku.photo && (
+            <div className="mt-6">
+              <PhotoToPieceFlow sku={sku} />
+            </div>
+          )}
 
-          <div className="mt-8 space-y-4 border-t border-border pt-8">
+          <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
+
+          {sku.photo && !showTemplate && (
+            <button
+              type="button"
+              onClick={() => setShowTemplate(true)}
+              className="mt-4 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
+            >
+              No photo handy? Start from a template instead
+            </button>
+          )}
+
+          <div className={`mt-8 space-y-4 border-t border-border pt-8 ${sku.photo && !showTemplate ? "hidden" : ""}`}>
             {sku.fields.map((f) => (
               <div key={f.key}>
                 <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">

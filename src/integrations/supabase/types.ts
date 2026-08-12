@@ -1301,6 +1301,101 @@ export type Database = {
         }
         Relationships: []
       }
+      originals_orders: {
+        Row: {
+          amount_usd: number
+          created_at: string
+          customer_email: string | null
+          id: string
+          personalization: Json
+          preview_id: string | null
+          preview_image_url: string | null
+          size_key: string
+          size_label: string | null
+          sku_slug: string
+          status: string
+          stripe_session_id: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount_usd: number
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          personalization?: Json
+          preview_id?: string | null
+          preview_image_url?: string | null
+          size_key: string
+          size_label?: string | null
+          sku_slug: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount_usd?: number
+          created_at?: string
+          customer_email?: string | null
+          id?: string
+          personalization?: Json
+          preview_id?: string | null
+          preview_image_url?: string | null
+          size_key?: string
+          size_label?: string | null
+          sku_slug?: string
+          status?: string
+          stripe_session_id?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "originals_orders_preview_id_fkey"
+            columns: ["preview_id"]
+            isOneToOne: false
+            referencedRelation: "originals_previews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      originals_previews: {
+        Row: {
+          created_at: string
+          engineering: Json | null
+          id: string
+          ip_hash: string | null
+          personalization: Json
+          preview_image_url: string | null
+          sku_slug: string
+          source_image_url: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          engineering?: Json | null
+          id?: string
+          ip_hash?: string | null
+          personalization?: Json
+          preview_image_url?: string | null
+          sku_slug: string
+          source_image_url?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          engineering?: Json | null
+          id?: string
+          ip_hash?: string | null
+          personalization?: Json
+          preview_image_url?: string | null
+          sku_slug?: string
+          source_image_url?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       payout_requests: {
         Row: {
           amount: number
