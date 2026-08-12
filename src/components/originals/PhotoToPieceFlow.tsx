@@ -119,6 +119,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     return () => clearInterval(id);
   }, [loading, waitingLines.length]);
 
+  // A session is priced for one size/preview — drop it if either changes.
+  useEffect(() => {
+    setClientSecret(null);
+  }, [sizeKey, preview?.id]);
+
   const pickFile = useCallback(async (file?: File | null) => {
     if (!file) return;
     if (!/^image\/(png|jpe?g|webp)$/i.test(file.type)) {
