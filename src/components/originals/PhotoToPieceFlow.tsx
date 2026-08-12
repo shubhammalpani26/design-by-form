@@ -16,6 +16,20 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 const MAX_BYTES = 8 * 1024 * 1024;
 
 /** One-tap corrections buyers ask for most, per flow. */
+/** Single-material colours — the piece is printed in one filament, never two-tone. */
+const COLORS = [
+  { key: "bone", label: "Bone White", swatch: "#EDE7DC", prompt: "warm bone white" },
+  { key: "charcoal", label: "Charcoal Black", swatch: "#2A2A2A", prompt: "deep charcoal black" },
+  { key: "sand", label: "Sand", swatch: "#CDB89A", prompt: "soft sand beige" },
+  { key: "slate", label: "Slate Grey", swatch: "#7C848C", prompt: "cool slate grey" },
+  { key: "terracotta", label: "Terracotta", swatch: "#B4653F", prompt: "muted terracotta" },
+] as const;
+
+const colorClause = (key: string) => {
+  const c = COLORS.find((x) => x.key === key) ?? COLORS[0];
+  return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the engraving reads through carved shadow only.`;
+};
+
 const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
   photo: [
     "Turn the head slightly toward the camera.",
@@ -77,6 +91,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
   const [refining, setRefining] = useState(false);
+  const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -113,10 +128,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 
-  const generate = async (tweakText = "") => {
+  const generate = async (tweakText = "", overrideColor?: string) => {
     if (mode === "photo" && (!sku.photo || !photo)) return;
+    const activeColor = overrideColor ?? colorKey;
     const isTweak = Boolean(tweakText.trim());
-    if (isTweak) {
+    const isRefine = isTweak || Boolean(overrideColor);
+    if (isRefine) {
       setRefining(true);
       setPrevPreview(preview);
     } else {
@@ -131,14 +148,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         mode === "photo" && sku.photo
           ? sku.photo.promptTemplate({ petName, date })
           : sku.promptTemplate(values);
+      const withColor = `${basePrompt}${colorClause(activeColor)}`;
       const prompt = isTweak
-        ? `${basePrompt} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
-        : basePrompt;
+        ? `${withColor} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
+        : withColor;
       const { data, error } = await supabase.functions.invoke("originals-preview", {
         body: {
           skuSlug: sku.slug,
           prompt,
-          personalization: isTweak ? { ...personalization, tweak: tweakText.trim() } : personalization,
+          personalization: {
+            ...personalization,
+            color: activeColor,
+            ...(isTweak ? { tweak: tweakText.trim() } : {}),
+          },
           ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
         },
       });
@@ -303,6 +325,34 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
           )}
 
+          <div className="mt-4">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {COLORS.map((c) => {
+                const active = c.key === colorKey;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setColorKey(c.key)}
+                    aria-pressed={active}
+                    className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
+                  >
+                    <span
+                      className="h-4 w-4 border border-foreground/20"
+                      style={{ backgroundColor: c.swatch }}
+                      aria-hidden
+                    />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Made in one solid colour — pick the one that suits your space.
+            </p>
+          </div>
+
           <Button
             size="lg"
             className="mt-5 w-full rounded-none h-12"
@@ -360,6 +410,33 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
 
           {/* ---- Not quite right? inline tweaks ---- */}
+          <div className="mt-5">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {COLORS.map((c) => {
+                const active = c.key === colorKey;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      if (c.key === colorKey) return;
+                      setColorKey(c.key);
+                      trackExperiment("reveal_screen", revealVariant, "color_change", { skuSlug: sku.slug });
+                      void generate("", c.key);
+                    }}
+                    aria-pressed={active}
+                    className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors disabled:opacity-50 ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
+                  >
+                    <span className="h-4 w-4 border border-foreground/20" style={{ backgroundColor: c.swatch }} aria-hidden />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mt-4">
             {!showTweak ? (
               <div className="flex items-center justify-between gap-3">
