@@ -13,13 +13,13 @@ export const EXPERIMENTS = {
   /** Homepage hero headline + subhead + CTA label. */
   hero_copy: {
     a: {
-      headline: ["Upload one photo.", "Hold them in stone."],
-      sub: "A photo of your dog becomes a carved sculpture with their name on the base. See it free in about a minute — made in the USA, shipped in 3–5 days, free shipping.",
-      cta: "See your pet in stone — free",
+      headline: ["Upload one photo.", "Hold them in your hands."],
+      sub: "A photo of your dog becomes a solid sculpture with their name on the base — matte stone-look finish, printed in durable material in the USA. See it free in about a minute, shipped in 3–5 days.",
+      cta: "See your pet sculpted — free",
     },
     b: {
       headline: ["They don't have to", "be just a photo."],
-      sub: "Send us one picture and we carve them into a solid stone-finish sculpture, their name engraved in the base. See yours free before you decide. Made in the USA, free shipping.",
+      sub: "Send us one picture and we sculpt them into a solid piece with a matte stone-look finish, their name engraved in the base. See yours free before you decide. Made in the USA, free shipping.",
       cta: "See mine free",
     },
   },
@@ -37,7 +37,7 @@ export const EXPERIMENTS = {
       "Blocking out the head and shoulders…",
       "Deepening the eye sockets by hand…",
       "Engraving the base…",
-      "Finishing the stone. A few more seconds.",
+      "Finishing the surface. A few more seconds.",
     ],
   },
   /** Reveal screen framing + purchase CTA. */
@@ -50,7 +50,7 @@ export const EXPERIMENTS = {
     },
     b: {
       eyebrow: "First look",
-      headline: (name: string) => `This is ${name}, in stone.`,
+      headline: (name: string) => `This is ${name}, sculpted.`,
       sizePrompt: "How big should they be?",
       cta: (price: number) => `Make this one — $${price}`,
     },

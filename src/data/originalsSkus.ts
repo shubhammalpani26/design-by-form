@@ -47,7 +47,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Pet Sculpture Piece",
     tagline: "Their head sculpted in full three dimensions — name and date engraved.",
     description:
-      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form like layered stone.",
+      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form for a layered, stone-look surface. Made from a dense matte polymer, precision 3D-printed as one solid part in the USA.",
     price: 59,
     image: petImg,
     finish: "Matte bone / sand / charcoal",

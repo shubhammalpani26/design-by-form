@@ -100,7 +100,7 @@ const OriginalDetail = () => {
           <div className="mt-8 grid grid-cols-3 gap-4 text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
             <div className="flex flex-col gap-2"><Truck className="h-4 w-4" /> Ships in 3–5 days</div>
-            <div className="flex flex-col gap-2"><ShieldCheck className="h-4 w-4" /> 2-year warranty</div>
+            <div className="flex flex-col gap-2"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
           </div>
         </div>
       </div>

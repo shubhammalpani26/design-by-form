@@ -222,7 +222,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {mode === "photo" ? "Make it from your photo" : "Make it from a template"}
           </p>
           <h2 className="mt-2 text-xl md:text-2xl font-light tracking-tight">
-            {mode === "photo" ? "Upload one photo. See them carved in stone." : "Fill in the details. See it carved in stone."}
+            {mode === "photo" ? "Upload one photo. See them sculpted." : "Fill in the details. See it sculpted."}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
@@ -362,7 +362,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
-              <>See {displayName || "it"} in stone — free <ArrowRight className="ml-2 h-4 w-4" /></>
+              <>See {displayName || "it"} sculpted — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
           {sku.photo && (
@@ -573,8 +573,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5 text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-1.5"><Factory className="h-4 w-4" /> Made in USA</div>
             <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 3–5 day ship</div>
-            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> 2-year warranty</div>
+            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
           </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+            Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a
+            stone-look finish, not natural stone. Designed by our AI, checked by our engineers, made by a
+            real workshop and shipped to your door.
+          </p>
         </div>
       )}
     </div>
