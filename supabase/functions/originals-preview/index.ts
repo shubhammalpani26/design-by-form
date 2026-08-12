@@ -96,16 +96,10 @@ Deno.serve(async (req) => {
         console.error("source upload failed", upErr);
         return json({ error: "We couldn't read that photo. Try another one." }, 400);
       }
-      // Private bucket: the model gets a short-lived signed link, never a public URL.
-      const { data: signed, error: signErr } = await admin.storage
-        .from("originals-uploads")
-        .createSignedUrl(path, 60 * 30);
-      if (signErr || !signed?.signedUrl) {
-        console.error("source signing failed", signErr);
-        return json({ error: "We couldn't read that photo. Try another one." }, 400);
-      }
       sourceStoragePath = path;
-      sourceUrl = signed.signedUrl;
+      // The model receives the bytes inline (private bucket links aren't
+      // fetchable by the gateway), so nothing public is ever exposed.
+      sourceUrl = sourceImage.trim();
     }
 
     const content: unknown[] = [{ type: "text", text: prompt }];
