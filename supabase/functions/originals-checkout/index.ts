@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
+      ui_mode: "embedded_page",
       line_items: [
         {
           quantity: 1,
@@ -125,8 +126,9 @@ Deno.serve(async (req) => {
         },
       ],
       shipping_address_collection: { allowed_countries: ["US"] },
-      success_url: `${returnUrl}?order=${order.id}&status=success`,
-      cancel_url: `${returnUrl}?order=${order.id}&status=cancelled`,
+      customer_creation: "if_required",
+      return_url: `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}order=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
+      payment_intent_data: { description: describedName },
       metadata: {
         originals_order_id: order.id,
         sku_slug: skuSlug,
@@ -140,7 +142,7 @@ Deno.serve(async (req) => {
       .update({ stripe_session_id: session.id, updated_at: new Date().toISOString() })
       .eq("id", order.id);
 
-    return json({ url: session.url, orderId: order.id });
+    return json({ clientSecret: session.client_secret, orderId: order.id });
   } catch (e) {
     console.error("originals-checkout error", e);
     return json({ error: "Checkout is temporarily unavailable. Please try again." }, 500);
