@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
 import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight } from "lucide-react";
+import { StarRating } from "./StarRating";
+import { useOriginalsReviews } from "./useOriginalsReviews";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -46,6 +48,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const { toast } = useToast();
   const fileRef = useRef<HTMLInputElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
+  const topReview = reviews[0];
 
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
   const [petName, setPetName] = useState("");
@@ -137,6 +141,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
           </p>
+
+          {reviewCount > 0 && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <StarRating value={reviewAverage} size={15} />
+              <span className="tabular-nums">{reviewAverage.toFixed(1)}</span>
+              <span className="text-muted-foreground">
+                from {reviewCount} {reviewCount === 1 ? "buyer" : "buyers"}
+              </span>
+            </div>
+          )}
 
           <button
             type="button"
@@ -250,6 +264,26 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <p className="mt-2 text-xs text-center text-muted-foreground">
             Free US shipping · Made to order in the USA · Ships in 3–5 days
           </p>
+
+          {topReview ? (
+            <div className="mt-5 border border-border p-4">
+              <div className="flex items-center gap-2">
+                <StarRating value={reviewAverage} />
+                <span className="text-xs tabular-nums">{reviewAverage.toFixed(1)}</span>
+                <span className="text-xs text-muted-foreground">· {reviewCount} reviews</span>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">"{topReview.body}"</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {topReview.author_name}
+                {topReview.author_location ? ` · ${topReview.author_location}` : ""}
+                {topReview.verified_purchase ? " · Verified purchase" : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="mt-5 border border-border p-4 text-xs text-muted-foreground leading-relaxed">
+              If it doesn't look like them when it arrives, we remake it or refund you — no return shipping to pay.
+            </p>
+          )}
 
           <button
             type="button"

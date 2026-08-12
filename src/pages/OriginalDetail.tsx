@@ -11,6 +11,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { ArrowLeft, Wand2, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
 import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
+import { ReviewsSection } from "@/components/originals/ReviewsSection";
 
 const OriginalDetail = () => {
   const { slug } = useParams();
@@ -183,6 +184,12 @@ const OriginalDetail = () => {
           </div>
         </div>
       </div>
+
+      <section className="border-t border-border">
+        <div className="container mx-auto px-4 py-14">
+          <ReviewsSection skuSlug={sku.slug} />
+        </div>
+      </section>
 
       <section className="border-t border-border">
         <div className="container mx-auto px-4 py-14">
