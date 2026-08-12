@@ -11,6 +11,7 @@ import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Un
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
+import { OriginalsCheckout } from "./OriginalsCheckout";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -94,6 +95,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
 
@@ -115,6 +118,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     const id = setInterval(() => setLineIndex((i) => Math.min(i + 1, waitingLines.length - 1)), 4500);
     return () => clearInterval(id);
   }, [loading, waitingLines.length]);
+
+  // A session is priced for one size/preview — drop it if either changes.
+  useEffect(() => {
+    setClientSecret(null);
+  }, [sizeKey, preview?.id]);
 
   const pickFile = useCallback(async (file?: File | null) => {
     if (!file) return;
@@ -210,14 +218,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           skuSlug: sku.slug,
           sizeKey,
           previewId: preview?.id ?? null,
-          returnUrl: `${window.location.origin}/originals/${sku.slug}`,
+          returnUrl: `${window.location.origin}/originals/checkout/return`,
           environment: getStripeEnvironment(),
         },
       });
       if (error) throw new Error(await readFnError(error, "Checkout is temporarily unavailable."));
-      if (!data?.url) throw new Error("Checkout is temporarily unavailable.");
+      if (!data?.clientSecret) throw new Error("Checkout is temporarily unavailable.");
       trackExperiment("reveal_screen", revealVariant, "checkout_opened", { skuSlug: sku.slug });
-      window.location.href = data.url;
+      setClientSecret(data.clientSecret);
+      setCheckingOut(false);
+      requestAnimationFrame(() =>
+        checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     } catch (e) {
       toast({ title: "Checkout didn't open", description: (e as Error).message, variant: "destructive" });
       setCheckingOut(false);
@@ -557,13 +569,37 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           </div>
 
-          <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
-            {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {reveal.cta(selectedSize.price)}
-          </Button>
-          <p className="mt-2 text-xs text-center text-muted-foreground">
-            Free US shipping · Made to order in the USA · Ships in 3–5 days
-          </p>
+          <div ref={checkoutRef}>
+            {clientSecret ? (
+              <div className="mt-5 border-t border-border pt-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                    Secure checkout · {selectedSize.label} · ${selectedSize.price}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setClientSecret(null)}
+                    className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
+                  >
+                    Change
+                  </button>
+                </div>
+                <div className="mt-4">
+                  <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
+                </div>
+              </div>
+            ) : (
+              <>
+                <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
+                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {reveal.cta(selectedSize.price)}
+                </Button>
+                <p className="mt-2 text-xs text-center text-muted-foreground">
+                  Free US shipping · Made to order in the USA · Ships in 3–5 days
+                </p>
+              </>
+            )}
+          </div>
 
           {topReview ? (
             <div className="mt-5 border border-border p-4">
