@@ -168,16 +168,16 @@ const OriginalsHome = () => {
       {/* Remix band */}
       <section className="container mx-auto px-4 py-16 md:py-24">
         <div className="border border-border p-8 md:p-14 text-center">
-          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Prompt to product</p>
+          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Photo to piece</p>
           <h2 className="text-2xl md:text-4xl font-light tracking-tight max-w-2xl mx-auto">
-            Describe the object you wish existed. We'll make it real.
+            One photo. One minute. Theirs, in stone.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
-            Every Original is a starting point. Change the form, the finish, the words — the piece
-            is redrawn, engineered for manufacturing, and made to order.
+            Upload a photo of your pet and see the sculpture before anything is made or charged.
+            Made to order in the USA, shipped in 3–5 days.
           </p>
-          <Button size="lg" className="mt-8 rounded-none" onClick={() => navigate("/studio")}>
-            <Wand2 className="mr-2 h-4 w-4" /> Open the studio
+          <Button size="lg" className="mt-8 rounded-none" onClick={() => navigate("/originals/pet-silhouette-keepsake")}>
+            <Wand2 className="mr-2 h-4 w-4" /> Upload a photo — free
           </Button>
         </div>
       </section>

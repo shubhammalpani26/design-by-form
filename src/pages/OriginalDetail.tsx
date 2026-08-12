@@ -1,14 +1,10 @@
-import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
-import { ArrowLeft, Wand2, ShieldCheck, Truck, Factory } from "lucide-react";
+import { ArrowLeft, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
 import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
@@ -17,15 +13,6 @@ const OriginalDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const sku = getSku(slug);
-  const [values, setValues] = useState<Record<string, string>>({});
-  const [remix, setRemix] = useState("");
-  const [showTemplate, setShowTemplate] = useState(false);
-
-  const prompt = useMemo(() => {
-    if (!sku) return "";
-    const base = sku.promptTemplate(values);
-    return remix.trim() ? `${base} Additional direction: ${remix.trim()}` : base;
-  }, [sku, values, remix]);
 
   if (!sku) {
     return (
@@ -39,11 +26,6 @@ const OriginalDetail = () => {
       </div>
     );
   }
-
-  const startCustomizing = () => {
-    const params = new URLSearchParams({ prompt, category: "Objects", sku: sku.slug });
-    navigate(`/studio?${params.toString()}`);
-  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -94,73 +76,11 @@ const OriginalDetail = () => {
             {sku.sizes.length > 1 ? `From $${Math.min(...sku.sizes.map((s) => s.price))}` : `$${sku.price}`}
             <span className="ml-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">Free US shipping</span>
           </p>
-          {sku.photo && (
-            <div className="mt-6">
-              <PhotoToPieceFlow sku={sku} />
-            </div>
-          )}
+          <div className="mt-6">
+            <PhotoToPieceFlow sku={sku} />
+          </div>
 
           <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
-
-          {sku.photo && !showTemplate && (
-            <button
-              type="button"
-              onClick={() => setShowTemplate(true)}
-              className="mt-4 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
-            >
-              No photo handy? Start from a template instead
-            </button>
-          )}
-
-          <div className={`mt-8 space-y-4 border-t border-border pt-8 ${sku.photo && !showTemplate ? "hidden" : ""}`}>
-            {sku.fields.map((f) => (
-              <div key={f.key}>
-                <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                  {f.label}
-                </Label>
-                {f.options ? (
-                  <select
-                    id={f.key}
-                    className="mt-2 h-10 w-full rounded-none border border-input bg-background px-3 text-sm"
-                    value={values[f.key] || ""}
-                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                  >
-                    <option value="">{f.placeholder}</option>
-                    {f.options.map((o) => (
-                      <option key={o} value={o}>{o}</option>
-                    ))}
-                  </select>
-                ) : (
-                  <Input
-                    id={f.key}
-                    className="mt-2 rounded-none"
-                    placeholder={f.placeholder}
-                    value={values[f.key] || ""}
-                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                  />
-                )}
-              </div>
-            ))}
-            <div>
-              <Label htmlFor="remix" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Remix with AI (optional)
-              </Label>
-              <Textarea
-                id="remix"
-                className="mt-2 rounded-none"
-                rows={3}
-                placeholder="Make the base thicker and the finish charcoal."
-                value={remix}
-                onChange={(e) => setRemix(e.target.value)}
-              />
-            </div>
-            <Button size="lg" className="w-full rounded-none" onClick={startCustomizing}>
-              <Wand2 className="mr-2 h-4 w-4" /> Preview my version
-            </Button>
-            <p className="text-xs text-muted-foreground">
-              You'll see your piece before anything is made or charged.
-            </p>
-          </div>
 
           <dl className="mt-10 border-t border-border divide-y divide-border text-sm">
             <div className="flex justify-between py-3">
