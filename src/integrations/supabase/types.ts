@@ -1396,6 +1396,48 @@ export type Database = {
         }
         Relationships: []
       }
+      originals_reviews: {
+        Row: {
+          author_location: string | null
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          photo_url: string | null
+          rating: number
+          sku_slug: string
+          status: string
+          title: string | null
+          verified_purchase: boolean
+        }
+        Insert: {
+          author_location?: string | null
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          rating: number
+          sku_slug: string
+          status?: string
+          title?: string | null
+          verified_purchase?: boolean
+        }
+        Update: {
+          author_location?: string | null
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          rating?: number
+          sku_slug?: string
+          status?: string
+          title?: string | null
+          verified_purchase?: boolean
+        }
+        Relationships: []
+      }
       payout_requests: {
         Row: {
           amount: number
