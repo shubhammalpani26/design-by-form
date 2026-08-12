@@ -94,6 +94,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [limitReached, setLimitReached] = useState(false);
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
 
@@ -141,6 +143,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       setPreview(null);
     }
     const startedAt = Date.now();
+    setErrorMsg(null);
     trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
       const personalization = mode === "photo" ? { petName, date } : values;
@@ -179,7 +182,15 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (e) {
       trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
-      toast({ title: "Couldn't make that one", description: (e as Error).message, variant: "destructive" });
+      const raw = (e as Error).message || "";
+      const isLimit = /limit|429|too many/i.test(raw);
+      setLimitReached(isLimit);
+      setErrorMsg(
+        isLimit
+          ? "You've used your free previews for today. They reset in 24 hours — or order now and we'll send your render for approval before anything is printed."
+          : raw || "We couldn't render that one. Try a clearer, well-lit photo of their face."
+      );
+      toast({ title: "Couldn't make that one", description: raw, variant: "destructive" });
       if (isTweak && prevPreview === null) setPrevPreview(null);
     } finally {
       setLoading(false);
