@@ -52,7 +52,7 @@ export const EXPERIMENTS = {
       eyebrow: "First look",
       headline: (name: string) => `This is ${name}, in stone.`,
       sizePrompt: "How big should they be?",
-      cta: (price: number) => `Make ${"this"} one — $${price}`,
+      cta: (price: number) => `Make this one — $${price}`,
     },
   },
 } as const;
