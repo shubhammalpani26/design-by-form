@@ -53,6 +53,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
+  const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
+  const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [preview, setPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
@@ -60,6 +62,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [checkingOut, setCheckingOut] = useState(false);
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
+
+  const displayName =
+    mode === "photo"
+      ? petName.trim()
+      : (values.petName || values.childName || values.coordinates || "").trim();
 
   useEffect(() => {
     trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
@@ -88,19 +95,23 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   }, [toast]);
 
   const generate = async () => {
-    if (!sku.photo || !photo) return;
+    if (mode === "photo" && (!sku.photo || !photo)) return;
     setLoading(true);
     setPreview(null);
     const startedAt = Date.now();
     trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
-      const values = { petName, date };
+      const personalization = mode === "photo" ? { petName, date } : values;
+      const prompt =
+        mode === "photo" && sku.photo
+          ? sku.photo.promptTemplate({ petName, date })
+          : sku.promptTemplate(values);
       const { data, error } = await supabase.functions.invoke("originals-preview", {
         body: {
           skuSlug: sku.slug,
-          prompt: sku.photo.promptTemplate(values),
-          personalization: values,
-          sourceImage: photo.dataUrl,
+          prompt,
+          personalization,
+          ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
         },
       });
       if (error) throw new Error(await readFnError(error, "We couldn't render that one. Try a clearer photo."));
@@ -145,16 +156,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     }
   };
 
-  if (!sku.photo) return null;
-
   return (
     <div className="border border-foreground/15 bg-muted/10">
       {/* ---- Step 1: the photo ---- */}
       {!preview && (
         <div className="p-5 md:p-6">
-          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Make it from your photo</p>
+          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">
+            {mode === "photo" ? "Make it from your photo" : "Make it from a template"}
+          </p>
           <h2 className="mt-2 text-xl md:text-2xl font-light tracking-tight">
-            Upload one photo. See them carved in stone.
+            {mode === "photo" ? "Upload one photo. See them carved in stone." : "Fill in the details. See it carved in stone."}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
@@ -170,6 +181,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           )}
 
+          {mode === "photo" && sku.photo && (
+          <>
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
@@ -202,7 +215,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           />
 
           <PhotoPrivacyNotice className="mt-3" />
+          </>
+          )}
 
+          {mode === "photo" ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="petName" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
@@ -219,19 +235,60 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 onChange={(e) => setDate(e.target.value)} />
             </div>
           </div>
+          ) : (
+          <div className="mt-4 space-y-3">
+            {sku.fields.map((f) => (
+              <div key={f.key}>
+                <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  {f.label}
+                </Label>
+                {f.options ? (
+                  <select
+                    id={f.key}
+                    className="mt-2 h-10 w-full rounded-none border border-input bg-background px-3 text-sm"
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  >
+                    <option value="">{f.placeholder}</option>
+                    {f.options.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    id={f.key}
+                    className="mt-2 rounded-none"
+                    placeholder={f.placeholder}
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+          )}
 
           <Button
             size="lg"
             className="mt-5 w-full rounded-none h-12"
-            disabled={!photo || loading}
+            disabled={loading || (mode === "photo" && !photo)}
             onClick={generate}
           >
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
-              <>See {petName.trim() || "them"} in stone — free <ArrowRight className="ml-2 h-4 w-4" /></>
+              <>See {displayName || "it"} in stone — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
+          {sku.photo && (
+            <button
+              type="button"
+              onClick={() => setMode(mode === "photo" ? "template" : "photo")}
+              className="mt-3 w-full text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
+            >
+              {mode === "photo" ? "No photo handy? Use a template instead" : "Use my own photo instead"}
+            </button>
+          )}
           {loading && (
             <div className="mt-4 aspect-square w-full animate-pulse bg-muted/40" aria-hidden />
           )}
@@ -243,14 +300,14 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         <div ref={revealRef} className="p-5 md:p-6">
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">{reveal.eyebrow}</p>
           <h2 className="mt-2 text-2xl font-light tracking-tight">
-            {reveal.headline(petName.trim() || "your piece")}
+            {reveal.headline(displayName || "your piece")}
           </h2>
 
           <div className="mt-4 grid grid-cols-[80px_1fr] gap-3 items-start">
-            {photo && (
+            {mode === "photo" && photo && (
               <img src={photo.dataUrl} alt="Your photo" className="w-20 h-20 object-cover border border-border" />
             )}
-            <div className="border border-border bg-muted/20">
+            <div className={`border border-border bg-muted/20 ${mode === "photo" && photo ? "" : "col-span-2"}`}>
               <img src={preview.url} alt="Your personalized piece" className="w-full object-contain" />
             </div>
           </div>
@@ -311,7 +368,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             className="mt-4 w-full inline-flex items-center justify-center gap-2 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
           >
             <RefreshCw className="h-3 w-3" />
-            Try another photo{preview.remaining > 0 ? ` · ${preview.remaining} free left today` : ""}
+            Try another{preview.remaining > 0 ? ` · ${preview.remaining} free left today` : ""}
           </button>
 
           <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5 text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
