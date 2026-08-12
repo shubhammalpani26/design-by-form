@@ -292,7 +292,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             size="lg"
             className="mt-5 w-full rounded-none h-12"
             disabled={loading || (mode === "photo" && !photo)}
-            onClick={generate}
+            onClick={() => void generate()}
           >
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
