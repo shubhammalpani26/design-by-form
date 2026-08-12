@@ -200,6 +200,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             onChange={(e) => void pickFile(e.target.files?.[0])}
           />
 
+          <PhotoPrivacyNotice className="mt-3" />
+
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="petName" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
