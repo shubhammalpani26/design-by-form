@@ -325,6 +325,34 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
           )}
 
+          <div className="mt-4">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {COLORS.map((c) => {
+                const active = c.key === colorKey;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    onClick={() => setColorKey(c.key)}
+                    aria-pressed={active}
+                    className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
+                  >
+                    <span
+                      className="h-4 w-4 border border-foreground/20"
+                      style={{ backgroundColor: c.swatch }}
+                      aria-hidden
+                    />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="mt-2 text-[11px] text-muted-foreground">
+              Made in one solid colour — pick the one that suits your space.
+            </p>
+          </div>
+
           <Button
             size="lg"
             className="mt-5 w-full rounded-none h-12"
