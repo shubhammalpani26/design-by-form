@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
@@ -9,16 +9,9 @@ import type { OriginalSku } from "@/data/originalsSkus";
 import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
+import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 
 const MAX_BYTES = 8 * 1024 * 1024;
-
-const WAITING_LINES = [
-  "Reading their face…",
-  "Carving the brow and muzzle…",
-  "Cutting the eyes so they catch the light…",
-  "Engraving the name into the plinth…",
-  "Almost there.",
-];
 
 async function fileToDataUrl(file: File) {
   return await new Promise<string>((resolve, reject) => {
@@ -51,6 +44,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
   const topReview = reviews[0];
 
+  const progressVariant = useMemo(() => getVariant("render_progress"), []);
+  const revealVariant = useMemo(() => getVariant("reveal_screen"), []);
+  const waitingLines = EXPERIMENTS.render_progress[progressVariant];
+  const reveal = EXPERIMENTS.reveal_screen[revealVariant];
+
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
   const [petName, setPetName] = useState("");
   const [date, setDate] = useState("");
@@ -63,11 +61,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
 
   useEffect(() => {
+    trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
+    trackExperiment("reveal_screen", revealVariant, "flow_view", { skuSlug: sku.slug });
+  }, [progressVariant, revealVariant, sku.slug]);
+
+  useEffect(() => {
     if (!loading) return;
     setLineIndex(0);
-    const id = setInterval(() => setLineIndex((i) => Math.min(i + 1, WAITING_LINES.length - 1)), 4500);
+    const id = setInterval(() => setLineIndex((i) => Math.min(i + 1, waitingLines.length - 1)), 4500);
     return () => clearInterval(id);
-  }, [loading]);
+  }, [loading, waitingLines.length]);
 
   const pickFile = useCallback(async (file?: File | null) => {
     if (!file) return;
@@ -80,12 +83,15 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       return;
     }
     setPhoto({ dataUrl: await fileToDataUrl(file), name: file.name });
+    trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 
   const generate = async () => {
     if (!sku.photo || !photo) return;
     setLoading(true);
     setPreview(null);
+    const startedAt = Date.now();
+    trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
       const values = { petName, date };
       const { data, error } = await supabase.functions.invoke("originals-preview", {
@@ -98,8 +104,14 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       });
       if (error) throw new Error(await readFnError(error, "We couldn't render that one. Try a clearer photo."));
       setPreview({ url: data.previewUrl, id: data.previewId ?? null, remaining: data.remaining ?? 0 });
+      trackExperiment("render_progress", progressVariant, "generate_success", {
+        skuSlug: sku.slug,
+        metadata: { seconds: Math.round((Date.now() - startedAt) / 1000) },
+      });
+      trackExperiment("reveal_screen", revealVariant, "reveal_view", { skuSlug: sku.slug });
       setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (e) {
+      trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
       toast({ title: "Couldn't make that one", description: (e as Error).message, variant: "destructive" });
     } finally {
       setLoading(false);
@@ -108,6 +120,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const checkout = async () => {
     setCheckingOut(true);
+    trackExperiment("reveal_screen", revealVariant, "checkout_click", {
+      skuSlug: sku.slug,
+      metadata: { sizeKey, price: selectedSize.price },
+    });
     try {
       const { data, error } = await supabase.functions.invoke("originals-checkout", {
         body: {
@@ -120,6 +136,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       });
       if (error) throw new Error(await readFnError(error, "Checkout is temporarily unavailable."));
       if (!data?.url) throw new Error("Checkout is temporarily unavailable.");
+      trackExperiment("reveal_screen", revealVariant, "checkout_opened", { skuSlug: sku.slug });
       window.location.href = data.url;
     } catch (e) {
       toast({ title: "Checkout didn't open", description: (e as Error).message, variant: "destructive" });
@@ -207,7 +224,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             onClick={generate}
           >
             {loading ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {WAITING_LINES[lineIndex]}</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
               <>See {petName.trim() || "them"} in stone — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
@@ -221,9 +238,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       {/* ---- Step 2: the reveal ---- */}
       {preview && (
         <div ref={revealRef} className="p-5 md:p-6">
-          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Your piece</p>
+          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">{reveal.eyebrow}</p>
           <h2 className="mt-2 text-2xl font-light tracking-tight">
-            Here's {petName.trim() || "your piece"}.
+            {reveal.headline(petName.trim() || "your piece")}
           </h2>
 
           <div className="mt-4 grid grid-cols-[80px_1fr] gap-3 items-start">
@@ -236,7 +253,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
 
           <div className="mt-5">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Choose a size</p>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{reveal.sizePrompt}</p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {sku.sizes.map((s) => {
                 const active = s.key === sizeKey;
@@ -259,7 +276,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
           <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
             {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Make it real — ${selectedSize.price}
+            {reveal.cta(selectedSize.price)}
           </Button>
           <p className="mt-2 text-xs text-center text-muted-foreground">
             Free US shipping · Made to order in the USA · Ships in 3–5 days
