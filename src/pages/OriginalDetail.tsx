@@ -93,13 +93,13 @@ const OriginalDetail = () => {
             {sku.sizes.length > 1 ? `From $${Math.min(...sku.sizes.map((s) => s.price))}` : `$${sku.price}`}
             <span className="ml-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">Free US shipping</span>
           </p>
-          <p className="mt-5 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
-
           {sku.photo && (
-            <div className="mt-8">
+            <div className="mt-6">
               <PhotoToPieceFlow sku={sku} />
             </div>
           )}
+
+          <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
 
           {sku.photo && !showTemplate && (
             <button
