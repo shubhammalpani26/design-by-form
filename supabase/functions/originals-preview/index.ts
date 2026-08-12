@@ -65,6 +65,7 @@ Deno.serve(async (req) => {
 
     // Admins render unlimited previews (internal testing, content shoots).
     let unlimited = false;
+    let used = 0;
     if (userId) {
       const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
       unlimited = isAdmin === true;
@@ -77,7 +78,8 @@ Deno.serve(async (req) => {
         .select("id", { count: "exact", head: true })
         .eq("ip_hash", ipHash)
         .gte("created_at", since);
-      if ((count ?? 0) >= FREE_PREVIEWS_PER_DAY) {
+      used = count ?? 0;
+      if (used >= FREE_PREVIEWS_PER_DAY) {
         return json({
           error: "You've used your free previews for today. Order a piece to keep going, or come back tomorrow.",
           code: "PREVIEW_LIMIT",
@@ -187,7 +189,7 @@ Deno.serve(async (req) => {
       previewId: row?.id ?? null,
       previewUrl,
       sourceUrl,
-      remaining: Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
+      remaining: unlimited ? null : Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
     });
   } catch (e) {
     console.error("originals-preview error", e);
