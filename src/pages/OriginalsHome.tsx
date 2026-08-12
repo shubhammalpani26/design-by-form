@@ -19,7 +19,9 @@ const STEPS = [
 
 const FAQS = [
   { q: "How long does it take?", a: "Every Original is made to order. Production takes 1–2 business days and delivery is 3–5 business days anywhere in the US." },
-  { q: "What is it made of?", a: "A dense matte composite with a stone-like hand feel. Solid through, not hollow-feeling — each piece is engineered as a single part." },
+  { q: "What is it made of?", a: "A dense matte polymer, precision 3D-printed as one solid part in the USA. The finish reads and feels stone-like — but to be clear, it is a durable printed material, not natural stone or ceramic. It is solid through, not hollow-feeling, and safe indoors on any shelf." },
+  { q: "Is this a real product or just an AI image?", a: "The AI only designs it. What you see in the preview is turned into a manufacturable 3D model, checked by our engineering system for wall thickness, stability and print feasibility, then produced by a real US workshop and shipped to you as a physical object in 3–5 business days." },
+  { q: "What if it arrives damaged or doesn't look right?", a: "We remake it or refund you within 30 days of delivery, no argument. Anything that arrives cracked, warped or mis-engraved is on us." },
   { q: "How large are the pieces?", a: "Each Original is produced as one part inside a 220 × 220 × 220 mm envelope, so it reads as a substantial object on a shelf without becoming furniture." },
   { q: "Can I change the design?", a: "Yes. Every Original can be remixed — describe what you want in plain language and the piece is redrawn before it is made." },
 ];
@@ -103,7 +105,7 @@ const OriginalsHome = () => {
       {/* Trust strip */}
       <section className="border-b border-border">
         <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
-          {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "2-year warranty"].map((t) => (
+          {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "30-day remake or refund"].map((t) => (
             <div key={t} className="py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
               {t}
             </div>
@@ -170,7 +172,7 @@ const OriginalsHome = () => {
         <div className="border border-border p-8 md:p-14 text-center">
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Photo to piece</p>
           <h2 className="text-2xl md:text-4xl font-light tracking-tight max-w-2xl mx-auto">
-            One photo. One minute. Theirs, in stone.
+            One photo. One minute. Theirs, sculpted.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
             Upload a photo of your pet and see the sculpture before anything is made or charged.

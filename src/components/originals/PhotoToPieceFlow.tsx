@@ -575,6 +575,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 3–5 day ship</div>
             <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
           </div>
+          <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
+            Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a
+            stone-look finish, not natural stone. Designed by our AI, checked by our engineers, made by a
+            real workshop and shipped to your door.
+          </p>
         </div>
       )}
     </div>
