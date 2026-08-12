@@ -132,7 +132,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     if (mode === "photo" && (!sku.photo || !photo)) return;
     const activeColor = overrideColor ?? colorKey;
     const isTweak = Boolean(tweakText.trim());
-    if (isTweak) {
+    const isRefine = isTweak || Boolean(overrideColor);
+    if (isRefine) {
       setRefining(true);
       setPrevPreview(preview);
     } else {
