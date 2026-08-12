@@ -11,9 +11,23 @@ export interface OriginalSku {
   image: string;
   finish: string;
   dimensions: string;
-  fields: { key: string; label: string; placeholder: string }[];
+  fields: { key: string; label: string; placeholder: string; options?: string[] }[];
   promptTemplate: (values: Record<string, string>) => string;
 }
+
+/** Pet forms we sculpt in full three-dimensional relief. */
+export const PET_TYPES = [
+  "Dog — long snout (retriever, lab)",
+  "Dog — short snout (pug, bulldog)",
+  "Dog — pointed ears (shepherd, husky)",
+  "Dog — floppy ears (beagle, spaniel)",
+  "Cat — short hair",
+  "Cat — long hair",
+  "Rabbit",
+  "Horse",
+  "Bird / parrot",
+  "Other (describe below)",
+];
 
 /** Every Original is printed as a single part inside a 220 x 220 x 220 mm envelope. */
 export const MAX_ENVELOPE_MM = 220;
@@ -21,21 +35,22 @@ export const MAX_ENVELOPE_MM = 220;
 export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
-    name: "Pet Silhouette Piece",
-    tagline: "Their profile, sculpted in relief — name and date engraved.",
+    name: "Pet Sculpture Piece",
+    tagline: "Their head sculpted in full three dimensions — name and date engraved.",
     description:
-      "A dimensional, hand-feel sculpture of your pet's side profile on a weighted plinth, with their name and date engraved into the front face. Send a photo, we translate it into a clean sculpted form — solid, substantial, no fragile parts.",
+      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. Solid, substantial, no fragile parts.",
     price: 68,
     image: petImg,
     finish: "Matte bone / sand / charcoal",
-    dimensions: "196 × 171 × 62 mm",
+    dimensions: "196 × 150 × 120 mm",
     fields: [
       { key: "petName", label: "Pet's name", placeholder: "Milo" },
+      { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
       { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
     ],
     promptTemplate: (v) =>
-      `A solid three-dimensional sculptural side-profile personal piece of a ${v.breed || "dog"} named ${v.petName || "my pet"}, thick extruded matte stone-look form with softly chamfered edges, standing on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals, minimal and monolithic, no thin fragile details, flat stable base.`,
+      `A fully three-dimensional carved sculpture of the head and shoulders of a ${v.breed || v.petType || "dog"}${v.petType ? ` (${v.petType})` : ""} named ${v.petName || "my pet"}, shown in a three-quarter view so the depth is obvious: rounded modelled muzzle, brow, cheeks and ears sculpted in the round with real volume front to back, smooth matte stone-look surface with soft form transitions, absolutely not a flat silhouette, not an extruded profile plate, not a relief panel, no thick flat slab. The sculpture sits on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals. Monolithic and solid, no thin fragile details, flat stable base, studio lighting showing depth and shadow.`,
   },
   {
     slug: "nursery-name-date",
