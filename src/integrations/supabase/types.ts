@@ -1343,6 +1343,7 @@ export type Database = {
           personalization: Json
           preview_id: string | null
           preview_image_url: string | null
+          shipping_address: Json | null
           size_key: string
           size_label: string | null
           sku_slug: string
@@ -1359,6 +1360,7 @@ export type Database = {
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          shipping_address?: Json | null
           size_key: string
           size_label?: string | null
           sku_slug: string
@@ -1375,6 +1377,7 @@ export type Database = {
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          shipping_address?: Json | null
           size_key?: string
           size_label?: string | null
           sku_slug?: string
