@@ -16,6 +16,7 @@ import { getCanonicalUrl } from "@/components/SEOHead";
 import Home from "./pages/Home";
 import OriginalsHome from "./pages/OriginalsHome";
 const OriginalDetail = lazy(() => import("./pages/OriginalDetail"));
+const OriginalsReturn = lazy(() => import("./pages/OriginalsReturn"));
 
 // Lazy load everything else
 const Browse = lazy(() => import("./pages/Browse"));
@@ -132,6 +133,7 @@ const App = () => (
               <Routes>
               <Route path="/" element={<OriginalsHome />} />
               <Route path="/originals/:slug" element={<OriginalDetail />} />
+              <Route path="/originals/checkout/return" element={<OriginalsReturn />} />
               {/* Existing platform homepage preserved verbatim at its own route */}
               <Route path="/platform" element={<Home />} />
               <Route path="/browse" element={<Browse />} />
