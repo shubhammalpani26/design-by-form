@@ -312,16 +312,6 @@ async function fulfilCreditPackInner(
   priceId: string,
   pack: { credits: number; label: string },
 ) {
-  const userId = session.metadata?.userId;
-  const priceId = session.metadata?.lovablePriceId;
-  if (!userId || !priceId) return;
-
-  const pack = CREDIT_PACK_PRICES[priceId];
-  if (!pack) {
-    console.error("Unrecognised credit pack price:", priceId);
-    return;
-  }
-
   // stripe_session_id is UNIQUE — this makes redelivery idempotent.
   const { error } = await db().from("credit_purchases").insert({
     user_id: userId,
