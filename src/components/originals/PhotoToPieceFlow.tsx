@@ -4,9 +4,10 @@ import { getStripeEnvironment } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
-import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight } from "lucide-react";
+import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Undo2, Wand2 } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
@@ -328,8 +329,95 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               <img src={photo.dataUrl} alt="Your photo" className="w-20 h-20 object-cover border border-border" />
             )}
             <div className={`border border-border bg-muted/20 ${mode === "photo" && photo ? "" : "col-span-2"}`}>
-              <img src={preview.url} alt="Your personalized piece" className="w-full object-contain" />
+              <div className="relative">
+                <img
+                  src={preview.url}
+                  alt="Your personalized piece"
+                  className={`w-full object-contain transition ${refining ? "opacity-40 blur-[2px]" : ""}`}
+                />
+                {refining && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-xs text-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    Adjusting your piece…
+                  </div>
+                )}
+              </div>
             </div>
+          </div>
+
+          {/* ---- Not quite right? inline tweaks ---- */}
+          <div className="mt-4">
+            {!showTweak ? (
+              <div className="flex items-center justify-between gap-3">
+                <button
+                  type="button"
+                  disabled={refining}
+                  onClick={() => {
+                    setShowTweak(true);
+                    trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
+                  }}
+                  className="text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
+                >
+                  Not quite right?
+                </button>
+                {prevPreview && !refining && (
+                  <button
+                    type="button"
+                    onClick={() => { setPreview(prevPreview); setPrevPreview(null); }}
+                    className="inline-flex items-center gap-1.5 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
+                  >
+                    <Undo2 className="h-3 w-3" /> Back to previous
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="border border-border p-4">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Tell us what to change
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {TWEAK_CHIPS[mode === "photo" ? "photo" : "template"].map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setTweak((t) => (t.trim() ? `${t.trim()} ${chip}` : chip))}
+                      className="border border-border px-3 py-1.5 text-xs hover:border-foreground/50"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  className="mt-3 rounded-none"
+                  rows={2}
+                  maxLength={300}
+                  placeholder="e.g. turn the head slightly to the left and make the name larger"
+                  value={tweak}
+                  onChange={(e) => setTweak(e.target.value)}
+                />
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    className="flex-1 rounded-none"
+                    disabled={!tweak.trim() || refining}
+                    onClick={() => void generate(tweak)}
+                  >
+                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    {refining ? "Adjusting…" : "Re-render with this change"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-none"
+                    disabled={refining}
+                    onClick={() => { setShowTweak(false); setTweak(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Keeps your photo and details — only the change you describe is applied.
+                </p>
+              </div>
+            )}
           </div>
 
           <div className="mt-5">
