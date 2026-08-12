@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
 
     // Upload the buyer's photo so the model can see it (and so we keep a record).
     let sourceUrl: string | null = null;
+    let sourceStoragePath: string | null = null;
     if (sourceImage) {
       const decoded = decodeDataUrl(sourceImage);
       if (!decoded) return json({ error: "Please upload a JPG, PNG or WebP photo." }, 400);
@@ -86,8 +87,8 @@ Deno.serve(async (req) => {
         return json({ error: "That photo is too large — please keep it under 8 MB." }, 400);
       }
       const ext = decoded.mime.includes("png") ? "png" : decoded.mime.includes("webp") ? "webp" : "jpg";
-      const path = `originals/source/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await admin.storage.from("product-images").upload(path, decoded.bytes, {
+      const path = `source/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await admin.storage.from("originals-uploads").upload(path, decoded.bytes, {
         contentType: decoded.mime,
         upsert: false,
       });
@@ -95,7 +96,16 @@ Deno.serve(async (req) => {
         console.error("source upload failed", upErr);
         return json({ error: "We couldn't read that photo. Try another one." }, 400);
       }
-      sourceUrl = admin.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+      // Private bucket: the model gets a short-lived signed link, never a public URL.
+      const { data: signed, error: signErr } = await admin.storage
+        .from("originals-uploads")
+        .createSignedUrl(path, 60 * 30);
+      if (signErr || !signed?.signedUrl) {
+        console.error("source signing failed", signErr);
+        return json({ error: "We couldn't read that photo. Try another one." }, 400);
+      }
+      sourceStoragePath = path;
+      sourceUrl = signed.signedUrl;
     }
 
     const content: unknown[] = [{ type: "text", text: prompt }];
@@ -142,7 +152,7 @@ Deno.serve(async (req) => {
         ip_hash: ipHash,
         sku_slug: skuSlug,
         personalization,
-        source_image_url: sourceUrl,
+        source_image_url: sourceStoragePath,
         preview_image_url: previewUrl,
       })
       .select("id")

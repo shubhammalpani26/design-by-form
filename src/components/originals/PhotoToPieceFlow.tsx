@@ -9,6 +9,7 @@ import type { OriginalSku } from "@/data/originalsSkus";
 import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
+import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -199,6 +200,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             className="hidden"
             onChange={(e) => void pickFile(e.target.files?.[0])}
           />
+
+          <PhotoPrivacyNotice className="mt-3" />
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
