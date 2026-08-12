@@ -54,7 +54,7 @@ export default function OriginalsReturn() {
       <SEOHead
         title="Order confirmed — Nyzora"
         description="Your personalized piece is confirmed and heading into production."
-        noindex
+        noIndex
       />
       <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Nyzora</p>
 
