@@ -95,3 +95,6 @@ verify_jwt = false
 
 [functions.originals-checkout]
 verify_jwt = false
+
+[functions.originals-order-status]
+verify_jwt = false
