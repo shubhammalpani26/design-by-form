@@ -128,8 +128,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 
-  const generate = async (tweakText = "") => {
+  const generate = async (tweakText = "", overrideColor?: string) => {
     if (mode === "photo" && (!sku.photo || !photo)) return;
+    const activeColor = overrideColor ?? colorKey;
     const isTweak = Boolean(tweakText.trim());
     if (isTweak) {
       setRefining(true);
@@ -146,7 +147,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         mode === "photo" && sku.photo
           ? sku.photo.promptTemplate({ petName, date })
           : sku.promptTemplate(values);
-      const withColor = `${basePrompt}${colorClause(colorKey)}`;
+      const withColor = `${basePrompt}${colorClause(activeColor)}`;
       const prompt = isTweak
         ? `${withColor} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
         : withColor;
@@ -156,7 +157,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           prompt,
           personalization: {
             ...personalization,
-            color: colorKey,
+            color: activeColor,
             ...(isTweak ? { tweak: tweakText.trim() } : {}),
           },
           ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
