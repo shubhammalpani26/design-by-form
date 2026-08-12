@@ -895,6 +895,39 @@ export type Database = {
         }
         Relationships: []
       }
+      experiment_events: {
+        Row: {
+          created_at: string
+          event: string
+          experiment: string
+          id: string
+          metadata: Json
+          session_id: string
+          sku_slug: string | null
+          variant: string
+        }
+        Insert: {
+          created_at?: string
+          event: string
+          experiment: string
+          id?: string
+          metadata?: Json
+          session_id: string
+          sku_slug?: string | null
+          variant: string
+        }
+        Update: {
+          created_at?: string
+          event?: string
+          experiment?: string
+          id?: string
+          metadata?: Json
+          session_id?: string
+          sku_slug?: string | null
+          variant?: string
+        }
+        Relationships: []
+      }
       feed_post_likes: {
         Row: {
           created_at: string
