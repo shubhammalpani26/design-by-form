@@ -79,6 +79,7 @@ Deno.serve(async (req) => {
 
     // Upload the buyer's photo so the model can see it (and so we keep a record).
     let sourceUrl: string | null = null;
+    let sourceStoragePath: string | null = null;
     if (sourceImage) {
       const decoded = decodeDataUrl(sourceImage);
       if (!decoded) return json({ error: "Please upload a JPG, PNG or WebP photo." }, 400);
