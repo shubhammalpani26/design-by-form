@@ -564,13 +564,37 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           </div>
 
-          <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
-            {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            {reveal.cta(selectedSize.price)}
-          </Button>
-          <p className="mt-2 text-xs text-center text-muted-foreground">
-            Free US shipping · Made to order in the USA · Ships in 3–5 days
-          </p>
+          <div ref={checkoutRef}>
+            {clientSecret ? (
+              <div className="mt-5 border-t border-border pt-5">
+                <div className="flex items-center justify-between">
+                  <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                    Secure checkout · {selectedSize.label} · ${selectedSize.price}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setClientSecret(null)}
+                    className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
+                  >
+                    Change
+                  </button>
+                </div>
+                <div className="mt-4">
+                  <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
+                </div>
+              </div>
+            ) : (
+              <>
+                <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
+                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {reveal.cta(selectedSize.price)}
+                </Button>
+                <p className="mt-2 text-xs text-center text-muted-foreground">
+                  Free US shipping · Made to order in the USA · Ships in 3–5 days
+                </p>
+              </>
+            )}
+          </div>
 
           {topReview ? (
             <div className="mt-5 border border-border p-4">
