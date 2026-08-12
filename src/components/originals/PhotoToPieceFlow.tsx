@@ -91,6 +91,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
   const [refining, setRefining] = useState(false);
+  const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -145,14 +146,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         mode === "photo" && sku.photo
           ? sku.photo.promptTemplate({ petName, date })
           : sku.promptTemplate(values);
+      const withColor = `${basePrompt}${colorClause(colorKey)}`;
       const prompt = isTweak
-        ? `${basePrompt} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
-        : basePrompt;
+        ? `${withColor} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
+        : withColor;
       const { data, error } = await supabase.functions.invoke("originals-preview", {
         body: {
           skuSlug: sku.slug,
           prompt,
-          personalization: isTweak ? { ...personalization, tweak: tweakText.trim() } : personalization,
+          personalization: {
+            ...personalization,
+            color: colorKey,
+            ...(isTweak ? { tweak: tweakText.trim() } : {}),
+          },
           ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
         },
       });
