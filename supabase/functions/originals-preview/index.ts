@@ -63,18 +63,26 @@ Deno.serve(async (req) => {
     const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
     const ipHash = await hashIp(ip);
 
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    const { count } = await admin
-      .from("originals_previews")
-      .select("id", { count: "exact", head: true })
-      .eq("ip_hash", ipHash)
-      .gte("created_at", since);
-    const used = count ?? 0;
-    if (used >= FREE_PREVIEWS_PER_DAY) {
-      return json({
-        error: "You've used your free previews for today. Order a piece to keep going, or come back tomorrow.",
-        code: "PREVIEW_LIMIT",
-      }, 429);
+    // Admins render unlimited previews (internal testing, content shoots).
+    let unlimited = false;
+    if (userId) {
+      const { data: isAdmin } = await admin.rpc("has_role", { _user_id: userId, _role: "admin" });
+      unlimited = isAdmin === true;
+    }
+
+    if (!unlimited) {
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count } = await admin
+        .from("originals_previews")
+        .select("id", { count: "exact", head: true })
+        .eq("ip_hash", ipHash)
+        .gte("created_at", since);
+      if ((count ?? 0) >= FREE_PREVIEWS_PER_DAY) {
+        return json({
+          error: "You've used your free previews for today. Order a piece to keep going, or come back tomorrow.",
+          code: "PREVIEW_LIMIT",
+        }, 429);
+      }
     }
 
     // Upload the buyer's photo so the model can see it (and so we keep a record).
