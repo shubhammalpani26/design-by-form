@@ -38,7 +38,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Pet Sculpture Piece",
     tagline: "Their head sculpted in full three dimensions — name and date engraved.",
     description:
-      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. Solid, substantial, no fragile parts.",
+      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form like layered stone.",
     price: 68,
     image: petImg,
     finish: "Matte bone / sand / charcoal",
@@ -50,7 +50,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
     ],
     promptTemplate: (v) =>
-      `A fully three-dimensional carved sculpture of the head and shoulders of a ${v.breed || v.petType || "dog"}${v.petType ? ` (${v.petType})` : ""} named ${v.petName || "my pet"}, shown in a three-quarter view so the depth is obvious: rounded modelled muzzle, brow, cheeks and ears sculpted in the round with real volume front to back, smooth matte stone-look surface with soft form transitions, absolutely not a flat silhouette, not an extruded profile plate, not a relief panel, no thick flat slab. The sculpture sits on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals. Monolithic and solid, no thin fragile details, flat stable base, studio lighting showing depth and shadow.`,
+      `A fully three-dimensional carved sculpture of the head and shoulders of a ${v.breed || v.petType || "dog"}${v.petType ? ` (${v.petType})` : ""} named ${v.petName || "my pet"}, shown in a three-quarter view so the depth is obvious: rounded modelled muzzle, brow, cheeks and ears sculpted in the round with real volume front to back, absolutely not a flat silhouette, not an extruded profile plate, not a relief panel, no thick flat slab. Surface finish is layered banded stone: fine continuous horizontal strata wrapping the whole form like sedimentary rock or a contour model, deliberate and even, reading as an intentional material texture. The eyes are sculpted, not painted: deep almond eye sockets carved at least 2 mm into the brow with clearly defined upper and lower lids and a smooth raised iris dome inside each socket, catching shadow — no glass, no inserts, no glossy black beads, no painted detail, no thin whiskers or fine hairs. The sculpture sits on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals. Monolithic and solid, no thin fragile details, flat stable base, studio lighting showing depth and shadow.`,
   },
   {
     slug: "nursery-name-date",
