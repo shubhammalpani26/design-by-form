@@ -58,6 +58,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [preview, setPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
+  const [prevPreview, setPrevPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
+  const [showTweak, setShowTweak] = useState(false);
+  const [tweak, setTweak] = useState("");
+  const [refining, setRefining] = useState(false);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
 
@@ -94,28 +98,42 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 
-  const generate = async () => {
+  const generate = async (tweakText = "") => {
     if (mode === "photo" && (!sku.photo || !photo)) return;
-    setLoading(true);
-    setPreview(null);
+    const isTweak = Boolean(tweakText.trim());
+    if (isTweak) {
+      setRefining(true);
+      setPrevPreview(preview);
+    } else {
+      setLoading(true);
+      setPreview(null);
+    }
     const startedAt = Date.now();
     trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
       const personalization = mode === "photo" ? { petName, date } : values;
-      const prompt =
+      const basePrompt =
         mode === "photo" && sku.photo
           ? sku.photo.promptTemplate({ petName, date })
           : sku.promptTemplate(values);
+      const prompt = isTweak
+        ? `${basePrompt} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
+        : basePrompt;
       const { data, error } = await supabase.functions.invoke("originals-preview", {
         body: {
           skuSlug: sku.slug,
           prompt,
-          personalization,
+          personalization: isTweak ? { ...personalization, tweak: tweakText.trim() } : personalization,
           ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
         },
       });
       if (error) throw new Error(await readFnError(error, "We couldn't render that one. Try a clearer photo."));
       setPreview({ url: data.previewUrl, id: data.previewId ?? null, remaining: data.remaining ?? 0 });
+      if (isTweak) {
+        setShowTweak(false);
+        setTweak("");
+        trackExperiment("reveal_screen", revealVariant, "tweak_success", { skuSlug: sku.slug });
+      }
       trackExperiment("render_progress", progressVariant, "generate_success", {
         skuSlug: sku.slug,
         metadata: { seconds: Math.round((Date.now() - startedAt) / 1000) },
@@ -125,8 +143,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     } catch (e) {
       trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
       toast({ title: "Couldn't make that one", description: (e as Error).message, variant: "destructive" });
+      if (isTweak && prevPreview === null) setPrevPreview(null);
     } finally {
       setLoading(false);
+      setRefining(false);
     }
   };
 
