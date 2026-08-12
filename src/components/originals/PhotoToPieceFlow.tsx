@@ -224,7 +224,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             onClick={generate}
           >
             {loading ? (
-              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {WAITING_LINES[lineIndex]}</>
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
               <>See {petName.trim() || "them"} in stone — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
@@ -238,9 +238,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       {/* ---- Step 2: the reveal ---- */}
       {preview && (
         <div ref={revealRef} className="p-5 md:p-6">
-          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Your piece</p>
+          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">{reveal.eyebrow}</p>
           <h2 className="mt-2 text-2xl font-light tracking-tight">
-            Here's {petName.trim() || "your piece"}.
+            {reveal.headline(petName.trim() || "your piece")}
           </h2>
 
           <div className="mt-4 grid grid-cols-[80px_1fr] gap-3 items-start">
@@ -253,7 +253,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
 
           <div className="mt-5">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Choose a size</p>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{reveal.sizePrompt}</p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {sku.sizes.map((s) => {
                 const active = s.key === sizeKey;
@@ -276,7 +276,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
           <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
             {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-            Make it real — ${selectedSize.price}
+            {reveal.cta(selectedSize.price)}
           </Button>
           <p className="mt-2 text-xs text-center text-muted-foreground">
             Free US shipping · Made to order in the USA · Ships in 3–5 days
