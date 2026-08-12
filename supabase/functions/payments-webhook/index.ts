@@ -349,13 +349,23 @@ async function handleWebhook(req: Request, env: StripeEnv) {
     case "checkout.session.completed": {
       const session = event.data.object;
       if (session.mode === "payment" && session.payment_status !== "unpaid") {
-        await fulfilCreditPack(session, env);
+        if (session.metadata?.originals_order_id) {
+          await fulfilOriginalsOrder(session);
+        } else {
+          await fulfilCreditPack(session, env);
+        }
       }
       break;
     }
     case "checkout.session.async_payment_succeeded": {
       const session = event.data.object;
-      if (session.mode === "payment") await fulfilCreditPack(session, env);
+      if (session.mode === "payment") {
+        if (session.metadata?.originals_order_id) {
+          await fulfilOriginalsOrder(session);
+        } else {
+          await fulfilCreditPack(session, env);
+        }
+      }
       break;
     }
     case "invoice.paid":
