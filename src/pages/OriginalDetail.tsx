@@ -96,13 +96,27 @@ const OriginalDetail = () => {
                 <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
                   {f.label}
                 </Label>
-                <Input
-                  id={f.key}
-                  className="mt-2 rounded-none"
-                  placeholder={f.placeholder}
-                  value={values[f.key] || ""}
-                  onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
-                />
+                {f.options ? (
+                  <select
+                    id={f.key}
+                    className="mt-2 h-10 w-full rounded-none border border-input bg-background px-3 text-sm"
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  >
+                    <option value="">{f.placeholder}</option>
+                    {f.options.map((o) => (
+                      <option key={o} value={o}>{o}</option>
+                    ))}
+                  </select>
+                ) : (
+                  <Input
+                    id={f.key}
+                    className="mt-2 rounded-none"
+                    placeholder={f.placeholder}
+                    value={values[f.key] || ""}
+                    onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
+                  />
+                )}
               </div>
             ))}
             <div>
