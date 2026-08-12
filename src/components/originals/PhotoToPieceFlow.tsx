@@ -376,6 +376,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               <>See {displayName || "it"} sculpted — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
+          {errorMsg && (
+            <div className="mt-3 border border-foreground/20 bg-muted/40 p-3 text-xs leading-relaxed text-foreground">
+              {errorMsg}
+              {limitReached && (
+                <a
+                  href="#collection"
+                  className="mt-2 block underline underline-offset-4 text-muted-foreground hover:text-foreground"
+                >
+                  See the finished pieces in the meantime
+                </a>
+              )}
+            </div>
+          )}
           {sku.photo && (
             <button
               type="button"
