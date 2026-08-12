@@ -11,6 +11,7 @@ import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Un
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
+import { OriginalsCheckout } from "./OriginalsCheckout";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -210,14 +211,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           skuSlug: sku.slug,
           sizeKey,
           previewId: preview?.id ?? null,
-          returnUrl: `${window.location.origin}/originals/${sku.slug}`,
+          returnUrl: `${window.location.origin}/originals/checkout/return`,
           environment: getStripeEnvironment(),
         },
       });
       if (error) throw new Error(await readFnError(error, "Checkout is temporarily unavailable."));
-      if (!data?.url) throw new Error("Checkout is temporarily unavailable.");
+      if (!data?.clientSecret) throw new Error("Checkout is temporarily unavailable.");
       trackExperiment("reveal_screen", revealVariant, "checkout_opened", { skuSlug: sku.slug });
-      window.location.href = data.url;
+      setClientSecret(data.clientSecret);
+      setCheckingOut(false);
+      requestAnimationFrame(() =>
+        checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
     } catch (e) {
       toast({ title: "Checkout didn't open", description: (e as Error).message, variant: "destructive" });
       setCheckingOut(false);
