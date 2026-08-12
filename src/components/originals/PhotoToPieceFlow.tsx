@@ -95,6 +95,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
 
