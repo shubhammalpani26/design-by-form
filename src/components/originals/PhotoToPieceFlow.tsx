@@ -15,6 +15,20 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
+/** One-tap corrections buyers ask for most, per flow. */
+const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
+  photo: [
+    "Turn the head slightly toward the camera.",
+    "Make the ears and muzzle more like my photo.",
+    "Make the engraved name larger and deeper.",
+  ],
+  template: [
+    "Make the engraving larger and deeper.",
+    "Give the form a softer, more sculptural curve.",
+    "Shift the angle so the front face reads straight on.",
+  ],
+};
+
 async function fileToDataUrl(file: File) {
   return await new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
