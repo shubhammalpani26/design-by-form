@@ -88,10 +88,6 @@ const OriginalDetail = () => {
               <dd>{sku.finish}</dd>
             </div>
             <div className="flex justify-between py-3">
-              <dt className="text-muted-foreground">Approx. size</dt>
-              <dd>{sku.dimensions}</dd>
-            </div>
-            <div className="flex justify-between py-3">
               <dt className="text-muted-foreground">Build envelope</dt>
               <dd>Single part, max {MAX_ENVELOPE_MM} mm cube</dd>
             </div>
