@@ -16,6 +16,20 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 const MAX_BYTES = 8 * 1024 * 1024;
 
 /** One-tap corrections buyers ask for most, per flow. */
+/** Single-material colours — the piece is printed in one filament, never two-tone. */
+const COLORS = [
+  { key: "bone", label: "Bone White", swatch: "#EDE7DC", prompt: "warm bone white" },
+  { key: "charcoal", label: "Charcoal Black", swatch: "#2A2A2A", prompt: "deep charcoal black" },
+  { key: "sand", label: "Sand", swatch: "#CDB89A", prompt: "soft sand beige" },
+  { key: "slate", label: "Slate Grey", swatch: "#7C848C", prompt: "cool slate grey" },
+  { key: "terracotta", label: "Terracotta", swatch: "#B4653F", prompt: "muted terracotta" },
+] as const;
+
+const colorClause = (key: string) => {
+  const c = COLORS.find((x) => x.key === key) ?? COLORS[0];
+  return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the engraving reads through carved shadow only.`;
+};
+
 const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
   photo: [
     "Turn the head slightly toward the camera.",
