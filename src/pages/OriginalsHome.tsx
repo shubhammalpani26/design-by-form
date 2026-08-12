@@ -186,6 +186,35 @@ const OriginalsHome = () => {
 
       {/* FAQ */}
       <section className="container mx-auto px-4 pb-20">
+        <ScrollReveal>
+          <div className="border border-border p-8 md:p-12 mb-16">
+            <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">
+              The .ai in Nyzora
+            </p>
+            <h2 className="text-2xl md:text-3xl font-light tracking-tight max-w-2xl">
+              AI designs it. A real workshop in the USA makes it and ships it to you.
+            </h2>
+            <p className="mt-4 text-sm text-muted-foreground max-w-2xl">
+              You are not buying an image. The AI is the fastest way to get a one-of-one design that
+              actually looks like your pet — everything after that is physical.
+            </p>
+            <div className="mt-10 grid grid-cols-1 md:grid-cols-4 border-t border-l border-border">
+              {[
+                { n: "01", t: "AI sculpts the design", d: "Your photo and details become a one-of-one sculpture, previewed free in about a minute." },
+                { n: "02", t: "Engineering checks it", d: "Wall thickness, overhangs, stability and print settings are validated before anything is made." },
+                { n: "03", t: "Printed in the USA", d: "Produced as one solid part in dense matte polymer with a stone-look finish — a real, weighty object." },
+                { n: "04", t: "Shipped to your door", d: "Made to order and delivered in 3–5 business days, with free US shipping." },
+              ].map((s) => (
+                <div key={s.n} className="border-r border-b border-border p-6">
+                  <span className="text-[11px] tracking-[0.3em] text-muted-foreground">{s.n}</span>
+                  <h3 className="mt-3 text-base font-light tracking-tight">{s.t}</h3>
+                  <p className="mt-2 text-xs text-muted-foreground leading-relaxed">{s.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </ScrollReveal>
+
         <h2 className="text-2xl md:text-3xl font-light tracking-tight mb-8">Questions</h2>
         <div className="border-t border-border">
           {FAQS.map((f) => (
