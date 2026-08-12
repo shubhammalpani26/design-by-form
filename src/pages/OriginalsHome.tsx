@@ -1,3 +1,4 @@
+import { useEffect, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
@@ -7,6 +8,7 @@ import { JsonLd } from "@/components/JsonLd";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { ArrowRight, Wand2 } from "lucide-react";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
+import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import heroImg from "@/assets/originals-hero.jpg";
 
 const STEPS = [
@@ -24,6 +26,12 @@ const FAQS = [
 
 const OriginalsHome = () => {
   const navigate = useNavigate();
+  const heroVariant = useMemo(() => getVariant("hero_copy"), []);
+  const hero = EXPERIMENTS.hero_copy[heroVariant];
+
+  useEffect(() => {
+    trackExperiment("hero_copy", heroVariant, "hero_view");
+  }, [heroVariant]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,18 +74,20 @@ const OriginalsHome = () => {
               Nyzora Originals · Made in the USA
             </p>
             <h1 className="text-4xl md:text-6xl font-light leading-[1.05] tracking-tight text-foreground">
-              Upload one photo.
+              {hero.headline[0]}
               <br />
-              Hold them in stone.
+              {hero.headline[1]}
             </h1>
             <p className="mt-6 text-base md:text-lg text-muted-foreground max-w-lg">
-              A photo of your dog becomes a carved sculpture with their name on the base.
-              See it free in about a minute — made in the USA, shipped in 3–5 days, free shipping.
+              {hero.sub}
             </p>
             <div className="mt-10 flex flex-col sm:flex-row gap-3">
               <Button size="lg" className="rounded-none" asChild>
-                <Link to="/originals/pet-silhouette-keepsake">
-                  See your pet in stone — free <ArrowRight className="ml-2 h-4 w-4" />
+                <Link
+                  to="/originals/pet-silhouette-keepsake"
+                  onClick={() => trackExperiment("hero_copy", heroVariant, "hero_cta_click")}
+                >
+                  {hero.cta} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="rounded-none" asChild>
