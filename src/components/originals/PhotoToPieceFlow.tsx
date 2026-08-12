@@ -590,7 +590,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </div>
             ) : (
               <>
-                <Button size="lg" className="mt-5 w-full rounded-none h-12" disabled={checkingOut} onClick={checkout}>
+                <Button
+                  type="button"
+                  size="lg"
+                  className="mt-5 w-full rounded-none h-12"
+                  disabled={checkingOut}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    void checkout();
+                  }}
+                >
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {reveal.cta(selectedSize.price)}
                 </Button>
