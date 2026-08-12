@@ -189,7 +189,7 @@ Deno.serve(async (req) => {
       previewId: row?.id ?? null,
       previewUrl,
       sourceUrl,
-      remaining: Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
+      remaining: unlimited ? null : Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
     });
   } catch (e) {
     console.error("originals-preview error", e);
