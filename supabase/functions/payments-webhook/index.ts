@@ -308,6 +308,7 @@ async function sendOriginalsReceipt(email: string | null, orders: any[]) {
       // amount_usd is the line total; the template multiplies by quantity.
       amountUsd: Number(o.amount_usd ?? 0) / qty,
       previewImageUrl: o.preview_image_url ?? "",
+      skuSlug: o.sku_slug ?? "",
       quantity: qty,
     };
   });
