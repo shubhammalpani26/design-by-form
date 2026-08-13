@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
+import { FOOTNOTE_MAX, HEADING_MAX } from "@/data/originalsSkus";
 import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Undo2, Wand2 } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
+import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
@@ -83,8 +85,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const reveal = EXPERIMENTS.reveal_screen[revealVariant];
 
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
-  const [petName, setPetName] = useState("");
-  const [date, setDate] = useState("");
+  const [heading, setHeading] = useState("");
+  const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -106,8 +108,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const displayName =
     mode === "photo"
-      ? petName.trim()
-      : (values.petName || values.childName || values.coordinates || "").trim();
+      ? heading.trim()
+      : (values.heading || "").trim();
 
   useEffect(() => {
     trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
@@ -156,10 +158,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setErrorMsg(null);
     trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
-      const personalization = mode === "photo" ? { petName, date } : values;
+      const personalization = mode === "photo" ? { heading, footnote } : values;
       const basePrompt =
         mode === "photo" && sku.photo
-          ? sku.photo.promptTemplate({ petName, date })
+          ? sku.photo.promptTemplate({ heading, footnote })
           : sku.promptTemplate(values);
       const withColor = `${basePrompt}${colorClause(activeColor)}`;
       const prompt = isTweak
@@ -224,8 +226,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setPrevPreview(null);
     setClientSecret(null);
     setPhoto(null);
-    setPetName("");
-    setDate("");
+    setHeading("");
+    setFootnote("");
     setValues({});
     setShowTweak(false);
     setTweak("");
