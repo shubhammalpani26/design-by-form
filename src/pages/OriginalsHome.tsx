@@ -12,7 +12,7 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import heroImg from "@/assets/originals-hero.jpg";
 
 const STEPS = [
-  { n: "01", t: "Pick a piece", d: "Three Originals, each designed to be personal without being kitsch." },
+  { n: "01", t: "Pick a piece", d: "Nyzora Originals — each designed to be personal without being kitsch." },
   { n: "02", t: "Make it yours", d: "Add a name, a date, a place — or describe a change and our AI redraws the piece." },
   { n: "03", t: "Made in the USA", d: "Printed to order in our US network and shipped in 3–5 business days." },
 ];
@@ -120,7 +120,7 @@ const OriginalsHome = () => {
           <div className="flex items-end justify-between mb-10">
             <div>
               <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-3">The Collection</p>
-              <h2 className="text-3xl md:text-4xl font-light tracking-tight">Three Originals</h2>
+              <h2 className="text-3xl md:text-4xl font-light tracking-tight">Nyzora Originals</h2>
             </div>
           </div>
         </ScrollReveal>
