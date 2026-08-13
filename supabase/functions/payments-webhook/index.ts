@@ -266,7 +266,9 @@ async function fulfilOriginalsOrder(session: any) {
     ?? session.customer_details?.address
     ?? null;
 
-  await db()
+  // Only the delivery that actually flips the status sends the receipt.
+  // Guards against two concurrent Stripe deliveries both passing the read above.
+  const { data: claimed } = await db()
     .from("originals_orders")
     .update({
       status: "paid",
@@ -275,7 +277,14 @@ async function fulfilOriginalsOrder(session: any) {
       shipping_address: shipping,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", orderId);
+    .eq("id", orderId)
+    .in("status", ["pending", "failed"])
+    .select("id");
+
+  if (!claimed || claimed.length === 0) {
+    console.log("Originals order already fulfilled, skipping receipt:", orderId);
+    return;
+  }
 
   await sendOriginalsReceipt(email, order);
 }
