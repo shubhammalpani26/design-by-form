@@ -199,7 +199,8 @@ const Email = (props: Props) => {
           <Hr style={hr} />
           {orderId ? <Text style={muted}>Order ID: {orderId}</Text> : null}
           <Text style={muted}>
-            Questions? Email us at contact@nyzora.ai and we'll help.
+            Have a question? Send a new email to contact@nyzora.ai with your order
+            ID above and we'll take care of it.
           </Text>
         </Container>
       </Body>
