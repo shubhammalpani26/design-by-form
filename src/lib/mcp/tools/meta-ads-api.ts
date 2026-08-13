@@ -54,3 +54,47 @@ export function assertBudget(usd: number) {
 export function text(obj: unknown) {
   return { content: [{ type: "text" as const, text: JSON.stringify(obj, null, 2) }] };
 }
+
+/**
+ * Uploads a video to the ad account's video library from a public URL.
+ */
+export async function uploadAdVideo(
+  act: string,
+  token: string,
+  fileUrl: string,
+  name: string,
+): Promise<string> {
+  const uploaded = await graph<{ id: string }>(`/${act}/advideos`, token, {
+    form: { file_url: fileUrl, name },
+  });
+  if (!uploaded?.id) throw new ToolError("Meta did not return a video id for the uploaded creative.");
+  return uploaded.id;
+}
+
+/** Waits until Meta finished transcoding — creatives on a processing video are rejected. */
+export async function waitForVideoReady(
+  videoId: string,
+  token: string,
+  { timeoutMs = 180_000, intervalMs = 5_000 }: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<void> {
+  const deadline = Date.now() + timeoutMs;
+  let last = "unknown";
+  while (Date.now() < deadline) {
+    const info = await graph<{ status?: { video_status?: string } }>(`/${videoId}?fields=status`, token);
+    last = info?.status?.video_status ?? "unknown";
+    if (last === "ready") return;
+    if (last === "error") throw new ToolError("Meta failed to process the uploaded video.");
+    await new Promise((r) => setTimeout(r, intervalMs));
+  }
+  throw new ToolError(`Video ${videoId} was still "${last}" after waiting. Retry once processing finishes.`);
+}
+
+/** Picks a usable thumbnail for a processed video (required by video creatives). */
+export async function getVideoThumbnail(videoId: string, token: string): Promise<string | undefined> {
+  const res = await graph<{ data?: Array<{ uri?: string; is_preferred?: boolean }> }>(
+    `/${videoId}/thumbnails`,
+    token,
+  );
+  const list = res?.data ?? [];
+  return (list.find((t) => t.is_preferred) ?? list[0])?.uri;
+}
