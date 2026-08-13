@@ -96,7 +96,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Where they join, a smooth polished band runs across the front, engraved with your coordinates and the date. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close.",
+      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth recessed band runs across the front, engraved with your coordinates and the date. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close.",
     price: 79,
     image: weddingImg,
     dimensions: "215 × 105 × 60 mm",
