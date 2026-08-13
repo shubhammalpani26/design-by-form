@@ -732,9 +732,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           ) : (
             <p className="mt-5 border border-border p-4 text-xs text-muted-foreground leading-relaxed">
-              If it doesn't look like them when it arrives, we remake it or refund you — no return shipping to pay.
+              If it doesn't match the render you approved, we remake it free — no return postage to pay.
             </p>
           )}
+
+          <MadeToOrderPolicy className="mt-5" />
 
           <button
             type="button"
@@ -748,7 +750,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5 text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-1.5"><Factory className="h-4 w-4" /> Made in USA</div>
             <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 3–5 day ship</div>
-            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
+            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
           <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
             Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a
