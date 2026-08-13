@@ -281,28 +281,27 @@ async function fulfilOriginalsOrder(session: any) {
 }
 
 async function sendOriginalsReceipt(email: string | null, order: any) {
-  const apiKey = Deno.env.get("RESEND_API_KEY");
-  if (!apiKey || !email) return;
-  const html = `
-    <div style="font-family:Helvetica,Arial,sans-serif;max-width:520px;margin:0 auto;color:#111;">
-      <p style="font-size:11px;letter-spacing:.25em;text-transform:uppercase;color:#888;">Nyzora</p>
-      <h1 style="font-size:24px;font-weight:600;margin:8px 0 16px;">Your piece is confirmed</h1>
-      ${order.preview_image_url ? `<img src="${order.preview_image_url}" alt="Your piece" style="width:100%;border-radius:4px;margin-bottom:16px;" />` : ""}
-      <p style="line-height:1.6;color:#444;">${order.size_label ?? ""} — $${order.amount_usd}</p>
-      <p style="line-height:1.6;color:#444;">We're making it now in our US workshop. It ships in 3–5 business days and you'll get tracking by email. If it isn't right, we remake it or refund you within 30 days.</p>
-      <p style="font-size:12px;color:#999;margin-top:28px;">Order ${String(order.id).slice(0, 8)} · questions? reply to this email.</p>
-    </div>`;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      from: "Nyzora <hello@nyzora.ai>",
-      to: [email],
-      subject: "Your Nyzora piece is confirmed",
-      html,
-    }),
+  if (!email) return;
+  const names: Record<string, string> = {
+    "pet-silhouette-keepsake": "Pet Sculpture Piece",
+    "nursery-name-date": "Baby Name & Date Piece",
+    "wedding-coordinates": "Wedding Coordinates Piece",
+  };
+  const { error } = await db().functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "originals-order-confirmation",
+      recipientEmail: email,
+      idempotencyKey: `originals-confirmation-${order.id}`,
+      templateData: {
+        orderId: order.id,
+        sizeLabel: order.size_label ?? "",
+        amountUsd: order.amount_usd,
+        previewImageUrl: order.preview_image_url ?? "",
+        productName: names[order.sku_slug] ?? "Your Nyzora piece",
+      },
+    },
   });
-  if (!res.ok) console.error("Originals receipt email failed:", res.status, await res.text());
+  if (error) console.error("Originals confirmation email failed:", error);
 }
 
 async function fulfilCreditPackInner(
