@@ -155,7 +155,13 @@ export default function OriginalsReturn() {
           <div className="mt-8 grid grid-cols-1 gap-3 border-t border-foreground/10 pt-6 text-sm text-muted-foreground sm:grid-cols-3">
             <div className="flex items-center gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
             <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> Ships in 3–5 days</div>
-            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
+            <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
+          </div>
+
+          <div className="mt-6 border-t border-foreground/10 pt-6 text-xs leading-relaxed text-muted-foreground">
+            Your piece is made to order and is already heading into production, so it can't be cancelled or
+            returned for a change of mind. If it arrives damaged or defective we refund you in full, and if it
+            doesn't match the render you approved we remake it free.
           </div>
 
           <Link to="/" className="mt-8 inline-block text-sm underline">Back to Nyzora</Link>
