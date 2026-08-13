@@ -341,18 +341,24 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {mode === "photo" ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="petName" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Their name
+              <Label htmlFor="heading" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                Heading
               </Label>
-              <Input id="petName" className="mt-2 rounded-none" placeholder="Milo" value={petName}
-                onChange={(e) => setPetName(e.target.value)} />
+              <Input id="heading" className="mt-2 rounded-none" placeholder="MILO" maxLength={HEADING_MAX}
+                value={heading} onChange={(e) => setHeading(e.target.value)} />
+              <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                Engraved large · {heading.length}/{HEADING_MAX}
+              </p>
             </div>
             <div>
-              <Label htmlFor="engDate" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Date (optional)
+              <Label htmlFor="footnote" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                Footnote (optional)
               </Label>
-              <Input id="engDate" className="mt-2 rounded-none" placeholder="03.14.2019" value={date}
-                onChange={(e) => setDate(e.target.value)} />
+              <Input id="footnote" className="mt-2 rounded-none" placeholder="2014 — 2024" maxLength={FOOTNOTE_MAX}
+                value={footnote} onChange={(e) => setFootnote(e.target.value)} />
+              <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                A date or short line · {footnote.length}/{FOOTNOTE_MAX}
+              </p>
             </div>
           </div>
           ) : (
@@ -379,9 +385,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     id={f.key}
                     className="mt-2 rounded-none"
                     placeholder={f.placeholder}
+                    maxLength={f.maxLength}
                     value={values[f.key] || ""}
                     onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                   />
+                )}
+                {(f.hint || f.maxLength) && !f.options && (
+                  <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                    {f.hint}
+                    {f.maxLength ? ` · ${(values[f.key] || "").length}/${f.maxLength}` : ""}
+                  </p>
                 )}
               </div>
             ))}
