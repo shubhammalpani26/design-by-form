@@ -17,12 +17,11 @@ export default defineTool({
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
   handler: async ({ object_id, level, date_preset }, ctx) => {
     const token = await adsToken(ctx);
-    const id = /^\d+$/.test(object_id) && object_id.length > 14 ? object_id : normalizeActId(object_id);
-    const target = object_id.startsWith("act_") || (/^\d{1,16}$/.test(object_id) && level === "account") ? normalizeActId(object_id) : object_id;
+    const target = level === "account" ? normalizeActId(object_id) : object_id.trim();
     const fields =
       "campaign_name,adset_name,ad_name,spend,impressions,reach,frequency,clicks,ctr,cpc,cpm,actions,action_values,purchase_roas";
     const data = await graph<{ data?: unknown[] }>(
-      `/${target || id}/insights?level=${level}&date_preset=${date_preset}&fields=${fields}&limit=100`,
+      `/${target}/insights?level=${level}&date_preset=${date_preset}&fields=${fields}&limit=100`,
       token,
     );
     const payload = { object_id: target, level, date_preset, rows: data.data ?? [] };
