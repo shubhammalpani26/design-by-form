@@ -103,7 +103,9 @@ const Email = (props: Props) => {
     ? Math.max(0, props.items.filter(Boolean).length - MAX_ITEMS)
     : 0
   const multi = items.length > 1
-  const total = money(props.totalUsd ?? (itemTotal(items) || undefined))
+  const total = money(
+    props.totalUsd ?? (hidden > 0 ? undefined : itemTotal(items) || undefined),
+  )
   const orderId = clean(props.orderId, 64)
 
   return (
