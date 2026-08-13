@@ -54,7 +54,9 @@ const Email = ({
         <Text style={muted}>
           {orderId ? `Order ID: ${String(orderId)}` : ''}
         </Text>
-        <Text style={muted}>Questions? Just reply to this email.</Text>
+        <Text style={muted}>
+          Questions? Email us at contact@nyzora.ai and we'll help.
+        </Text>
       </Container>
     </Body>
   </Html>
