@@ -13,6 +13,7 @@ import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
+import { useOriginalsCart } from "@/lib/originalsCart";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -70,6 +71,7 @@ interface Props {
 
 export const PhotoToPieceFlow = ({ sku }: Props) => {
   const { toast } = useToast();
+  const cart = useOriginalsCart();
   const fileRef = useRef<HTMLInputElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
   const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
