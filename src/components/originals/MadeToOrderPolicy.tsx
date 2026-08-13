@@ -1,4 +1,4 @@
-import { PackageCheck, Repeat2, Ban } from "lucide-react";
+import { PackageCheck, Repeat2, Sparkles } from "lucide-react";
 
 /**
  * Made-to-order terms shown before payment. Each piece is produced for one
@@ -8,14 +8,14 @@ import { PackageCheck, Repeat2, Ban } from "lucide-react";
 export const MadeToOrderPolicy = ({ className = "" }: { className?: string }) => (
   <div className={`border border-border ${className}`}>
     <p className="border-b border-border px-4 py-2.5 text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-      Made to order — what's covered
+      Made for you — what's covered
     </p>
     <ul className="divide-y divide-border text-sm">
       <li className="flex gap-3 px-4 py-3">
         <PackageCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span>
-          <strong className="font-medium">Refund</strong> if it arrives damaged or defective — cracked,
-          warped, mis-engraved. Send us a photo within 30 days and we refund you in full.
+          <strong className="font-medium">Arrives damaged? We make it again.</strong> Send us a photo and a
+          fresh piece goes into production the same day, at our cost.
         </span>
       </li>
       <li className="flex gap-3 px-4 py-3">
@@ -26,11 +26,10 @@ export const MadeToOrderPolicy = ({ className = "" }: { className?: string }) =>
         </span>
       </li>
       <li className="flex gap-3 px-4 py-3">
-        <Ban className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span>
-          <strong className="font-medium">No cancellations or change-of-mind returns.</strong> Your piece is
-          made for you alone and goes into production right after you order, so it can't be cancelled,
-          resold or restocked. Please check your render and spelling before you pay.
+          <strong className="font-medium">You approve the render first.</strong> Nothing is made until you're
+          happy with the preview — so what you see is what we build.
         </span>
       </li>
     </ul>
