@@ -133,8 +133,10 @@ const Terms = () => {
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
                 <li>
-                  <strong>Refunds</strong> are issued only where the item arrives damaged or defective (for example
-                  cracked, warped, or incorrectly engraved by us). Contact us with photographs within 30 days of delivery.
+                  <strong>Free replacement</strong> is provided where the item arrives damaged or defective (for
+                  example cracked, warped, or incorrectly engraved by us). Contact us with photographs within 30 days
+                  of delivery and we remake and reship at our cost. Where a replacement is not possible, we will
+                  refund you.
                 </li>
                 <li>
                   <strong>Free replacement</strong> is provided where the delivered item does not materially match the
