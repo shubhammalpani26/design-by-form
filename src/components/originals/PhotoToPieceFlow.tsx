@@ -612,7 +612,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               <div className="mt-5 border-t border-border pt-5">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                    Secure checkout · {selectedSize.label} · ${selectedSize.price}
+                    Secure checkout · {basketCount === 1 ? selectedSize.label : `${basketCount} pieces`} · ${basketTotal}
                   </p>
                   <button
                     type="button"
@@ -628,6 +628,48 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </div>
             ) : (
               <>
+                {cart.items.length > 0 && (
+                  <div className="mt-5 border border-border">
+                    <p className="border-b border-border px-3 py-2 text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                      Also in this order
+                    </p>
+                    {cart.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 border-b border-border/60 px-3 py-2 last:border-b-0">
+                        {item.previewUrl && (
+                          <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm">
+                            {item.productName}
+                            {item.personName ? ` · ${item.personName}` : ""}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{item.sizeLabel}</p>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            aria-label="Decrease quantity"
+                            className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                            onClick={() => cart.setQuantity(item.id, item.quantity - 1)}
+                          >
+                            −
+                          </button>
+                          <span className="w-6 text-center text-sm tabular-nums">{item.quantity}</span>
+                          <button
+                            type="button"
+                            aria-label="Increase quantity"
+                            className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                            onClick={() => cart.setQuantity(item.id, item.quantity + 1)}
+                          >
+                            +
+                          </button>
+                        </div>
+                        <span className="w-14 text-right text-sm tabular-nums">${item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <Button
                   type="button"
                   size="lg"
@@ -639,10 +681,21 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   }}
                 >
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {reveal.cta(selectedSize.price)}
+                  {basketCount > 1
+                    ? `Check out ${basketCount} pieces — $${basketTotal}`
+                    : reveal.cta(selectedSize.price)}
                 </Button>
+                <button
+                  type="button"
+                  onClick={addAnother}
+                  className="mt-3 w-full text-xs tracking-[0.15em] uppercase text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                >
+                  Save this and make another piece
+                </button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
-                  Free US shipping · Made to order in the USA · Ships in 3–5 days
+                  {basketCount > 1
+                    ? "One payment, one shipment · Free US shipping · Ships in 3–5 days"
+                    : "Free US shipping · Made to order in the USA · Ships in 3–5 days"}
                 </p>
               </>
             )}
