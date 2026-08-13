@@ -465,12 +465,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://nyzora.ai/designer/shubham-malpani</loc>
-    <lastmod>2026-04-20</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://nyzora.ai/designer/nikunj-jakhotia</loc>
     <lastmod>2026-04-20</lastmod>
     <changefreq>weekly</changefreq>
@@ -485,6 +479,12 @@
   <url>
     <loc>https://nyzora.ai/designer/sach-creations</loc>
     <lastmod>2026-04-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://nyzora.ai/designer/nyzora-originals</loc>
+    <lastmod>2026-08-03</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
