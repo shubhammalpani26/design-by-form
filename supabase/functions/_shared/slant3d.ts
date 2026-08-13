@@ -166,6 +166,31 @@ export interface PartnerPrintItem {
   filamentId?: string;
 }
 
+/**
+ * Branded packing insert (4x6 B/W card) added to every US order.
+ * The partner-side asset id is stored in SLANT3D_STATIONERY_ID; when it is not
+ * configured we simply ship without an insert instead of failing the order.
+ */
+function stationeryId(): string | null {
+  return Deno.env.get("SLANT3D_STATIONERY_ID") ?? null;
+}
+
+/** Lists the branded inserts registered on our partner account. */
+export async function listStationery(): Promise<unknown> {
+  return await request<unknown>("/stationery");
+}
+
+/** Registers a new branded insert (4x6 black & white image) on the account. */
+export async function createStationery(
+  name: string,
+  imageUrl: string,
+): Promise<unknown> {
+  return await request<unknown>("/stationery", {
+    method: "POST",
+    body: JSON.stringify({ platformId: platformId(), name, imageUrl }),
+  });
+}
+
 export interface PartnerDraftOrder {
   publicId: string;
   status: string;
@@ -197,7 +222,15 @@ export async function draftOrder(
         quantity: i.quantity,
         publicFileServiceId: i.publicFileServiceId,
         ...(i.filamentId ? { filamentId: i.filamentId } : {}),
-      })),
+      })).concat(
+        stationeryId()
+          ? [{
+            type: "STATIONERY",
+            quantity: 1,
+            publicStationeryServiceId: stationeryId(),
+          } as unknown as Record<string, unknown>]
+          : [],
+      ),
     }),
   });
 
