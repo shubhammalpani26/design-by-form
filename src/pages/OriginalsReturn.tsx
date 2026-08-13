@@ -13,10 +13,27 @@ interface OrderView {
   emailMasked: string | null;
 }
 
+interface OrderItem {
+  id: string;
+  skuSlug: string;
+  sizeLabel: string | null;
+  amountUsd: number;
+  quantity: number;
+  previewImageUrl: string | null;
+}
+
+const SKU_NAMES: Record<string, string> = {
+  "pet-silhouette-keepsake": "Pet Sculpture Piece",
+  "nursery-name-date": "Baby Name & Date Piece",
+  "wedding-coordinates": "Wedding Coordinates Piece",
+};
+
 export default function OriginalsReturn() {
   const [params] = useSearchParams();
   const orderId = params.get("order");
+  const groupId = params.get("group");
   const [order, setOrder] = useState<OrderView | null>(null);
+  const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,15 +41,16 @@ export default function OriginalsReturn() {
     let tries = 0;
 
     const poll = async () => {
-      if (!orderId) {
+      if (!orderId && !groupId) {
         setLoading(false);
         return;
       }
       const { data } = await supabase.functions.invoke("originals-order-status", {
-        body: { orderId },
+        body: groupId ? { groupId } : { orderId },
       });
       if (stop) return;
       if (data?.order) setOrder(data.order);
+      if (Array.isArray(data?.items)) setItems(data.items);
       setLoading(false);
       tries += 1;
       // The webhook flips the order to "paid" a beat after Stripe redirects back.
@@ -45,9 +63,10 @@ export default function OriginalsReturn() {
     return () => {
       stop = true;
     };
-  }, [orderId]);
+  }, [orderId, groupId]);
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
+  const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
