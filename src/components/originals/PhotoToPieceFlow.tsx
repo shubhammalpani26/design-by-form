@@ -208,18 +208,54 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     }
   };
 
+  const currentLine = () => ({
+    skuSlug: sku.slug,
+    sizeKey,
+    sizeLabel: selectedSize.label,
+    price: selectedSize.price,
+    productName: sku.name ?? "Nyzora Original",
+    previewId: preview?.id ?? null,
+    previewUrl: preview?.url ?? null,
+    personName: displayName || undefined,
+  });
+
+  const resetForAnother = () => {
+    setPreview(null);
+    setPrevPreview(null);
+    setClientSecret(null);
+    setPhoto(null);
+    setPetName("");
+    setDate("");
+    setValues({});
+    setShowTweak(false);
+    setTweak("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const addAnother = () => {
+    cart.add(currentLine());
+    toast({ title: "Saved to your order", description: "Make another piece — you'll pay for everything at once." });
+    trackExperiment("reveal_screen", revealVariant, "add_to_cart", { skuSlug: sku.slug });
+    resetForAnother();
+  };
+
+  const basketLines = [
+    ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
+    { skuSlug: sku.slug, sizeKey, previewId: preview?.id ?? null, quantity: 1 },
+  ];
+  const basketCount = cart.count + 1;
+  const basketTotal = cart.total + selectedSize.price;
+
   const checkout = async () => {
     setCheckingOut(true);
     trackExperiment("reveal_screen", revealVariant, "checkout_click", {
       skuSlug: sku.slug,
-      metadata: { sizeKey, price: selectedSize.price },
+      metadata: { sizeKey, price: selectedSize.price, pieces: basketCount },
     });
     try {
       const { data, error } = await supabase.functions.invoke("originals-checkout", {
         body: {
-          skuSlug: sku.slug,
-          sizeKey,
-          previewId: preview?.id ?? null,
+          items: basketLines,
           returnUrl: `${window.location.origin}/originals/checkout/return`,
           environment: getStripeEnvironment(),
         },
