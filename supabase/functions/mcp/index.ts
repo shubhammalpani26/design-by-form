@@ -765,7 +765,7 @@ var projectRef = "rdcfakdhgndnhgzfkuvw";
 var mcp_default = defineMcp({
   name: "nyzora",
   title: "Nyzora",
-  version: "0.3.0",
+  version: "0.4.0",
   instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
