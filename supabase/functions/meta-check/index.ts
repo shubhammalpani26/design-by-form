@@ -11,6 +11,13 @@ Deno.serve(async (req) => {
     out.debug = await debug.json()
     const pages = await fetch(`https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account{id,username}&access_token=${token}`)
     out.pages = await pages.json()
+    const url = new URL(req.url)
+    const dry = url.searchParams.get('dry_container')
+    if (dry) {
+      const ig = url.searchParams.get('ig') ?? '17841436891682401'
+      const r = await fetch(`https://graph.facebook.com/v18.0/${ig}/media?image_url=${encodeURIComponent(dry)}&caption=${encodeURIComponent('test')}&access_token=${token}`, { method: 'POST' })
+      out.container = await r.json()
+    }
   } catch (e) { out.error = String(e) }
   return new Response(JSON.stringify(out, null, 2), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 })
