@@ -37,6 +37,16 @@ const NAMES: Record<string, string> = {
   "wedding-coordinates": "Wedding Coordinates Piece",
 };
 
+const MAX_LINES = 10;
+const MAX_QTY = 10;
+
+interface RawLine {
+  skuSlug?: unknown;
+  sizeKey?: unknown;
+  previewId?: unknown;
+  quantity?: unknown;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -49,15 +59,28 @@ Deno.serve(async (req) => {
     if (!body) return json({ error: "Invalid request." }, 400);
 
     const environment: StripeEnv = body.environment === "live" ? "live" : "sandbox";
-    const skuSlug = String(body.skuSlug ?? "");
-    const sizeKey = String(body.sizeKey ?? "standard");
-    const previewId = typeof body.previewId === "string" ? body.previewId : null;
     const returnUrl = typeof body.returnUrl === "string" ? body.returnUrl : "";
-
-    const sizes = PRICE_BOOK[skuSlug];
-    const size = sizes?.[sizeKey];
-    if (!size) return json({ error: "That option isn't available." }, 400);
     if (!/^https?:\/\//.test(returnUrl)) return json({ error: "Invalid return URL." }, 400);
+
+    // Accept either a single piece (legacy) or a basket of pieces.
+    const rawLines: RawLine[] = Array.isArray(body.items) && body.items.length
+      ? body.items.slice(0, MAX_LINES)
+      : [{ skuSlug: body.skuSlug, sizeKey: body.sizeKey, previewId: body.previewId }];
+
+    const lines = rawLines.map((l) => {
+      const skuSlug = String(l.skuSlug ?? "");
+      const sizeKey = String(l.sizeKey ?? "standard");
+      const qty = Number(l.quantity ?? 1);
+      return {
+        skuSlug,
+        sizeKey,
+        previewId: typeof l.previewId === "string" && l.previewId ? l.previewId : null,
+        quantity: Number.isFinite(qty) ? Math.min(MAX_QTY, Math.max(1, Math.trunc(qty))) : 1,
+        size: PRICE_BOOK[skuSlug]?.[sizeKey],
+      };
+    });
+
+    if (lines.some((l) => !l.size)) return json({ error: "That option isn't available." }, 400);
 
     let userId: string | null = null;
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
@@ -66,83 +89,109 @@ Deno.serve(async (req) => {
       userId = data?.user?.id ?? null;
     }
 
-    let previewUrl: string | null = null;
-    let personalization: Record<string, unknown> = {};
-    if (previewId) {
-      const { data: preview } = await admin
+    // Attach each line to its preview (image + personalization) when we have one.
+    const previewIds = lines.map((l) => l.previewId).filter((v): v is string => Boolean(v));
+    const previewMap = new Map<string, { url: string | null; personalization: Record<string, unknown>; sku: string }>();
+    if (previewIds.length) {
+      const { data: previews } = await admin
         .from("originals_previews")
-        .select("preview_image_url, personalization, sku_slug")
-        .eq("id", previewId)
-        .maybeSingle();
-      if (preview && preview.sku_slug === skuSlug) {
-        previewUrl = preview.preview_image_url;
-        personalization = (preview.personalization as Record<string, unknown>) ?? {};
+        .select("id, preview_image_url, personalization, sku_slug")
+        .in("id", previewIds);
+      for (const p of previews ?? []) {
+        previewMap.set(p.id, {
+          url: p.preview_image_url,
+          personalization: (p.personalization as Record<string, unknown>) ?? {},
+          sku: p.sku_slug,
+        });
       }
     }
 
-    const { data: order, error: orderErr } = await admin
-      .from("originals_orders")
-      .insert({
-        preview_id: previewId,
+    const groupId = crypto.randomUUID();
+
+    const rows = lines.map((l) => {
+      const preview = l.previewId ? previewMap.get(l.previewId) : undefined;
+      const matched = preview && preview.sku === l.skuSlug ? preview : undefined;
+      return {
+        group_id: groupId,
+        preview_id: matched ? l.previewId : null,
         user_id: userId,
-        sku_slug: skuSlug,
-        size_key: sizeKey,
-        size_label: size.label,
-        amount_usd: size.usd,
-        personalization,
-        preview_image_url: previewUrl,
+        sku_slug: l.skuSlug,
+        size_key: l.sizeKey,
+        size_label: l.size!.label,
+        amount_usd: l.size!.usd * l.quantity,
+        quantity: l.quantity,
+        personalization: matched?.personalization ?? {},
+        preview_image_url: matched?.url ?? null,
         status: "pending",
-      })
-      .select("id")
-      .single();
-    if (orderErr) {
+      };
+    });
+
+    const { data: orders, error: orderErr } = await admin
+      .from("originals_orders")
+      .insert(rows)
+      .select("id, preview_image_url, sku_slug, size_label, quantity, personalization");
+    if (orderErr || !orders?.length) {
       console.error("order insert failed", orderErr);
       return json({ error: "We couldn't start your order. Please try again." }, 500);
     }
 
     const stripe = createStripeClient(environment);
-    const describedName = `${NAMES[skuSlug] ?? "Nyzora Original"} — ${size.label}`;
-    const detail = Object.entries(personalization)
-      .filter(([, v]) => typeof v === "string" && v)
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(" · ")
-      .slice(0, 400);
+
+    const lineItems = lines.map((l, i) => {
+      const row = orders[i];
+      const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}`;
+      const detail = Object.entries((row?.personalization as Record<string, unknown>) ?? {})
+        .filter(([, v]) => typeof v === "string" && v)
+        .map(([k, v]) => `${k}: ${v}`)
+        .join(" · ")
+        .slice(0, 400);
+      const image = row?.preview_image_url;
+      return {
+        quantity: l.quantity,
+        price_data: {
+          currency: "usd",
+          unit_amount: Math.round(l.size!.usd * 100),
+          product_data: {
+            name: describedName,
+            description: detail || "Made to order in the USA. Free shipping.",
+            ...(typeof image === "string" && image.startsWith("http") ? { images: [image] } : {}),
+          },
+        },
+      };
+    });
+
+    const totalPieces = lines.reduce((n, l) => n + l.quantity, 0);
+    const summary =
+      totalPieces === 1
+        ? `${NAMES[lines[0].skuSlug] ?? "Nyzora Original"} — ${lines[0].size!.label}`
+        : `Nyzora Originals — ${totalPieces} pieces`;
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       ui_mode: "embedded_page",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: "usd",
-            unit_amount: Math.round(size.usd * 100),
-            product_data: {
-              name: describedName,
-              description: detail || "Made to order in the USA. Free shipping.",
-              ...(previewUrl && previewUrl.startsWith("http") ? { images: [previewUrl] } : {}),
-            },
-          },
-        },
-      ],
+      line_items: lineItems,
       shipping_address_collection: { allowed_countries: ["US"] },
       customer_creation: "if_required",
-      return_url: `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}order=${order.id}&session_id={CHECKOUT_SESSION_ID}`,
-      payment_intent_data: { description: describedName },
+      return_url: `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}group=${groupId}&order=${orders[0].id}&session_id={CHECKOUT_SESSION_ID}`,
+      payment_intent_data: { description: summary },
       metadata: {
-        originals_order_id: order.id,
-        sku_slug: skuSlug,
-        size_key: sizeKey,
-        preview_id: previewId ?? "",
+        originals_group_id: groupId,
+        // Kept for backwards compatibility with in-flight sessions/webhooks.
+        originals_order_id: orders[0].id,
+        pieces: String(totalPieces),
       },
     });
 
     await admin
       .from("originals_orders")
       .update({ stripe_session_id: session.id, updated_at: new Date().toISOString() })
-      .eq("id", order.id);
+      .eq("group_id", groupId);
 
-    return json({ clientSecret: session.client_secret, orderId: order.id });
+    return json({
+      clientSecret: session.client_secret,
+      orderId: orders[0].id,
+      groupId,
+    });
   } catch (e) {
     console.error("originals-checkout error", e);
     return json({ error: "Checkout is temporarily unavailable. Please try again." }, 500);
