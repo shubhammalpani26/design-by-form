@@ -59,9 +59,9 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
     ],
     sizes: [
-      { key: "petite", label: "Petite", size: "120 mm", price: 59, note: "Desk or shelf" },
-      { key: "standard", label: "Standard", size: "140 mm", price: 89, note: "Most loved" },
-      { key: "statement", label: "Statement", size: "196 mm", price: 139, note: "Full presence" },
+      { key: "petite", label: "Petite", size: "120 mm tall", price: 59, note: "Desk or shelf" },
+      { key: "standard", label: "Standard", size: "140 mm tall", price: 89, note: "Most loved" },
+      { key: "statement", label: "Statement", size: "196 mm tall", price: 139, note: "Full presence" },
     ],
     photo: {
       label: "Upload a photo of your pet",
@@ -86,7 +86,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "childName", label: "Baby's name", placeholder: "Oliver" },
       { key: "date", label: "Birth date", placeholder: "12.05.2024" },
     ],
-    sizes: [{ key: "standard", label: "Standard", size: "210 mm", price: 54 }],
+    sizes: [{ key: "standard", label: "Standard", size: "210 mm wide", price: 54 }],
     promptTemplate: (v) =>
       `A solid matte personal piece in landscape horizontal format, wider than tall, with a soft asymmetric rising wave crest silhouette and fine vertical fluting carved across its face, opening onto a smooth polished inset panel engraved with the name "${(v.childName || "OLIVER").toUpperCase()}" and the date "${v.date || "12.05.2024"}" in fine thin sans-serif capitals, sitting on a low chamfered rectangular plinth, no arch, no rounded tombstone top, no perforations, no thin unsupported spans, flat stable base, minimal luxury editorial styling.`,
   },
@@ -104,7 +104,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       { key: "coordinates", label: "Coordinates", placeholder: "40.7128° N, 74.0060° W" },
       { key: "date", label: "Date", placeholder: "06.23.24" },
     ],
-    sizes: [{ key: "standard", label: "Standard", size: "215 mm", price: 79 }],
+    sizes: [{ key: "standard", label: "Standard", size: "215 mm wide", price: 79 }],
     promptTemplate: (v) =>
       `A solid matte sculptural personal piece in landscape horizontal format, wider than tall, shaped like a stepped topographic landscape section with smooth horizontal contour terraces descending diagonally, interrupted by one flat polished band engraved with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" in fine serif type and the date "${v.date || "06.23.24"}" below, low chamfered rectangular base, angular and monolithic, no arch, no rounded tombstone top, no lattice, no perforations, no thin unsupported spans, flat stable base.`,
   },
