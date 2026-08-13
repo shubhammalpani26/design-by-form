@@ -21,7 +21,8 @@ const FAQS = [
   { q: "How long does it take?", a: "Every Original is made to order. Production takes 1–2 business days and delivery is 3–5 business days anywhere in the US." },
   { q: "What is it made of?", a: "A dense matte polymer, precision 3D-printed as one solid part in the USA. The finish reads and feels stone-like — but to be clear, it is a durable printed material, not natural stone or ceramic. It is solid through, not hollow-feeling, and safe indoors on any shelf." },
   { q: "Is this a real product or just an AI image?", a: "The AI only designs it. What you see in the preview is turned into a manufacturable 3D model, checked by our engineering system for wall thickness, stability and print feasibility, then produced by a real US workshop and shipped to you as a physical object in 3–5 business days." },
-  { q: "What if it arrives damaged or doesn't look right?", a: "We remake it or refund you within 30 days of delivery, no argument. Anything that arrives cracked, warped or mis-engraved is on us." },
+  { q: "What if it arrives damaged or doesn't look right?", a: "If it arrives damaged or defective — cracked, warped, mis-engraved — send us a photo within 30 days and we refund you in full. If it simply doesn't match the render you approved, we remake it free and ship the new one, with no return postage for you." },
+  { q: "Can I cancel or return an order?", a: "No. Every Original is made for one person and goes into production right after you order, so it can't be cancelled, returned for a change of mind, resold or restocked. That's exactly why we show you the render for free before you pay — check the piece and the spelling carefully, then order." },
   { q: "How large are the pieces?", a: "Each Original is produced as one part inside a 220 × 220 × 220 mm envelope, so it reads as a substantial object on a shelf without becoming furniture." },
   { q: "Can I change the design?", a: "Yes. Every Original can be remixed — describe what you want in plain language and the piece is redrawn before it is made." },
 ];
@@ -105,7 +106,7 @@ const OriginalsHome = () => {
       {/* Trust strip */}
       <section className="border-b border-border">
         <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
-          {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "30-day remake or refund"].map((t) => (
+          {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
             <div key={t} className="py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
               {t}
             </div>
