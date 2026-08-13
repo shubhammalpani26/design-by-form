@@ -38,11 +38,14 @@ const money = (v: number | string | undefined) => {
 }
 
 const clean = (v: unknown, max = 120) =>
-  typeof v === 'string' ? v.trim().slice(0, max) : ''
+  typeof v === 'string' ? v.replace(/[\r\n]+/g, ' ').trim().slice(0, max) : ''
+
+const MAX_ITEMS = 20
+const FALLBACK_NAME = 'Your Nyzora piece'
 
 export const normalizeItems = (props: Props): Item[] => {
   const list = Array.isArray(props.items) ? props.items.filter(Boolean) : []
-  if (list.length) return list.slice(0, 20)
+  if (list.length) return list.slice(0, MAX_ITEMS)
   if (props.productName || props.sizeLabel || props.amountUsd || props.previewImageUrl) {
     return [
       {
@@ -54,7 +57,7 @@ export const normalizeItems = (props: Props): Item[] => {
       },
     ]
   }
-  return [{ productName: 'Your Nyzora piece' }]
+  return [{ productName: FALLBACK_NAME }]
 }
 
 const itemTotal = (items: Item[]) =>
@@ -69,7 +72,8 @@ export const orderSubject = (data: Record<string, any> = {}) => {
   const items = normalizeItems(data as Props)
   const count = items.reduce((n, i) => n + Math.max(1, Number(i.quantity ?? 1) || 1), 0)
   if (count > 1) return `Your Nyzora order is confirmed — ${count} pieces`
-  const name = clean(items[0]?.productName, 60) || 'piece'
+  const name = clean(items[0]?.productName, 60)
+  if (!name || name === FALLBACK_NAME) return 'Your Nyzora piece is confirmed'
   return `Your Nyzora ${name} is confirmed`
 }
 
@@ -95,6 +99,9 @@ const ItemRow = ({ item, showImage }: { item: Item; showImage: boolean }) => {
 
 const Email = (props: Props) => {
   const items = normalizeItems(props)
+  const hidden = Array.isArray(props.items)
+    ? Math.max(0, props.items.filter(Boolean).length - MAX_ITEMS)
+    : 0
   const multi = items.length > 1
   const total = money(props.totalUsd ?? (itemTotal(items) || undefined))
   const orderId = clean(props.orderId, 64)
@@ -117,6 +124,10 @@ const Email = (props: Props) => {
           {items.map((item, i) => (
             <ItemRow key={i} item={item} showImage />
           ))}
+
+          {hidden > 0 ? (
+            <Text style={itemMeta}>+ {hidden} more item{hidden > 1 ? 's' : ''} in this order</Text>
+          ) : null}
 
           {multi && total ? <Text style={totalLine}>Order total: {total}</Text> : null}
 
