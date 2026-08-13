@@ -12,24 +12,24 @@ export const MadeToOrderPolicy = ({ className = "" }: { className?: string }) =>
     </p>
     <ul className="divide-y divide-border text-sm">
       <li className="flex gap-3 px-4 py-3">
-        <PackageCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span>
-          <strong className="font-medium">Arrives damaged? We make it again.</strong> Send us a photo and a
-          fresh piece goes into production the same day, at our cost.
+          <strong className="font-medium">You approve the render first.</strong> Nothing is made until you're
+          happy with the preview — so what you see is what we build.
         </span>
       </li>
       <li className="flex gap-3 px-4 py-3">
         <Repeat2 className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span>
-          <strong className="font-medium">Free remake</strong> if the piece doesn't match the render you
-          approved. We make it again and ship it — no return postage to pay.
+          <strong className="font-medium">Free remake if it doesn't match.</strong> If the piece doesn't
+          look like the render you approved, we make it again and ship it — at our cost.
         </span>
       </li>
       <li className="flex gap-3 px-4 py-3">
-        <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+        <PackageCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
         <span>
-          <strong className="font-medium">You approve the render first.</strong> Nothing is made until you're
-          happy with the preview — so what you see is what we build.
+          <strong className="font-medium">Mishandled in transit? We replace it.</strong> If anything arrives
+          the worse for wear, send a photo and a fresh piece goes into production the same day.
         </span>
       </li>
     </ul>
