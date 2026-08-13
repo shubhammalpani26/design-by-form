@@ -221,14 +221,14 @@ function appCreds() {
 }
 async function fetchJson(url) {
   const res = await fetch(url);
-  const text = await res.text();
+  const text2 = await res.text();
   if (!res.ok) {
-    throw new Error(`Meta token exchange failed (${res.status}): ${text.slice(0, 500)}`);
+    throw new Error(`Meta token exchange failed (${res.status}): ${text2.slice(0, 500)}`);
   }
   try {
-    return text ? JSON.parse(text) : {};
+    return text2 ? JSON.parse(text2) : {};
   } catch {
-    return { raw: text };
+    return { raw: text2 };
   }
 }
 async function exchangeForLongLived(shortToken, appId, appSecret) {
@@ -347,14 +347,14 @@ async function fb(path, token, init = {}) {
     ...init,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...init.headers ?? {} }
   });
-  const text = await res.text();
+  const text2 = await res.text();
   if (!res.ok) {
-    throw new ToolError5(`Meta ${res.status} ${path}: ${text.slice(0, 500)}`);
+    throw new ToolError5(`Meta ${res.status} ${path}: ${text2.slice(0, 500)}`);
   }
   try {
-    return text ? JSON.parse(text) : {};
+    return text2 ? JSON.parse(text2) : {};
   } catch {
-    return { raw: text };
+    return { raw: text2 };
   }
 }
 var meta_me_default = defineTool5({
@@ -392,14 +392,14 @@ async function fb2(path, token, init = {}) {
     ...init,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...init.headers ?? {} }
   });
-  const text = await res.text();
+  const text2 = await res.text();
   if (!res.ok) {
-    throw new ToolError6(`Meta ${res.status} ${path}: ${text.slice(0, 500)}`);
+    throw new ToolError6(`Meta ${res.status} ${path}: ${text2.slice(0, 500)}`);
   }
   try {
-    return text ? JSON.parse(text) : {};
+    return text2 ? JSON.parse(text2) : {};
   } catch {
-    return { raw: text };
+    return { raw: text2 };
   }
 }
 var meta_ig_post_default = defineTool6({
@@ -461,18 +461,256 @@ var meta_ig_post_default = defineTool6({
   }
 });
 
+// src/lib/mcp/tools/meta-ads-accounts.ts
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z5 } from "npm:zod@^4.4.3";
+
+// src/lib/mcp/tools/meta-ads-api.ts
+import { ToolError as ToolError7 } from "npm:@lovable.dev/mcp-js@0.26.1";
+var ADS_API = "https://graph.facebook.com/v21.0";
+var MAX_DAILY_BUDGET_USD = 200;
+async function graph(path, token, init = {}) {
+  const { form, ...rest } = init;
+  const res = await fetch(`${ADS_API}${path}`, {
+    ...rest,
+    method: form ? "POST" : rest.method ?? "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...form ? { "Content-Type": "application/x-www-form-urlencoded" } : {},
+      ...rest.headers ?? {}
+    },
+    body: form ? new URLSearchParams(form).toString() : rest.body
+  });
+  const text2 = await res.text();
+  if (!res.ok) throw new ToolError7(`Meta Ads ${res.status} ${path}: ${text2.slice(0, 700)}`);
+  try {
+    return text2 ? JSON.parse(text2) : {};
+  } catch {
+    return { raw: text2 };
+  }
+}
+async function adsToken(ctx) {
+  if (!ctx.isAuthenticated()) throw new ToolError7("Not authenticated");
+  return getMetaAccessToken(ctx);
+}
+function normalizeActId(id) {
+  const trimmed = id.trim();
+  return trimmed.startsWith("act_") ? trimmed : `act_${trimmed}`;
+}
+function assertBudget(usd) {
+  if (!Number.isFinite(usd) || usd <= 0) throw new ToolError7("Daily budget must be a positive number of USD.");
+  if (usd > MAX_DAILY_BUDGET_USD) {
+    throw new ToolError7(
+      `Daily budget $${usd} exceeds the built-in safety cap of $${MAX_DAILY_BUDGET_USD}/day. Ask the owner to raise MAX_DAILY_BUDGET_USD in code.`
+    );
+  }
+}
+function text(obj) {
+  return { content: [{ type: "text", text: JSON.stringify(obj, null, 2) }] };
+}
+
+// src/lib/mcp/tools/meta-ads-accounts.ts
+var meta_ads_accounts_default = defineTool7({
+  name: "meta_ads_accounts",
+  title: "Meta ad accounts & structure",
+  description: "Lists the Meta ad accounts the connected Nyzora account can manage, including currency, spend cap, amount spent and account status. Optionally drills into one account to list its campaigns, ad sets and ads with their status and budgets. Read-only.",
+  inputSchema: {
+    ad_account_id: z5.string().optional().describe("Optional ad account id (with or without the act_ prefix) to list campaigns/ad sets/ads for.")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  handler: async ({ ad_account_id }, ctx) => {
+    const token = await adsToken(ctx);
+    if (!ad_account_id) {
+      const data = await graph(
+        "/me/adaccounts?fields=id,account_id,name,currency,account_status,amount_spent,spend_cap,balance,funding_source_details&limit=50",
+        token
+      );
+      return { ...text(data), structuredContent: { accounts: data.data ?? [] } };
+    }
+    const act = normalizeActId(ad_account_id);
+    const [campaigns, adsets, ads] = await Promise.all([
+      graph(
+        `/${act}/campaigns?fields=id,name,status,effective_status,objective,daily_budget,lifetime_budget,created_time&limit=50`,
+        token
+      ),
+      graph(
+        `/${act}/adsets?fields=id,name,status,effective_status,campaign_id,daily_budget,optimization_goal,targeting&limit=50`,
+        token
+      ),
+      graph(
+        `/${act}/ads?fields=id,name,status,effective_status,adset_id,creative{id,thumbnail_url}&limit=50`,
+        token
+      )
+    ]);
+    const payload = { ad_account_id: act, campaigns: campaigns.data ?? [], adsets: adsets.data ?? [], ads: ads.data ?? [] };
+    return { ...text(payload), structuredContent: payload };
+  }
+});
+
+// src/lib/mcp/tools/meta-ads-insights.ts
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z6 } from "npm:zod@^4.4.3";
+var meta_ads_insights_default = defineTool8({
+  name: "meta_ads_insights",
+  title: "Meta ads performance",
+  description: "Reads Meta Ads performance (spend, impressions, reach, clicks, CTR, CPC, CPM, purchases, purchase value and ROAS) for an ad account, campaign, ad set or ad over a date preset. Read-only \u2014 never changes anything.",
+  inputSchema: {
+    object_id: z6.string().describe("Ad account id (act_... or numeric), campaign id, ad set id or ad id."),
+    level: z6.enum(["account", "campaign", "adset", "ad"]).default("campaign").describe("Breakdown level."),
+    date_preset: z6.enum(["today", "yesterday", "last_7d", "last_14d", "last_30d", "this_month", "last_month", "maximum"]).default("last_7d")
+  },
+  annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: true },
+  handler: async ({ object_id, level, date_preset }, ctx) => {
+    const token = await adsToken(ctx);
+    const target = level === "account" ? normalizeActId(object_id) : object_id.trim();
+    const fields = "campaign_name,adset_name,ad_name,spend,impressions,reach,frequency,clicks,ctr,cpc,cpm,actions,action_values,purchase_roas";
+    const data = await graph(
+      `/${target}/insights?level=${level}&date_preset=${date_preset}&fields=${fields}&limit=100`,
+      token
+    );
+    const payload = { object_id: target, level, date_preset, rows: data.data ?? [] };
+    return { ...text(payload), structuredContent: payload };
+  }
+});
+
+// src/lib/mcp/tools/meta-ads-manage.ts
+import { defineTool as defineTool9, ToolError as ToolError8 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z7 } from "npm:zod@^4.4.3";
+var meta_ads_manage_default = defineTool9({
+  name: "meta_ads_manage",
+  title: "Pause, resume or rebudget a Meta ad",
+  description: "Changes the status (ACTIVE/PAUSED) or daily budget of an existing Meta campaign, ad set or ad. Turning something ACTIVE starts spending money, so it requires confirm to be set to the exact string 'I APPROVE SPEND'. Pausing never requires confirmation. Daily budgets are capped by a built-in safety limit.",
+  inputSchema: {
+    object_id: z7.string().describe("Campaign, ad set or ad id to modify."),
+    status: z7.enum(["ACTIVE", "PAUSED"]).optional().describe("New status. ACTIVE requires confirm."),
+    daily_budget_usd: z7.number().positive().optional().describe("New daily budget in USD (campaign or ad set only). Requires confirm."),
+    confirm: z7.string().optional().describe("Must be exactly 'I APPROVE SPEND' for any change that can start or increase spending.")
+  },
+  annotations: { readOnlyHint: false, destructiveHint: true, idempotentHint: false, openWorldHint: true },
+  handler: async ({ object_id, status, daily_budget_usd, confirm }, ctx) => {
+    const token = await adsToken(ctx);
+    const spendy = status === "ACTIVE" || typeof daily_budget_usd === "number";
+    if (spendy && confirm !== "I APPROVE SPEND") {
+      throw new ToolError8(
+        "This change can start or increase ad spend. Ask the account owner to approve, then re-run with confirm: 'I APPROVE SPEND'."
+      );
+    }
+    if (!status && daily_budget_usd === void 0) throw new ToolError8("Nothing to change: pass status and/or daily_budget_usd.");
+    const form = {};
+    if (status) form.status = status;
+    if (daily_budget_usd !== void 0) {
+      assertBudget(daily_budget_usd);
+      form.daily_budget = String(Math.round(daily_budget_usd * 100));
+    }
+    const result = await graph(`/${object_id}`, token, { form });
+    const payload = { object_id, applied: form, result };
+    return { ...text(payload), structuredContent: payload };
+  }
+});
+
+// src/lib/mcp/tools/meta-ads-create.ts
+import { defineTool as defineTool10, ToolError as ToolError9 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z8 } from "npm:zod@^4.4.3";
+var meta_ads_create_default = defineTool10({
+  name: "meta_ads_create_campaign",
+  title: "Draft a Meta ads campaign (paused)",
+  description: "Creates a complete Meta ads stack \u2014 campaign, ad set with targeting and daily budget, image creative and ad \u2014 for a Nyzora product. Everything is created in PAUSED state and cannot spend money. Use meta_ads_manage with confirm to launch it after the owner approves.",
+  inputSchema: {
+    ad_account_id: z8.string().describe("Ad account id (act_... or numeric)."),
+    page_id: z8.string().describe("Facebook Page id that the ad runs from."),
+    name: z8.string().min(3).max(120).describe("Campaign name, e.g. 'Originals \u2014 Pet Bust \u2014 US Prospecting'."),
+    objective: z8.enum(["OUTCOME_SALES", "OUTCOME_TRAFFIC", "OUTCOME_AWARENESS", "OUTCOME_ENGAGEMENT"]).default("OUTCOME_SALES"),
+    daily_budget_usd: z8.number().positive().describe("Daily budget in USD for the ad set."),
+    image_url: z8.string().url().describe("Publicly reachable image URL for the ad creative."),
+    primary_text: z8.string().min(1).max(500).describe("Main ad body copy."),
+    headline: z8.string().min(1).max(60).describe("Ad headline."),
+    link_url: z8.string().url().describe("Landing page URL on nyzora.ai."),
+    call_to_action: z8.enum(["SHOP_NOW", "LEARN_MORE", "ORDER_NOW", "SIGN_UP"]).default("SHOP_NOW"),
+    countries: z8.array(z8.string().length(2)).default(["US"]).describe("ISO country codes to target."),
+    age_min: z8.number().int().min(18).max(65).default(25),
+    age_max: z8.number().int().min(18).max(65).default(55)
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  handler: async (input, ctx) => {
+    const token = await adsToken(ctx);
+    assertBudget(input.daily_budget_usd);
+    if (input.age_max < input.age_min) throw new ToolError9("age_max must be greater than or equal to age_min.");
+    const act = normalizeActId(input.ad_account_id);
+    const campaign = await graph(`/${act}/campaigns`, token, {
+      form: {
+        name: input.name,
+        objective: input.objective,
+        status: "PAUSED",
+        special_ad_categories: "[]"
+      }
+    });
+    const optimization_goal = input.objective === "OUTCOME_SALES" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS";
+    const targeting = {
+      geo_locations: { countries: input.countries },
+      age_min: input.age_min,
+      age_max: input.age_max
+    };
+    const adsetForm = {
+      name: `${input.name} \u2014 Ad set`,
+      campaign_id: campaign.id,
+      daily_budget: String(Math.round(input.daily_budget_usd * 100)),
+      billing_event: "IMPRESSIONS",
+      optimization_goal: optimization_goal === "OFFSITE_CONVERSIONS" ? "LINK_CLICKS" : optimization_goal,
+      bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+      targeting: JSON.stringify(targeting),
+      status: "PAUSED"
+    };
+    const adset = await graph(`/${act}/adsets`, token, { form: adsetForm });
+    const creative = await graph(`/${act}/adcreatives`, token, {
+      form: {
+        name: `${input.name} \u2014 Creative`,
+        object_story_spec: JSON.stringify({
+          page_id: input.page_id,
+          link_data: {
+            link: input.link_url,
+            message: input.primary_text,
+            name: input.headline,
+            picture: input.image_url,
+            call_to_action: { type: input.call_to_action, value: { link: input.link_url } }
+          }
+        }),
+        degrees_of_freedom_spec: JSON.stringify({ creative_features_spec: { standard_enhancements: { enroll_status: "OPT_OUT" } } })
+      }
+    });
+    const ad = await graph(`/${act}/ads`, token, {
+      form: {
+        name: `${input.name} \u2014 Ad`,
+        adset_id: adset.id,
+        creative: JSON.stringify({ creative_id: creative.id }),
+        status: "PAUSED"
+      }
+    });
+    const payload = {
+      status: "PAUSED \u2014 nothing is spending yet",
+      ad_account_id: act,
+      campaign_id: campaign.id,
+      adset_id: adset.id,
+      creative_id: creative.id,
+      ad_id: ad.id,
+      daily_budget_usd: input.daily_budget_usd,
+      launch_instructions: "Owner approval required. To go live, call meta_ads_manage with the campaign_id, ad set id and ad id set to ACTIVE and confirm: 'I APPROVE SPEND'."
+    };
+    return { ...text(payload), structuredContent: payload };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "rdcfakdhgndnhgzfkuvw";
 var mcp_default = defineMcp({
   name: "nyzora",
   title: "Nyzora",
-  version: "0.2.0",
-  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram.",
+  version: "0.3.0",
+  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default, meta_me_default, meta_ig_post_default]
+  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default, meta_me_default, meta_ig_post_default, meta_ads_accounts_default, meta_ads_insights_default, meta_ads_create_default, meta_ads_manage_default]
 });
 
 // lovable-mcp-supabase-entry.ts

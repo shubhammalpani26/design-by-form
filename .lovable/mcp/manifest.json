@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "nyzora",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "title": "Nyzora"
     },
     "tools": [
@@ -170,6 +170,231 @@
           "required": [
             "image_url",
             "caption"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ads_accounts",
+        "title": "Meta ad accounts & structure",
+        "description": "Lists the Meta ad accounts the connected Nyzora account can manage, including currency, spend cap, amount spent and account status. Optionally drills into one account to list its campaigns, ad sets and ads with their status and budgets. Read-only.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "ad_account_id": {
+              "description": "Optional ad account id (with or without the act_ prefix) to list campaigns/ad sets/ads for.",
+              "type": "string"
+            }
+          }
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ads_insights",
+        "title": "Meta ads performance",
+        "description": "Reads Meta Ads performance (spend, impressions, reach, clicks, CTR, CPC, CPM, purchases, purchase value and ROAS) for an ad account, campaign, ad set or ad over a date preset. Read-only — never changes anything.",
+        "annotations": {
+          "readOnlyHint": true,
+          "idempotentHint": true,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "object_id": {
+              "type": "string",
+              "description": "Ad account id (act_... or numeric), campaign id, ad set id or ad id."
+            },
+            "level": {
+              "default": "campaign",
+              "description": "Breakdown level.",
+              "type": "string",
+              "enum": [
+                "account",
+                "campaign",
+                "adset",
+                "ad"
+              ]
+            },
+            "date_preset": {
+              "default": "last_7d",
+              "type": "string",
+              "enum": [
+                "today",
+                "yesterday",
+                "last_7d",
+                "last_14d",
+                "last_30d",
+                "this_month",
+                "last_month",
+                "maximum"
+              ]
+            }
+          },
+          "required": [
+            "object_id"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ads_create_campaign",
+        "title": "Draft a Meta ads campaign (paused)",
+        "description": "Creates a complete Meta ads stack — campaign, ad set with targeting and daily budget, image creative and ad — for a Nyzora product. Everything is created in PAUSED state and cannot spend money. Use meta_ads_manage with confirm to launch it after the owner approves.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "ad_account_id": {
+              "type": "string",
+              "description": "Ad account id (act_... or numeric)."
+            },
+            "page_id": {
+              "type": "string",
+              "description": "Facebook Page id that the ad runs from."
+            },
+            "name": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 120,
+              "description": "Campaign name, e.g. 'Originals — Pet Bust — US Prospecting'."
+            },
+            "objective": {
+              "default": "OUTCOME_SALES",
+              "type": "string",
+              "enum": [
+                "OUTCOME_SALES",
+                "OUTCOME_TRAFFIC",
+                "OUTCOME_AWARENESS",
+                "OUTCOME_ENGAGEMENT"
+              ]
+            },
+            "daily_budget_usd": {
+              "type": "number",
+              "exclusiveMinimum": 0,
+              "description": "Daily budget in USD for the ad set."
+            },
+            "image_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Publicly reachable image URL for the ad creative."
+            },
+            "primary_text": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 500,
+              "description": "Main ad body copy."
+            },
+            "headline": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 60,
+              "description": "Ad headline."
+            },
+            "link_url": {
+              "type": "string",
+              "format": "uri",
+              "description": "Landing page URL on nyzora.ai."
+            },
+            "call_to_action": {
+              "default": "SHOP_NOW",
+              "type": "string",
+              "enum": [
+                "SHOP_NOW",
+                "LEARN_MORE",
+                "ORDER_NOW",
+                "SIGN_UP"
+              ]
+            },
+            "countries": {
+              "default": [
+                "US"
+              ],
+              "description": "ISO country codes to target.",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 2,
+                "maxLength": 2
+              }
+            },
+            "age_min": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 65
+            },
+            "age_max": {
+              "default": 55,
+              "type": "integer",
+              "minimum": 18,
+              "maximum": 65
+            }
+          },
+          "required": [
+            "ad_account_id",
+            "page_id",
+            "name",
+            "daily_budget_usd",
+            "image_url",
+            "primary_text",
+            "headline",
+            "link_url"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ads_manage",
+        "title": "Pause, resume or rebudget a Meta ad",
+        "description": "Changes the status (ACTIVE/PAUSED) or daily budget of an existing Meta campaign, ad set or ad. Turning something ACTIVE starts spending money, so it requires confirm to be set to the exact string 'I APPROVE SPEND'. Pausing never requires confirmation. Daily budgets are capped by a built-in safety limit.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": true,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "object_id": {
+              "type": "string",
+              "description": "Campaign, ad set or ad id to modify."
+            },
+            "status": {
+              "description": "New status. ACTIVE requires confirm.",
+              "type": "string",
+              "enum": [
+                "ACTIVE",
+                "PAUSED"
+              ]
+            },
+            "daily_budget_usd": {
+              "description": "New daily budget in USD (campaign or ad set only). Requires confirm.",
+              "type": "number",
+              "exclusiveMinimum": 0
+            },
+            "confirm": {
+              "description": "Must be exactly 'I APPROVE SPEND' for any change that can start or increase spending.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "object_id"
           ]
         },
         "outputSchema": null
