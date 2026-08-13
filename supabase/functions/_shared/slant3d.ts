@@ -211,26 +211,28 @@ export async function draftOrder(
   items: PartnerPrintItem[],
   ownerId?: string,
 ): Promise<PartnerDraftOrder> {
+  const orderItems: Array<Record<string, unknown>> = items.map((i) => ({
+    type: "PRINT",
+    quantity: i.quantity,
+    publicFileServiceId: i.publicFileServiceId,
+    ...(i.filamentId ? { filamentId: i.filamentId } : {}),
+  }));
+  const insertId = stationeryId();
+  if (insertId) {
+    orderItems.push({
+      type: "STATIONERY",
+      quantity: 1,
+      publicStationeryServiceId: insertId,
+    });
+  }
+
   const data = await request<Record<string, unknown>>("/orders", {
     method: "POST",
     body: JSON.stringify({
       platformId: platformId(),
       ownerId: ownerId ?? "nyzora",
       customer: { details: { email: customer.email, address: customer.address } },
-      items: items.map((i) => ({
-        type: "PRINT",
-        quantity: i.quantity,
-        publicFileServiceId: i.publicFileServiceId,
-        ...(i.filamentId ? { filamentId: i.filamentId } : {}),
-      })).concat(
-        stationeryId()
-          ? [{
-            type: "STATIONERY",
-            quantity: 1,
-            publicStationeryServiceId: stationeryId(),
-          } as unknown as Record<string, unknown>]
-          : [],
-      ),
+      items: orderItems,
     }),
   });
 
