@@ -97,10 +97,14 @@ export default function OriginalsReturn() {
         <>
           <h1 className="mt-3 flex items-center gap-2 text-2xl font-light tracking-tight">
             {paid ? <CheckCircle2 className="h-6 w-6" /> : <Clock className="h-5 w-5 animate-pulse" />}
-            {paid ? "Your piece is confirmed" : "Finishing up your payment…"}
+            {paid
+              ? pieceCount > 1
+                ? `Your ${pieceCount} pieces are confirmed`
+                : "Your piece is confirmed"
+              : "Finishing up your payment…"}
           </h1>
 
-          {order.previewImageUrl && (
+          {items.length <= 1 && order.previewImageUrl && (
             <img
               src={order.previewImageUrl}
               alt="Your personalized piece"
@@ -108,8 +112,34 @@ export default function OriginalsReturn() {
             />
           )}
 
+          {items.length > 1 && (
+            <div className="mt-6 divide-y divide-foreground/10 border border-foreground/10">
+              {items.map((it) => (
+                <div key={it.id} className="flex items-center gap-3 p-3">
+                  {it.previewImageUrl && (
+                    <img
+                      src={it.previewImageUrl}
+                      alt=""
+                      className="h-16 w-16 border border-foreground/10 object-contain"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1 text-sm">
+                    <p className="truncate">{SKU_NAMES[it.skuSlug] ?? "Nyzora piece"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {it.sizeLabel}
+                      {it.quantity > 1 ? ` · ×${it.quantity}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-sm tabular-nums">${it.amountUsd}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="mt-6 space-y-1 text-sm">
-            <p className="tabular-nums">{order.sizeLabel} — ${order.amountUsd}</p>
+            <p className="tabular-nums">
+              {items.length > 1 ? `Total — $${order.amountUsd}` : `${order.sizeLabel} — $${order.amountUsd}`}
+            </p>
             <p className="text-muted-foreground">Order {order.id.slice(0, 8)}</p>
             {order.emailMasked && (
               <p className="text-muted-foreground">Confirmation sent to {order.emailMasked}</p>
