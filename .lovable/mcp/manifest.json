@@ -247,7 +247,7 @@
       {
         "name": "meta_ads_create_campaign",
         "title": "Draft a Meta ads campaign (paused)",
-        "description": "Creates a complete Meta ads stack — campaign, ad set with targeting and daily budget, image creative and ad — for a Nyzora product. Everything is created in PAUSED state and cannot spend money. Use meta_ads_manage with confirm to launch it after the owner approves.",
+        "description": "Creates a complete Meta ads stack — campaign, ad set with targeting and daily budget, image OR video creative and ad — for a Nyzora product. Pass image_url for a static ad or video_url for a video ad (the video is uploaded to the ad account and transcoded first). Everything is created in PAUSED state and cannot spend money. Use meta_ads_manage with confirm to launch it after the owner approves.",
         "annotations": {
           "readOnlyHint": false,
           "destructiveHint": false,
@@ -288,9 +288,19 @@
               "description": "Daily budget in USD for the ad set."
             },
             "image_url": {
+              "description": "Publicly reachable image URL for a static ad creative. Provide either image_url or video_url.",
               "type": "string",
-              "format": "uri",
-              "description": "Publicly reachable image URL for the ad creative."
+              "format": "uri"
+            },
+            "video_url": {
+              "description": "Publicly reachable MP4 URL for a video ad creative. The video is uploaded to the ad account and Meta transcodes it before the creative is built.",
+              "type": "string",
+              "format": "uri"
+            },
+            "video_thumbnail_url": {
+              "description": "Optional custom thumbnail for the video ad. Defaults to Meta's preferred auto-generated frame.",
+              "type": "string",
+              "format": "uri"
             },
             "primary_text": {
               "type": "string",
@@ -349,7 +359,6 @@
             "page_id",
             "name",
             "daily_budget_usd",
-            "image_url",
             "primary_text",
             "headline",
             "link_url"
