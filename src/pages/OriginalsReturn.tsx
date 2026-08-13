@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
+import { originalsCart } from "@/lib/originalsCart";
 
 interface OrderView {
   id: string;
@@ -67,6 +68,11 @@ export default function OriginalsReturn() {
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
   const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;
+
+  // Payment went through — the basket is now an order, so empty it.
+  useEffect(() => {
+    if (paid) originalsCart.clear();
+  }, [paid]);
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
