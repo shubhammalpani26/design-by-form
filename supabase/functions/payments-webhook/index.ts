@@ -246,19 +246,22 @@ async function fulfilCreditPack(session: any, env: StripeEnv) {
 
 /** Nyzora Originals retail order — mark paid, capture shipping, confirm by email. */
 async function fulfilOriginalsOrder(session: any) {
-  const orderId = session.metadata?.originals_order_id;
-  if (!orderId) return;
+  const groupId = session.metadata?.originals_group_id ?? null;
+  const orderId = session.metadata?.originals_order_id ?? null;
+  if (!groupId && !orderId) return;
 
-  const { data: order } = await db()
+  const query = db()
     .from("originals_orders")
-    .select("id, status, sku_slug, size_label, amount_usd, preview_image_url")
-    .eq("id", orderId)
-    .maybeSingle();
-  if (!order) {
-    console.error("Originals order not found:", orderId);
+    .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url")
+    .order("created_at", { ascending: true });
+  const { data: orders } = groupId
+    ? await query.eq("group_id", groupId)
+    : await query.eq("id", orderId);
+
+  if (!orders || orders.length === 0) {
+    console.error("Originals order not found:", groupId ?? orderId);
     return;
   }
-  if (order.status === "paid" || order.status === "in_production" || order.status === "shipped") return;
 
   const email = session.customer_details?.email ?? session.customer_email ?? null;
   const shipping = session.collected_information?.shipping_details
@@ -266,9 +269,9 @@ async function fulfilOriginalsOrder(session: any) {
     ?? session.customer_details?.address
     ?? null;
 
-  // Only the delivery that actually flips the status sends the receipt.
+  // Only the delivery that actually flips the rows sends the receipt.
   // Guards against two concurrent Stripe deliveries both passing the read above.
-  const { data: claimed } = await db()
+  const claim = db()
     .from("originals_orders")
     .update({
       status: "paid",
@@ -277,36 +280,47 @@ async function fulfilOriginalsOrder(session: any) {
       shipping_address: shipping,
       updated_at: new Date().toISOString(),
     })
-    .eq("id", orderId)
-    .in("status", ["pending", "failed"])
-    .select("id");
+    .in("status", ["pending", "failed"]);
+  const { data: claimed } = groupId
+    ? await claim.eq("group_id", groupId).select("id")
+    : await claim.eq("id", orderId).select("id");
 
   if (!claimed || claimed.length === 0) {
-    console.log("Originals order already fulfilled, skipping receipt:", orderId);
+    console.log("Originals order already fulfilled, skipping receipt:", groupId ?? orderId);
     return;
   }
 
-  await sendOriginalsReceipt(email, order);
+  await sendOriginalsReceipt(email, orders);
 }
 
-async function sendOriginalsReceipt(email: string | null, order: any) {
-  if (!email) return;
+async function sendOriginalsReceipt(email: string | null, orders: any[]) {
+  if (!email || !orders.length) return;
   const names: Record<string, string> = {
     "pet-silhouette-keepsake": "Pet Sculpture Piece",
     "nursery-name-date": "Baby Name & Date Piece",
     "wedding-coordinates": "Wedding Coordinates Piece",
   };
+  const items = orders.map((o) => {
+    const qty = Math.max(1, Number(o.quantity ?? 1) || 1);
+    return {
+      productName: names[o.sku_slug] ?? "Your Nyzora piece",
+      sizeLabel: o.size_label ?? "",
+      // amount_usd is the line total; the template multiplies by quantity.
+      amountUsd: Number(o.amount_usd ?? 0) / qty,
+      previewImageUrl: o.preview_image_url ?? "",
+      quantity: qty,
+    };
+  });
+  const first = orders[0];
   const { error } = await db().functions.invoke("send-transactional-email", {
     body: {
       templateName: "originals-order-confirmation",
       recipientEmail: email,
-      idempotencyKey: `originals-confirmation-${order.id}`,
+      idempotencyKey: `originals-confirmation-${first.id}`,
       templateData: {
-        orderId: order.id,
-        sizeLabel: order.size_label ?? "",
-        amountUsd: order.amount_usd,
-        previewImageUrl: order.preview_image_url ?? "",
-        productName: names[order.sku_slug] ?? "Your Nyzora piece",
+        orderId: first.id,
+        items,
+        totalUsd: orders.reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0),
       },
     },
   });
