@@ -124,7 +124,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   // A session is priced for one size/preview — drop it if either changes.
   useEffect(() => {
     setClientSecret(null);
-  }, [sizeKey, preview?.id]);
+  }, [sizeKey, preview?.id, cart.count, cart.total]);
 
   const pickFile = useCallback(async (file?: File | null) => {
     if (!file) return;
