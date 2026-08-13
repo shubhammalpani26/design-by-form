@@ -19,6 +19,7 @@ interface Item {
   amountUsd?: number | string
   previewImageUrl?: string
   quantity?: number | string
+  skuSlug?: string
 }
 
 interface Props extends Item {
@@ -30,6 +31,21 @@ interface Props extends Item {
 }
 
 const isHttp = (u?: string) => typeof u === 'string' && /^https?:\/\//i.test(u)
+
+const CATALOG_BASE =
+  'https://rdcfakdhgndnhgzfkuvw.supabase.co/storage/v1/object/public/product-images/originals/catalog'
+
+/** Catalog fallback so a line without a custom render never shows an empty slot. */
+const CATALOG_IMAGE: Record<string, string> = {
+  'pet-silhouette-keepsake': `${CATALOG_BASE}/pet-silhouette-keepsake.jpg`,
+  'nursery-name-date': `${CATALOG_BASE}/nursery-name-date.jpg`,
+  'wedding-coordinates': `${CATALOG_BASE}/wedding-coordinates.jpg`,
+}
+
+const itemImage = (item: Item) =>
+  isHttp(item.previewImageUrl)
+    ? (item.previewImageUrl as string)
+    : (item.skuSlug && CATALOG_IMAGE[item.skuSlug]) || null
 
 /**
  * Email clients proxy images and choke on multi-MB PNGs, so serve every preview
@@ -82,6 +98,7 @@ export const normalizeItems = (props: Props): Item[] => {
         amountUsd: props.amountUsd,
         previewImageUrl: props.previewImageUrl,
         quantity: props.quantity,
+        skuSlug: props.skuSlug,
       },
     ]
   }
@@ -110,9 +127,8 @@ const ItemRow = ({ item, layout }: { item: Item; layout: 'single' | 'multi' }) =
   const size = clean(item.sizeLabel, 60)
   const qty = Math.max(1, Number(item.quantity ?? 1) || 1)
   const price = money(item.amountUsd)
-  const src = isHttp(item.previewImageUrl)
-    ? emailImage(item.previewImageUrl as string, layout === 'single' ? 900 : 320)
-    : null
+  const raw = itemImage(item)
+  const src = raw ? emailImage(raw, layout === 'single' ? 900 : 320) : null
   return (
     <Section style={itemBox}>
       {src ? (
