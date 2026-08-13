@@ -52,8 +52,9 @@ const Email = ({
         </Section>
         <Hr style={hr} />
         <Text style={muted}>
-          {orderId ? `Order ${String(orderId).slice(0, 8)} · ` : ''}Questions? Just reply to this email.
+          {orderId ? `Order ID: ${String(orderId)}` : ''}
         </Text>
+        <Text style={muted}>Questions? Just reply to this email.</Text>
       </Container>
     </Body>
   </Html>
