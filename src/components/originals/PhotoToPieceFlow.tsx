@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
+import { FOOTNOTE_MAX, HEADING_MAX } from "@/data/originalsSkus";
 import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Undo2, Wand2 } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
+import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
@@ -83,8 +85,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const reveal = EXPERIMENTS.reveal_screen[revealVariant];
 
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
-  const [petName, setPetName] = useState("");
-  const [date, setDate] = useState("");
+  const [heading, setHeading] = useState("");
+  const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -106,8 +108,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const displayName =
     mode === "photo"
-      ? petName.trim()
-      : (values.petName || values.childName || values.coordinates || "").trim();
+      ? heading.trim()
+      : (values.heading || "").trim();
 
   useEffect(() => {
     trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
@@ -156,10 +158,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setErrorMsg(null);
     trackExperiment("render_progress", progressVariant, "generate_start", { skuSlug: sku.slug });
     try {
-      const personalization = mode === "photo" ? { petName, date } : values;
+      const personalization = mode === "photo" ? { heading, footnote } : values;
       const basePrompt =
         mode === "photo" && sku.photo
-          ? sku.photo.promptTemplate({ petName, date })
+          ? sku.photo.promptTemplate({ heading, footnote })
           : sku.promptTemplate(values);
       const withColor = `${basePrompt}${colorClause(activeColor)}`;
       const prompt = isTweak
@@ -224,8 +226,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setPrevPreview(null);
     setClientSecret(null);
     setPhoto(null);
-    setPetName("");
-    setDate("");
+    setHeading("");
+    setFootnote("");
     setValues({});
     setShowTweak(false);
     setTweak("");
@@ -339,18 +341,24 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {mode === "photo" ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="petName" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Their name
+              <Label htmlFor="heading" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                Heading
               </Label>
-              <Input id="petName" className="mt-2 rounded-none" placeholder="Milo" value={petName}
-                onChange={(e) => setPetName(e.target.value)} />
+              <Input id="heading" className="mt-2 rounded-none" placeholder="MILO" maxLength={HEADING_MAX}
+                value={heading} onChange={(e) => setHeading(e.target.value)} />
+              <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                Engraved large · {heading.length}/{HEADING_MAX}
+              </p>
             </div>
             <div>
-              <Label htmlFor="engDate" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Date (optional)
+              <Label htmlFor="footnote" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                Footnote (optional)
               </Label>
-              <Input id="engDate" className="mt-2 rounded-none" placeholder="03.14.2019" value={date}
-                onChange={(e) => setDate(e.target.value)} />
+              <Input id="footnote" className="mt-2 rounded-none" placeholder="2014 — 2024" maxLength={FOOTNOTE_MAX}
+                value={footnote} onChange={(e) => setFootnote(e.target.value)} />
+              <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                A date or short line · {footnote.length}/{FOOTNOTE_MAX}
+              </p>
             </div>
           </div>
           ) : (
@@ -377,9 +385,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     id={f.key}
                     className="mt-2 rounded-none"
                     placeholder={f.placeholder}
+                    maxLength={f.maxLength}
                     value={values[f.key] || ""}
                     onChange={(e) => setValues((v) => ({ ...v, [f.key]: e.target.value }))}
                   />
+                )}
+                {(f.hint || f.maxLength) && !f.options && (
+                  <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
+                    {f.hint}
+                    {f.maxLength ? ` · ${(values[f.key] || "").length}/${f.maxLength}` : ""}
+                  </p>
                 )}
               </div>
             ))}
@@ -717,9 +732,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           ) : (
             <p className="mt-5 border border-border p-4 text-xs text-muted-foreground leading-relaxed">
-              If it doesn't look like them when it arrives, we remake it or refund you — no return shipping to pay.
+              If it doesn't match the render you approved, we remake it free — no return postage to pay.
             </p>
           )}
+
+          <MadeToOrderPolicy className="mt-5" />
 
           <button
             type="button"
@@ -733,7 +750,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5 text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-1.5"><Factory className="h-4 w-4" /> Made in USA</div>
             <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 3–5 day ship</div>
-            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> 30-day remake or refund</div>
+            <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
           <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
             Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a

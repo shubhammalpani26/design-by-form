@@ -126,10 +126,32 @@ const Terms = () => {
                 orders in a timely manner. Custom furniture typically requires 21-45 days for production and delivery.
               </p>
 
-              <h3 className="text-xl font-semibold mb-3">4.3 Returns and Refunds</h3>
+              <h3 className="text-xl font-semibold mb-3">4.3 Returns, Refunds and Cancellations</h3>
+              <p className="text-muted-foreground mb-4">
+                Every piece is made to order for a single customer and enters production shortly after payment.
+                It therefore cannot be resold or restocked, and the following terms apply:
+              </p>
+              <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
+                <li>
+                  <strong>Refunds</strong> are issued only where the item arrives damaged or defective (for example
+                  cracked, warped, or incorrectly engraved by us). Contact us with photographs within 30 days of delivery.
+                </li>
+                <li>
+                  <strong>Free replacement</strong> is provided where the delivered item does not materially match the
+                  approved preview render. We remake and reship at our cost; no return postage is payable by you.
+                </li>
+                <li>
+                  <strong>No cancellations</strong> once an order has been placed and production has begun.
+                </li>
+                <li>
+                  <strong>No change-of-mind returns or exchanges</strong>, and no refunds for personalization errors
+                  (including spelling, dates, or uploaded photographs) supplied by you. Please review your preview and
+                  your text carefully before ordering.
+                </li>
+              </ul>
               <p className="text-muted-foreground">
-                Due to the custom nature of our products, returns are only accepted for damaged or defective items. 
-                Please inspect your order upon delivery and contact us within 7 days if there are any issues.
+                Renders are a close representation of the final piece; minor variations in surface texture, tone and
+                layer detail are inherent to the process and are not defects.
               </p>
             </section>
 

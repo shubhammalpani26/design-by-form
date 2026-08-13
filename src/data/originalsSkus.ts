@@ -9,9 +9,8 @@ export interface OriginalSku {
   description: string;
   price: number; // USD
   image: string;
-  finish: string;
   dimensions: string;
-  fields: { key: string; label: string; placeholder: string; options?: string[] }[];
+  fields: { key: string; label: string; placeholder: string; options?: string[]; maxLength?: number; hint?: string }[];
   promptTemplate: (values: Record<string, string>) => string;
   /** Size ladder shown at the moment of decision. Prices include free US shipping. */
   sizes: { key: string; label: string; size: string; price: number; note?: string }[];
@@ -41,22 +40,25 @@ export const PET_TYPES = [
 /** Every Original is printed as a single part inside a 220 x 220 x 220 mm envelope. */
 export const MAX_ENVELOPE_MM = 220;
 
+/** Engraving is cut into a fixed panel, so the text has to stay short to stay legible. */
+export const HEADING_MAX = 18;
+export const FOOTNOTE_MAX = 24;
+
 export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
     name: "Pet Sculpture Piece",
-    tagline: "Their head sculpted in full three dimensions — name and date engraved.",
+    tagline: "Their head sculpted in full three dimensions — your words engraved.",
     description:
-      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with their name and date engraved into the front face. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form for a layered, stone-look surface. Made from a dense matte polymer, precision 3D-printed as one solid part in the USA.",
+      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with a heading and footnote of your choosing engraved into the front face — a name, a nickname, a date, a line only you two understand. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form for a layered, stone-look surface. Made from a dense matte polymer, precision 3D-printed as one solid part in the USA.",
     price: 59,
     image: petImg,
-    finish: "Matte bone / sand / charcoal",
     dimensions: "196 × 150 × 120 mm",
     fields: [
-      { key: "petName", label: "Pet's name", placeholder: "Milo" },
+      { key: "heading", label: "Heading", placeholder: "MILO", maxLength: HEADING_MAX, hint: "Engraved large on the plinth" },
       { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
-      { key: "date", label: "Date to engrave (optional)", placeholder: "03.14.2019" },
+      { key: "footnote", label: "Footnote (optional)", placeholder: "2014 — 2024", maxLength: FOOTNOTE_MAX, hint: "A date or a short line, engraved below" },
     ],
     sizes: [
       { key: "petite", label: "Petite", size: "120 mm tall", price: 59, note: "Desk or shelf" },
@@ -67,46 +69,44 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       label: "Upload a photo of your pet",
       hint: "One clear, well-lit photo of their face. Front or three-quarter view works best.",
       promptTemplate: (v) =>
-        `Using the animal in the reference photo, sculpt a fully three-dimensional carved stone-look bust of that exact animal's head and shoulders, keeping its recognisable face, breed, ear shape, muzzle length and markings as sculpted form. Sculpt the animal only — never reproduce anything it is holding or wearing in the photo: no stick, ball, toy, flower, rope, food, leash, collar, tag, harness or bandana, and no hands, background objects or other animals. Three-quarter view, rounded modelled volume front to back — absolutely not a flat silhouette, not an extruded profile plate, not a relief panel. Surface finish is layered banded stone: fine continuous horizontal strata wrapping the whole form like sedimentary rock, deliberate and even. The eyes are sculpted, not painted: deep almond sockets carved at least 2 mm into the brow with defined upper and lower lids and a smooth raised iris dome inside each socket — no glass, no inserts, no glossy beads, no paint, no thin whiskers or fine hairs. The bust sits on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}"${v.date ? ` and "${v.date}"` : ""} in fine thin sans-serif capitals. Monolithic and solid, single part, no thin fragile details, flat stable base, matte single-colour composite, studio lighting on a clean neutral background showing depth and shadow.`,
+        `Using the animal in the reference photo, sculpt a fully three-dimensional carved stone-look bust of that exact animal's head and shoulders, keeping its recognisable face, breed, ear shape, muzzle length and markings as sculpted form. Sculpt the animal only — never reproduce anything it is holding or wearing in the photo: no stick, ball, toy, flower, rope, food, leash, collar, tag, harness or bandana, and no hands, background objects or other animals. Three-quarter view, rounded modelled volume front to back — absolutely not a flat silhouette, not an extruded profile plate, not a relief panel. Surface finish is layered banded stone: fine continuous horizontal strata wrapping the whole form like sedimentary rock, deliberate and even. The eyes are sculpted, not painted: deep almond sockets carved at least 2 mm into the brow with defined upper and lower lids and a smooth raised iris dome inside each socket — no glass, no inserts, no glossy beads, no paint, no thin whiskers or fine hairs. The bust sits on a heavy rectangular plinth engraved with the heading "${(v.heading || v.petName || "MILO").toUpperCase()}" in fine thin sans-serif capitals${(v.footnote || v.date) ? `, with the smaller footnote line "${v.footnote || v.date}" engraved beneath it` : ""}. Monolithic and solid, single part, no thin fragile details, flat stable base, matte single-colour composite, studio lighting on a clean neutral background showing depth and shadow.`,
     },
     promptTemplate: (v) =>
-      `A fully three-dimensional carved sculpture of the head and shoulders of a ${v.breed || v.petType || "dog"}${v.petType ? ` (${v.petType})` : ""} named ${v.petName || "my pet"}, shown in a three-quarter view so the depth is obvious: rounded modelled muzzle, brow, cheeks and ears sculpted in the round with real volume front to back, absolutely not a flat silhouette, not an extruded profile plate, not a relief panel, no thick flat slab. Surface finish is layered banded stone: fine continuous horizontal strata wrapping the whole form like sedimentary rock or a contour model, deliberate and even, reading as an intentional material texture. The eyes are sculpted, not painted: deep almond eye sockets carved at least 2 mm into the brow with clearly defined upper and lower lids and a smooth raised iris dome inside each socket, catching shadow — no glass, no inserts, no glossy black beads, no painted detail, no thin whiskers or fine hairs. The sculpture sits on a heavy rectangular plinth engraved with "${(v.petName || "MILO").toUpperCase()}" and "${v.date || "03.14.2019"}" in fine thin sans-serif capitals. Monolithic and solid, no thin fragile details, flat stable base, studio lighting showing depth and shadow.`,
+      `A fully three-dimensional carved sculpture of the head and shoulders of a ${v.breed || v.petType || "dog"}${v.petType ? ` (${v.petType})` : ""}, shown in a three-quarter view so the depth is obvious: rounded modelled muzzle, brow, cheeks and ears sculpted in the round with real volume front to back, absolutely not a flat silhouette, not an extruded profile plate, not a relief panel, no thick flat slab. Surface finish is layered banded stone: fine continuous horizontal strata wrapping the whole form like sedimentary rock or a contour model, deliberate and even, reading as an intentional material texture. The eyes are sculpted, not painted: deep almond eye sockets carved at least 2 mm into the brow with clearly defined upper and lower lids and a smooth raised iris dome inside each socket, catching shadow — no glass, no inserts, no glossy black beads, no painted detail, no thin whiskers or fine hairs. The sculpture sits on a heavy rectangular plinth engraved with the heading "${(v.heading || v.petName || "MILO").toUpperCase()}" in fine thin sans-serif capitals and the smaller footnote line "${v.footnote || v.date || "2014 — 2024"}" engraved beneath it. Monolithic and solid, no thin fragile details, flat stable base, studio lighting showing depth and shadow.`,
   },
   {
     slug: "nursery-name-date",
     name: "Baby Name & Date Piece",
     tagline: "The first thing they ever owned with their name on it.",
     description:
-      "A low, landscape-format sculpture with a soft rising wave crest and fine vertical fluting, opening onto a smooth polished panel where the baby's name and birth date are engraved. Sits on a shelf, a dresser, or a changing table — quietly, for years.",
+      "Two soft dunes rising out of a single solid block — one tall, one low — carved with gentle concentric contour ridges that wrap the whole form. The taller dune opens onto a smooth, unbroken face where the name is engraved in fine capitals, with the date set quietly below on the lower dune. Rounded and hand-warm rather than architectural, so it reads as a sculpture first and a keepsake second.",
     price: 54,
     image: nurseryImg,
-    finish: "Matte sand / bone",
     dimensions: "210 × 118 × 55 mm",
     fields: [
-      { key: "childName", label: "Baby's name", placeholder: "Oliver" },
-      { key: "date", label: "Birth date", placeholder: "12.05.2024" },
+      { key: "heading", label: "Heading", placeholder: "OLIVER", maxLength: HEADING_MAX, hint: "Engraved on the tall dune" },
+      { key: "footnote", label: "Footnote", placeholder: "12.05.2024", maxLength: FOOTNOTE_MAX, hint: "Birth date or a short line" },
     ],
     sizes: [{ key: "standard", label: "Standard", size: "210 mm wide", price: 54 }],
     promptTemplate: (v) =>
-      `A solid matte personal piece in landscape horizontal format, wider than tall, with a soft asymmetric rising wave crest silhouette and fine vertical fluting carved across its face, opening onto a smooth polished inset panel engraved with the name "${(v.childName || "OLIVER").toUpperCase()}" and the date "${v.date || "12.05.2024"}" in fine thin sans-serif capitals, sitting on a low chamfered rectangular plinth, no arch, no rounded tombstone top, no perforations, no thin unsupported spans, flat stable base, minimal luxury editorial styling.`,
+      `A fully three-dimensional matte sculptural object in landscape horizontal format, wider than tall: two soft overlapping dunes swelling out of one solid mass, the left dune tall and rounded, the right dune low and broad, their shoulders merging into each other with generous fillets. Gentle concentric contour ridges wrap around each dune like topographic lines, catching soft shadow, deliberate and even. The face of the tall dune is left smooth and unridged as a clean sculpted panel, engraved with the heading "${(v.heading || v.childName || "OLIVER").toUpperCase()}" in fine thin widely-tracked sans-serif capitals, with the smaller footnote "${v.footnote || v.date || "12.05.2024"}" engraved on the low dune beneath. Three-quarter view showing real depth front to back. Monolithic single part, generous wall thickness, no arch, no tombstone or headstone silhouette, no lattice, no perforations, no thin unsupported spans, no separate base slab — the form flows straight into a flat stable footprint. Studio lighting, clean neutral background, minimal luxury editorial styling.`,
   },
   {
     slug: "wedding-coordinates",
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "A low charcoal landscape block carved into stepped topographic terraces that descend diagonally, split by a smooth band engraved with your latitude, longitude and date. A first-anniversary gift that doesn't end up in a drawer.",
+      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth recessed band runs across the front, engraved with your coordinates and the date. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close.",
     price: 79,
     image: weddingImg,
-    finish: "Matte charcoal / bone",
     dimensions: "215 × 105 × 60 mm",
     fields: [
-      { key: "coordinates", label: "Coordinates", placeholder: "40.7128° N, 74.0060° W" },
-      { key: "date", label: "Date", placeholder: "06.23.24" },
+      { key: "heading", label: "Heading", placeholder: "40.7128° N, 74.0060° W", maxLength: FOOTNOTE_MAX, hint: "Coordinates, a place or two names" },
+      { key: "footnote", label: "Footnote", placeholder: "06.23.24", maxLength: FOOTNOTE_MAX, hint: "The date, engraved below" },
     ],
     sizes: [{ key: "standard", label: "Standard", size: "215 mm wide", price: 79 }],
     promptTemplate: (v) =>
-      `A solid matte sculptural personal piece in landscape horizontal format, wider than tall, shaped like a stepped topographic landscape section with smooth horizontal contour terraces descending diagonally, interrupted by one flat polished band engraved with the coordinates "${v.coordinates || "40.7128° N, 74.0060° W"}" in fine serif type and the date "${v.date || "06.23.24"}" below, low chamfered rectangular base, angular and monolithic, no arch, no rounded tombstone top, no lattice, no perforations, no thin unsupported spans, flat stable base.`,
+      `A fully three-dimensional matte sculptural object in landscape horizontal format, wider than tall: two smooth sculpted waves rising out of one solid mass and leaning toward each other until their crests meet and merge into a single continuous surface, fused with a generous fillet where they touch — one unbroken piece, never two separate parts, no gap, no opening, no hole through the form. Soft sweeping surfaces with a slow carved swell, quiet and confident. Across the front, where the two waves meet, runs one flat polished horizontal band engraved with "${v.heading || v.coordinates || "40.7128° N, 74.0060° W"}" in fine thin sans-serif capitals and the smaller footnote "${v.footnote || v.date || "06.23.24"}" engraved beneath it. Three-quarter view showing real depth front to back. Monolithic single part, thick and weighty, no arch, no tombstone or headstone silhouette, no lattice, no perforations, no thin unsupported spans, flat stable base. Studio lighting, clean neutral background, minimal luxury editorial styling.`,
   },
 ];
 
