@@ -1,6 +1,6 @@
 import { defineTool, ToolError } from "@lovable.dev/mcp-js";
 import { z } from "zod";
-import { getMetaAccessToken, getMetaDefaults } from "./meta-token";
+import { getMetaDefaults, getMetaPageToken } from "./meta-token";
 
 const FB_API = "https://graph.facebook.com/v18.0";
 
@@ -35,8 +35,9 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       throw new ToolError("Not authenticated");
     }
-    const token = await getMetaAccessToken(ctx);
     const defaults = await getMetaDefaults(ctx);
+    // Page tokens derived from a long-lived user token never expire.
+    const token = await getMetaPageToken(ctx, defaults.page_id);
     const resolvedIgUserId = ig_user_id ?? defaults.ig_user_id ?? "";
     if (!resolvedIgUserId) {
       throw new ToolError(

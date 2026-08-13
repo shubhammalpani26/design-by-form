@@ -290,6 +290,42 @@ async function getMetaAccessToken(ctx) {
   await saveTokenState(ctx, meta_defaults, fresh);
   return fresh.access_token;
 }
+async function getMetaPageToken(ctx, pageId) {
+  const { meta_defaults } = await loadStoredState(ctx);
+  const defaults = meta_defaults ?? {};
+  const resolvedPageId = pageId ?? defaults.page_id ?? "1087872784403919";
+  const cache = defaults.meta_page_tokens ?? {};
+  const cached = cache[resolvedPageId];
+  if (cached) {
+    const probe = await fetch(
+      `${FB_API}/${resolvedPageId}?fields=id&access_token=${encodeURIComponent(cached)}`
+    );
+    if (probe.ok) return cached;
+  }
+  const userToken = await getMetaAccessToken(ctx);
+  const res = await fetch(
+    `${FB_API}/${resolvedPageId}?fields=access_token&access_token=${encodeURIComponent(userToken)}`
+  );
+  const data = await res.json();
+  if (!res.ok || !data.access_token) {
+    throw new Error(`Failed to fetch Meta page token: ${data.error?.message ?? res.status}`);
+  }
+  const userId = ctx.getUserId();
+  if (userId) {
+    const supabase = supabaseForUser2(ctx);
+    const { meta_defaults: latest } = await loadStoredState(ctx);
+    const latestDefaults = latest ?? {};
+    const nextCache = {
+      ...latestDefaults.meta_page_tokens ?? {},
+      [resolvedPageId]: data.access_token
+    };
+    await supabase.from("user_connector_tokens").upsert(
+      { user_id: userId, meta_defaults: { ...latestDefaults, meta_page_tokens: nextCache } },
+      { onConflict: "user_id" }
+    );
+  }
+  return data.access_token;
+}
 async function getMetaDefaults(ctx) {
   const { meta_defaults } = await loadStoredState(ctx);
   const stored = meta_defaults ?? {};
@@ -380,8 +416,8 @@ var meta_ig_post_default = defineTool6({
     if (!ctx.isAuthenticated()) {
       throw new ToolError6("Not authenticated");
     }
-    const token = await getMetaAccessToken(ctx);
     const defaults = await getMetaDefaults(ctx);
+    const token = await getMetaPageToken(ctx, defaults.page_id);
     const resolvedIgUserId = ig_user_id ?? defaults.ig_user_id ?? "";
     if (!resolvedIgUserId) {
       throw new ToolError6(
