@@ -161,6 +161,53 @@ export async function getMetaAccessToken(ctx: ToolContext): Promise<string> {
   return fresh.access_token;
 }
 
+/**
+ * Page access tokens derived from a long-lived user token do not expire.
+ * We cache one per page so Instagram publishing keeps working without
+ * anyone re-pasting a token every 60 days.
+ */
+export async function getMetaPageToken(ctx: ToolContext, pageId?: string): Promise<string> {
+  const { meta_defaults } = await loadStoredState(ctx);
+  const defaults = (meta_defaults ?? {}) as Record<string, unknown>;
+  const resolvedPageId = pageId ?? (defaults.page_id as string | undefined) ?? "1087872784403919";
+  const cache = (defaults.meta_page_tokens ?? {}) as Record<string, string>;
+  const cached = cache[resolvedPageId];
+  if (cached) {
+    const probe = await fetch(
+      `${FB_API}/${resolvedPageId}?fields=id&access_token=${encodeURIComponent(cached)}`,
+    );
+    if (probe.ok) return cached;
+  }
+
+  const userToken = await getMetaAccessToken(ctx);
+  const res = await fetch(
+    `${FB_API}/${resolvedPageId}?fields=access_token&access_token=${encodeURIComponent(userToken)}`,
+  );
+  const data = (await res.json()) as { access_token?: string; error?: { message?: string } };
+  if (!res.ok || !data.access_token) {
+    throw new Error(`Failed to fetch Meta page token: ${data.error?.message ?? res.status}`);
+  }
+
+  const userId = ctx.getUserId();
+  if (userId) {
+    const supabase = supabaseForUser(ctx);
+    const { meta_defaults: latest } = await loadStoredState(ctx);
+    const latestDefaults = (latest ?? {}) as Record<string, unknown>;
+    const nextCache = {
+      ...((latestDefaults.meta_page_tokens ?? {}) as Record<string, string>),
+      [resolvedPageId]: data.access_token,
+    };
+    await supabase
+      .from("user_connector_tokens")
+      .upsert(
+        { user_id: userId, meta_defaults: { ...latestDefaults, meta_page_tokens: nextCache } },
+        { onConflict: "user_id" },
+      );
+  }
+
+  return data.access_token;
+}
+
 export async function getMetaDefaults(ctx: ToolContext) {
   const { meta_defaults } = await loadStoredState(ctx);
   const stored = (meta_defaults ?? {}) as {
