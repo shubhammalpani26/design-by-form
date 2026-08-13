@@ -19,15 +19,15 @@ const json = (body: unknown, status = 200) =>
  */
 const PRICE_BOOK: Record<string, Record<string, { label: string; usd: number }>> = {
   "pet-silhouette-keepsake": {
-    petite: { label: "Petite — 120 mm", usd: 59 },
-    standard: { label: "Standard — 140 mm", usd: 89 },
-    statement: { label: "Statement — 196 mm", usd: 139 },
+    petite: { label: "Petite — 120 mm tall", usd: 59 },
+    standard: { label: "Standard — 140 mm tall", usd: 89 },
+    statement: { label: "Statement — 196 mm tall", usd: 139 },
   },
   "nursery-name-date": {
-    standard: { label: "Standard — 210 mm", usd: 54 },
+    standard: { label: "Standard — 210 mm wide", usd: 54 },
   },
   "wedding-coordinates": {
-    standard: { label: "Standard — 215 mm", usd: 79 },
+    standard: { label: "Standard — 215 mm wide", usd: 79 },
   },
 };
 
