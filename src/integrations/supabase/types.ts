@@ -1426,10 +1426,12 @@ export type Database = {
           amount_usd: number
           created_at: string
           customer_email: string | null
+          group_id: string | null
           id: string
           personalization: Json
           preview_id: string | null
           preview_image_url: string | null
+          quantity: number
           shipping_address: Json | null
           size_key: string
           size_label: string | null
@@ -1443,10 +1445,12 @@ export type Database = {
           amount_usd: number
           created_at?: string
           customer_email?: string | null
+          group_id?: string | null
           id?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          quantity?: number
           shipping_address?: Json | null
           size_key: string
           size_label?: string | null
@@ -1460,10 +1464,12 @@ export type Database = {
           amount_usd?: number
           created_at?: string
           customer_email?: string | null
+          group_id?: string | null
           id?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          quantity?: number
           shipping_address?: Json | null
           size_key?: string
           size_label?: string | null

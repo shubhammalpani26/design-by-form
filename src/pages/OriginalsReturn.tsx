@@ -3,6 +3,7 @@ import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
+import { originalsCart } from "@/lib/originalsCart";
 
 interface OrderView {
   id: string;
@@ -13,10 +14,27 @@ interface OrderView {
   emailMasked: string | null;
 }
 
+interface OrderItem {
+  id: string;
+  skuSlug: string;
+  sizeLabel: string | null;
+  amountUsd: number;
+  quantity: number;
+  previewImageUrl: string | null;
+}
+
+const SKU_NAMES: Record<string, string> = {
+  "pet-silhouette-keepsake": "Pet Sculpture Piece",
+  "nursery-name-date": "Baby Name & Date Piece",
+  "wedding-coordinates": "Wedding Coordinates Piece",
+};
+
 export default function OriginalsReturn() {
   const [params] = useSearchParams();
   const orderId = params.get("order");
+  const groupId = params.get("group");
   const [order, setOrder] = useState<OrderView | null>(null);
+  const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -24,15 +42,16 @@ export default function OriginalsReturn() {
     let tries = 0;
 
     const poll = async () => {
-      if (!orderId) {
+      if (!orderId && !groupId) {
         setLoading(false);
         return;
       }
       const { data } = await supabase.functions.invoke("originals-order-status", {
-        body: { orderId },
+        body: groupId ? { groupId } : { orderId },
       });
       if (stop) return;
       if (data?.order) setOrder(data.order);
+      if (Array.isArray(data?.items)) setItems(data.items);
       setLoading(false);
       tries += 1;
       // The webhook flips the order to "paid" a beat after Stripe redirects back.
@@ -45,9 +64,15 @@ export default function OriginalsReturn() {
     return () => {
       stop = true;
     };
-  }, [orderId]);
+  }, [orderId, groupId]);
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
+  const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;
+
+  // Payment went through — the basket is now an order, so empty it.
+  useEffect(() => {
+    if (paid) originalsCart.clear();
+  }, [paid]);
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
@@ -78,10 +103,14 @@ export default function OriginalsReturn() {
         <>
           <h1 className="mt-3 flex items-center gap-2 text-2xl font-light tracking-tight">
             {paid ? <CheckCircle2 className="h-6 w-6" /> : <Clock className="h-5 w-5 animate-pulse" />}
-            {paid ? "Your piece is confirmed" : "Finishing up your payment…"}
+            {paid
+              ? pieceCount > 1
+                ? `Your ${pieceCount} pieces are confirmed`
+                : "Your piece is confirmed"
+              : "Finishing up your payment…"}
           </h1>
 
-          {order.previewImageUrl && (
+          {items.length <= 1 && order.previewImageUrl && (
             <img
               src={order.previewImageUrl}
               alt="Your personalized piece"
@@ -89,8 +118,34 @@ export default function OriginalsReturn() {
             />
           )}
 
+          {items.length > 1 && (
+            <div className="mt-6 divide-y divide-foreground/10 border border-foreground/10">
+              {items.map((it) => (
+                <div key={it.id} className="flex items-center gap-3 p-3">
+                  {it.previewImageUrl && (
+                    <img
+                      src={it.previewImageUrl}
+                      alt=""
+                      className="h-16 w-16 border border-foreground/10 object-contain"
+                    />
+                  )}
+                  <div className="min-w-0 flex-1 text-sm">
+                    <p className="truncate">{SKU_NAMES[it.skuSlug] ?? "Nyzora piece"}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {it.sizeLabel}
+                      {it.quantity > 1 ? ` · ×${it.quantity}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-sm tabular-nums">${it.amountUsd}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
           <div className="mt-6 space-y-1 text-sm">
-            <p className="tabular-nums">{order.sizeLabel} — ${order.amountUsd}</p>
+            <p className="tabular-nums">
+              {items.length > 1 ? `Total — $${order.amountUsd}` : `${order.sizeLabel} — $${order.amountUsd}`}
+            </p>
             <p className="text-muted-foreground">Order {order.id.slice(0, 8)}</p>
             {order.emailMasked && (
               <p className="text-muted-foreground">Confirmation sent to {order.emailMasked}</p>

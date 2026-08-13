@@ -20,34 +20,49 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => null);
     const orderId = String(body?.orderId ?? "");
-    if (!UUID.test(orderId)) return json({ error: "Invalid order." }, 400);
+    const groupId = String(body?.groupId ?? "");
+    const byGroup = UUID.test(groupId);
+    if (!byGroup && !UUID.test(orderId)) return json({ error: "Invalid order." }, 400);
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL")!,
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const { data: order } = await admin
+    const query = admin
       .from("originals_orders")
-      .select("id, status, sku_slug, size_label, amount_usd, preview_image_url, customer_email, created_at")
-      .eq("id", orderId)
-      .maybeSingle();
+      .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, customer_email, created_at")
+      .order("created_at", { ascending: true });
+    const { data: rows } = byGroup
+      ? await query.eq("group_id", groupId)
+      : await query.eq("id", orderId);
 
+    const order = rows?.[0];
     if (!order) return json({ error: "Order not found." }, 404);
 
     // Only non-sensitive fields; email is masked so a guessed id leaks nothing.
     const email = typeof order.customer_email === "string" ? order.customer_email : null;
+    const items = (rows ?? []).map((r) => ({
+      id: r.id,
+      skuSlug: r.sku_slug,
+      sizeLabel: r.size_label,
+      amountUsd: r.amount_usd,
+      quantity: r.quantity ?? 1,
+      previewImageUrl: r.preview_image_url,
+      status: r.status,
+    }));
     return json({
       order: {
         id: order.id,
         status: order.status,
         skuSlug: order.sku_slug,
         sizeLabel: order.size_label,
-        amountUsd: order.amount_usd,
+        amountUsd: items.reduce((sum, i) => sum + Number(i.amountUsd ?? 0), 0),
         previewImageUrl: order.preview_image_url,
         emailMasked: email ? email.replace(/^(.).*(@.*)$/, "$1•••$2") : null,
         createdAt: order.created_at,
       },
+      items,
     });
   } catch (e) {
     console.error("originals-order-status error", e);
