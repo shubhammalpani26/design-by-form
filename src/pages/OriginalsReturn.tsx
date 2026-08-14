@@ -33,6 +33,7 @@ export default function OriginalsReturn() {
   const [params] = useSearchParams();
   const orderId = params.get("order");
   const groupId = params.get("group");
+  const provider = params.get("provider");
   const [order, setOrder] = useState<OrderView | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,6 +46,12 @@ export default function OriginalsReturn() {
       if (!orderId && !groupId) {
         setLoading(false);
         return;
+      }
+      // Cashfree redirects back before its webhook lands — confirm with the
+      // gateway directly so the buyer never sees a stale "pending".
+      if (provider === "cashfree" && groupId && tries === 0) {
+        await supabase.functions.invoke("cashfree-verify", { body: { groupId } });
+        if (stop) return;
       }
       const { data } = await supabase.functions.invoke("originals-order-status", {
         body: groupId ? { groupId } : { orderId },
@@ -64,7 +71,7 @@ export default function OriginalsReturn() {
     return () => {
       stop = true;
     };
-  }, [orderId, groupId]);
+  }, [orderId, groupId, provider]);
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
   const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;

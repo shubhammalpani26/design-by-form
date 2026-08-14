@@ -11,6 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@cashfreepayments/cashfree-js": "^1.0.7",
     "@google/model-viewer": "^4.1.0",
     "@hookform/resolvers": "^3.10.0",
     "@huggingface/transformers": "^3.7.5",
