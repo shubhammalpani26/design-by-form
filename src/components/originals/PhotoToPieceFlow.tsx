@@ -258,6 +258,15 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       skuSlug: sku.slug,
       metadata: { sizeKey, price: selectedSize.price, pieces: basketCount },
     });
+    if (PAYMENT_PROVIDER === "cashfree") {
+      setCashfreeOpen(true);
+      setCheckingOut(false);
+      trackExperiment("reveal_screen", revealVariant, "checkout_opened", { skuSlug: sku.slug });
+      requestAnimationFrame(() =>
+        checkoutRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }),
+      );
+      return;
+    }
     try {
       const { data, error } = await supabase.functions.invoke("originals-checkout", {
         body: {
@@ -627,7 +636,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
 
           <div ref={checkoutRef}>
-            {clientSecret ? (
+            {clientSecret || cashfreeOpen ? (
               <div className="mt-5 border-t border-border pt-5">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
@@ -635,14 +644,22 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => setClientSecret(null)}
+                    onClick={() => { setClientSecret(null); setCashfreeOpen(false); }}
                     className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
                   >
                     Change
                   </button>
                 </div>
                 <div className="mt-4">
-                  <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
+                  {clientSecret ? (
+                    <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
+                  ) : (
+                    <CashfreeCheckout
+                      items={basketLines.map((l) => ({ ...l, quantity: l.quantity ?? 1 }))}
+                      returnUrl={`${window.location.origin}/originals/checkout/return`}
+                      totalUsd={basketTotal}
+                    />
+                  )}
                 </div>
               </div>
             ) : (
