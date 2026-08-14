@@ -1428,9 +1428,12 @@ export type Database = {
           customer_email: string | null
           group_id: string | null
           id: string
+          payment_provider: string
           personalization: Json
           preview_id: string | null
           preview_image_url: string | null
+          provider_order_id: string | null
+          provider_payment_id: string | null
           quantity: number
           shipping_address: Json | null
           size_key: string
@@ -1447,9 +1450,12 @@ export type Database = {
           customer_email?: string | null
           group_id?: string | null
           id?: string
+          payment_provider?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
           quantity?: number
           shipping_address?: Json | null
           size_key: string
@@ -1466,9 +1472,12 @@ export type Database = {
           customer_email?: string | null
           group_id?: string | null
           id?: string
+          payment_provider?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          provider_order_id?: string | null
+          provider_payment_id?: string | null
           quantity?: number
           shipping_address?: Json | null
           size_key?: string
