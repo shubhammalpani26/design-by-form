@@ -14,6 +14,8 @@ import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { OriginalsCheckout } from "./OriginalsCheckout";
+import { CashfreeCheckout } from "./CashfreeCheckout";
+import { PAYMENT_PROVIDER } from "@/lib/payments";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
 
@@ -100,6 +102,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [cashfreeOpen, setCashfreeOpen] = useState(false);
   const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
@@ -225,6 +228,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setPreview(null);
     setPrevPreview(null);
     setClientSecret(null);
+    setCashfreeOpen(false);
     setPhoto(null);
     setHeading("");
     setFootnote("");
