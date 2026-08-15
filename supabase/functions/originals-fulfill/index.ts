@@ -7,6 +7,7 @@ import {
   type PartnerAddress,
   type PartnerPrintItem,
 } from "../_shared/slant3d.ts";
+import { findOriginalsColor } from "../_shared/originalsColors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
