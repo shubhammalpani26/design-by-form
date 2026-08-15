@@ -45,9 +45,9 @@ const PrivacyPolicy = () => {
             <section>
               <h2 className="text-2xl font-bold mb-4">1. Introduction</h2>
               <p className="text-muted-foreground mb-4">
-                Welcome to Parametric Furniture ("we," "our," or "us"). We are committed to protecting your personal information 
-                and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
-                when you visit our website and use our services.
+                Welcome to Nyzora ("we," "our," or "us"). We are committed to protecting your personal information
+                and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information
+                when you visit nyzora.ai, use our design studio, or order a made-to-order piece.
               </p>
               <p className="text-muted-foreground">
                 By using our platform, you agree to the collection and use of information in accordance with this policy. 
@@ -64,12 +64,22 @@ const PrivacyPolicy = () => {
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
                 <li>Register for an account (name, email address, phone number)</li>
-                <li>Sign up as a designer (portfolio URL, design background, bank details for payments)</li>
-                <li>Make a purchase (shipping address, payment information)</li>
+                <li>Sign up as a Creator (portfolio URL, design background, bank details for payouts)</li>
+                <li>Place an order (shipping address, contact phone, and payment details handled by our payment provider)</li>
+                <li>Personalise a piece (photos you upload, plus heading and footnote text you choose to engrave)</li>
+                <li>Describe a design in the studio (text prompts, sketches, and space photos you upload)</li>
                 <li>Contact us for support or inquiries</li>
               </ul>
 
-              <h3 className="text-xl font-semibold mb-3">2.2 Automatically Collected Information</h3>
+              <h3 className="text-xl font-semibold mb-3">2.2 Photos and Design Inputs</h3>
+              <p className="text-muted-foreground mb-4">
+                Photos you upload — including pet photos and photos of your space — are stored in private storage.
+                They are used only to generate your preview and, if you order, to produce your piece. They are never
+                published on the site, never sold, and never used to train AI models. You can ask us to delete them at
+                any time by emailing contact@nyzora.ai.
+              </p>
+
+              <h3 className="text-xl font-semibold mb-3">2.3 Automatically Collected Information</h3>
               <p className="text-muted-foreground mb-4">
                 When you access our platform, we automatically collect certain information including:
               </p>
@@ -90,9 +100,11 @@ const PrivacyPolicy = () => {
                 <li>Provide, operate, and maintain our platform</li>
                 <li>Process your transactions and manage your orders</li>
                 <li>Create and manage your account</li>
+                <li>Generate design previews and 3D models from your prompts and uploaded photos</li>
+                <li>Track and manage credit balances used for AI generations</li>
                 <li>Send you notifications about your orders, products, and account</li>
-                <li>Process designer applications and manage designer accounts</li>
-                <li>Calculate and distribute earnings to designers</li>
+                <li>Process Creator applications and manage Creator accounts</li>
+                <li>Calculate and distribute earnings to Creators</li>
                 <li>Improve and personalize your experience</li>
                 <li>Communicate with you about updates, promotions, and support</li>
                 <li>Detect, prevent, and address technical issues or fraud</li>
@@ -113,16 +125,20 @@ const PrivacyPolicy = () => {
                 We share information with service providers who help us operate our platform, including:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2 mb-4">
-                <li>Payment processors (for secure payment handling)</li>
+                <li>Payment processors (for secure payment handling — card details are entered on their systems, not ours)</li>
+                <li>Manufacturing and logistics partners (your name, shipping address, and the files needed to make and ship your piece)</li>
+                <li>AI service providers (your prompts and uploaded images, solely to generate your previews and models)</li>
                 <li>Email service providers (for transactional and marketing emails)</li>
-                <li>Cloud hosting services (for data storage and processing)</li>
+                <li>Cloud hosting and storage services (for data storage and processing)</li>
                 <li>Analytics providers (to understand platform usage)</li>
               </ul>
 
-              <h3 className="text-xl font-semibold mb-3">4.3 Designers and Customers</h3>
+              <h3 className="text-xl font-semibold mb-3">4.3 Creators and Customers</h3>
               <p className="text-muted-foreground mb-4">
-                When you purchase a product, we share necessary information with the designer (your name and shipping details) 
-                to fulfill the order. Designer profiles and products are publicly visible on our platform.
+                When you purchase a product, we share only the information needed to fulfil the order with the parties
+                involved in making and shipping it. Creator profiles, listed products, and community posts are publicly
+                visible on our platform. Reviews you submit are published with the name and location you provide, and only
+                after approval.
               </p>
 
               <h3 className="text-xl font-semibold mb-3">4.4 Legal Requirements</h3>
@@ -137,10 +153,10 @@ const PrivacyPolicy = () => {
                 We implement appropriate technical and organizational security measures to protect your personal information, including:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                <li>Encryption of data in transit and at rest</li>
-                <li>Regular security audits and assessments</li>
-                <li>Access controls and authentication mechanisms</li>
-                <li>Secure payment processing through certified providers</li>
+                <li>Encrypted connections (HTTPS) for data in transit</li>
+                <li>Row-level access controls so your data is only visible to you and authorised staff</li>
+                <li>Private storage buckets for uploaded photos and generated files</li>
+                <li>Payment processing handled by certified providers — we do not store card numbers</li>
               </ul>
               <p className="text-muted-foreground mt-4">
                 However, no method of transmission over the internet is 100% secure. While we strive to protect your data, 
@@ -190,6 +206,10 @@ const PrivacyPolicy = () => {
                 We retain your personal information only for as long as necessary to fulfill the purposes outlined in this policy, 
                 comply with legal obligations, resolve disputes, and enforce our agreements. When we no longer need your information, 
                 we will securely delete or anonymize it.
+              </p>
+              <p className="text-muted-foreground mt-4">
+                Uploaded photos and generated design files are kept while your account or order is active so you can revisit
+                your designs and so we can support remakes. Email contact@nyzora.ai to have them deleted sooner.
               </p>
             </section>
 
