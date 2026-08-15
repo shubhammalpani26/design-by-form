@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { cashfreeConfigured, cashfreeMode, createCashfreeOrder } from "../_shared/cashfree.ts";
+import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,22 +14,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-/** Server-side price book — retail prices are never taken from the client. */
-const PRICE_BOOK: Record<string, Record<string, { label: string; usd: number }>> = {
-  "pet-silhouette-keepsake": {
-    petite: { label: "Petite — 120 mm tall", usd: 59 },
-    standard: { label: "Standard — 140 mm tall", usd: 89 },
-    statement: { label: "Statement — 196 mm tall", usd: 139 },
-  },
-  "nursery-name-date": { standard: { label: "Standard — 210 mm wide", usd: 54 } },
-  "wedding-coordinates": { standard: { label: "Standard — 215 mm wide", usd: 79 } },
-};
-
-const NAMES: Record<string, string> = {
-  "pet-silhouette-keepsake": "Pet Sculpture Piece",
-  "nursery-name-date": "Baby Name & Date Piece",
-  "wedding-coordinates": "Wedding Coordinates Piece",
-};
+const NAMES = SKU_NAMES;
 
 const MAX_LINES = 10;
 const MAX_QTY = 10;
@@ -99,6 +85,21 @@ Deno.serve(async (req) => {
     });
     if (lines.some((l) => !l.size)) return json({ error: "That option isn't available." }, 400);
 
+    // Real manufacturing quote per line, with the agreed list price as a net.
+    const quotes = await Promise.all(
+      lines.map((l) =>
+        quoteLine(admin, { skuSlug: l.skuSlug, sizeKey: l.sizeKey, previewId: l.previewId })
+          .catch(() => null)
+      ),
+    );
+    const priced = lines.map((l, i) => ({
+      ...l,
+      unitUsd: quotes[i]?.unitUsd ?? l.size!.usd,
+      quoteSource: quotes[i]?.source ?? "list",
+      partnerCostUsd: quotes[i]?.partnerCostUsd ?? null,
+      printFileUrl: quotes[i]?.printFileUrl ?? null,
+    }));
+
     let userId: string | null = null;
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     if (token) {
@@ -137,7 +138,7 @@ Deno.serve(async (req) => {
       },
     };
 
-    const rows = lines.map((l) => {
+    const rows = priced.map((l) => {
       const preview = l.previewId ? previewMap.get(l.previewId) : undefined;
       const matched = preview && preview.sku === l.skuSlug ? preview : undefined;
       return {
@@ -147,8 +148,11 @@ Deno.serve(async (req) => {
         sku_slug: l.skuSlug,
         size_key: l.sizeKey,
         size_label: l.size!.label,
-        amount_usd: l.size!.usd * l.quantity,
+        amount_usd: l.unitUsd * l.quantity,
         quantity: l.quantity,
+        quote_source: l.quoteSource,
+        partner_cost_usd: l.partnerCostUsd,
+        print_file_url: l.printFileUrl,
         personalization: matched?.personalization ?? {},
         preview_image_url: matched?.url ?? null,
         status: "pending",
@@ -167,8 +171,8 @@ Deno.serve(async (req) => {
       return json({ error: "We couldn't start your order. Please try again." }, 500);
     }
 
-    const totalPieces = lines.reduce((n, l) => n + l.quantity, 0);
-    const totalUsd = lines.reduce((sum, l) => sum + l.size!.usd * l.quantity, 0);
+    const totalPieces = priced.reduce((n, l) => n + l.quantity, 0);
+    const totalUsd = priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0);
     const note = totalPieces === 1
       ? `${NAMES[lines[0].skuSlug] ?? "Nyzora Original"} — ${lines[0].size!.label}`
       : `Nyzora Originals — ${totalPieces} pieces`;
