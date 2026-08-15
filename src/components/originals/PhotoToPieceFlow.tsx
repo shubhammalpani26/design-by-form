@@ -19,21 +19,16 @@ import { PAYMENT_PROVIDER } from "@/lib/payments";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
+import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
 /** One-tap corrections buyers ask for most, per flow. */
 /** Single-material colours — the piece is printed in one filament, never two-tone. */
-const COLORS = [
-  { key: "bone", label: "Bone White", swatch: "#EDE7DC", prompt: "warm bone white" },
-  { key: "charcoal", label: "Charcoal Black", swatch: "#2A2A2A", prompt: "deep charcoal black" },
-  { key: "sand", label: "Sand", swatch: "#CDB89A", prompt: "soft sand beige" },
-  { key: "slate", label: "Slate Grey", swatch: "#7C848C", prompt: "cool slate grey" },
-  { key: "terracotta", label: "Terracotta", swatch: "#B4653F", prompt: "muted terracotta" },
-] as const;
+const COLORS = ORIGINALS_COLORS;
 
 const colorClause = (key: string) => {
-  const c = COLORS.find((x) => x.key === key) ?? COLORS[0];
+  const c = findOriginalsColor(key);
   return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the engraving reads through carved shadow only.`;
 };
 
@@ -181,6 +176,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           personalization: {
             ...personalization,
             color: activeColor,
+            colorLabel: findOriginalsColor(activeColor).label,
+            filament: findOriginalsColor(activeColor).filament,
+            filamentId: findOriginalsColor(activeColor).filamentId,
             ...(isTweak ? { tweak: tweakText.trim() } : {}),
           },
           ...(mode === "photo" && photo ? { sourceImage: photo.dataUrl } : {}),
