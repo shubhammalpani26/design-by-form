@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import type { User, Session } from "@supabase/supabase-js";
@@ -153,11 +154,13 @@ const Auth = () => {
     setLoading(true);
     try {
       const returnTo = getReturnToPath();
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: `${window.location.origin}${returnTo}` },
+      sessionStorage.setItem("nyzora_return_to", returnTo);
+      const result = await lovable.auth.signInWithOAuth("google", {
+        redirect_uri: window.location.origin,
       });
-      if (error) throw error;
+      if (result.error) throw result.error;
+      if (result.redirected) return;
+      window.location.href = returnTo;
     } catch (error: any) {
       toast({ title: "Google sign in failed", description: error.message || "Please try again.", variant: "destructive" });
       setLoading(false);

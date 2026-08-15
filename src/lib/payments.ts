@@ -8,4 +8,4 @@
  */
 export type PaymentProvider = "stripe" | "cashfree";
 
-export const PAYMENT_PROVIDER: PaymentProvider = "cashfree";
+export const PAYMENT_PROVIDER: PaymentProvider = "stripe";
