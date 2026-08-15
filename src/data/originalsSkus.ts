@@ -80,14 +80,14 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     tagline: "The first thing they ever owned with their name on it.",
     description:
       "Two soft dunes rising out of a single solid block — one tall, one low — carved with gentle concentric contour ridges that wrap the whole form. The taller dune opens onto a smooth, unbroken face where the name is engraved in fine capitals, with the date set quietly below on the lower dune. Rounded and hand-warm rather than architectural, so it reads as a sculpture first and a keepsake second.",
-    price: 54,
+    price: 60,
     image: nurseryImg,
-    dimensions: "210 × 118 × 55 mm",
+    dimensions: "157 × 147 × 43 mm",
     fields: [
       { key: "heading", label: "Heading", placeholder: "OLIVER", maxLength: HEADING_MAX, hint: "Engraved on the tall dune" },
       { key: "footnote", label: "Footnote", placeholder: "12.05.2024", maxLength: FOOTNOTE_MAX, hint: "Birth date or a short line" },
     ],
-    sizes: [{ key: "standard", label: "Standard", size: "210 mm wide", price: 54 }],
+    sizes: [{ key: "standard", label: "Standard", size: "155 mm wide", price: 60 }],
     promptTemplate: (v) =>
       `A fully three-dimensional matte sculptural object in landscape horizontal format, wider than tall: two soft overlapping dunes swelling out of one solid mass, the left dune tall and rounded, the right dune low and broad, their shoulders merging into each other with generous fillets. Gentle concentric contour ridges wrap around each dune like topographic lines, catching soft shadow, deliberate and even. The face of the tall dune is left smooth and unridged as a clean sculpted panel, engraved with the heading "${(v.heading || v.childName || "OLIVER").toUpperCase()}" in fine thin widely-tracked sans-serif capitals, with the smaller footnote "${v.footnote || v.date || "12.05.2024"}" engraved on the low dune beneath. Three-quarter view showing real depth front to back. Monolithic single part, generous wall thickness, no arch, no tombstone or headstone silhouette, no lattice, no perforations, no thin unsupported spans, no separate base slab — the form flows straight into a flat stable footprint. Studio lighting, clean neutral background, minimal luxury editorial styling.`,
   },
@@ -97,14 +97,14 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     tagline: "The exact place it happened, made into an object.",
     description:
       "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth recessed band runs across the front, engraved with your coordinates and the date. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close.",
-    price: 79,
+    price: 85,
     image: weddingImg,
-    dimensions: "215 × 105 × 60 mm",
+    dimensions: "154 × 174 × 56 mm",
     fields: [
       { key: "heading", label: "Heading", placeholder: "40.7128° N, 74.0060° W", maxLength: FOOTNOTE_MAX, hint: "Coordinates, a place or two names" },
       { key: "footnote", label: "Footnote", placeholder: "06.23.24", maxLength: FOOTNOTE_MAX, hint: "The date, engraved below" },
     ],
-    sizes: [{ key: "standard", label: "Standard", size: "215 mm wide", price: 79 }],
+    sizes: [{ key: "standard", label: "Standard", size: "155 mm wide", price: 85 }],
     promptTemplate: (v) =>
       `A fully three-dimensional matte sculptural object in landscape horizontal format, wider than tall: two smooth sculpted waves rising out of one solid mass and leaning toward each other until their crests meet and merge into a single continuous surface, fused with a generous fillet where they touch — one unbroken piece, never two separate parts, no gap, no opening, no hole through the form. Soft sweeping surfaces with a slow carved swell, quiet and confident. Across the front, where the two waves meet, runs one flat polished horizontal band engraved with "${v.heading || v.coordinates || "40.7128° N, 74.0060° W"}" in fine thin sans-serif capitals and the smaller footnote "${v.footnote || v.date || "06.23.24"}" engraved beneath it. Three-quarter view showing real depth front to back. Monolithic single part, thick and weighty, no arch, no tombstone or headstone silhouette, no lattice, no perforations, no thin unsupported spans, flat stable base. Studio lighting, clean neutral background, minimal luxury editorial styling.`,
   },

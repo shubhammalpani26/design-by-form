@@ -1,0 +1,2 @@
+UPDATE public.originals_print_models SET stl_url = 'https://rdcfakdhgndnhgzfkuvw.supabase.co/storage/v1/object/public/3d-models/originals%2Fnursery-name-date-standard-v2.stl' WHERE sku_slug = 'nursery-name-date' AND size_key = 'standard';
+UPDATE public.originals_print_models SET stl_url = 'https://rdcfakdhgndnhgzfkuvw.supabase.co/storage/v1/object/public/3d-models/originals%2Fwedding-coordinates-standard-v2.stl' WHERE sku_slug = 'wedding-coordinates' AND size_key = 'standard';

@@ -25,10 +25,10 @@ export const PRICE_BOOK: Record<string, Record<string, SizeEntry>> = {
     statement: { label: "Statement — 196 mm tall", usd: 139 },
   },
   "nursery-name-date": {
-    standard: { label: "Standard — 210 mm wide", usd: 54 },
+    standard: { label: "Standard — 155 mm wide", usd: 60 },
   },
   "wedding-coordinates": {
-    standard: { label: "Standard — 215 mm wide", usd: 79 },
+    standard: { label: "Standard — 155 mm wide", usd: 85 },
   },
 };
 

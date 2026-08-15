@@ -1,0 +1,1 @@
+DELETE FROM public.originals_quotes WHERE sku_slug IN ('nursery-name-date','wedding-coordinates');
