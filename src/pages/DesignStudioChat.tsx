@@ -946,7 +946,7 @@ export default function DesignStudioChat() {
   async function runUsQuote(messageId: string, modelUrl: string, taskId?: string) {
     const base = { kind: "3d-result", status: "ready", modelUrl, taskId };
     try {
-      const { data, error } = await supabase.functions.invoke("slant3d-quote", {
+      const { data, error } = await supabase.functions.invoke("manufacturing-quote", {
         body: { file_url: modelUrl },
       });
       const err = (error as any)?.message ?? (data as any)?.error;
