@@ -1424,67 +1424,91 @@ export type Database = {
       originals_orders: {
         Row: {
           amount_usd: number
+          carrier: string | null
           created_at: string
           customer_email: string | null
+          delivered_at: string | null
+          fulfillment_error: string | null
           group_id: string | null
           id: string
+          partner_order_id: string | null
           payment_provider: string
           personalization: Json
           preview_id: string | null
           preview_image_url: string | null
+          print_file_url: string | null
+          production_status: string
           provider_order_id: string | null
           provider_payment_id: string | null
           quantity: number
+          shipped_at: string | null
           shipping_address: Json | null
           size_key: string
           size_label: string | null
           sku_slug: string
           status: string
           stripe_session_id: string | null
+          tracking_numbers: string[]
           updated_at: string
           user_id: string | null
         }
         Insert: {
           amount_usd: number
+          carrier?: string | null
           created_at?: string
           customer_email?: string | null
+          delivered_at?: string | null
+          fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          partner_order_id?: string | null
           payment_provider?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          print_file_url?: string | null
+          production_status?: string
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
+          shipped_at?: string | null
           shipping_address?: Json | null
           size_key: string
           size_label?: string | null
           sku_slug: string
           status?: string
           stripe_session_id?: string | null
+          tracking_numbers?: string[]
           updated_at?: string
           user_id?: string | null
         }
         Update: {
           amount_usd?: number
+          carrier?: string | null
           created_at?: string
           customer_email?: string | null
+          delivered_at?: string | null
+          fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          partner_order_id?: string | null
           payment_provider?: string
           personalization?: Json
           preview_id?: string | null
           preview_image_url?: string | null
+          print_file_url?: string | null
+          production_status?: string
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
+          shipped_at?: string | null
           shipping_address?: Json | null
           size_key?: string
           size_label?: string | null
           sku_slug?: string
           status?: string
           stripe_session_id?: string | null
+          tracking_numbers?: string[]
           updated_at?: string
           user_id?: string | null
         }

@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
 
     const query = admin
       .from("originals_orders")
-      .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, customer_email, created_at")
+      .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, customer_email, created_at, production_status, tracking_numbers, shipped_at, delivered_at")
       .order("created_at", { ascending: true });
     const { data: rows } = byGroup
       ? await query.eq("group_id", groupId)
@@ -51,6 +51,13 @@ Deno.serve(async (req) => {
       previewImageUrl: r.preview_image_url,
       status: r.status,
     }));
+
+    // Shipping happens per order group, so tracking is shared across pieces.
+    const tracking = Array.from(
+      new Set((rows ?? []).flatMap((r) => (r.tracking_numbers as string[] | null) ?? [])),
+    );
+    const shipped = (rows ?? []).find((r) => r.shipped_at)?.shipped_at ?? null;
+    const delivered = (rows ?? []).find((r) => r.delivered_at)?.delivered_at ?? null;
     return json({
       order: {
         id: order.id,
@@ -61,6 +68,10 @@ Deno.serve(async (req) => {
         previewImageUrl: order.preview_image_url,
         emailMasked: email ? email.replace(/^(.).*(@.*)$/, "$1•••$2") : null,
         createdAt: order.created_at,
+        productionStatus: order.production_status ?? "queued",
+        trackingNumbers: tracking,
+        shippedAt: shipped,
+        deliveredAt: delivered,
       },
       items,
     });

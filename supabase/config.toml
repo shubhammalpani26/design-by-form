@@ -122,3 +122,9 @@ verify_jwt = false
 
 [functions.handle-email-suppression]
 verify_jwt = false
+
+[functions.originals-fulfill]
+verify_jwt = false
+
+[functions.originals-tracking-sync]
+verify_jwt = false

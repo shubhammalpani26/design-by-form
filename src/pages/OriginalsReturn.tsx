@@ -171,7 +171,10 @@ export default function OriginalsReturn() {
             doesn't match the render you approved we remake it free.
           </div>
 
-          <Link to="/" className="mt-8 inline-block text-sm underline">Back to Nyzora</Link>
+          <div className="mt-8 flex flex-wrap items-center gap-5 text-sm">
+            <Link to="/orders" className="border border-foreground px-5 py-2">Track this order</Link>
+            <Link to="/" className="underline">Back to Nyzora</Link>
+          </div>
         </>
       )}
     </main>
