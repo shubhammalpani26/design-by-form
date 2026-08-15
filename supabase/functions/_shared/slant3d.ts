@@ -384,6 +384,17 @@ export function fallbackShippingUsd(metrics?: PartnerFile["STLMetrics"]): number
 }
 
 /**
+ * Short, stable fingerprint of a file url. The partner de-duplicates uploads by
+ * name, so two different revisions of the same piece must not share one.
+ */
+async function fileFingerprint(fileUrl: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(fileUrl));
+  return Array.from(new Uint8Array(digest).slice(0, 4))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+/**
  * Landed unit cost in USD (print + shipping) for a single piece, using a
  * reference US destination. Falls back to print-only when the partner cannot
  * estimate shipping.
@@ -401,9 +412,15 @@ export async function estimateLandedUnitCost(
   filamentId?: string;
   metrics?: PartnerFile["STLMetrics"];
 }> {
-  const file = await uploadPrintFile(fileUrl, { name: itemName });
+  const file = await uploadPrintFile(fileUrl, {
+    name: `${itemName} ${await fileFingerprint(fileUrl)}`,
+  });
   const filamentId = await resolveFilamentId(color);
   const printUsd = await estimateFilePrice(file.publicFileServiceId, filamentId);
+  console.log("partner slice", itemName, {
+    printUsd,
+    metrics: file.STLMetrics,
+  });
 
   try {
     const draft = await draftOrder(
