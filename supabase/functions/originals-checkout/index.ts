@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { type StripeEnv, createStripeClient } from "../_shared/stripe.ts";
+import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,29 +14,7 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
-/**
- * Server-side price book. Retail prices are never taken from the client.
- * Free US shipping is baked into these numbers.
- */
-const PRICE_BOOK: Record<string, Record<string, { label: string; usd: number }>> = {
-  "pet-silhouette-keepsake": {
-    petite: { label: "Petite — 120 mm tall", usd: 59 },
-    standard: { label: "Standard — 140 mm tall", usd: 89 },
-    statement: { label: "Statement — 196 mm tall", usd: 139 },
-  },
-  "nursery-name-date": {
-    standard: { label: "Standard — 210 mm wide", usd: 54 },
-  },
-  "wedding-coordinates": {
-    standard: { label: "Standard — 215 mm wide", usd: 79 },
-  },
-};
-
-const NAMES: Record<string, string> = {
-  "pet-silhouette-keepsake": "Pet Sculpture Piece",
-  "nursery-name-date": "Baby Name & Date Piece",
-  "wedding-coordinates": "Wedding Coordinates Piece",
-};
+const NAMES = SKU_NAMES;
 
 const MAX_LINES = 10;
 const MAX_QTY = 10;
@@ -82,6 +61,25 @@ Deno.serve(async (req) => {
 
     if (lines.some((l) => !l.size)) return json({ error: "That option isn't available." }, 400);
 
+    // Price every line against the real production file with our US partner.
+    // A partner outage silently falls back to the agreed list price.
+    const quotes = await Promise.all(
+      lines.map((l) =>
+        quoteLine(admin, { skuSlug: l.skuSlug, sizeKey: l.sizeKey, previewId: l.previewId })
+          .catch(() => null)
+      ),
+    );
+    const priced = lines.map((l, i) => {
+      const q = quotes[i];
+      return {
+        ...l,
+        unitUsd: q?.unitUsd ?? l.size!.usd,
+        quoteSource: q?.source ?? "list",
+        partnerCostUsd: q?.partnerCostUsd ?? null,
+        printFileUrl: q?.printFileUrl ?? null,
+      };
+    });
+
     let userId: string | null = null;
     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
     if (token) {
@@ -108,7 +106,7 @@ Deno.serve(async (req) => {
 
     const groupId = crypto.randomUUID();
 
-    const rows = lines.map((l) => {
+    const rows = priced.map((l) => {
       const preview = l.previewId ? previewMap.get(l.previewId) : undefined;
       const matched = preview && preview.sku === l.skuSlug ? preview : undefined;
       return {
@@ -118,8 +116,11 @@ Deno.serve(async (req) => {
         sku_slug: l.skuSlug,
         size_key: l.sizeKey,
         size_label: l.size!.label,
-        amount_usd: l.size!.usd * l.quantity,
+        amount_usd: l.unitUsd * l.quantity,
         quantity: l.quantity,
+        quote_source: l.quoteSource,
+        partner_cost_usd: l.partnerCostUsd,
+        print_file_url: l.printFileUrl,
         personalization: matched?.personalization ?? {},
         preview_image_url: matched?.url ?? null,
         status: "pending",
@@ -137,7 +138,7 @@ Deno.serve(async (req) => {
 
     const stripe = createStripeClient(environment);
 
-    const lineItems = lines.map((l, i) => {
+    const lineItems = priced.map((l, i) => {
       const row = orders[i];
       const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}`;
       const detail = Object.entries((row?.personalization as Record<string, unknown>) ?? {})
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
         quantity: l.quantity,
         price_data: {
           currency: "usd",
-          unit_amount: Math.round(l.size!.usd * 100),
+          unit_amount: Math.round(l.unitUsd * 100),
           product_data: {
             name: describedName,
             description: detail || "Made to order in the USA. Free shipping.",

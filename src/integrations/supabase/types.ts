@@ -1431,6 +1431,7 @@ export type Database = {
           fulfillment_error: string | null
           group_id: string | null
           id: string
+          partner_cost_usd: number | null
           partner_order_id: string | null
           payment_provider: string
           personalization: Json
@@ -1441,6 +1442,7 @@ export type Database = {
           provider_order_id: string | null
           provider_payment_id: string | null
           quantity: number
+          quote_source: string | null
           shipped_at: string | null
           shipping_address: Json | null
           size_key: string
@@ -1461,6 +1463,7 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          partner_cost_usd?: number | null
           partner_order_id?: string | null
           payment_provider?: string
           personalization?: Json
@@ -1471,6 +1474,7 @@ export type Database = {
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
+          quote_source?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           size_key: string
@@ -1491,6 +1495,7 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          partner_cost_usd?: number | null
           partner_order_id?: string | null
           payment_provider?: string
           personalization?: Json
@@ -1501,6 +1506,7 @@ export type Database = {
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
+          quote_source?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           size_key?: string
@@ -1530,6 +1536,7 @@ export type Database = {
           ip_hash: string | null
           personalization: Json
           preview_image_url: string | null
+          print_file_url: string | null
           sku_slug: string
           source_image_url: string | null
           user_id: string | null
@@ -1541,6 +1548,7 @@ export type Database = {
           ip_hash?: string | null
           personalization?: Json
           preview_image_url?: string | null
+          print_file_url?: string | null
           sku_slug: string
           source_image_url?: string | null
           user_id?: string | null
@@ -1552,9 +1560,94 @@ export type Database = {
           ip_hash?: string | null
           personalization?: Json
           preview_image_url?: string | null
+          print_file_url?: string | null
           sku_slug?: string
           source_image_url?: string | null
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      originals_print_models: {
+        Row: {
+          active: boolean
+          created_at: string
+          filament: string | null
+          id: string
+          notes: string | null
+          size_key: string
+          sku_slug: string
+          stl_url: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          filament?: string | null
+          id?: string
+          notes?: string | null
+          size_key: string
+          sku_slug: string
+          stl_url: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          filament?: string | null
+          id?: string
+          notes?: string | null
+          size_key?: string
+          sku_slug?: string
+          stl_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      originals_quotes: {
+        Row: {
+          created_at: string
+          error: string | null
+          feasible: boolean
+          id: string
+          landed_usd: number | null
+          mbp_usd: number | null
+          print_file_url: string
+          print_usd: number | null
+          retail_usd: number | null
+          shipping_usd: number | null
+          size_key: string
+          sku_slug: string
+          source: string
+        }
+        Insert: {
+          created_at?: string
+          error?: string | null
+          feasible?: boolean
+          id?: string
+          landed_usd?: number | null
+          mbp_usd?: number | null
+          print_file_url: string
+          print_usd?: number | null
+          retail_usd?: number | null
+          shipping_usd?: number | null
+          size_key: string
+          sku_slug: string
+          source?: string
+        }
+        Update: {
+          created_at?: string
+          error?: string | null
+          feasible?: boolean
+          id?: string
+          landed_usd?: number | null
+          mbp_usd?: number | null
+          print_file_url?: string
+          print_usd?: number | null
+          retail_usd?: number | null
+          shipping_usd?: number | null
+          size_key?: string
+          sku_slug?: string
+          source?: string
         }
         Relationships: []
       }
