@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
 import { Loader2, Package, Truck, CheckCircle2, Factory, Copy } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { ORIGINALS_SKUS } from "@/data/originalsSkus";
 
 interface OrderRow {
   id: string;
@@ -24,6 +25,11 @@ const SKU_NAMES: Record<string, string> = {
   "nursery-name-date": "Baby Name & Date Piece",
   "wedding-coordinates": "Wedding Coordinates Piece",
 };
+
+/** Catalogue photography, used when an order has no personalised render saved. */
+const SKU_IMAGES: Record<string, string> = Object.fromEntries(
+  ORIGINALS_SKUS.map((s) => [s.slug, s.image]),
+);
 
 const STAGES = [
   { key: "paid", label: "Order confirmed", icon: CheckCircle2 },
