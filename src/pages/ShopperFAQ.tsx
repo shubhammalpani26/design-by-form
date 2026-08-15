@@ -83,7 +83,7 @@ const ShopperFAQ = () => {
                 What is the typical lead time for orders?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Standard pieces are manufactured on-demand with a typical lead time of 21 days. Custom-sized or specially finished pieces may take 28-35 days. We'll provide an accurate timeline when you place your order.
+                Nyzora Originals — our personalised keepsake pieces — go into production within a day of your order, take 2-3 days to make, and typically arrive in 5-7 days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized or specially finished pieces may take 28-35 days. We confirm an accurate timeline when you place your order.
               </AccordionContent>
             </AccordionItem>
 
@@ -119,7 +119,7 @@ const ShopperFAQ = () => {
                 What is your return and refund policy?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Since each piece is made-to-order, we don't accept returns on standard orders unless there's a manufacturing defect or shipping damage. We offer a 14-day quality guarantee. Customized pieces are final sale but we ensure you're happy before manufacturing begins.
+                You approve the render before anything is made. If the delivered piece doesn't materially match the render you approved, or it arrives damaged or defective, send us photographs within 30 days of delivery and we remake and reship at our cost — and refund you if a remake isn't possible. Because every piece is made to order for a single customer, we don't accept change-of-mind cancellations or returns, and personalisation text you supply (spelling, dates, photographs) isn't refundable.
               </AccordionContent>
             </AccordionItem>
 
