@@ -108,6 +108,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [limitReached, setLimitReached] = useState(false);
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
+  // Prices are confirmed against a real manufacturing quote where we can.
+  const { priceFor } = useOriginalsQuotes(sku.slug, preview?.id ?? null);
+  const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
     mode === "photo"
@@ -217,7 +220,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     skuSlug: sku.slug,
     sizeKey,
     sizeLabel: selectedSize.label,
-    price: selectedSize.price,
+    price: selectedPrice,
     productName: sku.name ?? "Nyzora Original",
     previewId: preview?.id ?? null,
     previewUrl: preview?.url ?? null,
@@ -250,13 +253,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     { skuSlug: sku.slug, sizeKey, previewId: preview?.id ?? null, quantity: 1 },
   ];
   const basketCount = cart.count + 1;
-  const basketTotal = cart.total + selectedSize.price;
+  const basketTotal = cart.total + selectedPrice;
 
   const checkout = async () => {
     setCheckingOut(true);
     trackExperiment("reveal_screen", revealVariant, "checkout_click", {
       skuSlug: sku.slug,
-      metadata: { sizeKey, price: selectedSize.price, pieces: basketCount },
+      metadata: { sizeKey, price: selectedPrice, pieces: basketCount },
     });
     if (PAYMENT_PROVIDER === "cashfree") {
       setCashfreeOpen(true);
@@ -627,7 +630,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
-                    <span className="mt-1 block text-sm tabular-nums">${s.price}</span>
+                    <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
                     {s.note && <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">{s.note}</span>}
                   </button>
                 );
@@ -719,7 +722,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {basketCount > 1
                     ? `Check out ${basketCount} pieces — $${basketTotal}`
-                    : reveal.cta(selectedSize.price)}
+                    : reveal.cta(selectedPrice)}
                 </Button>
                 <button
                   type="button"
