@@ -180,10 +180,8 @@ Deno.serve(async (req) => {
     const providerOrderId = `nyz_${groupId.replace(/-/g, "")}`;
     const sep = returnUrl.includes("?") ? "&" : "?";
 
-    const cfOrder = await createCashfreeOrder({
+    const baseOrder = {
       orderId: providerOrderId,
-      amount: totalUsd,
-      currency: "USD",
       note,
       customer: {
         // Cashfree customer ids allow alphanumerics and underscores only.
@@ -195,12 +193,36 @@ Deno.serve(async (req) => {
       returnUrl: `${returnUrl}${sep}group=${groupId}&order=${orders[0].id}&provider=cashfree`,
       notifyUrl: `${SUPABASE_URL}/functions/v1/cashfree-webhook`,
       tags: { group_id: groupId, pieces: String(totalPieces) },
-    });
+    };
+
+    // USD needs the International Payment Gateway on the merchant account. If it
+    // isn't enabled yet, fall back to charging the same order in INR so Indian
+    // cards can pay today. Ledger amounts stay in USD.
+    const usdInr = Number(Deno.env.get("USD_INR_RATE") ?? "") || 89;
+    let cfOrder: { payment_session_id: string };
+    let chargedCurrency: "USD" | "INR" = "USD";
+    let chargedAmount = Number(totalUsd.toFixed(2));
+    try {
+      cfOrder = await createCashfreeOrder({ ...baseOrder, amount: chargedAmount, currency: "USD" });
+    } catch (usdErr) {
+      const msg = String((usdErr as Error)?.message ?? usdErr);
+      if (!/currency/i.test(msg)) throw usdErr;
+      console.warn("USD not enabled on merchant account, retrying in INR", msg);
+      chargedCurrency = "INR";
+      chargedAmount = Math.round(totalUsd * usdInr * 100) / 100;
+      cfOrder = await createCashfreeOrder({
+        ...baseOrder,
+        orderId: `${providerOrderId}i`,
+        amount: chargedAmount,
+        currency: "INR",
+      });
+    }
+    const finalProviderOrderId = chargedCurrency === "INR" ? `${providerOrderId}i` : providerOrderId;
 
     await admin
       .from("originals_orders")
       .update({
-        provider_order_id: providerOrderId,
+        provider_order_id: finalProviderOrderId,
         updated_at: new Date().toISOString(),
       })
       .eq("group_id", groupId);
@@ -210,8 +232,10 @@ Deno.serve(async (req) => {
       mode: cashfreeMode,
       orderId: orders[0].id,
       groupId,
-      providerOrderId,
+      providerOrderId: finalProviderOrderId,
       amountUsd: totalUsd,
+      chargedCurrency,
+      chargedAmount,
     });
   } catch (e) {
     console.error("cashfree-checkout error", e);
