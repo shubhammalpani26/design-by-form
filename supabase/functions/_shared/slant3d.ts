@@ -356,6 +356,34 @@ const REFERENCE_US_DESTINATION: PartnerAddress = {
 };
 
 /**
+ * Domestic ground shipping we assume when the partner cannot return a live
+ * delivery cost. Never assume zero — shipping is real money and we advertise
+ * free delivery, so an unpriced leg would silently eat the margin.
+ * Figures are ground-parcel rates for a boxed piece from the Boise origin.
+ */
+const SHIP_BASE_USD = 7.5; // handling + box + first 250 g
+const SHIP_PER_KG_USD = 4.0;
+const SHIP_MIN_USD = 8.0;
+const SHIP_MAX_USD = 22.0;
+/** Packed density of a boxed FDM print, used when only volume is known. */
+const GRAMS_PER_CM3 = 0.55;
+
+/**
+ * Conservative shipping estimate (USD) from the piece's own geometry.
+ * Weight comes from the partner's slicer metrics when available.
+ */
+export function fallbackShippingUsd(metrics?: PartnerFile["STLMetrics"]): number {
+  const grams = metrics?.weight && metrics.weight > 0
+    ? metrics.weight
+    : metrics?.volume && metrics.volume > 0
+    ? metrics.volume * GRAMS_PER_CM3
+    : 350;
+  const kg = grams / 1000;
+  const raw = SHIP_BASE_USD + Math.max(0, kg - 0.25) * SHIP_PER_KG_USD;
+  return Math.round(Math.min(SHIP_MAX_USD, Math.max(SHIP_MIN_USD, raw)) * 100) / 100;
+}
+
+/**
  * Landed unit cost in USD (print + shipping) for a single piece, using a
  * reference US destination. Falls back to print-only when the partner cannot
  * estimate shipping.
@@ -386,11 +414,16 @@ export async function estimateLandedUnitCost(
       // Free the draft so it never lingers on the partner dashboard.
       cancelOrder(draft.publicId).catch(() => {});
       const printCost = draft.printingCost > 0 ? draft.printingCost : printUsd;
+      // A zero delivery cost means the partner did not price the leg, not that
+      // shipping is free to us — substitute the weight-based estimate.
+      const shipCost = draft.deliveryCost > 0
+        ? draft.deliveryCost
+        : fallbackShippingUsd(file.STLMetrics);
       return {
-        landedUsd: draft.total,
+        landedUsd: Math.round((printCost + shipCost) * 100) / 100,
         printUsd: printCost,
-        shippingUsd: Math.max(0, Math.round((draft.total - printCost) * 100) / 100),
-        estimated: true,
+        shippingUsd: Math.round(shipCost * 100) / 100,
+        estimated: draft.deliveryCost > 0,
         fileId: file.publicFileServiceId,
         filamentId,
         metrics: file.STLMetrics,
@@ -400,10 +433,13 @@ export async function estimateLandedUnitCost(
     /* shipping estimate unavailable — fall back to print-only cost */
   }
 
+  // No live delivery cost: price the shipping leg from the piece's own weight
+  // rather than pretending it is free.
+  const shippingUsd = fallbackShippingUsd(file.STLMetrics);
   return {
-    landedUsd: printUsd,
+    landedUsd: Math.round((printUsd + shippingUsd) * 100) / 100,
     printUsd,
-    shippingUsd: 0,
+    shippingUsd,
     estimated: false,
     fileId: file.publicFileServiceId,
     filamentId,

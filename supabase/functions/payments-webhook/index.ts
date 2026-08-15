@@ -291,6 +291,18 @@ async function fulfilOriginalsOrder(session: any) {
   }
 
   await sendOriginalsReceipt(email, orders);
+  await startOriginalsProduction(groupId, claimed[0].id);
+}
+
+/**
+ * Kicks off model generation for the paid pieces. The model function is
+ * idempotent and self-polling, so a failure here only delays production.
+ */
+async function startOriginalsProduction(groupId: string | null, orderId: string) {
+  const { error } = await db().functions.invoke("originals-model", {
+    body: groupId ? { group_id: groupId } : { order_id: orderId },
+  });
+  if (error) console.error("originals-model kickoff failed:", error);
 }
 
 async function sendOriginalsReceipt(email: string | null, orders: any[]) {
