@@ -153,14 +153,15 @@ export default function MyOrders() {
             <div className="divide-y divide-foreground/10">
               {items.map((it) => (
                 <div key={it.id} className="flex items-center gap-3 p-4">
-                  {it.preview_image_url && (
-                    <img
-                      src={it.preview_image_url}
-                      alt={SKU_NAMES[it.sku_slug] ?? "Nyzora piece"}
-                      loading="lazy"
-                      className="h-16 w-16 border border-foreground/10 object-contain"
-                    />
-                  )}
+                  <img
+                    src={it.preview_image_url || SKU_IMAGES[it.sku_slug]}
+                    alt={`${SKU_NAMES[it.sku_slug] ?? "Nyzora piece"} — ${it.size_label ?? "your order"}`}
+                    loading="lazy"
+                    className="h-16 w-16 shrink-0 border border-foreground/10 bg-muted object-contain"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src = SKU_IMAGES[it.sku_slug] ?? "";
+                    }}
+                  />
                   <div className="min-w-0 flex-1 text-sm">
                     <p className="truncate">{SKU_NAMES[it.sku_slug] ?? "Nyzora piece"}</p>
                     <p className="text-xs text-muted-foreground">
