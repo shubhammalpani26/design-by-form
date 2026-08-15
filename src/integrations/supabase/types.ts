@@ -1431,6 +1431,8 @@ export type Database = {
           fulfillment_error: string | null
           group_id: string | null
           id: string
+          model_status: string | null
+          model_task_id: string | null
           partner_cost_usd: number | null
           partner_order_id: string | null
           payment_provider: string
@@ -1463,6 +1465,8 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          model_status?: string | null
+          model_task_id?: string | null
           partner_cost_usd?: number | null
           partner_order_id?: string | null
           payment_provider?: string
@@ -1495,6 +1499,8 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          model_status?: string | null
+          model_task_id?: string | null
           partner_cost_usd?: number | null
           partner_order_id?: string | null
           payment_provider?: string
@@ -1534,6 +1540,9 @@ export type Database = {
           engineering: Json | null
           id: string
           ip_hash: string | null
+          model_error: string | null
+          model_status: string | null
+          model_task_id: string | null
           personalization: Json
           preview_image_url: string | null
           print_file_url: string | null
@@ -1546,6 +1555,9 @@ export type Database = {
           engineering?: Json | null
           id?: string
           ip_hash?: string | null
+          model_error?: string | null
+          model_status?: string | null
+          model_task_id?: string | null
           personalization?: Json
           preview_image_url?: string | null
           print_file_url?: string | null
@@ -1558,6 +1570,9 @@ export type Database = {
           engineering?: Json | null
           id?: string
           ip_hash?: string | null
+          model_error?: string | null
+          model_status?: string | null
+          model_task_id?: string | null
           personalization?: Json
           preview_image_url?: string | null
           print_file_url?: string | null

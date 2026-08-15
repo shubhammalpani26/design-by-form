@@ -68,6 +68,17 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Nudge any paid piece that is still waiting on its model / partner order.
+    // Best-effort: the buyer's page must never wait on it.
+    fetch(`${Deno.env.get("SUPABASE_URL")}/functions/v1/originals-model`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-internal-key": Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+      },
+      body: JSON.stringify(groupId ? { group_id: groupId } : { sweep: true }),
+    }).catch(() => {});
+
     return json({ synced });
   } catch (e) {
     console.error("originals-tracking-sync error", e);

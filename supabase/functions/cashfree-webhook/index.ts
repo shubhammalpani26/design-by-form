@@ -70,6 +70,12 @@ async function markPaid(providerOrderId: string, paymentId: string | null, email
   }
 
   await sendReceipt(email ?? orders[0].customer_email ?? null, orders);
+
+  // Start model generation + partner production for the paid pieces.
+  const { error: prodErr } = await admin.functions.invoke("originals-model", {
+    body: { order_id: claimed[0].id },
+  });
+  if (prodErr) console.error("originals-model kickoff failed:", prodErr);
 }
 
 async function markFailed(providerOrderId: string) {
