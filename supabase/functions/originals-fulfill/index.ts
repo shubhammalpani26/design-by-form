@@ -7,6 +7,7 @@ import {
   type PartnerAddress,
   type PartnerPrintItem,
 } from "../_shared/slant3d.ts";
+import { findOriginalsColor } from "../_shared/originalsColors.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -93,7 +94,15 @@ Deno.serve(async (req) => {
       return json({ error: "Order has no usable shipping address" }, 400);
     }
 
-    const filamentId = await resolveFilamentId(filamentName ?? "PLA BLACK");
+    // Colour is chosen by the buyer and stored on the piece — honour it unless
+    // an operator explicitly overrides the filament on this call.
+    const chosen = findOriginalsColor(
+      (paid[0].personalization as Record<string, unknown> | null)?.color as string | undefined,
+    );
+    const explicitId = (paid[0].personalization as Record<string, unknown> | null)?.filamentId;
+    const filamentId = filamentName
+      ? await resolveFilamentId(filamentName)
+      : (typeof explicitId === "string" && explicitId ? explicitId : chosen.filamentId);
     const items: PartnerPrintItem[] = [];
     const usedFiles: Array<{ id: string; url: string }> = [];
 
