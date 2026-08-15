@@ -80,9 +80,8 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     tagline: "The first thing they ever owned with their name on it.",
     description:
       "Two soft dunes rising out of a single solid block — one tall, one low — carved with gentle concentric contour ridges that wrap the whole form. The taller dune opens onto a smooth, unbroken face where the name is engraved in fine capitals, with the date set quietly below on the lower dune. Rounded and hand-warm rather than architectural, so it reads as a sculpture first and a keepsake second.",
-    price: 54,
     image: nurseryImg,
-    dimensions: "210 × 118 × 55 mm",
+    dimensions: "157 × 147 × 43 mm",
     fields: [
       { key: "heading", label: "Heading", placeholder: "OLIVER", maxLength: HEADING_MAX, hint: "Engraved on the tall dune" },
       { key: "footnote", label: "Footnote", placeholder: "12.05.2024", maxLength: FOOTNOTE_MAX, hint: "Birth date or a short line" },
