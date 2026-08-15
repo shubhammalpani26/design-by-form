@@ -103,7 +103,7 @@ export function PrintFarmManagement() {
   const getQuote = async (product: QuotableProduct) => {
     setQuoting(product.id);
     try {
-      const { data, error } = await supabase.functions.invoke("slant3d-quote", {
+      const { data, error } = await supabase.functions.invoke("manufacturing-quote", {
         body: {
           product_id: product.id,
           file_url: fileUrls[product.id]?.trim() || undefined,
