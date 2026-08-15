@@ -79,7 +79,7 @@ const Terms = () => {
             </section>
 
             <section>
-              <h2 className="text-2xl font-bold mb-4">3. Designer Terms</h2>
+              <h2 className="text-2xl font-bold mb-4">3. Creator Terms</h2>
               
               <h3 className="text-xl font-semibold mb-3">3.1 Creator Application</h3>
               <p className="text-muted-foreground mb-4">
