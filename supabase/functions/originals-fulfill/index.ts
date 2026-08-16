@@ -1,5 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
+  cancelOrder,
+  draftOrder,
   isPrintableFileUrl,
   placeOrder,
   resolveFilamentId,
@@ -61,15 +63,23 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  let scopeGroupId: string | null = null;
+  let scopeOrderId: string | null = null;
+
   try {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
     const groupId = typeof body?.group_id === "string" ? body.group_id : null;
     const orderId = typeof body?.order_id === "string" ? body.order_id : null;
+    scopeGroupId = groupId;
+    scopeOrderId = orderId;
     // { "<order-row-id>": "https://.../piece.stl" } — optional per-row overrides.
     const files: Record<string, string> = body?.files ?? {};
     const filamentName: string | null = body?.filament ?? null;
+    // Diagnostic mode: draft the order with the partner (no charge) so we can
+    // read exactly what their API says, then release the draft.
+    const dryRun = body?.dry_run === true;
     if (!groupId && !orderId) return json({ error: "group_id or order_id required" }, 400);
 
     const base = admin
@@ -131,11 +141,23 @@ Deno.serve(async (req) => {
       usedFiles.push({ id: row.id, url: url! });
     }
 
-    const placed = await placeOrder(
-      { email: paid[0].customer_email ?? "orders@nyzora.ai", address: customer.address },
-      items,
-      "nyzora-originals",
-    );
+    const buyer = { email: paid[0].customer_email ?? "orders@nyzora.ai", address: customer.address };
+
+    if (dryRun) {
+      const draft = await draftOrder(buyer, items, "nyzora-originals");
+      cancelOrder(draft.publicId).catch(() => {});
+      return json({
+        dryRun: true,
+        draftId: draft.publicId,
+        status: draft.status,
+        printingCost: draft.printingCost,
+        deliveryCost: draft.deliveryCost,
+        total: draft.total,
+        pieces: items.length,
+      });
+    }
+
+    const placed = await placeOrder(buyer, items, "nyzora-originals");
 
     const now = new Date().toISOString();
     for (const f of usedFiles) {
@@ -156,6 +178,19 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("originals-fulfill error", message);
+    // Persist the partner's own words on the affected pieces so a failure is
+    // never invisible once the function logs roll over.
+    try {
+      if (scopeGroupId || scopeOrderId) {
+        const patch = {
+          production_status: "failed",
+          fulfillment_error: message.slice(0, 500),
+          updated_at: new Date().toISOString(),
+        };
+        const q = admin.from("originals_orders").update(patch);
+        await (scopeGroupId ? q.eq("group_id", scopeGroupId) : q.eq("id", scopeOrderId!));
+      }
+    } catch (_e) { /* logging must never mask the original failure */ }
     return json({ error: message }, 500);
   }
 });
