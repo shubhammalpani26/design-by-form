@@ -23,7 +23,6 @@ export async function alertFulfillmentFailure(
   const orderId = input.orderId ?? input.groupId ?? "unknown";
   const short = String(orderId).slice(0, 8);
   const message = input.error.slice(0, 500);
-  console.log("fulfillment alert: raising for", orderId, input.stage);
 
   try {
     const { data: admins } = await admin
@@ -48,7 +47,6 @@ export async function alertFulfillmentFailure(
       );
       if (notifyErr) console.error("fulfillment alert: notification insert error", notifyErr);
     }
-    console.log("fulfillment alert: notified admins", admins?.length ?? 0);
   } catch (e) {
     console.error("fulfillment alert: notification insert failed", e);
   }
