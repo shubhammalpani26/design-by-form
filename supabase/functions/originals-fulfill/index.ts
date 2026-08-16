@@ -177,11 +177,18 @@ Deno.serve(async (req) => {
     const message = e instanceof Error ? e.message : String(e);
     console.error("originals-fulfill error", message);
     // Persist the partner's own words on the affected pieces so a failure is
-    // never invisible after the logs roll over.
+    // never invisible once the function logs roll over.
     try {
-      const b = await Promise.resolve(null);
-      void b;
-    } catch { /* noop */ }
+      if (scopeGroupId || scopeOrderId) {
+        const patch = {
+          production_status: "failed",
+          fulfillment_error: message.slice(0, 500),
+          updated_at: new Date().toISOString(),
+        };
+        const q = admin.from("originals_orders").update(patch);
+        await (scopeGroupId ? q.eq("group_id", scopeGroupId) : q.eq("id", scopeOrderId!));
+      }
+    } catch (_e) { /* logging must never mask the original failure */ }
     return json({ error: message }, 500);
   }
 });
