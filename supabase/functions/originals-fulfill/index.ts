@@ -10,6 +10,7 @@ import {
   type PartnerPrintItem,
 } from "../_shared/slant3d.ts";
 import { findOriginalsColor } from "../_shared/originalsColors.ts";
+import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -65,6 +66,7 @@ Deno.serve(async (req) => {
 
   let scopeGroupId: string | null = null;
   let scopeOrderId: string | null = null;
+  let scopeDryRun = false;
 
   try {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
@@ -80,6 +82,7 @@ Deno.serve(async (req) => {
     // Diagnostic mode: draft the order with the partner (no charge) so we can
     // read exactly what their API says, then release the draft.
     const dryRun = body?.dry_run === true;
+    scopeDryRun = dryRun;
     if (!groupId && !orderId) return json({ error: "group_id or order_id required" }, 400);
 
     const base = admin
@@ -127,6 +130,14 @@ Deno.serve(async (req) => {
             updated_at: new Date().toISOString(),
           })
           .eq("id", row.id);
+        await alertFulfillmentFailure(admin, {
+          orderId: row.id,
+          groupId: row.group_id,
+          customerEmail: row.customer_email,
+          pieces: paid.length,
+          stage: "print file",
+          error: "No printable .stl attached to this piece yet",
+        });
         return json({ error: `Piece ${row.id.slice(0, 8)} has no printable .stl yet`, needsFile: row.id }, 400);
       }
       const uploaded = await uploadPrintFile(url!, {
@@ -191,6 +202,24 @@ Deno.serve(async (req) => {
         await (scopeGroupId ? q.eq("group_id", scopeGroupId) : q.eq("id", scopeOrderId!));
       }
     } catch (_e) { /* logging must never mask the original failure */ }
+    // A dry run charges nothing and is operator-initiated, so it isn't an alert.
+    if (!scopeDryRun && (scopeGroupId || scopeOrderId)) {
+      const q = admin
+        .from("originals_orders")
+        .select("id, group_id, customer_email, amount_usd, quantity");
+      const { data: affected } = await (scopeGroupId
+        ? q.eq("group_id", scopeGroupId)
+        : q.eq("id", scopeOrderId!));
+      await alertFulfillmentFailure(admin, {
+        orderId: affected?.[0]?.id ?? scopeOrderId,
+        groupId: scopeGroupId,
+        customerEmail: affected?.[0]?.customer_email ?? null,
+        pieces: (affected ?? []).reduce((n, r) => n + Number(r.quantity ?? 1), 0) || null,
+        amountUsd: (affected ?? []).reduce((s, r) => s + Number(r.amount_usd ?? 0), 0) || null,
+        stage: "partner order",
+        error: message,
+      });
+    }
     return json({ error: message }, 500);
   }
 });

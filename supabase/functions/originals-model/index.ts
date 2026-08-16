@@ -12,6 +12,7 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ensurePrintFile } from "../_shared/printFile.ts";
+import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -206,7 +207,7 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
 
   let query = admin
     .from("originals_orders")
-    .select("id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status")
+    .select("id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd")
     .eq("status", "paid")
     .is("partner_order_id", null)
     .order("created_at", { ascending: true })
@@ -248,6 +249,17 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
       await admin.from("originals_orders")
         .update({ model_status: "error", fulfillment_error: message.slice(0, 400) })
         .eq("id", row.id);
+      // No 3D file means the piece can never reach the partner — alert now
+      // rather than at fulfillment time, which never runs for this piece.
+      await alertFulfillmentFailure(admin, {
+        orderId: row.id,
+        groupId: row.group_id ?? null,
+        customerEmail: row.customer_email ?? null,
+        pieces: 1,
+        amountUsd: Number(row.amount_usd ?? 0) || null,
+        stage: "3D model",
+        error: message,
+      });
       results.push({ id: row.id, status: "error", error: message });
     }
   }
