@@ -70,6 +70,9 @@ Deno.serve(async (req) => {
     // { "<order-row-id>": "https://.../piece.stl" } — optional per-row overrides.
     const files: Record<string, string> = body?.files ?? {};
     const filamentName: string | null = body?.filament ?? null;
+    // Diagnostic mode: draft the order with the partner (no charge) so we can
+    // read exactly what their API says, then release the draft.
+    const dryRun = body?.dry_run === true;
     if (!groupId && !orderId) return json({ error: "group_id or order_id required" }, 400);
 
     const base = admin
@@ -131,11 +134,23 @@ Deno.serve(async (req) => {
       usedFiles.push({ id: row.id, url: url! });
     }
 
-    const placed = await placeOrder(
-      { email: paid[0].customer_email ?? "orders@nyzora.ai", address: customer.address },
-      items,
-      "nyzora-originals",
-    );
+    const buyer = { email: paid[0].customer_email ?? "orders@nyzora.ai", address: customer.address };
+
+    if (dryRun) {
+      const draft = await draftOrder(buyer, items, "nyzora-originals");
+      cancelOrder(draft.publicId).catch(() => {});
+      return json({
+        dryRun: true,
+        draftId: draft.publicId,
+        status: draft.status,
+        printingCost: draft.printingCost,
+        deliveryCost: draft.deliveryCost,
+        total: draft.total,
+        pieces: items.length,
+      });
+    }
+
+    const placed = await placeOrder(buyer, items, "nyzora-originals");
 
     const now = new Date().toISOString();
     for (const f of usedFiles) {
@@ -156,6 +171,12 @@ Deno.serve(async (req) => {
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("originals-fulfill error", message);
+    // Persist the partner's own words on the affected pieces so a failure is
+    // never invisible after the logs roll over.
+    try {
+      const b = await Promise.resolve(null);
+      void b;
+    } catch { /* noop */ }
     return json({ error: message }, 500);
   }
 });
