@@ -265,7 +265,21 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     if (pending?.length) continue;
     const out = await fulfilGroup(key, key);
     if (out.ok) sent.push(key);
-    else console.error("originals-fulfill rejected", key, out.body);
+    else {
+      const reason = String(
+        (out.body as Record<string, unknown> | null)?.error ?? "Partner order was rejected",
+      ).slice(0, 500);
+      console.error("originals-fulfill rejected", key, reason);
+      await admin
+        .from("originals_orders")
+        .update({
+          production_status: "failed",
+          fulfillment_error: reason,
+          updated_at: new Date().toISOString(),
+        })
+        .or(`group_id.eq.${key},id.eq.${key}`)
+        .eq("status", "paid");
+    }
   }
 
   return { pieces: rows.length, results, sent };
