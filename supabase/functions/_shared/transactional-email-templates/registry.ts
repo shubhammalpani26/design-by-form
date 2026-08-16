@@ -1,5 +1,6 @@
 import type * as React from 'npm:react@18.3.1'
 import { template as originalsOrderConfirmation } from './originals-order-confirmation.tsx'
+import { template as fulfillmentFailed } from './fulfillment-failed.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
@@ -11,4 +12,5 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'originals-order-confirmation': originalsOrderConfirmation,
+  'fulfillment-failed': fulfillmentFailed,
 }
