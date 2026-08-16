@@ -61,12 +61,17 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  let scopeGroupId: string | null = null;
+  let scopeOrderId: string | null = null;
+
   try {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
     const groupId = typeof body?.group_id === "string" ? body.group_id : null;
     const orderId = typeof body?.order_id === "string" ? body.order_id : null;
+    scopeGroupId = groupId;
+    scopeOrderId = orderId;
     // { "<order-row-id>": "https://.../piece.stl" } — optional per-row overrides.
     const files: Record<string, string> = body?.files ?? {};
     const filamentName: string | null = body?.filament ?? null;
