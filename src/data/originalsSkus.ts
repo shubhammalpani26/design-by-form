@@ -10,6 +10,8 @@ export interface OriginalSku {
   price: number; // USD
   image: string;
   dimensions: string;
+  /** Search-facing metadata. Falls back to name/tagline when absent. */
+  seo?: { title: string; description: string; keywords: string[] };
   fields: { key: string; label: string; placeholder: string; options?: string[]; maxLength?: number; hint?: string }[];
   promptTemplate: (values: Record<string, string>) => string;
   /** Size ladder shown at the moment of decision. Prices include free US shipping. */
