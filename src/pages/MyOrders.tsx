@@ -18,6 +18,7 @@ interface OrderRow {
   quantity: number;
   preview_image_url: string | null;
   tracking_numbers: string[] | null;
+  partner_order_id?: string | null;
 }
 
 const SKU_NAMES: Record<string, string> = {
@@ -38,10 +39,12 @@ const STAGES = [
   { key: "delivered", label: "Delivered", icon: Package },
 ] as const;
 
-function stageIndex(status: string, production: string | null) {
+function stageIndex(status: string, production: string | null, partnerOrderId?: string | null) {
   if (production === "delivered") return 3;
   if (production === "shipped") return 2;
   if (production === "in_production" || production === "awaiting_shipment") return 1;
+  // A partner order exists (or we marked it fulfilled) → it's being made.
+  if (partnerOrderId || status === "fulfilled") return 1;
   return status === "pending" ? -1 : 0;
 }
 
@@ -79,7 +82,7 @@ export default function MyOrders() {
       const { data } = await supabase
         .from("originals_orders")
         .select(
-          "id, group_id, created_at, status, production_status, sku_slug, size_label, amount_usd, quantity, preview_image_url, tracking_numbers",
+          "id, group_id, created_at, status, production_status, sku_slug, size_label, amount_usd, quantity, preview_image_url, tracking_numbers, partner_order_id",
         )
         .neq("status", "pending")
         .order("created_at", { ascending: false });
@@ -131,7 +134,7 @@ export default function MyOrders() {
 
       {!loading && groups.map(([key, items]) => {
         const first = items[0];
-        const idx = stageIndex(first.status, first.production_status);
+        const idx = stageIndex(first.status, first.production_status, first.partner_order_id);
         const total = items.reduce((s, i) => s + Number(i.amount_usd ?? 0), 0);
         const tracking = Array.from(new Set(items.flatMap((i) => i.tracking_numbers ?? [])));
         return (

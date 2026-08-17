@@ -21,6 +21,16 @@ const admin = createClient(
 const OPEN = ["in_production", "queued", "awaiting_shipment", "pending"];
 
 /**
+ * Once a partner order exists the piece IS in production — the partner's own
+ * "queued"/"pending"/"awaiting_shipment" are internal queue states and must
+ * never push the buyer's tracker back to "Order confirmed".
+ */
+const toProductionStatus = (partnerStatus: string) =>
+  ["shipped", "delivered", "cancelled", "failed"].includes(partnerStatus)
+    ? partnerStatus
+    : "in_production";
+
+/**
  * Pulls partner tracking onto Originals orders. Safe to call from the buyer's
  * order page (anon) — it only ever writes partner-sourced tracking data and
  * returns nothing.
@@ -55,7 +65,7 @@ Deno.serve(async (req) => {
         await admin
           .from("originals_orders")
           .update({
-            production_status: status === "awaiting_shipment" ? "in_production" : status,
+            production_status: toProductionStatus(status),
             tracking_numbers: numbers,
             ...(status === "shipped" ? { shipped_at: new Date().toISOString() } : {}),
             ...(status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
