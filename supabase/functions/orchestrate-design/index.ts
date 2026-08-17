@@ -140,7 +140,16 @@ serve(async (req) => {
     // -------------------------------------------------------------------------
 
     // 1) Design Agent
-    const design = await callFunction("generate-design", requestBody, authHeader);
+    // The orchestrator already reserved the credit above; tell generate-design not to
+    // charge a second one. The header is authenticated with the service role key so a
+    // client cannot forge it.
+    const alreadyChargedHeader = { "x-credit-already-charged": SERVICE_KEY };
+    const design = await callFunction(
+      "generate-design",
+      requestBody,
+      authHeader,
+      alreadyChargedHeader,
+    );
     if (!design.ok) {
       await refundCredit("design generation failed");
       return new Response(design.raw || JSON.stringify({ error: "design failed" }), {
@@ -206,6 +215,7 @@ serve(async (req) => {
         "generate-design",
         { ...requestBody, prompt: revisedPrompt },
         authHeader,
+        alreadyChargedHeader,
       );
       if (revised.ok && revised.json && (revised.json as Record<string, unknown>).imageUrl) {
         revisedPayload = revised.json as Record<string, unknown>;
