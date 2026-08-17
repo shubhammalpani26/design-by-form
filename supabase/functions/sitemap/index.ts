@@ -6,6 +6,10 @@ const SITE = "https://nyzora.ai";
 
 const STATIC_ROUTES: { path: string; changefreq: string; priority: number }[] = [
   { path: "/", changefreq: "daily", priority: 1.0 },
+  { path: "/originals/pet-silhouette-keepsake", changefreq: "weekly", priority: 0.95 },
+  { path: "/originals/pet-portrait-sculpture", changefreq: "weekly", priority: 0.9 },
+  { path: "/originals/nursery-name-date", changefreq: "weekly", priority: 0.8 },
+  { path: "/originals/wedding-coordinates", changefreq: "weekly", priority: 0.8 },
   { path: "/browse", changefreq: "daily", priority: 0.9 },
   { path: "/explore", changefreq: "daily", priority: 0.9 },
   { path: "/creators", changefreq: "weekly", priority: 0.8 },

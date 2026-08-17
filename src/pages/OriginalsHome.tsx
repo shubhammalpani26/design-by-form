@@ -39,9 +39,9 @@ const OriginalsHome = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead
-        title="Nyzora Originals — Personalized Pieces, Made in the USA"
-        description="Sculptural personalized pieces: pet silhouettes, baby name blocks and wedding coordinates. Made to order in the USA and shipped in 3–5 days."
-        keywords={["personalized gift", "pet silhouette gift", "baby name sign", "wedding coordinates gift", "made in usa"]}
+        title="Pet Memorial Gifts & Personalized Sculptures — Nyzora Originals"
+        description="Custom pet memorial sculptures made from your photo, plus baby name and wedding coordinate keepsakes. Made to order in the USA, free shipping, from $59."
+        keywords={["pet memorial gifts", "dog memorial gift", "pet loss gift", "personalized pet gift", "custom pet statue", "baby name sign", "wedding coordinates gift", "made in usa"]}
       />
       <JsonLd
         id="originals-collection"
@@ -176,7 +176,7 @@ const OriginalsHome = () => {
             One photo. One minute. Theirs, sculpted.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
-            Upload a photo of your pet and see the sculpture before anything is made or charged.
+            Upload a photo of your pet and see the memorial sculpture before anything is made or charged.
             Made to order in the USA, shipped in 3–5 days.
           </p>
           <Button size="lg" className="mt-8 rounded-none" onClick={() => navigate("/originals/pet-silhouette-keepsake")}>
