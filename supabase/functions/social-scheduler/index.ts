@@ -115,8 +115,7 @@ async function renderDue() {
 
   const posts = (data ?? []) as Post[];
   for (const post of posts) {
-    const rendered = await renderImage(post.image_prompt);
-    void renderPrompt;
+    const rendered = await renderImage(post.is_render ? renderPrompt(post.image_prompt) : post.image_prompt);
     if (!rendered.url) {
       if (rendered.status === 402 || rendered.status === 403) {
         await pause(`AI gateway ${rendered.status}: ${rendered.error ?? "blocked"}`);
