@@ -24,6 +24,11 @@ export const PRICE_BOOK: Record<string, Record<string, SizeEntry>> = {
     standard: { label: "Standard — 140 mm tall", usd: 89 },
     statement: { label: "Statement — 196 mm tall", usd: 139 },
   },
+  "pet-portrait-sculpture": {
+    petite: { label: "Petite — 120 mm tall", usd: 59 },
+    standard: { label: "Standard — 140 mm tall", usd: 89 },
+    statement: { label: "Statement — 196 mm tall", usd: 139 },
+  },
   "nursery-name-date": {
     standard: { label: "Standard — 155 mm wide", usd: 60 },
   },
@@ -33,7 +38,8 @@ export const PRICE_BOOK: Record<string, Record<string, SizeEntry>> = {
 };
 
 export const SKU_NAMES: Record<string, string> = {
-  "pet-silhouette-keepsake": "Pet Sculpture Piece",
+  "pet-silhouette-keepsake": "Custom Pet Memorial Sculpture",
+  "pet-portrait-sculpture": "Custom Pet Portrait Sculpture",
   "nursery-name-date": "Baby Name & Date Piece",
   "wedding-coordinates": "Wedding Coordinates Piece",
 };
