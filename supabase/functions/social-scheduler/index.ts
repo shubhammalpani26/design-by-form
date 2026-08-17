@@ -294,14 +294,11 @@ Deno.serve(async (req) => {
     }
 
     // Single-flight lease: a second concurrent run exits instead of duplicating work.
-    const now = new Date();
-    const { data: leased } = await admin
-      .from("social_scheduler_state")
-      .update({ lease_until: new Date(now.getTime() + LEASE_MS).toISOString(), last_run_at: now.toISOString() })
-      .eq("id", "default")
-      .or(`lease_until.is.null,lease_until.lt.${now.toISOString()}`)
-      .select("id");
-    if (!leased?.length) return json({ skipped: "locked" });
+    const { data: leased, error: leaseErr } = await admin.rpc("claim_social_scheduler_lease", {
+      p_lease_seconds: Math.round(LEASE_MS / 1000),
+    });
+    if (leaseErr) throw new Error(`lease failed: ${leaseErr.message}`);
+    if (leased !== true) return json({ skipped: "locked" });
 
     const rendered = await renderDue();
     const publishedResult = rendered.paused ? { published: 0 } : await publishDue();
