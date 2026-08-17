@@ -16,16 +16,52 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // --- AUTH: only the order's owner or an admin may fetch an invoice ---
+    const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
+    const caller = userData?.user;
+    if (userErr || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const { orderId } = await req.json();
+    if (!orderId || typeof orderId !== 'string') {
+      return new Response(
+        JSON.stringify({ error: 'orderId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Fetch order details
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .select('*')
       .eq('id', orderId)
-      .single();
+      .maybeSingle();
 
     if (orderError) throw orderError;
+
+    const { data: isAdmin } = await supabase.rpc('has_role', {
+      _user_id: caller.id,
+      _role: 'admin',
+    });
+
+    if (!order || (order.user_id !== caller.id && isAdmin !== true)) {
+      // Do not reveal whether the order exists.
+      return new Response(
+        JSON.stringify({ error: 'Order not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Fetch order items with product details
     const { data: orderItems, error: itemsError } = await supabase
