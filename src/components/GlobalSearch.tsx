@@ -69,7 +69,7 @@ export const GlobalSearch = () => {
 
         const { data: creators } = await supabase
           .from('designer_profiles')
-          .select('id, name, email, design_background')
+          .select('id, name, design_background')
           .or(`name.ilike.%${searchQuery}%,design_background.ilike.%${searchQuery}%`)
           .limit(3);
 
@@ -79,7 +79,7 @@ export const GlobalSearch = () => {
               type: 'creator',
               id: creator.id,
               title: creator.name,
-              subtitle: creator.email,
+              subtitle: creator.design_background || 'Creator',
               path: `/designer/${slugify(creator.name)}`
             });
           });

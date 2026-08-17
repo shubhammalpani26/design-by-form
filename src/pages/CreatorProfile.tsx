@@ -45,13 +45,10 @@ const CreatorProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
-        .from('designer_profiles')
-        .select('*')
-        .eq('user_id', user.id)
-        .single();
+      const { data: rows, error } = await supabase.rpc('get_my_designer_profile');
 
       if (error) throw error;
+      const data = rows?.[0];
 
       if (data) {
         setProfile({

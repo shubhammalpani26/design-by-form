@@ -10,18 +10,11 @@ const FlywheelProof = () => {
   useEffect(() => {
     let mounted = true;
     (async () => {
-      const [{ data: orderRefs }, { count: signalCount }] = await Promise.all([
-        supabase
-          .from("manufacturing_intelligence")
-          .select("order_ref")
-          .eq("source", "production")
-          .not("order_ref", "is", null),
-        supabase.from("manufacturing_intelligence").select("id", { count: "exact", head: true }),
-      ]);
+      const { data } = await supabase.rpc("get_flywheel_stats");
       if (!mounted) return;
-      const distinctOrders = new Set((orderRefs ?? []).map((r: { order_ref: string | null }) => r.order_ref)).size;
-      setOrders(distinctOrders);
-      setSignals(signalCount ?? 0);
+      const stats = Array.isArray(data) ? data[0] : data;
+      setOrders(Number(stats?.orders ?? 0));
+      setSignals(Number(stats?.signals ?? 0));
     })();
     return () => {
       mounted = false;

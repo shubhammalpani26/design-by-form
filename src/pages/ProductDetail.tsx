@@ -86,7 +86,7 @@ const ProductDetail = () => {
       let data: any = null;
       let error: any = null;
 
-      const slugQuery = supabase.from('designer_products').select('*, designer_profiles!inner(name, email, slug)');
+      const slugQuery = supabase.from('designer_products').select('*, designer_profiles!inner(name, slug)');
       const { data: slugData } = await (slugQuery as any).eq('slug', slug).eq('status', 'approved').maybeSingle();
 
       if (slugData) {
@@ -94,7 +94,7 @@ const ProductDetail = () => {
       } else {
         const { data: idData, error: idError } = await supabase
           .from('designer_products')
-          .select('*, designer_profiles!inner(name, email, slug)')
+          .select('*, designer_profiles!inner(name, slug)')
           .eq('id', slug!)
           .eq('status', 'approved')
           .maybeSingle();
