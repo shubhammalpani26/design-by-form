@@ -19,12 +19,18 @@ const corsHeaders = {
 
 const FN_BASE = `${Deno.env.get("SUPABASE_URL")}/functions/v1`;
 
-async function callFunction(name: string, body: unknown, authHeader: string | null) {
+async function callFunction(
+  name: string,
+  body: unknown,
+  authHeader: string | null,
+  extraHeaders?: Record<string, string>,
+) {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (authHeader) headers["Authorization"] = authHeader;
   // Pass apikey for verify_jwt routing parity
   const anon = Deno.env.get("SUPABASE_ANON_KEY");
   if (anon) headers["apikey"] = anon;
+  if (extraHeaders) Object.assign(headers, extraHeaders);
 
   const res = await fetch(`${FN_BASE}/${name}`, {
     method: "POST",
