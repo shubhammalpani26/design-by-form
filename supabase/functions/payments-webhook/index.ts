@@ -325,19 +325,31 @@ async function sendOriginalsReceipt(email: string | null, orders: any[]) {
     };
   });
   const first = orders[0];
+  const templateData = {
+    orderId: first.id,
+    items,
+    totalUsd: orders.reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0),
+  };
   const { error } = await db().functions.invoke("send-transactional-email", {
     body: {
       templateName: "originals-order-confirmation",
       recipientEmail: email,
       idempotencyKey: `originals-confirmation-${first.id}`,
-      templateData: {
-        orderId: first.id,
-        items,
-        totalUsd: orders.reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0),
-      },
+      templateData,
     },
   });
   if (error) console.error("Originals confirmation email failed:", error);
+
+  // Internal copy so the team sees every order that comes in.
+  const { error: internalError } = await db().functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "originals-order-confirmation",
+      recipientEmail: "contact@nyzora.ai",
+      idempotencyKey: `originals-internal-${first.id}`,
+      templateData,
+    },
+  });
+  if (internalError) console.error("Originals internal copy failed:", internalError);
 }
 
 async function fulfilCreditPackInner(
