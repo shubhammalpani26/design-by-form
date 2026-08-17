@@ -78,7 +78,10 @@ serve(async (req) => {
     try {
       const { data: syncData, error: syncError } = await supabase.functions.invoke(
         'sync-product-to-shopify',
-        { body: { productId } }
+        {
+          body: { productId },
+          headers: { 'x-internal-key': Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')! },
+        }
       );
       if (syncError) throw syncError;
       shopifySync = syncData;
