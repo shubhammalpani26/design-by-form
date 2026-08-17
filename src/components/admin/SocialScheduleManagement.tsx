@@ -51,6 +51,7 @@ export const SocialScheduleManagement = () => {
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [state, setState] = useState<SchedulerState | null>(null);
   const [loading, setLoading] = useState(true);
+  const [publishing, setPublishing] = useState<string | null>(null);
   const { toast } = useToast();
 
   const load = useCallback(async () => {
@@ -87,6 +88,21 @@ export const SocialScheduleManagement = () => {
 
   const update = async (id: string, patch: Record<string, unknown>) => {
     await supabase.from("social_scheduled_posts" as any).update(patch).eq("id", id);
+    load();
+  };
+
+  const publishNow = async (id: string) => {
+    setPublishing(id);
+    const { data, error } = await supabase.functions.invoke("social-scheduler", {
+      body: { action: "publish_now", postId: id },
+    });
+    setPublishing(null);
+    const message = (data as { error?: string } | null)?.error ?? error?.message;
+    if (message) {
+      toast({ title: "Could not publish", description: message, variant: "destructive" });
+    } else {
+      toast({ title: "Published to @nyzora.ai" });
+    }
     load();
   };
 
@@ -145,20 +161,28 @@ export const SocialScheduleManagement = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={(statusTone[p.status] ?? "outline") as never}>{p.status}</Badge>
                     <Badge variant="outline">{p.slot_type}</Badge>
-                    <Badge variant={p.engineering_status === "fail" ? "destructive" : "outline"}>
-                      engineering: {p.engineering_status}
-                      {p.engineering?.confidence != null ? ` ${p.engineering.confidence}` : ""}
-                    </Badge>
+                    {p.engineering_status === "fail" ? (
+                      <Badge variant="destructive">engineering: needs a new render</Badge>
+                    ) : p.engineering_status === "pass" ? (
+                      <Badge variant="outline">✓ printable</Badge>
+                    ) : null}
                     <span className="text-xs text-muted-foreground">{et(p.scheduled_at)} ET</span>
                   </div>
                   <p className="whitespace-pre-line text-sm">
                     {p.caption || <span className="text-muted-foreground">Story — no caption</span>}
                   </p>
-                  {p.engineering?.issues?.length ? (
+                  {p.engineering_status === "fail" && p.engineering?.issues?.length ? (
                     <p className="text-xs text-destructive">{p.engineering.issues.join(" · ")}</p>
                   ) : null}
-                  {p.last_error && <p className="text-xs text-destructive">{p.last_error}</p>}
+                  {p.last_error && p.status !== "published" && (
+                    <p className="text-xs text-destructive">{p.last_error}</p>
+                  )}
                   <div className="flex flex-wrap gap-2 pt-1">
+                    {p.image_url && p.slot_type === "feed" && p.status !== "published" && p.status !== "cancelled" && (
+                      <Button size="sm" disabled={publishing === p.id} onClick={() => publishNow(p.id)}>
+                        {publishing === p.id ? "Publishing…" : "Publish now"}
+                      </Button>
+                    )}
                     {(p.status === "needs_review" || p.status === "failed") && (
                       <Button
                         size="sm"
