@@ -549,6 +549,9 @@ Generate a single photorealistic product photograph of this ${subjectNoun}.`;
       );
     }
 
+    // Image produced — charge the credit (no-op when the orchestrator already did).
+    await chargeCredit();
+
     // Analyze design for pricing using Aarav's expertise
     let pricingData = {
       basePrice: 12000, // Default fallback - premium range
