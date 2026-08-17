@@ -25,6 +25,14 @@ const MAX_ATTEMPTS = 3;
 
 const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
+/** Appended to every render prompt so the creative is manufacturable, not just pretty. */
+const PRINTABILITY_CLAUSE =
+  " Manufacturing constraints: a single solid monolithic form with a wide flat base sitting fully on the surface, " +
+  "no floating or cantilevered elements, no thin stems or wires, no lattice or perforations, all overhangs kept under 45 degrees, " +
+  "no separate accessories or props touching the piece, minimum wall thickness of 3mm, chest and neck extended forward to fully support the chin.";
+
+const renderPrompt = (p: string) => `${p}${PRINTABILITY_CLAUSE}`;
+
 type Post = {
   id: string;
   scheduled_at: string;
@@ -108,6 +116,7 @@ async function renderDue() {
   const posts = (data ?? []) as Post[];
   for (const post of posts) {
     const rendered = await renderImage(post.image_prompt);
+    void renderPrompt;
     if (!rendered.url) {
       if (rendered.status === 402 || rendered.status === 403) {
         await pause(`AI gateway ${rendered.status}: ${rendered.error ?? "blocked"}`);
