@@ -17,9 +17,9 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 /** Bounded work per run — the scheduler never drains the whole queue at once. */
-const RENDER_BATCH = 2;
+const RENDER_BATCH = 4;
 const PUBLISH_BATCH = 2;
-const RENDER_LOOKAHEAD_MS = 36 * 60 * 60 * 1000;
+const RENDER_LOOKAHEAD_MS = 8 * 24 * 60 * 60 * 1000;
 const LEASE_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
@@ -31,7 +31,16 @@ const PRINTABILITY_CLAUSE =
   "no floating or cantilevered elements, no thin stems or wires, no lattice or perforations, all overhangs kept under 45 degrees, " +
   "no separate accessories or props touching the piece, minimum wall thickness of 3mm, chest and neck extended forward to fully support the chin.";
 
-const renderPrompt = (p: string) => `${p}${PRINTABILITY_CLAUSE}`;
+/** Every product render must visibly prove the piece is personalised from the customer's own photo. */
+const ENGRAVING_CLAUSE =
+  " Personalisation: the front face of the thick flat base plinth carries crisp recessed engraved lettering, " +
+  "clearly legible and correctly spelled, in a small clean uppercase sans-serif — a short pet name and beneath it a smaller line of dates " +
+  "(for example \"BAILEY\" above \"2011 — 2024\"). The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
+  "Frame the shot so the engraved base is fully visible in the lower third and never cropped.";
+
+const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
+
+const renderPrompt = (p: string) => `${p}${ENGRAVING_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
