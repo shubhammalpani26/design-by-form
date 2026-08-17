@@ -14,6 +14,7 @@ import { NotificationsManagement } from "@/components/admin/NotificationsManagem
 import { CreditsManagement } from "@/components/admin/CreditsManagement";
 import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
 import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
+import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManagement";
 import { SEOHead } from "@/components/SEOHead";
 
 export default function AdminPanel() {
@@ -87,7 +88,7 @@ export default function AdminPanel() {
         <h1 className="text-3xl font-bold mb-8">Admin Control Panel</h1>
         
         <Tabs defaultValue="designers" className="w-full">
-          <TabsList className="grid w-full grid-cols-9 mb-8">
+          <TabsList className="grid w-full grid-cols-10 mb-8">
             <TabsTrigger value="designers">Creators</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
@@ -97,7 +98,12 @@ export default function AdminPanel() {
             <TabsTrigger value="early-access">Early Access</TabsTrigger>
             <TabsTrigger value="contacts">Contacts</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="social">Social</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="social">
+            <SocialScheduleManagement />
+          </TabsContent>
 
           <TabsContent value="designers">
             <DesignersManagement />

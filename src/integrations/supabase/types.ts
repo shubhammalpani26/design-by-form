@@ -2046,6 +2046,99 @@ export type Database = {
           },
         ]
       }
+      social_scheduled_posts: {
+        Row: {
+          attempts: number
+          caption: string
+          created_at: string
+          day_index: number
+          engineering: Json | null
+          engineering_status: string
+          id: string
+          ig_media_id: string | null
+          image_prompt: string
+          image_url: string | null
+          is_render: boolean
+          last_error: string | null
+          published_at: string | null
+          scheduled_at: string
+          slot_type: string
+          status: string
+          theme: string | null
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          caption: string
+          created_at?: string
+          day_index?: number
+          engineering?: Json | null
+          engineering_status?: string
+          id?: string
+          ig_media_id?: string | null
+          image_prompt: string
+          image_url?: string | null
+          is_render?: boolean
+          last_error?: string | null
+          published_at?: string | null
+          scheduled_at: string
+          slot_type?: string
+          status?: string
+          theme?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          caption?: string
+          created_at?: string
+          day_index?: number
+          engineering?: Json | null
+          engineering_status?: string
+          id?: string
+          ig_media_id?: string | null
+          image_prompt?: string
+          image_url?: string | null
+          is_render?: boolean
+          last_error?: string | null
+          published_at?: string | null
+          scheduled_at?: string
+          slot_type?: string
+          status?: string
+          theme?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      social_scheduler_state: {
+        Row: {
+          id: string
+          last_error: string | null
+          last_run_at: string | null
+          lease_until: string | null
+          pause_reason: string | null
+          paused: boolean
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          last_error?: string | null
+          last_run_at?: string | null
+          lease_until?: string | null
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscription_transactions: {
         Row: {
           amount: number
@@ -2318,6 +2411,10 @@ export type Database = {
           name: string
           status: string
         }[]
+      }
+      claim_social_scheduler_lease: {
+        Args: { p_lease_seconds?: number }
+        Returns: boolean
       }
       cleanup_old_design_sessions: { Args: never; Returns: undefined }
       create_sales_milestone_post: {
