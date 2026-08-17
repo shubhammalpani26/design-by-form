@@ -2412,6 +2412,10 @@ export type Database = {
           status: string
         }[]
       }
+      claim_social_scheduler_lease: {
+        Args: { p_lease_seconds?: number }
+        Returns: boolean
+      }
       cleanup_old_design_sessions: { Args: never; Returns: undefined }
       create_sales_milestone_post: {
         Args: {
