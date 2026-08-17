@@ -32,16 +32,45 @@ const PRINTABILITY_CLAUSE =
   "no floating or cantilevered elements, no thin stems or wires, no lattice or perforations, all overhangs kept under 45 degrees, " +
   "no separate accessories or props touching the piece, minimum wall thickness of 3mm, chest and neck extended forward to fully support the chin.";
 
+/**
+ * Each post gets its own pet so the grid reads like many real customers, not one repeated order.
+ * Deterministic per post id: the same slot always re-renders with the same name.
+ */
+const ENGRAVINGS: Array<{ name: string; sub: string }> = [
+  { name: "BAILEY", sub: "2011 — 2024" },
+  { name: "MILO", sub: "2013 — 2025" },
+  { name: "LUNA", sub: "2010 — 2023" },
+  { name: "COOPER", sub: "2009 — 2024" },
+  { name: "DAISY", sub: "2012 — 2025" },
+  { name: "CHARLIE", sub: "ALWAYS OUR BOY" },
+  { name: "MAX", sub: "2008 — 2022" },
+  { name: "BELLA", sub: "2014 — 2025" },
+  { name: "SADIE", sub: "DAD'S BEST FRIEND" },
+  { name: "OLLIE", sub: "2015 — 2024" },
+  { name: "ROSIE", sub: "2011 — 2025" },
+  { name: "DUKE", sub: "2007 — 2021" },
+  { name: "NALA", sub: "2016 — 2025" },
+  { name: "TOBY", sub: "2010 — 2024" },
+];
+
+function engravingFor(id: string) {
+  let h = 0;
+  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return ENGRAVINGS[h % ENGRAVINGS.length];
+}
+
 /** Every product render must visibly prove the piece is personalised from the customer's own photo. */
-const ENGRAVING_CLAUSE =
+const engravingClause = (e: { name: string; sub: string }) =>
   " Personalisation: the front face of the thick flat base plinth carries crisp recessed engraved lettering, " +
-  "clearly legible and correctly spelled, in a small clean uppercase sans-serif — a short pet name and beneath it a smaller line of dates " +
-  "(for example \"BAILEY\" above \"2011 — 2024\"). The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
+  "clearly legible and correctly spelled, in a small clean uppercase sans-serif — the name " +
+  `"${e.name}" and beneath it a smaller line reading "${e.sub}". ` +
+  "The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
   "Frame the shot so the engraved base is fully visible in the lower third and never cropped.";
 
 const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
 
-const renderPrompt = (p: string) => `${p}${ENGRAVING_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+const renderPrompt = (p: string, id: string) =>
+  `${p}${engravingClause(engravingFor(id))}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
@@ -125,7 +154,7 @@ async function renderDue() {
 
   const posts = (data ?? []) as Post[];
   for (const post of posts) {
-    const rendered = await renderImage(post.is_render ? renderPrompt(post.image_prompt) : post.image_prompt);
+    const rendered = await renderImage(post.is_render ? renderPrompt(post.image_prompt, post.id) : post.image_prompt);
     if (!rendered.url) {
       if (rendered.status === 402 || rendered.status === 403) {
         await pause(`AI gateway ${rendered.status}: ${rendered.error ?? "blocked"}`);
