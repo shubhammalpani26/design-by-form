@@ -55,15 +55,48 @@ serve(async (req) => {
     const fee = isIndia ? 750 : 15;
     const currency = isIndia ? 'INR' : 'USD';
 
-    // In a real implementation, this would integrate with Stripe/Razorpay
-    console.log(`Mock payment processed: ${currency} ${fee} for 3D generation`);
+    // --- OWNERSHIP: the product must belong to this designer ---
+    const { data: product, error: productLookupError } = await supabase
+      .from('designer_products')
+      .select('id, designer_id')
+      .eq('id', productId)
+      .maybeSingle();
+
+    if (productLookupError || !product || product.designer_id !== designerProfile.id) {
+      return new Response(
+        JSON.stringify({ error: 'Product not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // --- FEE POLICY: no mock payments. Either the fee is server-side waived,
+    // or a verified gateway charge is required (not enabled yet). ---
+    const { data: feePolicyRow } = await supabase
+      .from('pricing_config')
+      .select('config_value')
+      .eq('config_key', 'fee_policy')
+      .maybeSingle();
+    const feePolicy = (feePolicyRow?.config_value ?? {}) as Record<string, unknown>;
+    const threeDFeeWaived = feePolicy.three_d_fee_waived !== false; // default: waived
+
+    if (!threeDFeeWaived) {
+      return new Response(
+        JSON.stringify({
+          error: '3D generation fee payment is not available yet. Please try again later.',
+          code: 'PAYMENT_NOT_CONFIGURED',
+        }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`3D generation fee waived (${currency} ${fee}) for product ${productId}`);
 
     // Update the design_listings table
     const { data: listing, error: listingError } = await supabase
       .from('design_listings')
       .update({
         three_d_fee_paid: true,
-        three_d_fee_amount: fee,
+        three_d_fee_amount: 0, // waived — nothing was charged
         updated_at: new Date().toISOString(),
       })
       .eq('product_id', productId)
@@ -83,7 +116,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: true,
-        message: '3D generation enabled! You can now generate 3D models for this design.',
+        waived: true,
+        message: '3D generation enabled (fee waived). You can now generate 3D models for this design.',
         listing,
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
