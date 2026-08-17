@@ -324,6 +324,14 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
+
+    if (!(await authorize(req))) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { productId, productIds, syncAllApproved } = body ?? {};
 
     let ids: string[] = [];
