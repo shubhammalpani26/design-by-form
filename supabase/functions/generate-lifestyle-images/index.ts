@@ -25,10 +25,27 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // --- AUTH: require a signed-in user who owns the product (or an admin) ---
+    const token = req.headers.get('Authorization')?.replace(/^Bearer\s+/i, '') ?? '';
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { data: userData, error: authError } = await supabase.auth.getUser(token);
+    const caller = userData?.user;
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get product image
     const { data: product, error: productError } = await supabase
       .from('designer_products')
-      .select('image_url')
+      .select('image_url, designer_id')
       .eq('id', productId)
       .single();
 
@@ -36,6 +53,22 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Product not found or has no image' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { data: ownerProfile } = await supabase
+      .from('designer_profiles')
+      .select('id')
+      .eq('user_id', caller.id)
+      .maybeSingle();
+    const { data: isAdmin } = await supabase.rpc('has_role', {
+      _user_id: caller.id,
+      _role: 'admin',
+    });
+    if (isAdmin !== true && ownerProfile?.id !== product.designer_id) {
+      return new Response(
+        JSON.stringify({ error: 'Forbidden' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

@@ -2412,6 +2412,19 @@ export type Database = {
           status: string
         }[]
       }
+      admin_get_designer_contacts: {
+        Args: never
+        Returns: {
+          created_at: string
+          email: string
+          id: string
+          name: string
+          phone_number: string
+          profile_picture_url: string
+          status: string
+          user_id: string
+        }[]
+      }
       claim_social_scheduler_lease: {
         Args: { p_lease_seconds?: number }
         Returns: boolean
@@ -2442,6 +2455,42 @@ export type Database = {
           designer_id: string
           sales_count: number
         }[]
+      }
+      get_flywheel_stats: {
+        Args: never
+        Returns: {
+          orders: number
+          signals: number
+        }[]
+      }
+      get_my_designer_profile: {
+        Args: never
+        Returns: {
+          cover_image_url: string | null
+          created_at: string
+          design_background: string | null
+          email: string
+          furniture_interests: string | null
+          id: string
+          is_house: boolean
+          name: string
+          phone_number: string | null
+          plan_tier: string
+          portfolio_url: string | null
+          profile_picture_url: string | null
+          slug: string | null
+          status: string
+          terms_accepted: boolean
+          terms_accepted_at: string | null
+          updated_at: string
+          user_id: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "designer_profiles"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       get_public_designer_profile: {
         Args: { profile_id: string }

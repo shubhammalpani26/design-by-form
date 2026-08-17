@@ -51,10 +51,9 @@ export function UsersManagement() {
   const fetchAllUsers = async () => {
     try {
       // Fetch all designer profiles
-      const { data: designers, error: designersError } = await supabase
-        .from("designer_profiles")
-        .select("id, user_id, name, email, status, profile_picture_url, created_at")
-        .order("created_at", { ascending: false });
+      const { data: designers, error: designersError } = await supabase.rpc(
+        "admin_get_designer_contacts"
+      );
 
       if (designersError) throw designersError;
 

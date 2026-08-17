@@ -48,9 +48,9 @@ export function CreditsManagement() {
       if (creditsError) throw creditsError;
 
       // Fetch designer profiles to get names/emails
-      const { data: designerProfiles, error: profilesError } = await supabase
-        .from("designer_profiles")
-        .select("user_id, name, email");
+      const { data: designerProfiles, error: profilesError } = await supabase.rpc(
+        "admin_get_designer_contacts"
+      );
 
       if (profilesError) throw profilesError;
 

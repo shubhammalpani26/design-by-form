@@ -3,13 +3,32 @@ import { assertNoUserErrors, shopifyAdminGraphQL } from "../_shared/shopify-admi
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-key",
 };
 
 const supabase = createClient(
   Deno.env.get("SUPABASE_URL")!,
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
+
+/** Callers: admin-approve-product (service role) or an admin from the dashboard. */
+async function authorize(req: Request): Promise<boolean> {
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const internal = req.headers.get("x-internal-key");
+  if (internal && internal === serviceKey) return true;
+
+  const token = req.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
+  if (!token) return false;
+  if (token === serviceKey) return true;
+
+  const { data } = await supabase.auth.getUser(token);
+  if (!data?.user) return false;
+  const { data: isAdmin } = await supabase.rpc("has_role", {
+    _user_id: data.user.id,
+    _role: "admin",
+  });
+  return isAdmin === true;
+}
 
 const PRODUCT_CREATE = `
   mutation productCreate($product: ProductCreateInput!) {
@@ -305,6 +324,14 @@ Deno.serve(async (req) => {
 
   try {
     const body = await req.json().catch(() => ({}));
+
+    if (!(await authorize(req))) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const { productId, productIds, syncAllApproved } = body ?? {};
 
     let ids: string[] = [];

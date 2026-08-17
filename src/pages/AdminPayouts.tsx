@@ -90,11 +90,24 @@ const AdminPayouts = () => {
       .from('payout_requests')
       .select(`
         *,
-        designer:designer_profiles(name, email, phone_number)
+        designer:designer_profiles(id, name)
       `)
       .order('requested_at', { ascending: false });
 
-    setRequests(data || []);
+    // Email/phone are admin-only and served by a role-checked function
+    const { data: contacts } = await supabase.rpc('admin_get_designer_contacts');
+    const contactById = new Map((contacts || []).map((c: any) => [c.id, c]));
+
+    setRequests(
+      (data || []).map((r: any) => ({
+        ...r,
+        designer: {
+          ...r.designer,
+          email: contactById.get(r.designer_id)?.email ?? '',
+          phone_number: contactById.get(r.designer_id)?.phone_number ?? '',
+        },
+      }))
+    );
   };
 
   const handleApprove = async (requestId: string) => {

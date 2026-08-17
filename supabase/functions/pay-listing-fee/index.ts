@@ -47,18 +47,47 @@ serve(async (req) => {
       throw new Error('Designer profile not found. Please complete onboarding first.');
     }
 
+    // --- OWNERSHIP: the product must belong to this designer ---
+    const { data: product, error: productLookupError } = await supabase
+      .from('designer_products')
+      .select('id, designer_id')
+      .eq('id', productId)
+      .maybeSingle();
+
+    if (productLookupError) throw productLookupError;
+    if (!product || product.designer_id !== designerProfile.id) {
+      return new Response(
+        JSON.stringify({ error: 'Product not found' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Determine listing fee based on country
     const isInternational = country && country !== 'IN';
     const listingFee = isInternational ? 15 : 1000; // $15 USD or Rs. 1,000
     const currency = isInternational ? 'USD' : 'INR';
 
-    // In a real implementation, you would:
-    // 1. Process payment through Stripe/Razorpay
-    // 2. Verify payment success
-    // 3. Then update the listing
+    // --- FEE POLICY: no mock payments. Either the fee is server-side waived
+    // (current launch policy) or a real, verified gateway charge is required. ---
+    const { data: feePolicyRow } = await supabase
+      .from('pricing_config')
+      .select('config_value')
+      .eq('config_key', 'fee_policy')
+      .maybeSingle();
+    const feePolicy = (feePolicyRow?.config_value ?? {}) as Record<string, unknown>;
+    const listingFeeWaived = feePolicy.listing_fee_waived !== false; // default: waived
 
-    // For now, simulate payment success
-    console.log(`Processing ${currency} ${listingFee} listing fee for product ${productId}`);
+    if (!listingFeeWaived) {
+      return new Response(
+        JSON.stringify({
+          error: 'Listing fee payment is not available yet. Please try again later.',
+          code: 'PAYMENT_NOT_CONFIGURED',
+        }),
+        { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Listing fee waived (${currency} ${listingFee}) for product ${productId}`);
 
     // Create or update listing with fee paid
     const { data: listing, error: listingError } = await supabase
@@ -66,7 +95,7 @@ serve(async (req) => {
       .upsert({
         product_id: productId,
         listing_fee_paid: true,
-        listing_fee_amount: listingFee,
+        listing_fee_amount: 0, // waived — nothing was charged
       }, {
         onConflict: 'product_id'
       })
@@ -96,7 +125,8 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         listing,
-        message: 'Listing fee paid successfully. Your design is now under review.',
+        waived: true,
+        message: 'Listing fee is waived right now. Your design is now under review.',
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

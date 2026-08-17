@@ -84,6 +84,62 @@ serve(async (req) => {
     
     const validatedData = generateDesignSchema.parse(requestData);
     const { prompt, variationNumber, roomImageBase64, sketchImageBase64, generate3D, imageUrl: existingImageUrl, category, budget } = validatedData;
+
+    // --- CREDIT GATE (server-side, cannot be bypassed by calling this fn directly) ---
+    // orchestrate-design reserves the credit itself and signals that with a header
+    // authenticated by the service role key (clients cannot forge it).
+    const chargedHeader = req.headers.get('x-credit-already-charged');
+    const alreadyCharged =
+      !!chargedHeader && chargedHeader === Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    // 3D-only conversion is paid through pay-3d-generation-fee, no AI credit cost
+    const is3DOnlyConversion = Boolean(generate3D && existingImageUrl);
+    const mustChargeCredit = !alreadyCharged && !is3DOnlyConversion;
+
+    if (mustChargeCredit) {
+      const { data: creditRow, error: creditErr } = await supabase
+        .from('user_credits')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (creditErr) {
+        console.error('generate-design: credit read failed', creditErr);
+        return new Response(
+          JSON.stringify({ error: 'Could not verify credit balance.' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      if ((creditRow?.balance ?? 0) < 1) {
+        return new Response(
+          JSON.stringify({
+            error: "You're out of AI credits. Top up to keep generating.",
+            code: 'INSUFFICIENT_CREDITS',
+            balance: creditRow?.balance ?? 0,
+          }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
+    const chargeCredit = async () => {
+      if (!mustChargeCredit) return;
+      const { data: row } = await supabase
+        .from('user_credits')
+        .select('balance')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      const balance = row?.balance ?? 0;
+      if (balance < 1) return;
+      await supabase
+        .from('user_credits')
+        .update({ balance: balance - 1, updated_at: new Date().toISOString() })
+        .eq('user_id', user.id);
+      await supabase.from('credit_transactions').insert({
+        user_id: user.id,
+        amount: -1,
+        type: 'usage',
+        description: 'AI design generation',
+      });
+    };
     console.log("Received prompt:", prompt, "Variation:", variationNumber, "Has room image:", !!roomImageBase64, "Has sketch:", !!sketchImageBase64, "Generate 3D:", generate3D, "Has existing image:", !!existingImageUrl);
 
     // If generating 3D from existing image, skip image generation
@@ -492,6 +548,9 @@ Generate a single photorealistic product photograph of this ${subjectNoun}.`;
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Image produced — charge the credit (no-op when the orchestrator already did).
+    await chargeCredit();
 
     // Analyze design for pricing using Aarav's expertise
     let pricingData = {

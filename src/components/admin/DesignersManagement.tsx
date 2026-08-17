@@ -34,11 +34,23 @@ export function DesignersManagement() {
     try {
       const { data, error } = await supabase
         .from("designer_profiles")
-        .select("*")
+        .select(
+          "id, user_id, name, status, slug, plan_tier, is_house, portfolio_url, design_background, furniture_interests, profile_picture_url, cover_image_url, terms_accepted, terms_accepted_at, created_at, updated_at"
+        )
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setDesigners(data || []);
+
+      // Email/phone are admin-only and served by a role-checked function
+      const { data: contacts } = await supabase.rpc("admin_get_designer_contacts");
+      const contactById = new Map((contacts || []).map((c: any) => [c.id, c]));
+      setDesigners(
+        (data || []).map((d: any) => ({
+          ...d,
+          email: contactById.get(d.id)?.email ?? "",
+          phone_number: contactById.get(d.id)?.phone_number ?? null,
+        }))
+      );
     } catch (error) {
       console.error("Error fetching designers:", error);
       toast({

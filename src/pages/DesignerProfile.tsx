@@ -52,9 +52,11 @@ const DesignerProfile = () => {
   const fetchDesignerData = async () => {
     try {
       // Try fetching by slug first, fallback to UUID
+      const PUBLIC_PROFILE_COLUMNS =
+        'id, name, slug, status, design_background, furniture_interests, portfolio_url, profile_picture_url, cover_image_url, created_at';
       const slugQuery = supabase
         .from('designer_profiles')
-        .select('*');
+        .select(PUBLIC_PROFILE_COLUMNS);
       const { data: slugProfile } = await (slugQuery as any)
         .eq('slug', slug)
         .eq('status', 'approved')
@@ -64,7 +66,7 @@ const DesignerProfile = () => {
       if (!profile) {
         const { data: idProfile, error: profileError } = await supabase
           .from('designer_profiles')
-          .select('*')
+          .select(PUBLIC_PROFILE_COLUMNS)
           .eq('id', slug!)
           .eq('status', 'approved')
           .single();
@@ -100,7 +102,7 @@ const DesignerProfile = () => {
         id: profile.id,
         slug: canonicalSlug,
         name: profile.name,
-        email: profile.email,
+        email: '',
         design_background: profile.design_background || '',
         furniture_interests: profile.furniture_interests || '',
         portfolio_url: profile.portfolio_url || '',

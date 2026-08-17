@@ -63,6 +63,49 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // --- AUTH: require a signed-in user who owns the product (or an admin) ---
+    const token = req.headers.get("Authorization")?.replace(/^Bearer\s+/i, "") ?? "";
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { data: userData, error: authError } = await supabase.auth.getUser(token);
+    const caller = userData?.user;
+    if (authError || !caller) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { data: targetProduct } = await supabase
+      .from("designer_products")
+      .select("id, designer_id")
+      .eq("id", productId)
+      .maybeSingle();
+    if (!targetProduct) {
+      return new Response(
+        JSON.stringify({ error: "Product not found" }),
+        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { data: callerProfile } = await supabase
+      .from("designer_profiles")
+      .select("id")
+      .eq("user_id", caller.id)
+      .maybeSingle();
+    const { data: callerIsAdmin } = await supabase.rpc("has_role", {
+      _user_id: caller.id,
+      _role: "admin",
+    });
+    if (callerIsAdmin !== true && callerProfile?.id !== targetProduct.designer_id) {
+      return new Response(
+        JSON.stringify({ error: "Forbidden" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Check cache first
     const { data: cached } = await supabase
       .from("product_finish_images")
