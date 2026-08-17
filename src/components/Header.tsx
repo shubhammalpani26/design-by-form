@@ -23,7 +23,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut, Sparkles, TrendingUp, Users, Trophy, BookOpen } from "lucide-react";
+import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut, Sparkles, TrendingUp, Users, Trophy, BookOpen, Package } from "lucide-react";
 import wordmark from "@/assets/nyzora-wordmark.png";
 
 export const Header = () => {
@@ -115,8 +115,16 @@ export const Header = () => {
                       <LayoutDashboard className="h-5 w-5" />
                       Creator Dashboard
                     </Link>
-                    <Link
-                      to="/cart"
+                     <Link
+                       to="/orders"
+                       onClick={() => setMobileMenuOpen(false)}
+                       className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
+                     >
+                       <Package className="h-5 w-5" />
+                       My Orders
+                     </Link>
+                     <Link
+                       to="/cart"
                       onClick={() => setMobileMenuOpen(false)}
                       className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
                     >
@@ -386,6 +394,12 @@ export const Header = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-background border border-border shadow-lg z-50">
+                <DropdownMenuItem asChild>
+                  <Link to="/orders" className="cursor-pointer hover:bg-accent">
+                    <Package className="w-4 h-4 mr-2" />
+                    My Orders
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link to="/creator/dashboard" className="cursor-pointer hover:bg-accent">
                     <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
