@@ -291,6 +291,59 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
+    // Admin-triggered actions (publish now) — require an admin JWT.
+    let action: string | undefined;
+    let postId: string | undefined;
+    if (req.method === "POST") {
+      try {
+        const body = (await req.json()) as { action?: string; postId?: string };
+        action = body?.action;
+        postId = body?.postId;
+      } catch {
+        // cron calls send no body
+      }
+    }
+
+    if (action === "publish_now") {
+      const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
+      const { data: userData } = await admin.auth.getUser(token);
+      const uid = userData?.user?.id;
+      if (!uid) return json({ error: "Unauthorized" }, 401);
+      const { data: isAdmin } = await admin.rpc("has_role", { _user_id: uid, _role: "admin" });
+      if (isAdmin !== true) return json({ error: "Forbidden" }, 403);
+      if (!postId) return json({ error: "postId required" }, 400);
+
+      const { data: row } = await admin
+        .from("social_scheduled_posts")
+        .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
+        .eq("id", postId)
+        .maybeSingle();
+      const post = row as Post | null;
+      if (!post) return json({ error: "Post not found" }, 404);
+      if (!post.image_url) return json({ error: "Creative not rendered yet" }, 400);
+      if (post.slot_type === "story") return json({ error: "Stories must be posted manually" }, 400);
+
+      let creds: { pageToken: string; igUserId: string };
+      try {
+        creds = await metaCreds();
+      } catch (e) {
+        return json({ error: (e as Error).message }, 400);
+      }
+
+      try {
+        const mediaId = await publishOne(post, creds);
+        await admin
+          .from("social_scheduled_posts")
+          .update({ status: "published", ig_media_id: mediaId, published_at: new Date().toISOString(), last_error: null })
+          .eq("id", post.id);
+        return json({ ok: true, published: 1, ig_media_id: mediaId });
+      } catch (e) {
+        const message = (e as Error).message.slice(0, 500);
+        await admin.from("social_scheduled_posts").update({ last_error: message }).eq("id", post.id);
+        return json({ error: message }, 500);
+      }
+    }
+
     const { data: state } = await admin
       .from("social_scheduler_state")
       .select("paused, pause_reason, lease_until")
