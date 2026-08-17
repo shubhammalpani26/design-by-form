@@ -49,18 +49,33 @@ export const FOOTNOTE_MAX = 24;
 export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
-    name: "Pet Sculpture Piece",
-    tagline: "Their head sculpted in full three dimensions — your words engraved.",
+    name: "Custom Pet Memorial Sculpture",
+    tagline: "A pet memorial gift made from your photo — their head sculpted in full three dimensions, your words engraved.",
     description:
-      "A fully three-dimensional sculpture of your pet's head and shoulders on a weighted plinth, with a heading and footnote of your choosing engraved into the front face — a name, a nickname, a date, a line only you two understand. Rounded, carved volume you can hold and turn — cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form for a layered, stone-look surface. Made from a dense matte polymer, precision 3D-printed as one solid part in the USA.",
+      "A personalized pet memorial made from a photo of your dog or cat: their head and shoulders sculpted in full three dimensions on a weighted plinth, with their name and dates engraved into the front face — a nickname, a date, a line only the two of you understand. A dignified alternative to a pet urn or an engraved plaque, and a pet loss gift you can hold and turn: cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. Fine horizontal strata run across the form for a layered, stone-look surface. Made from a dense matte polymer, precision 3D-printed as one solid part in the USA and shipped free.",
     price: 59,
     image: petImg,
     dimensions: "196 × 150 × 120 mm",
+    seo: {
+      title: "Custom Pet Memorial Sculpture from a Photo — Dog & Cat Memorial Gift",
+      description:
+        "A personalized pet memorial gift sculpted from your photo and engraved with their name and dates. A keepsake alternative to a pet urn. Made in the USA, free shipping, from $59.",
+      keywords: [
+        "pet memorial gifts",
+        "dog memorial gift",
+        "cat memorial gift",
+        "pet loss gift",
+        "personalized pet gift",
+        "pet urn alternative",
+        "custom pet statue",
+        "pet memorial from photo",
+      ],
+    },
     fields: [
-      { key: "heading", label: "Heading", placeholder: "MILO", maxLength: HEADING_MAX, hint: "Engraved large on the plinth" },
+      { key: "heading", label: "Heading", placeholder: "MILO", maxLength: HEADING_MAX, hint: "Their name, engraved large on the plinth" },
       { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
-      { key: "footnote", label: "Footnote (optional)", placeholder: "2014 — 2024", maxLength: FOOTNOTE_MAX, hint: "A date or a short line, engraved below" },
+      { key: "footnote", label: "Footnote (optional)", placeholder: "2014 — 2024", maxLength: FOOTNOTE_MAX, hint: "Their dates or a short line, engraved below" },
     ],
     sizes: [
       { key: "petite", label: "Petite", size: "120 mm tall", price: 59, note: "Desk or shelf" },
