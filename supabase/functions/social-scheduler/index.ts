@@ -113,15 +113,24 @@ const engravingClause = (e: { name: string; sub: string }) =>
   "The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
   "Frame the shot so the engraved base is fully visible in the lower third and never cropped.";
 
-/** Buyers respond to a joyful pet, not a solemn one — every render smiles. */
-const EXPRESSION_CLAUSE =
+/** A mix of joyful and calmly content expressions — never solemn, never grieving. */
+const HAPPY_EXPRESSION =
   " Expression: warm and happy — a gentle open-mouthed smile with the tongue tip just visible, relaxed lifted cheeks, " +
-  "ears perked and alert, bright uplifted brows, a joyful and alive look rather than a solemn one, all sculpted as form.";
+  "ears perked and alert, bright uplifted brows, a joyful and alive look, all sculpted as form.";
+const CALM_EXPRESSION =
+  " Expression: calm and content — a soft relaxed face with gently closed or half-open mouth, a quiet alert gaze, " +
+  "settled ears, a peaceful at-ease look that is warm but not solemn, all sculpted as form.";
+
+/** Deterministic per slot: roughly half happy, half calm, never sad. */
+const expressionFor = (id: string): string => {
+  const h = Array.from(id).reduce((a, c) => (a + c.charCodeAt(0)) | 0, 0);
+  return h % 2 === 0 ? HAPPY_EXPRESSION : CALM_EXPRESSION;
+};
 
 const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
 
 const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${EXPRESSION_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
