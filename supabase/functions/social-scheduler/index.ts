@@ -129,8 +129,14 @@ const expressionFor = (id: string): string => {
 
 const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
 
+/** The piece is printed in one filament, so nothing on it can be a different colour. */
+const MONOCHROME_CLAUSE =
+  " Material: printed in a single filament colour — the whole piece including the eyes, pupils, nose, tongue, mouth and base " +
+  "is exactly the same matte colour and finish as the body. No coloured irises, no glossy or wet highlights, no pink tongue, " +
+  "no painted details, no two-tone or multi-colour areas anywhere; eyes and details read purely as sculpted form.";
+
 const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${MONOCHROME_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
