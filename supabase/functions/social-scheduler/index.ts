@@ -30,7 +30,10 @@ const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 const PRINTABILITY_CLAUSE =
   " Manufacturing constraints: a single solid monolithic form with a wide flat base sitting fully on the surface, " +
   "no floating or cantilevered elements, no thin stems or wires, no lattice or perforations, all overhangs kept under 45 degrees, " +
-  "no separate accessories or props touching the piece, minimum wall thickness of 3mm, chest and neck extended forward to fully support the chin.";
+  "no separate accessories or props touching the piece, minimum wall thickness of 3mm, chest and neck extended forward to fully support the chin. " +
+  "Fur tufts, ruffs, feathers, crests, whiskers and ears are simplified into thick solid upward-flowing masses fully merged into the head — " +
+  "never thin, separated or downward-pointing strands. The mouth stays closed or barely parted with the tongue merged into the jaw, no open cavity. " +
+  "The neck is broad and tapers continuously into the plinth with no narrow waist or undercut beneath the chest.";
 
 /**
  * Each post gets its own pet so the grid reads like many real customers, not one repeated order.
@@ -77,7 +80,7 @@ const SPECIES: string[] = [
   "black cat",
   "border collie dog",
   "lop-eared rabbit",
-  "cockatiel-style parrot with folded crest",
+  "small parrot with a smooth rounded head and no crest",
   "shih tzu dog",
   "persian cat",
 ];
@@ -203,8 +206,17 @@ async function engineeringCheck(imageUrl: string, prompt: string) {
     }),
   });
   if (!res.ok) throw new Error(`engineering-check ${res.status}`);
-  return (await res.json()) as { pass?: boolean; confidence?: number; issues?: string[]; skipped?: boolean };
+  return (await res.json()) as {
+    pass?: boolean;
+    confidence?: number;
+    issues?: string[];
+    skipped?: boolean;
+    revision_prompt?: string;
+  };
 }
+
+/** Max render passes per slot in one run: the agent's revision note feeds straight back into the prompt. */
+const ENGINEERING_RETRIES = 2;
 
 async function renderDue() {
   const horizon = new Date(Date.now() + RENDER_LOOKAHEAD_MS).toISOString();
@@ -220,30 +232,49 @@ async function renderDue() {
 
   const posts = (data ?? []) as Post[];
   for (const post of posts) {
-    const rendered = await renderImage(post.is_render ? renderPrompt(post.image_prompt, post.id) : post.image_prompt);
-    if (!rendered.url) {
-      if (rendered.status === 402 || rendered.status === 403) {
-        await pause(`AI gateway ${rendered.status}: ${rendered.error ?? "blocked"}`);
-        return { paused: true };
-      }
-      await admin
-        .from("social_scheduled_posts")
-        .update({ attempts: post.attempts + 1, last_error: rendered.error ?? "render failed" })
-        .eq("id", post.id);
-      continue;
-    }
-
     let engineering: unknown = null;
     let engineering_status = "skipped";
-    if (post.is_render) {
+    let imageUrl: string | null = null;
+    let revision = "";
+    let renderError: { status?: number; error?: string } | null = null;
+
+    // Re-render with the engineering agent's own revision note until it passes,
+    // so a rejected slot still makes its posting time.
+    for (let pass = 0; pass < ENGINEERING_RETRIES; pass++) {
+      const base = post.is_render ? renderPrompt(post.image_prompt, post.id) : post.image_prompt;
+      const rendered = await renderImage(revision ? `${base} ${revision}` : base);
+      if (!rendered.url) {
+        if (rendered.status === 402 || rendered.status === 403) {
+          await pause(`AI gateway ${rendered.status}: ${rendered.error ?? "blocked"}`);
+          return { paused: true };
+        }
+        renderError = rendered;
+        break;
+      }
+      imageUrl = rendered.url;
+      if (!post.is_render) {
+        engineering_status = "skipped";
+        break;
+      }
       try {
         const verdict = await engineeringCheck(rendered.url, post.image_prompt);
         engineering = verdict;
         engineering_status = verdict.skipped ? "skipped" : verdict.pass === false ? "fail" : "pass";
+        if (engineering_status !== "fail") break;
+        revision = verdict.revision_prompt?.trim() || "Simplify the form: merge all thin details into solid masses and remove every overhang.";
       } catch (e) {
         engineering_status = "pending";
         engineering = { error: (e as Error).message };
+        break;
       }
+    }
+
+    if (!imageUrl) {
+      await admin
+        .from("social_scheduled_posts")
+        .update({ attempts: post.attempts + 1, last_error: renderError?.error ?? "render failed" })
+        .eq("id", post.id);
+      continue;
     }
 
     // A render the engineering agent rejects never auto-publishes — it parks for review.
@@ -253,7 +284,7 @@ async function renderDue() {
     await admin
       .from("social_scheduled_posts")
       .update({
-        image_url: rendered.url,
+        image_url: imageUrl,
         engineering,
         engineering_status,
         status,
