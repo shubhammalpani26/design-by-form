@@ -367,6 +367,14 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
 }
 
 async function publishDue() {
+  // A run killed mid-publish leaves a row claimed forever; hand it back after 10 minutes.
+  await admin
+    .from("social_scheduled_posts")
+    .update({ status: "ready" })
+    .eq("status", "publishing")
+    .is("ig_media_id", null)
+    .lt("updated_at", new Date(Date.now() - 10 * 60 * 1000).toISOString());
+
   const { data } = await admin
     .from("social_scheduled_posts")
     .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
