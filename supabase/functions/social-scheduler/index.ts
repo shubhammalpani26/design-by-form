@@ -51,12 +51,58 @@ const ENGRAVINGS: Array<{ name: string; sub: string }> = [
   { name: "DUKE", sub: "2007 — 2021" },
   { name: "NALA", sub: "2016 — 2025" },
   { name: "TOBY", sub: "2010 — 2024" },
+  { name: "SIMBA", sub: "2012 — 2024" },
+  { name: "CLEO", sub: "OUR LITTLE SHADOW" },
+  { name: "PEPPER", sub: "2013 — 2025" },
+  { name: "OSCAR", sub: "2009 — 2023" },
 ];
 
-function engravingFor(id: string) {
+/**
+ * The grid has to look like many different households, not one breed of dog.
+ * Roughly half cats, half dogs, with a few other companion animals.
+ */
+const SPECIES: string[] = [
+  "domestic shorthair cat",
+  "golden retriever dog",
+  "tabby cat",
+  "labrador retriever dog",
+  "maine coon cat with a full ruff",
+  "beagle dog",
+  "siamese cat",
+  "french bulldog",
+  "british shorthair cat",
+  "german shepherd dog",
+  "ragdoll cat",
+  "dachshund dog",
+  "black cat",
+  "border collie dog",
+  "lop-eared rabbit",
+  "cockatiel-style parrot with folded crest",
+  "shih tzu dog",
+  "persian cat",
+];
+
+function hash(id: string, salt = "") {
   let h = 0;
-  for (const ch of id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-  return ENGRAVINGS[h % ENGRAVINGS.length];
+  for (const ch of salt + id) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return h;
+}
+
+function speciesFor(id: string) {
+  return SPECIES[hash(id, "species:") % SPECIES.length];
+}
+
+/**
+ * Prompts were authored dog-first. Swap whatever animal noun they name for the
+ * species pinned to this slot so the feed spans cats, dogs and beyond.
+ */
+const SPECIES_NOUNS =
+  /\b(golden retriever|labrador retriever|german shepherd|french bulldog|border collie|maine coon|british shorthair|domestic shorthair|persian cat|siamese cat|ragdoll cat|tabby cat|black cat|lop-eared rabbit|dachshund|shih tzu|beagle|puppy|kitten|dogs|cats|dog|cat|animal|pet)\b/gi;
+
+const applySpecies = (p: string, id: string) => p.replace(SPECIES_NOUNS, speciesFor(id));
+
+function engravingFor(id: string) {
+  return ENGRAVINGS[hash(id) % ENGRAVINGS.length];
 }
 
 /** Every product render must visibly prove the piece is personalised from the customer's own photo. */
@@ -70,7 +116,7 @@ const engravingClause = (e: { name: string; sub: string }) =>
 const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
 
 const renderPrompt = (p: string, id: string) =>
-  `${p}${engravingClause(engravingFor(id))}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
