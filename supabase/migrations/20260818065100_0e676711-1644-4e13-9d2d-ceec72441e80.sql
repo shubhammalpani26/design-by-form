@@ -1,0 +1,1 @@
+DELETE FROM public.originals_orders WHERE id <> '1857aa00-42bb-4f56-8f14-d561277229de';
