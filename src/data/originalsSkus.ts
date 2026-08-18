@@ -73,7 +73,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       ],
     },
     fields: [
-      { key: "heading", label: "Heading", placeholder: "MILO", maxLength: HEADING_MAX, hint: "Their name, engraved large on the plinth" },
+      { key: "heading", label: "Heading", placeholder: "MARLOW", maxLength: HEADING_MAX, hint: "Their name, engraved large on the plinth" },
       { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
       { key: "footnote", label: "Footnote (optional)", placeholder: "2014 — 2024", maxLength: FOOTNOTE_MAX, hint: "Their dates or a short line, engraved below" },
