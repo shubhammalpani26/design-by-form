@@ -113,10 +113,15 @@ const engravingClause = (e: { name: string; sub: string }) =>
   "The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
   "Frame the shot so the engraved base is fully visible in the lower third and never cropped.";
 
+/** Buyers respond to a joyful pet, not a solemn one — every render smiles. */
+const EXPRESSION_CLAUSE =
+  " Expression: warm and happy — a gentle open-mouthed smile with the tongue tip just visible, relaxed lifted cheeks, " +
+  "ears perked and alert, bright uplifted brows, a joyful and alive look rather than a solemn one, all sculpted as form.";
+
 const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram feed post.";
 
 const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${EXPRESSION_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;

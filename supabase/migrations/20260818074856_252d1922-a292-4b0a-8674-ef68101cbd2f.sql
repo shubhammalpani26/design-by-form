@@ -1,0 +1,1 @@
+UPDATE public.social_scheduled_posts SET image_url = NULL, engineering = NULL, engineering_status = 'pending', status = 'scheduled', attempts = 0, last_error = NULL WHERE status IN ('scheduled','ready','needs_review') AND published_at IS NULL;
