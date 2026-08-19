@@ -1,5 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createStationery, listStationery, PartnerApiError } from "../_shared/slant3d.ts";
+import {
+  createStationery,
+  listStationery,
+  PartnerApiError,
+  updateStationery,
+} from "../_shared/slant3d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -37,6 +42,11 @@ Deno.serve(async (req) => {
     if (!(await isAdmin(req))) return json({ error: "Unauthorized" }, 401);
 
     if (req.method === "GET") {
+      const url = new URL(req.url);
+      if (url.searchParams.get("verify") === "1") {
+        const id = Deno.env.get("SLANT3D_STATIONERY_ID") ?? null;
+        return json({ configured: Boolean(id), stationery_id: id });
+      }
       return json({ stationery: await listStationery() });
     }
 
@@ -49,7 +59,20 @@ Deno.serve(async (req) => {
       if (!/^https:\/\/\S+\.(png|jpg|jpeg)$/i.test(imageUrl)) {
         return json({ error: "image_url must be an https .png/.jpg URL" }, 400);
       }
-      return json({ created: await createStationery(name, imageUrl) });
+      const extra = (body && typeof body.extra === "object" && body.extra)
+        ? body.extra as Record<string, unknown>
+        : {};
+      return json({ created: await createStationery(name, imageUrl, extra) });
+    }
+
+    if (req.method === "PATCH") {
+      const body = await req.json().catch(() => ({}));
+      const id = typeof body?.id === "string" ? body.id : "";
+      const patch = (body && typeof body.patch === "object" && body.patch)
+        ? body.patch as Record<string, unknown>
+        : {};
+      if (!id) return json({ error: "id is required" }, 400);
+      return json({ updated: await updateStationery(id, patch) });
     }
 
     return json({ error: "Method not allowed" }, 405);
