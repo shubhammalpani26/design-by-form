@@ -1,5 +1,10 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createStationery, listStationery, PartnerApiError } from "../_shared/slant3d.ts";
+import {
+  createStationery,
+  createStationeryMultipart,
+  listStationery,
+  PartnerApiError,
+} from "../_shared/slant3d.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -52,6 +57,9 @@ Deno.serve(async (req) => {
       const extra = (body && typeof body.extra === "object" && body.extra)
         ? body.extra as Record<string, unknown>
         : {};
+      if (typeof body?.multipart_field === "string") {
+        return json({ created: await createStationeryMultipart(name, imageUrl, body.multipart_field) });
+      }
       return json({ created: await createStationery(name, imageUrl, extra) });
     }
 
