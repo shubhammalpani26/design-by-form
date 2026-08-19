@@ -188,7 +188,7 @@ export async function createStationery(
 ): Promise<unknown> {
   return await request<unknown>("/stationery", {
     method: "POST",
-    body: JSON.stringify({ platformId: platformId(), name, imageUrl, ...extra }),
+    body: JSON.stringify({ name, image_url: imageUrl, dimensions: "4x6", quantity: 1, ...extra }),
   });
 }
 
