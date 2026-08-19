@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   createStationery,
-  createStationeryMultipart,
   listStationery,
   PartnerApiError,
+  updateStationery,
 } from "../_shared/slant3d.ts";
 
 const corsHeaders = {
@@ -57,10 +57,17 @@ Deno.serve(async (req) => {
       const extra = (body && typeof body.extra === "object" && body.extra)
         ? body.extra as Record<string, unknown>
         : {};
-      if (typeof body?.multipart_field === "string") {
-        return json({ created: await createStationeryMultipart(name, imageUrl, body.multipart_field) });
-      }
       return json({ created: await createStationery(name, imageUrl, extra) });
+    }
+
+    if (req.method === "PATCH") {
+      const body = await req.json().catch(() => ({}));
+      const id = typeof body?.id === "string" ? body.id : "";
+      const patch = (body && typeof body.patch === "object" && body.patch)
+        ? body.patch as Record<string, unknown>
+        : {};
+      if (!id) return json({ error: "id is required" }, 400);
+      return json({ updated: await updateStationery(id, patch) });
     }
 
     return json({ error: "Method not allowed" }, 405);
