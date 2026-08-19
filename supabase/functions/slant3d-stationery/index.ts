@@ -21,6 +21,9 @@ const admin = createClient(
 async function isAdmin(req: Request): Promise<boolean> {
   const token = req.headers.get("authorization")?.replace("Bearer ", "");
   if (!token) return false;
+  // Trusted server-to-server calls (service role) are treated as admin.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (serviceKey && token === serviceKey) return true;
   const { data } = await admin.auth.getUser(token);
   if (!data?.user) return false;
   const { data: ok } = await admin.rpc("has_role", { _user_id: data.user.id, _role: "admin" });
