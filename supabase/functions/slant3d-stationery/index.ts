@@ -42,6 +42,11 @@ Deno.serve(async (req) => {
     if (!(await isAdmin(req))) return json({ error: "Unauthorized" }, 401);
 
     if (req.method === "GET") {
+      const url = new URL(req.url);
+      if (url.searchParams.get("verify") === "1") {
+        const id = Deno.env.get("SLANT3D_STATIONERY_ID") ?? null;
+        return json({ configured: Boolean(id), stationery_id: id });
+      }
       return json({ stationery: await listStationery() });
     }
 
