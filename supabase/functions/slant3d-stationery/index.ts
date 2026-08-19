@@ -49,7 +49,10 @@ Deno.serve(async (req) => {
       if (!/^https:\/\/\S+\.(png|jpg|jpeg)$/i.test(imageUrl)) {
         return json({ error: "image_url must be an https .png/.jpg URL" }, 400);
       }
-      return json({ created: await createStationery(name, imageUrl) });
+      const extra = (body && typeof body.extra === "object" && body.extra)
+        ? body.extra as Record<string, unknown>
+        : {};
+      return json({ created: await createStationery(name, imageUrl, extra) });
     }
 
     return json({ error: "Method not allowed" }, 405);
