@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { originalsCart } from "@/lib/originalsCart";
+import { trackPurchaseConversion } from "@/lib/googleAds";
 
 interface OrderView {
   id: string;
@@ -80,6 +81,18 @@ export default function OriginalsReturn() {
   useEffect(() => {
     if (paid) originalsCart.clear();
   }, [paid]);
+
+  // Report the sale to Google Ads exactly once per confirmed order.
+  useEffect(() => {
+    if (!paid || !order) return;
+    const key = `nyzora_ads_conv_${order.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    const total = items.length
+      ? items.reduce((sum, i) => sum + i.amountUsd * (i.quantity || 1), 0)
+      : order.amountUsd;
+    trackPurchaseConversion(order.id, total);
+  }, [paid, order, items]);
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
