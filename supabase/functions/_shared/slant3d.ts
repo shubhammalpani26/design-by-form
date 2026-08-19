@@ -238,15 +238,26 @@ export async function draftOrder(
     });
   }
 
-  const data = await request<Record<string, unknown>>("/orders", {
-    method: "POST",
-    body: JSON.stringify({
-      platformId: platformId(),
-      ownerId: ownerId ?? "nyzora",
-      customer: { details: { email: customer.email, address: customer.address } },
-      items: orderItems,
-    }),
-  });
+  const post = (items: Array<Record<string, unknown>>) =>
+    request<Record<string, unknown>>("/orders", {
+      method: "POST",
+      body: JSON.stringify({
+        platformId: platformId(),
+        ownerId: ownerId ?? "nyzora",
+        customer: { details: { email: customer.email, address: customer.address } },
+        items,
+      }),
+    });
+
+  let data: Record<string, unknown>;
+  try {
+    data = await post(orderItems);
+  } catch (e) {
+    // Never let the branded insert break a real order — retry without it.
+    if (!insertId) throw e;
+    console.error("draft order with insert failed, retrying without insert:", e);
+    data = await post(orderItems.filter((i) => i.type !== "STATIONERY"));
+  }
 
   const order = (data?.order ?? data) as Record<string, unknown>;
   const printingCost = toNumber(order?.printingCost);
