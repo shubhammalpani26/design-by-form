@@ -192,39 +192,15 @@ export async function createStationery(
   });
 }
 
-/** Fallback: some partner builds expect the insert as a multipart file upload. */
-export async function createStationeryMultipart(
-  name: string,
-  imageUrl: string,
-  fieldName = "image",
+/** Updates a registered insert (e.g. flipping `available` on). */
+export async function updateStationery(
+  id: string,
+  patch: Record<string, unknown>,
 ): Promise<unknown> {
-  const img = await fetch(imageUrl);
-  if (!img.ok) throw new PartnerApiError("Could not fetch insert artwork", 400);
-  const blob = await img.blob();
-  const form = new FormData();
-  form.append("platformId", platformId());
-  form.append("name", name);
-  form.append("dimensions", "4x6");
-  form.append("quantity", "1");
-  form.append(fieldName, blob, "nyzora-insert-4x6.png");
-
-  const res = await fetch(`${BASE_URL}/stationery`, {
-    method: "POST",
-    headers: { "Authorization": `Bearer ${apiKey()}` },
-    body: form,
+  return await request<unknown>(`/stationery/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(patch),
   });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new PartnerApiError(
-      `US manufacturing partner request failed (${res.status}): ${text.slice(0, 400)}`,
-      res.status,
-    );
-  }
-  try {
-    return JSON.parse(text);
-  } catch {
-    return text;
-  }
 }
 
 export interface PartnerDraftOrder {
