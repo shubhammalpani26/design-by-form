@@ -184,10 +184,11 @@ export async function listStationery(): Promise<unknown> {
 export async function createStationery(
   name: string,
   imageUrl: string,
+  extra: Record<string, unknown> = {},
 ): Promise<unknown> {
   return await request<unknown>("/stationery", {
     method: "POST",
-    body: JSON.stringify({ platformId: platformId(), name, imageUrl }),
+    body: JSON.stringify({ platformId: platformId(), name, imageUrl, ...extra }),
   });
 }
 
