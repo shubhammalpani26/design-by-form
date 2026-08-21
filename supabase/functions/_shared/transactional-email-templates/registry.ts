@@ -13,5 +13,6 @@ export interface TemplateEntry {
 
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'originals-order-confirmation': originalsOrderConfirmation,
+  'originals-order-shipped': originalsOrderShipped,
   'fulfillment-failed': fulfillmentFailed,
 }
