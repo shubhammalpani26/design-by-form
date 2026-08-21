@@ -1447,6 +1447,7 @@ export type Database = {
           quote_source: string | null
           shipped_at: string | null
           shipping_address: Json | null
+          shipping_notified_at: string | null
           size_key: string
           size_label: string | null
           sku_slug: string
@@ -1481,6 +1482,7 @@ export type Database = {
           quote_source?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
+          shipping_notified_at?: string | null
           size_key: string
           size_label?: string | null
           sku_slug: string
@@ -1515,6 +1517,7 @@ export type Database = {
           quote_source?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
+          shipping_notified_at?: string | null
           size_key?: string
           size_label?: string | null
           sku_slug?: string

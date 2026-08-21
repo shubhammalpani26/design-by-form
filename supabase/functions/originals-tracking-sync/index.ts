@@ -30,6 +30,63 @@ const toProductionStatus = (partnerStatus: string) =>
     ? partnerStatus
     : "in_production";
 
+const PRODUCT_NAME: Record<string, string> = {
+  "pet-silhouette-keepsake": "Pet Memorial Sculpture",
+  "pet-portrait-sculpture": "Pet Portrait Sculpture",
+  "nursery-name-date": "Nursery Name & Date Piece",
+  "wedding-coordinates": "Wedding Coordinates Piece",
+};
+
+/** Emails the buyer their tracking, then stamps the row so it never repeats. */
+async function notifyShipped(
+  row: {
+    id: string;
+    customer_email: string | null;
+    sku_slug: string | null;
+    size_label: string | null;
+    carrier: string | null;
+  },
+  numbers: string[],
+) {
+  const templateData = {
+    orderId: row.id,
+    productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || "Your Nyzora piece",
+    sizeLabel: row.size_label ?? undefined,
+    carrier: row.carrier ?? undefined,
+    trackingNumbers: numbers,
+  };
+
+  const { error } = await admin.functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "originals-order-shipped",
+      recipientEmail: row.customer_email,
+      idempotencyKey: `originals-shipped-${row.id}`,
+      templateData,
+    },
+  });
+  if (error) {
+    console.error("shipping email failed", row.id, error);
+    return;
+  }
+
+  // Internal copy so the team sees every shipment go out.
+  await admin.functions
+    .invoke("send-transactional-email", {
+      body: {
+        templateName: "originals-order-shipped",
+        recipientEmail: "contact@nyzora.ai",
+        idempotencyKey: `originals-shipped-internal-${row.id}`,
+        templateData,
+      },
+    })
+    .catch(() => {});
+
+  await admin
+    .from("originals_orders")
+    .update({ shipping_notified_at: new Date().toISOString() })
+    .eq("id", row.id);
+}
+
 /**
  * Pulls partner tracking onto Originals orders. Safe to call from the buyer's
  * order page (anon) — it only ever writes partner-sourced tracking data and
@@ -44,7 +101,9 @@ Deno.serve(async (req) => {
 
     let query = admin
       .from("originals_orders")
-      .select("id, partner_order_id, production_status")
+      .select(
+        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipping_notified_at",
+      )
       .not("partner_order_id", "is", null)
       .limit(60);
     query = groupId ? query.eq("group_id", groupId) : query.in("production_status", OPEN);
@@ -62,6 +121,7 @@ Deno.serve(async (req) => {
         if (!seen.has(key)) seen.set(key, await getTracking(key));
         const { status, trackingNumbers } = seen.get(key)!;
         const numbers = trackingNumbers.map((t) => String(t)).filter(Boolean);
+        const shipped = status === "shipped";
         await admin
           .from("originals_orders")
           .update({
@@ -73,6 +133,11 @@ Deno.serve(async (req) => {
           })
           .eq("id", row.id);
         synced += 1;
+
+        // One shipping notification per order, only once tracking exists.
+        if (shipped && numbers.length && !row.shipping_notified_at && row.customer_email) {
+          await notifyShipped(row, numbers);
+        }
       } catch (e) {
         console.error("originals tracking sync failed", row.id, e instanceof Error ? e.message : e);
       }
