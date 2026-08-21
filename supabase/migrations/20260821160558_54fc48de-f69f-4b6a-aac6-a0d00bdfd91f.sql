@@ -1,0 +1,1 @@
+ALTER TABLE public.originals_orders ADD COLUMN IF NOT EXISTS shipping_notified_at TIMESTAMPTZ;
