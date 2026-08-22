@@ -21,6 +21,8 @@ import { useOriginalsCart } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
+import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
+
 
 
 const MAX_BYTES = 8 * 1024 * 1024;
