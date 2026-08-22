@@ -227,7 +227,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     const isRefine = isTweak || Boolean(overrideColor);
     if (isRefine) {
       setRefining(true);
-      setPrevPreview(preview);
     } else {
       setLoading(true);
       setPreview(null);
