@@ -58,6 +58,45 @@ const OriginalsHome = () => {
           })),
         }}
       />
+      <JsonLd
+        id="org"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": "https://nyzora.ai/#organization",
+          name: "Nyzora",
+          alternateName: "Nyzora.ai",
+          url: "https://nyzora.ai",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://nyzora.ai/favicon.png",
+            width: 512,
+            height: 512,
+          },
+          description:
+            "Nyzora Originals — made-to-order personalized sculptures from your photo. Pet memorials, baby name signs and wedding coordinate keepsakes, produced and shipped in the USA.",
+          sameAs: [
+            "https://www.instagram.com/nyzora.ai",
+            "https://www.linkedin.com/company/nyzora",
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            email: "contact@nyzora.ai",
+            contactType: "customer support",
+          },
+        }}
+      />
+      <JsonLd
+        id="website"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "@id": "https://nyzora.ai/#website",
+          url: "https://nyzora.ai",
+          name: "Nyzora",
+          publisher: { "@id": "https://nyzora.ai/#organization" },
+        }}
+      />
       <Header />
 
       {/* Hero */}
