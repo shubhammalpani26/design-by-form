@@ -90,8 +90,12 @@ export default function OriginalsReturn() {
 
   // Payment went through — the basket is now an order, so empty it.
   useEffect(() => {
-    if (paid) originalsCart.clear();
+    if (paid) {
+      originalsCart.clear();
+      void clearAllDrafts();
+    }
   }, [paid]);
+
 
   // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {
