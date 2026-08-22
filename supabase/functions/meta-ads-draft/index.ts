@@ -115,6 +115,19 @@ Deno.serve(async (req) => {
       return json({ id, status: res.status, body: await res.text() });
     }
 
+    // --- Set status of a campaign / ad set / ad (PAUSED or ACTIVE) ---
+    if (action === "set_status") {
+      const id = String(body.object_id ?? "");
+      const status = String(body.status ?? "PAUSED").toUpperCase();
+      if (!/^\d+$/.test(id)) return json({ error: "object_id must be numeric" }, 400);
+      if (!["PAUSED", "ACTIVE"].includes(status)) return json({ error: "invalid status" }, 400);
+      const res = await graph(`/${id}`, token, { status }).catch((e) => ({ error: String(e) }));
+      const check = await graph(`/${id}?fields=id,name,status,effective_status`, token).catch((e) => ({
+        error: String(e),
+      }));
+      return json({ update: res, object: check });
+    }
+
     // --- Assign a pixel to an ad account (required before audience creation) ---
     if (action === "share_pixel") {
       const { pixel_id, ad_account_id, business_id } = body as {
