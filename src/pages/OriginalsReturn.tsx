@@ -50,9 +50,18 @@ export default function OriginalsReturn() {
         setLoading(false);
         return;
       }
-      // Cashfree redirects back before its webhook lands — confirm with the
-      // gateway directly so the buyer never sees a stale "pending".
-      if (provider === "cashfree" && groupId && tries === 0) {
+      // The buyer lands back before the webhook does — confirm with the
+      // gateway directly so they never see a stale "pending".
+      if (provider === "razorpay" && groupId && tries === 0) {
+        await supabase.functions.invoke("razorpay-verify", {
+          body: {
+            groupId,
+            paymentId: params.get("payment_id") || undefined,
+            signature: params.get("signature") || undefined,
+          },
+        });
+        if (stop) return;
+      } else if (provider === "cashfree" && groupId && tries === 0) {
         await supabase.functions.invoke("cashfree-verify", { body: { groupId } });
         if (stop) return;
       }
@@ -74,7 +83,7 @@ export default function OriginalsReturn() {
     return () => {
       stop = true;
     };
-  }, [orderId, groupId, provider]);
+  }, [orderId, groupId, provider, params]);
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
   const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;
