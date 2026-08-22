@@ -43,7 +43,7 @@ export default function DesignerOnboarding() {
       // Check if already a designer
       supabase
         .from('designer_profiles')
-        .select('*')
+        .select('id, user_id, name, status')
         .eq('user_id', user.id)
         .maybeSingle()
         .then(({ data, error }) => {
