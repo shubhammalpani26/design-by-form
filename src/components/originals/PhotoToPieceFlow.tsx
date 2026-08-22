@@ -160,8 +160,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     window.addEventListener("popstate", onPop);
     return () => {
       window.removeEventListener("popstate", onPop);
-      if (window.history.state?.nyzoraCheckout) window.history.back();
+      // Don't rewind while we're handing off to the payment window.
+      if (!payingRef.current && window.history.state?.nyzoraCheckout) window.history.back();
     };
+
   }, [razorpayOpen, clientSecret]);
 
 
