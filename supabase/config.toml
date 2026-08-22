@@ -108,6 +108,15 @@ verify_jwt = false
 [functions.cashfree-verify]
 verify_jwt = false
 
+[functions.razorpay-checkout]
+verify_jwt = false
+
+[functions.razorpay-webhook]
+verify_jwt = false
+
+[functions.razorpay-verify]
+verify_jwt = false
+
 [functions.process-email-queue]
 verify_jwt = true
 
