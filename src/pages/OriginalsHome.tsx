@@ -213,7 +213,7 @@ const OriginalsHome = () => {
         <div className="border border-border p-8 md:p-14 text-center">
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Photo to piece</p>
           <h2 className="text-2xl md:text-4xl font-light tracking-tight max-w-2xl mx-auto">
-            One photo. One minute. Theirs, sculpted.
+            Upload one photo. See their sculpture before it's ever made.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
             Upload a photo of your pet and see the memorial sculpture before anything is made or charged.
