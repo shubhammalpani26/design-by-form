@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
-import { Loader2, Package, Truck, CheckCircle2, Factory, Copy } from "lucide-react";
+import { Loader2, Package, Truck, CheckCircle2, Factory, Copy, FileText } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
 
@@ -69,7 +69,31 @@ export default function MyOrders() {
   const [signedIn, setSignedIn] = useState(false);
   const [lookupId, setLookupId] = useState(params.get("order") ?? "");
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [invoiceBusy, setInvoiceBusy] = useState<string | null>(null);
   const { toast } = useToast();
+
+  /** Opens the Nyzora invoice in a print-ready window. */
+  const openInvoice = async (order: OrderRow) => {
+    setInvoiceBusy(order.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("originals-invoice", {
+        body: order.group_id ? { groupId: order.group_id } : { orderId: order.id },
+      });
+      if (error || !data?.invoice) throw new Error(error?.message ?? "No invoice");
+      const w = window.open("", "_blank");
+      if (!w) throw new Error("Please allow pop-ups to view your invoice.");
+      w.document.write(data.invoice);
+      w.document.close();
+    } catch (e) {
+      toast({
+        title: "Couldn't open the invoice",
+        description: e instanceof Error ? e.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setInvoiceBusy(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -220,6 +244,23 @@ export default function MyOrders() {
                 </p>
               )}
             </div>
+
+            <div className="border-t border-foreground/10 p-4">
+              <button
+                type="button"
+                onClick={() => openInvoice(first)}
+                disabled={invoiceBusy === first.id}
+                className="inline-flex items-center gap-2 border border-foreground/20 px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-foreground hover:text-background disabled:opacity-50"
+              >
+                {invoiceBusy === first.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5" />
+                )}
+                Invoice
+              </button>
+            </div>
+
           </section>
         );
       })}
