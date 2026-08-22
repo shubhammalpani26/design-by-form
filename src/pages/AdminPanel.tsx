@@ -84,22 +84,37 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-background">
       <Header />
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">Admin Control Panel</h1>
-        
-        <Tabs defaultValue="designers" className="w-full">
-          <TabsList className="grid w-full grid-cols-10 mb-8">
-            <TabsTrigger value="designers">Creators</TabsTrigger>
-            <TabsTrigger value="products">Products</TabsTrigger>
-            <TabsTrigger value="users">Users</TabsTrigger>
-            <TabsTrigger value="credits">Credits</TabsTrigger>
-            <TabsTrigger value="orders">Orders</TabsTrigger>
-            <TabsTrigger value="print-farm">US Print</TabsTrigger>
-            <TabsTrigger value="early-access">Early Access</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="social">Social</TabsTrigger>
-          </TabsList>
+      <div className="container mx-auto px-3 py-6 sm:px-4 sm:py-8">
+        <h1 className="mb-5 text-2xl font-bold sm:mb-8 sm:text-3xl">Admin Control Panel</h1>
+
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          {/* Mobile: dropdown selector */}
+          <div className="mb-5 sm:hidden">
+            <Select value={tab} onValueChange={setTab}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {TABS.map((t) => (
+                  <SelectItem key={t.value} value={t.value}>
+                    {t.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Desktop / tablet: scrollable tab bar */}
+          <div className="mb-8 hidden overflow-x-auto sm:block">
+            <TabsList className="inline-flex w-max min-w-full">
+              {TABS.map((t) => (
+                <TabsTrigger key={t.value} value={t.value} className="whitespace-nowrap">
+                  {t.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+
 
           <TabsContent value="social">
             <SocialScheduleManagement />
