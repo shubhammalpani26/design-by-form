@@ -85,3 +85,19 @@ export async function clearDraft(skuSlug: string): Promise<void> {
     /* ignore */
   }
 }
+
+/** Wipe every saved draft — used once an order is paid. */
+export async function clearAllDrafts(): Promise<void> {
+  try {
+    const db = await open();
+    await new Promise<void>((resolve) => {
+      const tx = db.transaction(STORE, "readwrite");
+      tx.objectStore(STORE).clear();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+    db.close();
+  } catch {
+    /* ignore */
+  }
+}
