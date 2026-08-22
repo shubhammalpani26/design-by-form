@@ -265,6 +265,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       if (isTweak) {
         setShowTweak(false);
         setTweak("");
+        setTweakCount((n) => n + 1);
         trackExperiment("reveal_screen", revealVariant, "tweak_success", { skuSlug: sku.slug });
       }
       trackExperiment("render_progress", progressVariant, "generate_success", {
