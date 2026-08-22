@@ -89,15 +89,17 @@ interface SizeOutcome {
   error?: string;
 }
 
-/** Slices every size of this piece and caches the result as a live quote. */
+/** Slices the requested size(s) of this piece and caches the result as a live quote. */
 async function priceSizes(
   skuSlug: string,
   files: Record<string, string>,
+  only?: string | null,
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
 
   for (const [sizeKey, entry] of Object.entries(sizes)) {
+    if (only && sizeKey !== only) continue;
     const fileUrl = files[sizeKey];
     if (!fileUrl) continue;
     try {
@@ -181,13 +183,21 @@ Deno.serve(async (req) => {
     if (!preview) return json({ error: "Preview not found." }, 404);
 
     const files = (preview.print_files ?? {}) as Record<string, string>;
-    const sizeKeys = Object.keys(PRICE_BOOK[preview.sku_slug] ?? {});
-    if (!sizeKeys.length) return json({ status: "skipped" });
+    const allSizeKeys = Object.keys(PRICE_BOOK[preview.sku_slug] ?? {});
+    if (!allSizeKeys.length) return json({ status: "skipped" });
 
-    // Already fully checked.
-    if (preview.feasibility) {
-      return json({ status: "ready", sizes: publicShape(preview.feasibility as Record<string, unknown>) });
+    // We only spend a mesh + slice on the size the buyer actually picked.
+    const sizeKey = typeof body?.sizeKey === "string" ? body.sizeKey : null;
+    if (!sizeKey || !allSizeKeys.includes(sizeKey)) return json({ status: "idle" });
+    const sizeKeys = [sizeKey];
+
+    const existing = (preview.feasibility ?? null) as Record<string, unknown> | null;
+    const checked = Array.isArray(existing?.sizes) ? (existing!.sizes as SizeOutcome[]) : [];
+    // This size has already been proven and priced.
+    if (checked.some((s) => s.sizeKey === sizeKey)) {
+      return json({ status: "ready", sizes: publicShape(existing) });
     }
+
 
     // Mesh not started yet — kick it off (guarded so parallel polls don't double-spend).
     if (!preview.model_task_id) {
@@ -232,19 +242,20 @@ Deno.serve(async (req) => {
       return json({ status: "generating", progress: task.progress });
     }
 
-    // Mesh is ready — build one print file per size we sell.
+    // Mesh is ready — build the print file for the chosen size only.
     const nextFiles: Record<string, string> = { ...files };
-    for (const sizeKey of sizeKeys) {
-      if (nextFiles[sizeKey]) continue;
+    for (const key of sizeKeys) {
+      if (nextFiles[key]) continue;
       const prepared = await ensurePrintFile(admin, {
         modelUrl: task.glb,
-        key: `originals/preview/${previewId}/${sizeKey}`,
-        targetMaxMm: sizeMm(preview.sku_slug, sizeKey),
+        key: `originals/preview/${previewId}/${key}`,
+        targetMaxMm: sizeMm(preview.sku_slug, key),
       });
-      nextFiles[sizeKey] = prepared.url;
+      nextFiles[key] = prepared.url;
     }
 
-    const sizes = await priceSizes(preview.sku_slug, nextFiles);
+    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey);
+    const sizes = [...checked.filter((s) => s.sizeKey !== sizeKey), ...priced];
     const worst = sizes.filter((s) => !s.marginOk);
     const feasibility = {
       checkedAt: new Date().toISOString(),
@@ -258,10 +269,11 @@ Deno.serve(async (req) => {
 
     await admin.from("originals_previews").update({
       print_files: nextFiles,
-      print_file_url: preview.print_file_url ?? nextFiles[sizeKeys[Math.min(1, sizeKeys.length - 1)]] ?? null,
+      print_file_url: preview.print_file_url ?? nextFiles[sizeKey] ?? null,
       model_status: "ready",
       feasibility,
     }).eq("id", previewId);
+
 
     return json({ status: "ready", sizes: publicShape(feasibility) });
   } catch (e) {

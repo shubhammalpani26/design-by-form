@@ -20,11 +20,16 @@ const MAX_POLLS = 25;
  * partner via the `originals-quote` edge function; if that is unavailable the
  * server returns our standard list price, so the UI always has a number.
  *
- * When a buyer's own preview is in play we also drive the pre-purchase
- * feasibility check (real 3D mesh + partner slice) and refresh the ladder as
- * soon as the true cost lands — so what we show is what we can actually make.
+ * When a buyer has picked a size for their own render we also drive the
+ * pre-purchase feasibility check (real 3D mesh + partner slice) for *that*
+ * size and refresh the ladder as soon as the true cost lands — so what we show
+ * is what we can actually make.
  */
-export function useOriginalsQuotes(skuSlug: string, previewId?: string | null) {
+export function useOriginalsQuotes(
+  skuSlug: string,
+  previewId?: string | null,
+  sizeKey?: string | null,
+) {
   const [quotes, setQuotes] = useState<Record<string, OriginalsQuote>>({});
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
@@ -50,9 +55,9 @@ export function useOriginalsQuotes(skuSlug: string, previewId?: string | null) {
     };
   }, [skuSlug, fetchQuotes]);
 
-  // Drive the mesh + slice check for this buyer's render.
+  // Drive the mesh + slice check for this buyer's render, at their chosen size.
   useEffect(() => {
-    if (!previewId) return;
+    if (!previewId || !sizeKey) return;
     let cancelled = false;
     let polls = 0;
     setChecking(true);
@@ -61,7 +66,7 @@ export function useOriginalsQuotes(skuSlug: string, previewId?: string | null) {
       if (cancelled) return;
       polls += 1;
       const { data } = await supabase.functions.invoke("originals-feasibility", {
-        body: { previewId },
+        body: { previewId, sizeKey },
       });
       if (cancelled) return;
       const status = data?.status;
@@ -70,19 +75,26 @@ export function useOriginalsQuotes(skuSlug: string, previewId?: string | null) {
         setChecking(false);
         return;
       }
-      if (status === "failed" || status === "skipped" || status === "error" || polls >= MAX_POLLS) {
+      if (
+        status === "failed" ||
+        status === "skipped" ||
+        status === "idle" ||
+        status === "error" ||
+        polls >= MAX_POLLS
+      ) {
         setChecking(false);
         return;
       }
       timer = window.setTimeout(tick, POLL_MS);
     };
 
-    let timer = window.setTimeout(tick, 4000);
+    let timer = window.setTimeout(tick, 1500);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [previewId, fetchQuotes]);
+  }, [previewId, sizeKey, fetchQuotes]);
+
 
   const priceFor = useCallback(
     (sizeKey: string, fallback: number) => quotes[sizeKey]?.unitUsd ?? fallback,
