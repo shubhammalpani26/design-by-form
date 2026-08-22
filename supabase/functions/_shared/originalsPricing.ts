@@ -85,11 +85,15 @@ async function resolvePrintFile(
   if (input.previewId) {
     const { data } = await admin
       .from("originals_previews")
-      .select("print_file_url, sku_slug")
+      .select("print_file_url, print_files, sku_slug")
       .eq("id", input.previewId)
       .maybeSingle();
-    if (data?.print_file_url && data.sku_slug === input.skuSlug) {
-      return { url: data.print_file_url as string, filament: null };
+    if (data && data.sku_slug === input.skuSlug) {
+      // Per-size file built at preview time is the most accurate thing to slice.
+      const perSize = (data.print_files ?? {}) as Record<string, string>;
+      const sized = perSize[input.sizeKey];
+      if (sized) return { url: sized, filament: null };
+      if (data.print_file_url) return { url: data.print_file_url as string, filament: null };
     }
   }
 

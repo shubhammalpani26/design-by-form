@@ -183,7 +183,20 @@ Deno.serve(async (req) => {
           console.error("engineering-check failed", e);
         }
       })();
+
+      // Start the real 3D mesh straight away so the size ladder can be priced
+      // from an actual partner slice while the buyer is still deciding.
+      fetch(`${SUPABASE_URL}/functions/v1/originals-feasibility`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${SERVICE_KEY}`,
+          "x-internal-key": SERVICE_KEY,
+        },
+        body: JSON.stringify({ previewId: row.id }),
+      }).catch((e) => console.error("feasibility kickoff failed", e));
     }
+
 
     return json({
       previewId: row?.id ?? null,
