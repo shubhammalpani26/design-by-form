@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
-import { Loader2, Package, Truck, CheckCircle2, Factory, Copy, FileText } from "lucide-react";
+import { Loader2, Package, Truck, CheckCircle2, Factory, Copy, FileText, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
 
