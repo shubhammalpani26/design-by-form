@@ -1,0 +1,196 @@
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
+
+const API = "https://graph.facebook.com/v21.0";
+const MAX_DAILY_BUDGET_USD = 200;
+
+async function graph<T = any>(
+  path: string,
+  token: string,
+  form?: Record<string, string>,
+): Promise<T> {
+  const res = await fetch(`${API}${path}`, {
+    method: form ? "POST" : "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      ...(form ? { "Content-Type": "application/x-www-form-urlencoded" } : {}),
+    },
+    body: form ? new URLSearchParams(form).toString() : undefined,
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Meta ${res.status} ${path}: ${text.slice(0, 800)}`);
+  try {
+    return (text ? JSON.parse(text) : {}) as T;
+  } catch {
+    return { raw: text } as T;
+  }
+}
+
+function json(body: unknown, status = 200) {
+  return new Response(JSON.stringify(body, null, 2), {
+    status,
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
+}
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  try {
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const jwt = authHeader.replace("Bearer ", "").trim();
+    if (!jwt) return json({ error: "Unauthorized" }, 401);
+
+    const admin = createClient(
+      Deno.env.get("SUPABASE_URL")!,
+      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+    );
+    const { data: userData, error: userErr } = await admin.auth.getUser(jwt);
+    if (userErr || !userData?.user) return json({ error: "Unauthorized" }, 401);
+
+    const { data: isAdmin } = await admin.rpc("has_role", {
+      _user_id: userData.user.id,
+      _role: "admin",
+    });
+    if (!isAdmin) return json({ error: "Admin only" }, 403);
+
+    const token = Deno.env.get("META_ACCESS_TOKEN");
+    if (!token) return json({ error: "META_ACCESS_TOKEN not configured" }, 500);
+
+    const body = await req.json().catch(() => ({}));
+    const action = body.action ?? "inspect";
+
+    // --- Discovery: what assets does this token see? ---
+    if (action === "inspect") {
+      const [accounts, pages] = await Promise.all([
+        graph(`/me/adaccounts?fields=id,account_id,name,currency,account_status&limit=25`, token).catch(
+          (e) => ({ error: String(e) }),
+        ),
+        graph(`/me/accounts?fields=id,name,instagram_business_account{id,username}&limit=25`, token).catch(
+          (e) => ({ error: String(e) }),
+        ),
+      ]);
+      let pixels: unknown = null;
+      const firstAct = (accounts as any)?.data?.[0]?.id;
+      if (firstAct) {
+        pixels = await graph(`/${firstAct}/adspixels?fields=id,name,last_fired_time`, token).catch((e) => ({
+          error: String(e),
+        }));
+      }
+      return json({ accounts, pages, pixels });
+    }
+
+    // --- Draft: campaign + ad set, PAUSED, no ads/creative yet ---
+    if (action === "draft") {
+      const {
+        ad_account_id,
+        pixel_id,
+        campaigns = [],
+      } = body as {
+        ad_account_id: string;
+        pixel_id: string;
+        campaigns: Array<{
+          name: string;
+          objective: string;
+          daily_budget_usd: number;
+          optimize_for: string;
+          countries: string[];
+          age_min: number;
+          age_max: number;
+          locales?: number[];
+          interest_ids?: string[];
+          custom_audience_ids?: string[];
+          excluded_custom_audience_ids?: string[];
+        }>;
+      };
+      if (!ad_account_id || !pixel_id) return json({ error: "ad_account_id and pixel_id required" }, 400);
+      const act = ad_account_id.startsWith("act_") ? ad_account_id : `act_${ad_account_id}`;
+
+      const created: unknown[] = [];
+      for (const c of campaigns) {
+        if (!(c.daily_budget_usd > 0) || c.daily_budget_usd > MAX_DAILY_BUDGET_USD) {
+          return json({ error: `Invalid daily budget for ${c.name}` }, 400);
+        }
+        const campaign = await graph<{ id: string }>(`/${act}/campaigns`, token, {
+          name: c.name,
+          objective: c.objective,
+          status: "PAUSED",
+          special_ad_categories: "[]",
+        });
+
+        const targeting: Record<string, unknown> = {
+          geo_locations: { countries: c.countries },
+          age_min: c.age_min,
+          age_max: c.age_max,
+        };
+        if (c.interest_ids?.length) {
+          targeting.flexible_spec = [{ interests: c.interest_ids.map((id) => ({ id })) }];
+        }
+        if (c.locales?.length) targeting.locales = c.locales;
+        if (c.custom_audience_ids?.length) {
+          targeting.custom_audiences = c.custom_audience_ids.map((id) => ({ id }));
+        }
+        if (c.excluded_custom_audience_ids?.length) {
+          targeting.excluded_custom_audiences = c.excluded_custom_audience_ids.map((id) => ({ id }));
+        }
+
+        const adset = await graph<{ id: string }>(`/${act}/adsets`, token, {
+          name: `${c.name} — Ad set`,
+          campaign_id: campaign.id,
+          daily_budget: String(Math.round(c.daily_budget_usd * 100)),
+          billing_event: "IMPRESSIONS",
+          optimization_goal: "OFFSITE_CONVERSIONS",
+          bid_strategy: "LOWEST_COST_WITHOUT_CAP",
+          promoted_object: JSON.stringify({ pixel_id, custom_event_type: c.optimize_for }),
+          targeting: JSON.stringify(targeting),
+          status: "PAUSED",
+        });
+
+        created.push({
+          name: c.name,
+          campaign_id: campaign.id,
+          adset_id: adset.id,
+          daily_budget_usd: c.daily_budget_usd,
+          status: "PAUSED",
+        });
+      }
+      return json({ ad_account_id: act, created, note: "Creative/ads intentionally not created yet." });
+    }
+
+    // --- Audiences: pixel-based custom audiences for retargeting ---
+    if (action === "audiences") {
+      const { ad_account_id, pixel_id } = body as { ad_account_id: string; pixel_id: string };
+      const act = ad_account_id.startsWith("act_") ? ad_account_id : `act_${ad_account_id}`;
+      const make = (name: string, event: string, days: number) =>
+        graph<{ id: string }>(`/${act}/customaudiences`, token, {
+          name,
+          subtype: "WEBSITE",
+          retention_days: String(days),
+          prefill: "1",
+          rule: JSON.stringify({
+            inclusions: {
+              operator: "or",
+              rules: [{ event_sources: [{ type: "pixel", id: pixel_id }], retention_seconds: days * 86400, filter: { operator: "and", filters: [{ field: "event", operator: "eq", value: event }] } }],
+            },
+          }),
+        });
+      const out: Record<string, unknown> = {};
+      for (const [key, name, event, days] of [
+        ["customizers_30d", "Nyzora — Customized preview (30d)", "CustomizeProduct", 30],
+        ["checkout_30d", "Nyzora — Initiated checkout (30d)", "InitiateCheckout", 30],
+        ["purchasers_180d", "Nyzora — Purchasers (180d)", "Purchase", 180],
+      ] as Array<[string, string, string, number]>) {
+        out[key] = await make(name, event, days).catch((e) => ({ error: String(e) }));
+      }
+      return json(out);
+    }
+
+    return json({ error: `Unknown action ${action}` }, 400);
+  } catch (e) {
+    return json({ error: e instanceof Error ? e.message : String(e) }, 500);
+  }
+});
