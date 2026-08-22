@@ -97,6 +97,13 @@ Deno.serve(async (req) => {
       return json({ accounts, pages, pixels });
     }
 
+    // --- Raw read-only graph probe (GET only) ---
+    if (action === "get") {
+      const path = String(body.path ?? "");
+      if (!path.startsWith("/")) return json({ error: "path must start with /" }, 400);
+      return json(await graph(path, token));
+    }
+
     // --- Interest lookup ---
     if (action === "interests") {
       const q = encodeURIComponent(String(body.q ?? "pet"));
