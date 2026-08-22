@@ -1,5 +1,13 @@
 import { Mail } from "lucide-react";
 
+/**
+ * Drop the founder photo in here later:
+ *   import founderPhoto from "@/assets/founder.jpg";
+ *   const FOUNDER_PHOTO: string | null = founderPhoto;
+ * Leave as null and the block renders a clean initials mark instead.
+ */
+const FOUNDER_PHOTO: string | null = null;
+
 interface FounderNoteProps {
   /** Compact version for product pages */
   compact?: boolean;
@@ -12,6 +20,7 @@ interface FounderNoteProps {
  * person behind this?
  */
 export const FounderNote = ({ compact = false, className = "" }: FounderNoteProps) => {
+
   return (
     <section className={`border border-border p-8 md:p-12 ${className}`}>
       <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-6">
