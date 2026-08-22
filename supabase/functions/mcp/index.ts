@@ -663,7 +663,7 @@ var meta_ads_create_default = defineTool10({
     pixel_id: z8.string().optional().describe(
       "Meta pixel id. Required for OUTCOME_SALES so the ad set optimizes for a conversion event instead of clicks."
     ),
-    optimize_for: z8.enum(["PURCHASE", "INITIATE_CHECKOUT", "CONTENT_VIEW", "LEAD"]).default("PURCHASE").describe("Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin."),
+    optimize_for: z8.enum(["PURCHASE", "INITIATED_CHECKOUT", "CONTENT_VIEW", "LEAD"]).default("PURCHASE").describe("Pixel event the sales ad set optimizes for. Use INITIATED_CHECKOUT while purchase volume is thin."),
     interest_ids: z8.array(z8.string()).default([]).describe("Meta detailed-targeting interest ids (look them up with meta_ads_audiences search_interests)."),
     locales: z8.array(z8.number().int()).default([]).describe("Meta locale ids, e.g. 6 = English (US), 24 = English (UK). Empty means all languages."),
     custom_audience_ids: z8.array(z8.string()).default([]).describe("Custom audience ids to target \u2014 used for the retargeting ad set."),
@@ -686,7 +686,8 @@ var meta_ads_create_default = defineTool10({
         name: input.name,
         objective: input.objective,
         status: "PAUSED",
-        special_ad_categories: "[]"
+        special_ad_categories: "[]",
+        is_adset_budget_sharing_enabled: "false"
       }
     });
     const isSales = input.objective === "OUTCOME_SALES";
@@ -699,7 +700,8 @@ var meta_ads_create_default = defineTool10({
     const targeting = {
       geo_locations: { countries: input.countries },
       age_min: input.age_min,
-      age_max: input.age_max
+      age_max: input.age_max,
+      targeting_automation: { advantage_audience: 0 }
     };
     if (input.interest_ids.length) {
       targeting.flexible_spec = [{ interests: input.interest_ids.map((id) => ({ id })) }];
