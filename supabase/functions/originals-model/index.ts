@@ -128,11 +128,16 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   if (row.preview_id) {
     const { data: preview } = await admin
       .from("originals_previews")
-      .select("id, preview_image_url, print_file_url, model_task_id")
+      .select("id, preview_image_url, print_file_url, print_files, model_task_id")
       .eq("id", row.preview_id)
       .maybeSingle();
 
+    // A pre-purchase feasibility check usually already built (and sliced) a
+    // file for this exact size — use it rather than regenerating the mesh.
+    const perSize = (preview?.print_files ?? {}) as Record<string, string>;
+    if (perSize[row.size_key]) return { url: perSize[row.size_key], status: "ready" };
     if (preview?.print_file_url) return { url: preview.print_file_url as string, status: "ready" };
+
 
     const imageUrl = preview?.preview_image_url as string | undefined;
     if (imageUrl && /^https:\/\//i.test(imageUrl)) {
