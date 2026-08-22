@@ -115,6 +115,25 @@ Deno.serve(async (req) => {
       return json({ id, status: res.status, body: await res.text() });
     }
 
+    // --- Assign a pixel to an ad account (required before audience creation) ---
+    if (action === "share_pixel") {
+      const { pixel_id, ad_account_id, business_id } = body as {
+        pixel_id: string;
+        ad_account_id: string;
+        business_id: string;
+      };
+      const numericAct = String(ad_account_id).replace("act_", "");
+      const res = await graph(`/${pixel_id}/shared_accounts`, token, {
+        account_id: numericAct,
+        business: String(business_id),
+      }).catch((e) => ({ error: String(e) }));
+      const check = await graph(`/act_${numericAct}/adspixels?fields=id,name`, token).catch((e) => ({
+        error: String(e),
+      }));
+      return json({ share: res, pixels_on_account: check });
+    }
+
+
     // --- Interest lookup ---
     if (action === "interests") {
       const q = encodeURIComponent(String(body.q ?? "pet"));
@@ -247,7 +266,29 @@ Deno.serve(async (req) => {
       return json(out);
     }
 
+    // --- Attach custom audiences to an existing (paused) ad set ---
+    if (action === "attach_audiences") {
+      const { adset_id, include = [], exclude = [] } = body as {
+        adset_id: string;
+        include?: string[];
+        exclude?: string[];
+      };
+      if (!/^\d+$/.test(String(adset_id))) return json({ error: "adset_id must be numeric" }, 400);
+      const current = await graph<{ targeting: Record<string, unknown>; status: string }>(
+        `/${adset_id}?fields=targeting,status`,
+        token,
+      );
+      if (current.status !== "PAUSED") return json({ error: "Ad set must be PAUSED" }, 400);
+      const targeting = { ...(current.targeting ?? {}) };
+      if (include.length) targeting.custom_audiences = include.map((id) => ({ id }));
+      if (exclude.length) targeting.excluded_custom_audiences = exclude.map((id) => ({ id }));
+      const res = await graph(`/${adset_id}`, token, { targeting: JSON.stringify(targeting) });
+      const after = await graph(`/${adset_id}?fields=name,status,targeting`, token);
+      return json({ res, after });
+    }
+
     return json({ error: `Unknown action ${action}` }, 400);
+
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : String(e) }, 500);
   }
