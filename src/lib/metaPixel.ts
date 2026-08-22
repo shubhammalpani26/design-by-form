@@ -8,7 +8,9 @@
  *   VITE_META_PIXEL_ID - numeric pixel id from Meta Events Manager
  */
 
-const PIXEL_ID = import.meta.env.VITE_META_PIXEL_ID as string | undefined;
+// Live Nyzora pixel. A pixel id is public (it ships in the page anyway), so it
+// is safe as a default; the env var still wins for staging/other accounts.
+const PIXEL_ID = (import.meta.env.VITE_META_PIXEL_ID as string | undefined) || "2121773078407819";
 
 declare global {
   interface Window {
