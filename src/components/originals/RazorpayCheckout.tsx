@@ -112,6 +112,28 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
     return missing.length ? missing.join(", ") : null;
   };
 
+  const applyPromo = async () => {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoBusy(true);
+    setPromoError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("originals-promo", {
+        body: { code, subtotalUsd: totalUsd },
+      });
+      if (error || data?.error) throw new Error(data?.error || "That code isn't valid.");
+      setPromo({ code: data.code, discountUsd: Number(data.discountUsd) || 0 });
+      toast({ title: "Promo applied", description: `You saved $${Number(data.discountUsd).toFixed(2)}.` });
+    } catch (e) {
+      setPromo(null);
+      setPromoError((e as Error).message);
+    } finally {
+      setPromoBusy(false);
+    }
+  };
+
+  const payableUsd = Math.max(0, Math.round((totalUsd - (promo?.discountUsd ?? 0)) * 100) / 100);
+
   const pay = async () => {
     const missing = missingLabel();
     if (missing) {
@@ -124,7 +146,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       const [Razorpay, checkout] = await Promise.all([
         loadRazorpay(),
         supabase.functions.invoke("razorpay-checkout", {
-          body: { items, returnUrl, customer: values },
+          body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
         }),
       ]);
 
@@ -145,9 +167,20 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         currency: data.currency,
         name: "Nyzora",
         description: data.description,
-        prefill: data.prefill,
+        prefill: { ...data.prefill, method: "card" },
         notes: { group_id: data.groupId },
         theme: { color: "#111111" },
+        // International storefront: cards only, no India-specific rails.
+        method: { card: true, upi: false, netbanking: false, wallet: false, paylater: false, emi: false },
+        config: {
+          display: {
+            blocks: {
+              card: { name: "Pay by card", instruments: [{ method: "card" }] },
+            },
+            sequence: ["block.card"],
+            preferences: { show_default_blocks: false },
+          },
+        },
         handler: (response: any) => {
           const params = new URLSearchParams({
             payment_id: response?.razorpay_payment_id ?? "",
@@ -159,6 +192,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
           ondismiss: () => setBusy(false),
         },
       });
+
 
       rzp.on("payment.failed", (resp: any) => {
         setBusy(false);
