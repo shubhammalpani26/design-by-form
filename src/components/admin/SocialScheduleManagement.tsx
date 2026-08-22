@@ -142,21 +142,24 @@ export const SocialScheduleManagement = () => {
           <h3 className="text-xs uppercase tracking-widest text-muted-foreground">Day {day}</h3>
           {items.map((p) => (
             <Card key={p.id} className="rounded-none">
-              <CardContent className="flex flex-col gap-4 p-4 sm:flex-row">
-                <div className="h-28 w-28 shrink-0 border border-border bg-muted">
+              <CardContent className="flex flex-col gap-4 p-3 sm:flex-row sm:p-4">
+                <div className="h-56 w-full shrink-0 border border-border bg-muted sm:h-28 sm:w-28">
                   {p.image_url ? (
-                    <img
-                      src={p.image_url}
-                      alt={p.theme ?? "Scheduled post creative"}
-                      className="h-full w-full object-contain"
-                      loading="lazy"
-                    />
+                    <a href={p.image_url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                      <img
+                        src={p.image_url}
+                        alt={p.theme ?? "Scheduled post creative"}
+                        className="h-full w-full object-contain"
+                        loading="lazy"
+                      />
+                    </a>
                   ) : (
                     <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
                       Not rendered
                     </div>
                   )}
                 </div>
+
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={(statusTone[p.status] ?? "outline") as never}>{p.status}</Badge>
