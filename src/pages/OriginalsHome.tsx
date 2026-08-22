@@ -134,9 +134,7 @@ const OriginalsHome = () => {
                 </Link>
               </Button>
               <Button size="lg" variant="outline" className="rounded-none" asChild>
-                <a href="#collection">
-                  <Wand2 className="mr-2 h-4 w-4" /> See the collection
-                </a>
+                <a href="#collection">See the collection</a>
               </Button>
             </div>
           </div>
