@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
+import { FounderNote } from "@/components/originals/FounderNote";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { ArrowRight, Wand2 } from "lucide-react";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
@@ -188,6 +189,10 @@ const OriginalsHome = () => {
       {/* FAQ */}
       <section className="container mx-auto px-4 pb-20">
         <ScrollReveal>
+          <FounderNote className="mb-16" />
+        </ScrollReveal>
+        <ScrollReveal>
+
           <div className="border border-border p-8 md:p-12 mb-16">
             <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">
               The .ai in Nyzora

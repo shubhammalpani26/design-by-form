@@ -8,6 +8,7 @@ import { ArrowLeft, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
 import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
+import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
 
 const OriginalDetail = () => {
@@ -112,6 +113,13 @@ const OriginalDetail = () => {
 
       <section className="border-t border-border">
         <div className="container mx-auto px-4 py-14">
+          <FounderNote compact />
+        </div>
+      </section>
+
+      <section className="border-t border-border">
+        <div className="container mx-auto px-4 py-14">
+
           <h2 className="text-xl font-light tracking-tight mb-6">More Originals</h2>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
             {ORIGINALS_SKUS.filter((s) => s.slug !== sku.slug).map((s) => (
