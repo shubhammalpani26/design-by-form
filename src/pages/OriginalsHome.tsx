@@ -58,6 +58,45 @@ const OriginalsHome = () => {
           })),
         }}
       />
+      <JsonLd
+        id="org"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          "@id": "https://nyzora.ai/#organization",
+          name: "Nyzora",
+          alternateName: "Nyzora.ai",
+          url: "https://nyzora.ai",
+          logo: {
+            "@type": "ImageObject",
+            url: "https://nyzora.ai/favicon.png",
+            width: 512,
+            height: 512,
+          },
+          description:
+            "Nyzora Originals — made-to-order personalized sculptures from your photo. Pet memorials, baby name signs and wedding coordinate keepsakes, produced and shipped in the USA.",
+          sameAs: [
+            "https://www.instagram.com/nyzora.ai",
+            "https://www.linkedin.com/company/nyzora",
+          ],
+          contactPoint: {
+            "@type": "ContactPoint",
+            email: "contact@nyzora.ai",
+            contactType: "customer support",
+          },
+        }}
+      />
+      <JsonLd
+        id="website"
+        data={{
+          "@context": "https://schema.org",
+          "@type": "WebSite",
+          "@id": "https://nyzora.ai/#website",
+          url: "https://nyzora.ai",
+          name: "Nyzora",
+          publisher: { "@id": "https://nyzora.ai/#organization" },
+        }}
+      />
       <Header />
 
       {/* Hero */}
@@ -174,7 +213,7 @@ const OriginalsHome = () => {
         <div className="border border-border p-8 md:p-14 text-center">
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">Photo to piece</p>
           <h2 className="text-2xl md:text-4xl font-light tracking-tight max-w-2xl mx-auto">
-            One photo. One minute. Theirs, sculpted.
+            Upload one photo. See their sculpture before it's ever made.
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
             Upload a photo of your pet and see the memorial sculpture before anything is made or charged.
