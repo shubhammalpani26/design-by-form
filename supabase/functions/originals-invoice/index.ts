@@ -33,15 +33,20 @@ const money = (n: number) =>
 
 function addressLines(addr: Record<string, unknown> | null) {
   if (!addr) return [] as string[];
-  const a = addr as Record<string, string>;
+  // Checkout stores the postal address nested under `address`; older rows are flat.
+  const top = addr as Record<string, unknown>;
+  const nested = (top.address ?? {}) as Record<string, string>;
+  const a = { ...(top as Record<string, string>), ...nested };
+  const country = a.country === "US" ? "United States" : a.country || "United States";
   return [
     a.name || a.full_name,
     a.line1 || a.address1 || a.street,
     a.line2 || a.address2,
     [a.city, a.state, a.zip || a.postal_code || a.pincode].filter(Boolean).join(", "),
-    a.country || "United States",
+    country,
   ].filter(Boolean) as string[];
 }
+
 
 function personalizationLine(p: Record<string, unknown> | null) {
   if (!p) return "";
