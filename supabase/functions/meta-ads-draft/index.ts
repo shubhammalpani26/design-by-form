@@ -104,6 +104,17 @@ Deno.serve(async (req) => {
       return json(await graph(path, token));
     }
 
+    // --- Delete a draft object (only ever used to clean up failed drafts) ---
+    if (action === "delete") {
+      const id = String(body.object_id ?? "");
+      if (!/^\d+$/.test(id)) return json({ error: "object_id must be numeric" }, 400);
+      const res = await fetch(`${API}/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      return json({ id, status: res.status, body: await res.text() });
+    }
+
     // --- Interest lookup ---
     if (action === "interests") {
       const q = encodeURIComponent(String(body.q ?? "pet"));
