@@ -89,15 +89,17 @@ interface SizeOutcome {
   error?: string;
 }
 
-/** Slices every size of this piece and caches the result as a live quote. */
+/** Slices the requested size(s) of this piece and caches the result as a live quote. */
 async function priceSizes(
   skuSlug: string,
   files: Record<string, string>,
+  only?: string | null,
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
 
   for (const [sizeKey, entry] of Object.entries(sizes)) {
+    if (only && sizeKey !== only) continue;
     const fileUrl = files[sizeKey];
     if (!fileUrl) continue;
     try {
