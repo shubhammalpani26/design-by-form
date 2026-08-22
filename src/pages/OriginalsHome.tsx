@@ -5,6 +5,7 @@ import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
+import { FounderNote } from "@/components/originals/FounderNote";
 import { ScrollReveal } from "@/hooks/useScrollReveal";
 import { ArrowRight, Wand2 } from "lucide-react";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
