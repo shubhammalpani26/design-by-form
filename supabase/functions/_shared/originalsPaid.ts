@@ -89,7 +89,21 @@ export async function markOriginalsPaid(
     return;
   }
 
+  // Count the promo redemption once per paid group.
+  const { data: promoRow } = await admin
+    .from("originals_orders")
+    .select("promo_code")
+    .eq("provider_order_id", providerOrderId)
+    .not("promo_code", "is", null)
+    .limit(1)
+    .maybeSingle();
+  if (promoRow?.promo_code) {
+    const { error: redeemErr } = await admin.rpc("redeem_originals_promo", { _code: promoRow.promo_code });
+    if (redeemErr) console.error("promo redemption failed", redeemErr);
+  }
+
   await sendReceipt(email ?? orders[0].customer_email ?? null, orders);
+
 
   const { error: prodErr } = await admin.functions.invoke("originals-model", {
     body: { order_id: claimed[0].id },
