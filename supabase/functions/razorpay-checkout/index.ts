@@ -215,9 +215,9 @@ Deno.serve(async (req) => {
 
     const receipt = `nyz_${groupId.replace(/-/g, "").slice(0, 32)}`;
 
-    const usdInr = Number(Deno.env.get("USD_INR_RATE") ?? "") || 89;
-    let chargedCurrency: "USD" | "INR" = "USD";
-    let chargedAmount = Number(totalUsd.toFixed(2));
+    // Originals is a USD-only, US-shipping storefront: we never fall back to INR.
+    const chargedCurrency: "USD" = "USD";
+    const chargedAmount = Number(totalUsd.toFixed(2));
     let rzpOrder: { id: string; amount: number; currency: string };
     try {
       rzpOrder = await createRazorpayOrder({
@@ -228,17 +228,16 @@ Deno.serve(async (req) => {
       });
     } catch (usdErr) {
       const msg = String((usdErr as Error)?.message ?? usdErr);
-      if (!/currenc/i.test(msg) && !/international/i.test(msg)) throw usdErr;
-      console.warn("USD not enabled on Razorpay account, retrying in INR", msg);
-      chargedCurrency = "INR";
-      chargedAmount = Math.round(totalUsd * usdInr * 100) / 100;
-      rzpOrder = await createRazorpayOrder({
-        receipt,
-        amount: chargedAmount,
-        currency: "INR",
-        notes,
-      });
+      console.error("USD Razorpay order failed", msg);
+      if (/currenc/i.test(msg) || /international/i.test(msg)) {
+        return json(
+          { error: "Card payments in USD are being enabled on our account. Please try again shortly." },
+          503,
+        );
+      }
+      throw usdErr;
     }
+
 
     await admin
       .from("originals_orders")
