@@ -14,7 +14,7 @@ import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { OriginalsCheckout } from "./OriginalsCheckout";
-import { CashfreeCheckout } from "./CashfreeCheckout";
+import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
@@ -100,7 +100,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
   const [checkingOut, setCheckingOut] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [cashfreeOpen, setCashfreeOpen] = useState(false);
+  const [razorpayOpen, setRazorpayOpen] = useState(false);
   const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
@@ -236,7 +236,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setPreview(null);
     setPrevPreview(null);
     setClientSecret(null);
-    setCashfreeOpen(false);
+    setRazorpayOpen(false);
     setPhoto(null);
     setHeading("");
     setFootnote("");
@@ -268,8 +268,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     });
     trackInitiateCheckout(sku.slug, basketTotal, basketCount);
 
-    if (PAYMENT_PROVIDER === "cashfree") {
-      setCashfreeOpen(true);
+    if (PAYMENT_PROVIDER === "razorpay") {
+      setRazorpayOpen(true);
       setCheckingOut(false);
       trackExperiment("reveal_screen", revealVariant, "checkout_opened", { skuSlug: sku.slug });
       requestAnimationFrame(() =>
@@ -646,7 +646,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
 
           <div ref={checkoutRef}>
-            {clientSecret || cashfreeOpen ? (
+            {clientSecret || razorpayOpen ? (
               <div className="mt-5 border-t border-border pt-5">
                 <div className="flex items-center justify-between">
                   <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
@@ -654,7 +654,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   </p>
                   <button
                     type="button"
-                    onClick={() => { setClientSecret(null); setCashfreeOpen(false); }}
+                    onClick={() => { setClientSecret(null); setRazorpayOpen(false); }}
                     className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
                   >
                     Change
@@ -664,11 +664,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   {clientSecret ? (
                     <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
                   ) : (
-                    <CashfreeCheckout
+                    <RazorpayCheckout
                       items={basketLines.map((l) => ({ ...l, quantity: l.quantity ?? 1 }))}
                       returnUrl={`${window.location.origin}/originals/checkout/return`}
                       totalUsd={basketTotal}
-                      onStripeFallback={(secret) => { setCashfreeOpen(false); setClientSecret(secret); }}
                     />
                   )}
                 </div>
