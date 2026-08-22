@@ -5,6 +5,8 @@ import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucid
 import { SEOHead } from "@/components/SEOHead";
 import { originalsCart } from "@/lib/originalsCart";
 import { trackPurchaseConversion } from "@/lib/googleAds";
+import { trackPurchase } from "@/lib/metaPixel";
+
 
 interface OrderView {
   id: string;
@@ -82,7 +84,7 @@ export default function OriginalsReturn() {
     if (paid) originalsCart.clear();
   }, [paid]);
 
-  // Report the sale to Google Ads exactly once per confirmed order.
+  // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {
     if (!paid || !order) return;
     const key = `nyzora_ads_conv_${order.id}`;
@@ -92,6 +94,7 @@ export default function OriginalsReturn() {
       ? items.reduce((sum, i) => sum + i.amountUsd * (i.quantity || 1), 0)
       : order.amountUsd;
     trackPurchaseConversion(order.id, total);
+    trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : ["originals"]);
   }, [paid, order, items]);
 
   return (

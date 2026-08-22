@@ -20,6 +20,8 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
+import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
+
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -116,7 +118,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   useEffect(() => {
     trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
     trackExperiment("reveal_screen", revealVariant, "flow_view", { skuSlug: sku.slug });
-  }, [progressVariant, revealVariant, sku.slug]);
+    trackViewContent(sku.slug, sku.price);
+  }, [progressVariant, revealVariant, sku.slug, sku.price]);
+
 
   useEffect(() => {
     if (!loading) return;
@@ -196,6 +200,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         metadata: { seconds: Math.round((Date.now() - startedAt) / 1000) },
       });
       trackExperiment("reveal_screen", revealVariant, "reveal_view", { skuSlug: sku.slug });
+      trackCustomize(sku.slug);
+
       setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (e) {
       trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
@@ -260,6 +266,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       skuSlug: sku.slug,
       metadata: { sizeKey, price: selectedPrice, pieces: basketCount },
     });
+    trackInitiateCheckout(sku.slug, basketTotal, basketCount);
+
     if (PAYMENT_PROVIDER === "cashfree") {
       setCashfreeOpen(true);
       setCheckingOut(false);
