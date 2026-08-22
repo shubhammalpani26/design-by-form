@@ -78,6 +78,11 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   });
   const [busy, setBusy] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; discountUsd: number } | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+
 
   const set = (key: keyof typeof values, v: string) => setValues((p) => ({ ...p, [key]: v }));
 
