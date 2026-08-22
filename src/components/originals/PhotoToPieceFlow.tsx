@@ -147,6 +147,24 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     return () => window.clearTimeout(id);
   }, [restored, sku.slug, mode, photo, heading, footnote, values, colorKey, sizeKey, preview]);
 
+  // Back button should step out of the payment panel, not off the page.
+  useEffect(() => {
+    const open = razorpayOpen || Boolean(clientSecret);
+    if (!open) return;
+    window.history.pushState({ nyzoraCheckout: true }, "");
+    const onPop = () => {
+      setRazorpayOpen(false);
+      setClientSecret(null);
+      requestAnimationFrame(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (window.history.state?.nyzoraCheckout) window.history.back();
+    };
+  }, [razorpayOpen, clientSecret]);
+
+
 
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
