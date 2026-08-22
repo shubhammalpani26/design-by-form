@@ -106,6 +106,48 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  const [restored, setRestored] = useState(false);
+
+  // ---- Draft persistence: never lose an upload or a render on reload/back ----
+  useEffect(() => {
+    let cancelled = false;
+    void loadDraft(sku.slug).then((d) => {
+      if (cancelled || !d) { setRestored(true); return; }
+      if (d.photo) setPhoto(d.photo);
+      if (d.mode) setMode(d.mode);
+      if (d.heading) setHeading(d.heading);
+      if (d.footnote) setFootnote(d.footnote);
+      if (d.values) setValues(d.values);
+      if (d.colorKey) setColorKey(d.colorKey);
+      if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
+      if (d.preview) setPreview(d.preview);
+      setRestored(true);
+    });
+    return () => { cancelled = true; };
+  }, [sku.slug]);
+
+  useEffect(() => {
+    if (!restored) return;
+    const hasAnything = photo || preview || heading || footnote || Object.keys(values).length;
+    if (!hasAnything) return;
+    const id = window.setTimeout(() => {
+      void saveDraft({
+        skuSlug: sku.slug,
+        savedAt: Date.now(),
+        mode,
+        photo,
+        heading,
+        footnote,
+        values,
+        colorKey,
+        sizeKey,
+        preview,
+      });
+    }, 400);
+    return () => window.clearTimeout(id);
+  }, [restored, sku.slug, mode, photo, heading, footnote, values, colorKey, sizeKey, preview]);
+
+
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote where we can.
