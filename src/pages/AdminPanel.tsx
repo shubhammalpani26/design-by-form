@@ -16,12 +16,28 @@ import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
 import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
 import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManagement";
 import { SEOHead } from "@/components/SEOHead";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const TABS = [
+  { value: "designers", label: "Creators" },
+  { value: "products", label: "Products" },
+  { value: "users", label: "Users" },
+  { value: "credits", label: "Credits" },
+  { value: "orders", label: "Orders" },
+  { value: "print-farm", label: "US Print" },
+  { value: "early-access", label: "Early Access" },
+  { value: "contacts", label: "Contacts" },
+  { value: "notifications", label: "Notifications" },
+  { value: "social", label: "Social" },
+];
 
 export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("designers");
   const navigate = useNavigate();
   const { toast } = useToast();
+
 
   useEffect(() => {
     checkAdminStatus();
