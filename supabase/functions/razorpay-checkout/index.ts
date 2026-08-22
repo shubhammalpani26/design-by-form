@@ -254,8 +254,12 @@ Deno.serve(async (req) => {
       orderId: orders[0].id,
       groupId,
       amountUsd: totalUsd,
+      subtotalUsd,
+      discountUsd,
+      promoCode: promo?.code ?? null,
       chargedCurrency,
       chargedAmount,
+
       prefill: { name: customer.name, email: customer.email, contact: customer.phone },
     });
   } catch (e) {
