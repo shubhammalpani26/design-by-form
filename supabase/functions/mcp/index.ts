@@ -659,7 +659,15 @@ var meta_ads_create_default = defineTool10({
     call_to_action: z8.enum(["SHOP_NOW", "LEARN_MORE", "ORDER_NOW", "SIGN_UP"]).default("SHOP_NOW"),
     countries: z8.array(z8.string().length(2)).default(["US"]).describe("ISO country codes to target."),
     age_min: z8.number().int().min(18).max(65).default(25),
-    age_max: z8.number().int().min(18).max(65).default(55)
+    age_max: z8.number().int().min(18).max(65).default(55),
+    pixel_id: z8.string().optional().describe(
+      "Meta pixel id. Required for OUTCOME_SALES so the ad set optimizes for a conversion event instead of clicks."
+    ),
+    optimize_for: z8.enum(["PURCHASE", "INITIATE_CHECKOUT", "CONTENT_VIEW", "LEAD"]).default("PURCHASE").describe("Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin."),
+    interest_ids: z8.array(z8.string()).default([]).describe("Meta detailed-targeting interest ids (look them up with meta_ads_audiences search_interests)."),
+    locales: z8.array(z8.number().int()).default([]).describe("Meta locale ids, e.g. 6 = English (US), 24 = English (UK). Empty means all languages."),
+    custom_audience_ids: z8.array(z8.string()).default([]).describe("Custom audience ids to target \u2014 used for the retargeting ad set."),
+    excluded_custom_audience_ids: z8.array(z8.string()).default([]).describe("Custom audience ids to exclude, e.g. past purchasers.")
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
   handler: async (input, ctx) => {

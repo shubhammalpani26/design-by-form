@@ -352,6 +352,55 @@
               "type": "integer",
               "minimum": 18,
               "maximum": 65
+            },
+            "pixel_id": {
+              "description": "Meta pixel id. Required for OUTCOME_SALES so the ad set optimizes for a conversion event instead of clicks.",
+              "type": "string"
+            },
+            "optimize_for": {
+              "default": "PURCHASE",
+              "description": "Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin.",
+              "type": "string",
+              "enum": [
+                "PURCHASE",
+                "INITIATE_CHECKOUT",
+                "CONTENT_VIEW",
+                "LEAD"
+              ]
+            },
+            "interest_ids": {
+              "default": [],
+              "description": "Meta detailed-targeting interest ids (look them up with meta_ads_audiences search_interests).",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "locales": {
+              "default": [],
+              "description": "Meta locale ids, e.g. 6 = English (US), 24 = English (UK). Empty means all languages.",
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              }
+            },
+            "custom_audience_ids": {
+              "default": [],
+              "description": "Custom audience ids to target — used for the retargeting ad set.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "excluded_custom_audience_ids": {
+              "default": [],
+              "description": "Custom audience ids to exclude, e.g. past purchasers.",
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
             }
           },
           "required": [
