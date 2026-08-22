@@ -702,6 +702,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 <p className="mt-2 text-[11px] text-muted-foreground">
                   Keeps your photo and details — only the change you describe is applied.
                 </p>
+                <p className="mt-1 text-[11px] text-muted-foreground/80">
+                  Heads up: this replaces your current preview — you won't be able to go back to it.
+                </p>
               </div>
             )}
           </div>
