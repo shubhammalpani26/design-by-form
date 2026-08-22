@@ -5,6 +5,8 @@ import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucid
 import { SEOHead } from "@/components/SEOHead";
 import { originalsCart } from "@/lib/originalsCart";
 import { trackPurchaseConversion } from "@/lib/googleAds";
+import { trackPurchase } from "@/lib/metaPixel";
+
 
 interface OrderView {
   id: string;
