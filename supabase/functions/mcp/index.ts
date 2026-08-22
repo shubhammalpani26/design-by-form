@@ -689,22 +689,44 @@ var meta_ads_create_default = defineTool10({
         special_ad_categories: "[]"
       }
     });
-    const optimization_goal = input.objective === "OUTCOME_SALES" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS";
+    const isSales = input.objective === "OUTCOME_SALES";
+    if (isSales && !input.pixel_id) {
+      throw new ToolError9(
+        "pixel_id is required for OUTCOME_SALES \u2014 without it Meta optimizes for clicks, not buyers."
+      );
+    }
+    const optimization_goal = isSales ? "OFFSITE_CONVERSIONS" : input.objective === "OUTCOME_AWARENESS" ? "REACH" : "LINK_CLICKS";
     const targeting = {
       geo_locations: { countries: input.countries },
       age_min: input.age_min,
       age_max: input.age_max
     };
+    if (input.interest_ids.length) {
+      targeting.flexible_spec = [{ interests: input.interest_ids.map((id) => ({ id })) }];
+    }
+    if (input.locales.length) targeting.locales = input.locales;
+    if (input.custom_audience_ids.length) {
+      targeting.custom_audiences = input.custom_audience_ids.map((id) => ({ id }));
+    }
+    if (input.excluded_custom_audience_ids.length) {
+      targeting.excluded_custom_audiences = input.excluded_custom_audience_ids.map((id) => ({ id }));
+    }
     const adsetForm = {
       name: `${input.name} \u2014 Ad set`,
       campaign_id: campaign.id,
       daily_budget: String(Math.round(input.daily_budget_usd * 100)),
       billing_event: "IMPRESSIONS",
-      optimization_goal: optimization_goal === "OFFSITE_CONVERSIONS" ? "LINK_CLICKS" : optimization_goal,
+      optimization_goal,
       bid_strategy: "LOWEST_COST_WITHOUT_CAP",
       targeting: JSON.stringify(targeting),
       status: "PAUSED"
     };
+    if (isSales && input.pixel_id) {
+      adsetForm.promoted_object = JSON.stringify({
+        pixel_id: input.pixel_id,
+        custom_event_type: input.optimize_for
+      });
+    }
     const adset = await graph(`/${act}/adsets`, token, { form: adsetForm });
     let videoId;
     let objectStorySpec;
