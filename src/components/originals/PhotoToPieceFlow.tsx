@@ -99,7 +99,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [tweak, setTweak] = useState("");
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
-  const [sizeKey, setSizeKey] = useState(sku.sizes[1]?.key ?? sku.sizes[0].key);
+  // Nobody buys until they have consciously picked a size — that click is also
+  // what triggers the real manufacturing check for that size.
+  const [sizeKey, setSizeKey] = useState<string | null>(null);
+  const sizeRef = useRef<HTMLDivElement | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [razorpayOpen, setRazorpayOpen] = useState(false);
@@ -171,9 +174,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
 
 
-  const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
-  // Prices are confirmed against a real manufacturing quote where we can.
-  const { priceFor } = useOriginalsQuotes(sku.slug, preview?.id ?? null);
+  const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
+  // Prices are confirmed against a real manufacturing quote for the chosen size.
+  const { priceFor, checking } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
@@ -315,6 +318,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   };
 
   const addAnother = () => {
+    if (!requireSize()) return;
     cart.add(currentLine());
     toast({ title: "Saved to your order", description: "Make another piece — you'll pay for everything at once." });
     trackExperiment("reveal_screen", revealVariant, "add_to_cart", { skuSlug: sku.slug });
@@ -328,7 +332,15 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const basketCount = cart.count + 1;
   const basketTotal = cart.total + selectedPrice;
 
+  const requireSize = () => {
+    if (sizeKey) return true;
+    toast({ title: "Pick a size first", description: "Choose the size you'd like and we'll confirm the price." });
+    sizeRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    return false;
+  };
+
   const checkout = async () => {
+    if (!requireSize()) return;
     setCheckingOut(true);
     trackExperiment("reveal_screen", revealVariant, "checkout_click", {
       skuSlug: sku.slug,
@@ -691,8 +703,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             )}
           </div>
 
-          <div className="mt-5">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">{reveal.sizePrompt}</p>
+          <div className="mt-5" ref={sizeRef}>
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+              {sizeKey ? reveal.sizePrompt : "Choose your size to continue"}
+            </p>
             <div className="mt-3 grid grid-cols-3 gap-2">
               {sku.sizes.map((s) => {
                 const active = s.key === sizeKey;
@@ -701,11 +715,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     key={s.key}
                     type="button"
                     onClick={() => setSizeKey(s.key)}
-                    className={`border p-3 text-left transition-colors ${active ? "border-foreground bg-foreground/5" : "border-border hover:border-foreground/40"}`}
+                    className={`border p-3 text-left transition-colors ${active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
+                    {active && checking && (
+                      <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">
+                        Confirming price…
+                      </span>
+                    )}
                     {s.note && <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">{s.note}</span>}
                   </button>
                 );
@@ -790,16 +809,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut}
+                  disabled={checkingOut || !sizeKey}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
                   }}
                 >
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {basketCount > 1
-                    ? `Check out ${basketCount} pieces — $${basketTotal}`
-                    : reveal.cta(selectedPrice)}
+                  {!sizeKey
+                    ? "Choose a size to continue"
+                    : basketCount > 1
+                      ? `Check out ${basketCount} pieces — $${basketTotal}`
+                      : reveal.cta(selectedPrice)}
                 </Button>
                 <button
                   type="button"
