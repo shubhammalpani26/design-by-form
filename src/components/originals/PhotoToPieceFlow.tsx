@@ -97,6 +97,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [prevPreview, setPrevPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
+  // Bounded iteration: two adjustments max, then the piece is the piece.
+  const MAX_TWEAKS = 2;
+  const [tweakCount, setTweakCount] = useState(0);
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   // Nobody buys until they have consciously picked a size — that click is also
@@ -262,6 +265,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       if (isTweak) {
         setShowTweak(false);
         setTweak("");
+        setTweakCount((n) => n + 1);
         trackExperiment("reveal_screen", revealVariant, "tweak_success", { skuSlug: sku.slug });
       }
       trackExperiment("render_progress", progressVariant, "generate_success", {
@@ -314,6 +318,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setValues({});
     setShowTweak(false);
     setTweak("");
+    setTweakCount(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -632,17 +637,28 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-4">
             {!showTweak ? (
               <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  disabled={refining}
-                  onClick={() => {
-                    setShowTweak(true);
-                    trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
-                  }}
-                  className="text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
-                >
-                  Not quite right?
-                </button>
+                {tweakCount < MAX_TWEAKS ? (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      setShowTweak(true);
+                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
+                    }}
+                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
+                  >
+                    Adjust one thing
+                    {tweakCount > 0 && (
+                      <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
+                        ({MAX_TWEAKS - tweakCount} left)
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
+                    This is the one
+                  </p>
+                )}
                 {prevPreview && !refining && (
                   <button
                     type="button"
