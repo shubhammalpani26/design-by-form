@@ -242,19 +242,20 @@ Deno.serve(async (req) => {
       return json({ status: "generating", progress: task.progress });
     }
 
-    // Mesh is ready — build one print file per size we sell.
+    // Mesh is ready — build the print file for the chosen size only.
     const nextFiles: Record<string, string> = { ...files };
-    for (const sizeKey of sizeKeys) {
-      if (nextFiles[sizeKey]) continue;
+    for (const key of sizeKeys) {
+      if (nextFiles[key]) continue;
       const prepared = await ensurePrintFile(admin, {
         modelUrl: task.glb,
-        key: `originals/preview/${previewId}/${sizeKey}`,
-        targetMaxMm: sizeMm(preview.sku_slug, sizeKey),
+        key: `originals/preview/${previewId}/${key}`,
+        targetMaxMm: sizeMm(preview.sku_slug, key),
       });
-      nextFiles[sizeKey] = prepared.url;
+      nextFiles[key] = prepared.url;
     }
 
-    const sizes = await priceSizes(preview.sku_slug, nextFiles);
+    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey);
+    const sizes = [...checked.filter((s) => s.sizeKey !== sizeKey), ...priced];
     const worst = sizes.filter((s) => !s.marginOk);
     const feasibility = {
       checkedAt: new Date().toISOString(),
@@ -268,10 +269,11 @@ Deno.serve(async (req) => {
 
     await admin.from("originals_previews").update({
       print_files: nextFiles,
-      print_file_url: preview.print_file_url ?? nextFiles[sizeKeys[Math.min(1, sizeKeys.length - 1)]] ?? null,
+      print_file_url: preview.print_file_url ?? nextFiles[sizeKey] ?? null,
       model_status: "ready",
       feasibility,
     }).eq("id", previewId);
+
 
     return json({ status: "ready", sizes: publicShape(feasibility) });
   } catch (e) {
