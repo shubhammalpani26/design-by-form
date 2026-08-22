@@ -58,8 +58,19 @@ Deno.serve(async (req) => {
     });
     if (!isAdmin) return json({ error: "Admin only" }, 403);
 
-    const token = Deno.env.get("META_ACCESS_TOKEN");
-    if (!token) return json({ error: "META_ACCESS_TOKEN not configured" }, 500);
+    // Prefer the live long-lived token stored by the Meta connector flow; fall back to the env token.
+    const { data: tokenRow } = await admin
+      .from("user_connector_tokens")
+      .select("meta_defaults")
+      .eq("user_id", userData.user.id)
+      .maybeSingle();
+    const stored = (tokenRow?.meta_defaults as any)?.meta_token as
+      | { access_token?: string; expires_at?: string }
+      | undefined;
+    const storedValid =
+      stored?.access_token && (!stored.expires_at || new Date(stored.expires_at).getTime() > Date.now());
+    const token = storedValid ? stored!.access_token! : Deno.env.get("META_ACCESS_TOKEN");
+    if (!token) return json({ error: "No usable Meta access token" }, 500);
 
     const body = await req.json().catch(() => ({}));
     const action = body.action ?? "inspect";
