@@ -200,6 +200,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         metadata: { seconds: Math.round((Date.now() - startedAt) / 1000) },
       });
       trackExperiment("reveal_screen", revealVariant, "reveal_view", { skuSlug: sku.slug });
+      trackCustomize(sku.slug);
+
       setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (e) {
       trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
@@ -264,6 +266,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       skuSlug: sku.slug,
       metadata: { sizeKey, price: selectedPrice, pieces: basketCount },
     });
+    trackInitiateCheckout(sku.slug, basketTotal, basketCount);
+
     if (PAYMENT_PROVIDER === "cashfree") {
       setCashfreeOpen(true);
       setCheckingOut(false);
