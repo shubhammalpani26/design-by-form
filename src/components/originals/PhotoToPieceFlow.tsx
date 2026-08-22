@@ -94,7 +94,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [preview, setPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
-  const [prevPreview, setPrevPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
+  
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
   // Bounded iteration: two adjustments max, then the piece is the piece.
