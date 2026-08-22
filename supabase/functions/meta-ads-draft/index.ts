@@ -157,6 +157,7 @@ Deno.serve(async (req) => {
           objective: c.objective,
           status: "PAUSED",
           special_ad_categories: "[]",
+          is_adset_budget_sharing_enabled: "false",
         });
 
         const targeting: Record<string, unknown> = {
