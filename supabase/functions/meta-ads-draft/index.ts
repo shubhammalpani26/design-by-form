@@ -213,7 +213,6 @@ Deno.serve(async (req) => {
       const make = (name: string, event: string, days: number) =>
         graph<{ id: string }>(`/${act}/customaudiences`, token, {
           name,
-          subtype: "WEBSITE",
           retention_days: String(days),
           prefill: "1",
           rule: JSON.stringify({
