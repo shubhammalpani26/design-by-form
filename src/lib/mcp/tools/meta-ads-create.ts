@@ -53,6 +53,32 @@ export default defineTool({
     countries: z.array(z.string().length(2)).default(["US"]).describe("ISO country codes to target."),
     age_min: z.number().int().min(18).max(65).default(25),
     age_max: z.number().int().min(18).max(65).default(55),
+    pixel_id: z
+      .string()
+      .optional()
+      .describe(
+        "Meta pixel id. Required for OUTCOME_SALES so the ad set optimizes for a conversion event instead of clicks.",
+      ),
+    optimize_for: z
+      .enum(["PURCHASE", "INITIATE_CHECKOUT", "CONTENT_VIEW", "LEAD"])
+      .default("PURCHASE")
+      .describe("Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin."),
+    interest_ids: z
+      .array(z.string())
+      .default([])
+      .describe("Meta detailed-targeting interest ids (look them up with meta_ads_audiences search_interests)."),
+    locales: z
+      .array(z.number().int())
+      .default([])
+      .describe("Meta locale ids, e.g. 6 = English (US), 24 = English (UK). Empty means all languages."),
+    custom_audience_ids: z
+      .array(z.string())
+      .default([])
+      .describe("Custom audience ids to target — used for the retargeting ad set."),
+    excluded_custom_audience_ids: z
+      .array(z.string())
+      .default([])
+      .describe("Custom audience ids to exclude, e.g. past purchasers."),
   },
   annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
   handler: async (input, ctx) => {
@@ -76,24 +102,52 @@ export default defineTool({
       },
     });
 
-    const optimization_goal = input.objective === "OUTCOME_SALES" ? "OFFSITE_CONVERSIONS" : "LINK_CLICKS";
-    const targeting = {
+    const isSales = input.objective === "OUTCOME_SALES";
+    if (isSales && !input.pixel_id) {
+      throw new ToolError(
+        "pixel_id is required for OUTCOME_SALES — without it Meta optimizes for clicks, not buyers.",
+      );
+    }
+    const optimization_goal = isSales
+      ? "OFFSITE_CONVERSIONS"
+      : input.objective === "OUTCOME_AWARENESS"
+        ? "REACH"
+        : "LINK_CLICKS";
+
+    const targeting: Record<string, unknown> = {
       geo_locations: { countries: input.countries },
       age_min: input.age_min,
       age_max: input.age_max,
     };
+    if (input.interest_ids.length) {
+      targeting.flexible_spec = [{ interests: input.interest_ids.map((id) => ({ id })) }];
+    }
+    if (input.locales.length) targeting.locales = input.locales;
+    if (input.custom_audience_ids.length) {
+      targeting.custom_audiences = input.custom_audience_ids.map((id) => ({ id }));
+    }
+    if (input.excluded_custom_audience_ids.length) {
+      targeting.excluded_custom_audiences = input.excluded_custom_audience_ids.map((id) => ({ id }));
+    }
 
     const adsetForm: Record<string, string> = {
       name: `${input.name} — Ad set`,
       campaign_id: campaign.id,
       daily_budget: String(Math.round(input.daily_budget_usd * 100)),
       billing_event: "IMPRESSIONS",
-      optimization_goal: optimization_goal === "OFFSITE_CONVERSIONS" ? "LINK_CLICKS" : optimization_goal,
+      optimization_goal,
       bid_strategy: "LOWEST_COST_WITHOUT_CAP",
       targeting: JSON.stringify(targeting),
       status: "PAUSED",
     };
+    if (isSales && input.pixel_id) {
+      adsetForm.promoted_object = JSON.stringify({
+        pixel_id: input.pixel_id,
+        custom_event_type: input.optimize_for,
+      });
+    }
     const adset = await graph<{ id: string }>(`/${act}/adsets`, token, { form: adsetForm });
+
 
     let videoId: string | undefined;
     let objectStorySpec: Record<string, unknown>;
