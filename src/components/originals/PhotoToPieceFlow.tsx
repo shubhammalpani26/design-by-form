@@ -318,6 +318,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setValues({});
     setShowTweak(false);
     setTweak("");
+    setTweakCount(0);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
