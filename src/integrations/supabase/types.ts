@@ -1428,6 +1428,7 @@ export type Database = {
           created_at: string
           customer_email: string | null
           delivered_at: string | null
+          discount_usd: number
           fulfillment_error: string | null
           group_id: string | null
           id: string
@@ -1441,6 +1442,7 @@ export type Database = {
           preview_image_url: string | null
           print_file_url: string | null
           production_status: string
+          promo_code: string | null
           provider_order_id: string | null
           provider_payment_id: string | null
           quantity: number
@@ -1463,6 +1465,7 @@ export type Database = {
           created_at?: string
           customer_email?: string | null
           delivered_at?: string | null
+          discount_usd?: number
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
@@ -1476,6 +1479,7 @@ export type Database = {
           preview_image_url?: string | null
           print_file_url?: string | null
           production_status?: string
+          promo_code?: string | null
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
@@ -1498,6 +1502,7 @@ export type Database = {
           created_at?: string
           customer_email?: string | null
           delivered_at?: string | null
+          discount_usd?: number
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
@@ -1511,6 +1516,7 @@ export type Database = {
           preview_image_url?: string | null
           print_file_url?: string | null
           production_status?: string
+          promo_code?: string | null
           provider_order_id?: string | null
           provider_payment_id?: string | null
           quantity?: number
@@ -1617,6 +1623,54 @@ export type Database = {
           size_key?: string
           sku_slug?: string
           stl_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      originals_promo_codes: {
+        Row: {
+          active: boolean
+          amount_off_usd: number | null
+          code: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          max_redemptions: number | null
+          min_subtotal_usd: number
+          percent_off: number | null
+          starts_at: string | null
+          times_redeemed: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          amount_off_usd?: number | null
+          code: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          min_subtotal_usd?: number
+          percent_off?: number | null
+          starts_at?: string | null
+          times_redeemed?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          amount_off_usd?: number | null
+          code?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          max_redemptions?: number | null
+          min_subtotal_usd?: number
+          percent_off?: number | null
+          starts_at?: string | null
+          times_redeemed?: number
           updated_at?: string
         }
         Relationships: []
@@ -2537,6 +2591,7 @@ export type Database = {
           read_ct: number
         }[]
       }
+      redeem_originals_promo: { Args: { _code: string }; Returns: undefined }
       reduce_stale_product_prices: { Args: never; Returns: undefined }
       reset_monthly_credits: { Args: never; Returns: undefined }
       reset_monthly_subscription_usage: { Args: never; Returns: undefined }

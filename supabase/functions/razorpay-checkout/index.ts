@@ -6,6 +6,8 @@ import {
   razorpayMode,
 } from "../_shared/razorpay.ts";
 import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
+import { isPromoError, resolvePromo } from "../_shared/originalsPromo.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -153,9 +155,22 @@ Deno.serve(async (req) => {
       },
     };
 
+    const totalPieces = priced.reduce((n, l) => n + l.quantity, 0);
+    const subtotalUsd = Math.round(priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0) * 100) / 100;
+
+    // Promo codes are resolved server-side against the real subtotal.
+    const promo = await resolvePromo(admin, body.promoCode, subtotalUsd);
+    if (isPromoError(promo)) return json({ error: promo.error }, 400);
+    const discountUsd = promo?.discountUsd ?? 0;
+    const totalUsd = Math.round((subtotalUsd - discountUsd) * 100) / 100;
+
+    // Spread any discount across the lines so the ledger still adds up.
+    const discountRatio = subtotalUsd > 0 ? totalUsd / subtotalUsd : 1;
+
     const rows = priced.map((l) => {
       const preview = l.previewId ? previewMap.get(l.previewId) : undefined;
       const matched = preview && preview.sku === l.skuSlug ? preview : undefined;
+      const lineSubtotal = l.unitUsd * l.quantity;
       return {
         group_id: groupId,
         preview_id: matched ? l.previewId : null,
@@ -163,7 +178,7 @@ Deno.serve(async (req) => {
         sku_slug: l.skuSlug,
         size_key: l.sizeKey,
         size_label: l.size!.label,
-        amount_usd: l.unitUsd * l.quantity,
+        amount_usd: Math.round(lineSubtotal * discountRatio * 100) / 100,
         quantity: l.quantity,
         quote_source: l.quoteSource,
         partner_cost_usd: l.partnerCostUsd,
@@ -174,6 +189,8 @@ Deno.serve(async (req) => {
         payment_provider: "razorpay",
         customer_email: customer.email,
         shipping_address: shipping,
+        promo_code: promo?.code ?? null,
+        discount_usd: Math.round(lineSubtotal * (1 - discountRatio) * 100) / 100,
       };
     });
 
@@ -186,8 +203,6 @@ Deno.serve(async (req) => {
       return json({ error: "We couldn't start your order. Please try again." }, 500);
     }
 
-    const totalPieces = priced.reduce((n, l) => n + l.quantity, 0);
-    const totalUsd = priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0);
     const note = totalPieces === 1
       ? `${NAMES[lines[0].skuSlug] ?? "Nyzora Original"} — ${lines[0].size!.label}`
       : `Nyzora Originals — ${totalPieces} pieces`;
@@ -197,12 +212,14 @@ Deno.serve(async (req) => {
       order_id: orders[0].id,
       pieces: String(totalPieces),
       amount_usd: totalUsd.toFixed(2),
+      ...(promo ? { promo_code: promo.code } : {}),
     };
+
     const receipt = `nyz_${groupId.replace(/-/g, "").slice(0, 32)}`;
 
-    const usdInr = Number(Deno.env.get("USD_INR_RATE") ?? "") || 89;
-    let chargedCurrency: "USD" | "INR" = "USD";
-    let chargedAmount = Number(totalUsd.toFixed(2));
+    // Originals is a USD-only, US-shipping storefront: we never fall back to INR.
+    const chargedCurrency: "USD" = "USD";
+    const chargedAmount = Number(totalUsd.toFixed(2));
     let rzpOrder: { id: string; amount: number; currency: string };
     try {
       rzpOrder = await createRazorpayOrder({
@@ -213,17 +230,16 @@ Deno.serve(async (req) => {
       });
     } catch (usdErr) {
       const msg = String((usdErr as Error)?.message ?? usdErr);
-      if (!/currenc/i.test(msg) && !/international/i.test(msg)) throw usdErr;
-      console.warn("USD not enabled on Razorpay account, retrying in INR", msg);
-      chargedCurrency = "INR";
-      chargedAmount = Math.round(totalUsd * usdInr * 100) / 100;
-      rzpOrder = await createRazorpayOrder({
-        receipt,
-        amount: chargedAmount,
-        currency: "INR",
-        notes,
-      });
+      console.error("USD Razorpay order failed", msg);
+      if (/currenc/i.test(msg) || /international/i.test(msg)) {
+        return json(
+          { error: "Card payments in USD are being enabled on our account. Please try again shortly." },
+          503,
+        );
+      }
+      throw usdErr;
     }
+
 
     await admin
       .from("originals_orders")
@@ -240,8 +256,12 @@ Deno.serve(async (req) => {
       orderId: orders[0].id,
       groupId,
       amountUsd: totalUsd,
+      subtotalUsd,
+      discountUsd,
+      promoCode: promo?.code ?? null,
       chargedCurrency,
       chargedAmount,
+
       prefill: { name: customer.name, email: customer.email, contact: customer.phone },
     });
   } catch (e) {

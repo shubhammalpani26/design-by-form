@@ -78,6 +78,11 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   });
   const [busy, setBusy] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
+  const [promoInput, setPromoInput] = useState("");
+  const [promo, setPromo] = useState<{ code: string; discountUsd: number } | null>(null);
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+
 
   const set = (key: keyof typeof values, v: string) => setValues((p) => ({ ...p, [key]: v }));
 
@@ -112,6 +117,28 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
     return missing.length ? missing.join(", ") : null;
   };
 
+  const applyPromo = async () => {
+    const code = promoInput.trim();
+    if (!code) return;
+    setPromoBusy(true);
+    setPromoError(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("originals-promo", {
+        body: { code, subtotalUsd: totalUsd },
+      });
+      if (error || data?.error) throw new Error(data?.error || "That code isn't valid.");
+      setPromo({ code: data.code, discountUsd: Number(data.discountUsd) || 0 });
+      toast({ title: "Promo applied", description: `You saved $${Number(data.discountUsd).toFixed(2)}.` });
+    } catch (e) {
+      setPromo(null);
+      setPromoError((e as Error).message);
+    } finally {
+      setPromoBusy(false);
+    }
+  };
+
+  const payableUsd = Math.max(0, Math.round((totalUsd - (promo?.discountUsd ?? 0)) * 100) / 100);
+
   const pay = async () => {
     const missing = missingLabel();
     if (missing) {
@@ -124,7 +151,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       const [Razorpay, checkout] = await Promise.all([
         loadRazorpay(),
         supabase.functions.invoke("razorpay-checkout", {
-          body: { items, returnUrl, customer: values },
+          body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
         }),
       ]);
 
@@ -145,9 +172,20 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         currency: data.currency,
         name: "Nyzora",
         description: data.description,
-        prefill: data.prefill,
+        prefill: { ...data.prefill, method: "card" },
         notes: { group_id: data.groupId },
         theme: { color: "#111111" },
+        // International storefront: cards only, no India-specific rails.
+        method: { card: true, upi: false, netbanking: false, wallet: false, paylater: false, emi: false },
+        config: {
+          display: {
+            blocks: {
+              card: { name: "Pay by card", instruments: [{ method: "card" }] },
+            },
+            sequence: ["block.card"],
+            preferences: { show_default_blocks: false },
+          },
+        },
         handler: (response: any) => {
           const params = new URLSearchParams({
             payment_id: response?.razorpay_payment_id ?? "",
@@ -159,6 +197,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
           ondismiss: () => setBusy(false),
         },
       });
+
 
       rzp.on("payment.failed", (resp: any) => {
         setBusy(false);
@@ -234,18 +273,71 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         </div>
       </div>
 
+      {/* ---- Promo code ---- */}
+      <div className="border border-border p-3">
+        <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+          Promo code
+        </Label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            id="rp-promo"
+            value={promoInput}
+            placeholder="Enter code"
+            onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
+            className="rounded-none uppercase"
+          />
+          {promo ? (
+            <Button type="button" variant="outline" className="rounded-none"
+              onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
+              Remove
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" className="rounded-none"
+              disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
+              {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+            </Button>
+          )}
+        </div>
+        {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
+        {promo && (
+          <p className="mt-2 text-xs text-muted-foreground tabular-nums">
+            {promo.code} applied — −${promo.discountUsd.toFixed(2)}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1 text-sm tabular-nums">
+        <div className="flex justify-between text-muted-foreground">
+          <span>Subtotal</span><span>${totalUsd.toFixed(2)} USD</span>
+        </div>
+        {promo && (
+          <div className="flex justify-between text-muted-foreground">
+            <span>Discount</span><span>−${promo.discountUsd.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-muted-foreground">
+          <span>Shipping</span><span>Free</span>
+        </div>
+        <div className="flex justify-between border-t border-border pt-1 font-medium">
+          <span>Total</span><span>${payableUsd.toFixed(2)} USD</span>
+        </div>
+      </div>
+
       <p className="text-xs text-muted-foreground">
-        We ship within the USA only. Free shipping is included in the price.
+        We ship within the USA only. Free shipping is included in the price. All prices and charges
+        are in US dollars (USD).
       </p>
 
       <Button type="button" size="lg" className="w-full rounded-none h-12" disabled={busy} onClick={() => void pay()}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Pay ${totalUsd}
+        Pay ${payableUsd.toFixed(2)} USD
       </Button>
 
       <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5" /> Card details are entered in the secure payment window.
+        Visa, Mastercard and Amex accepted.
       </p>
     </div>
   );
 }
+

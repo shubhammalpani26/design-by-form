@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Loader2, CheckCircle2, Clock, Truck, Factory, ShieldCheck } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 import { originalsCart } from "@/lib/originalsCart";
+import { clearAllDrafts } from "@/lib/originalsDraft";
+
 import { trackPurchaseConversion } from "@/lib/googleAds";
 import { trackPurchase } from "@/lib/metaPixel";
 
@@ -90,8 +92,12 @@ export default function OriginalsReturn() {
 
   // Payment went through — the basket is now an order, so empty it.
   useEffect(() => {
-    if (paid) originalsCart.clear();
+    if (paid) {
+      originalsCart.clear();
+      void clearAllDrafts();
+    }
   }, [paid]);
+
 
   // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {

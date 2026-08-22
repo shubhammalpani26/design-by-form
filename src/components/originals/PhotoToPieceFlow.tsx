@@ -21,6 +21,8 @@ import { useOriginalsCart } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
+import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
+
 
 
 const MAX_BYTES = 8 * 1024 * 1024;
@@ -104,6 +106,70 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
+  const [restored, setRestored] = useState(false);
+  const payingRef = useRef(false);
+
+
+  // ---- Draft persistence: never lose an upload or a render on reload/back ----
+  useEffect(() => {
+    let cancelled = false;
+    void loadDraft(sku.slug).then((d) => {
+      if (cancelled || !d) { setRestored(true); return; }
+      if (d.photo) setPhoto(d.photo);
+      if (d.mode) setMode(d.mode);
+      if (d.heading) setHeading(d.heading);
+      if (d.footnote) setFootnote(d.footnote);
+      if (d.values) setValues(d.values);
+      if (d.colorKey) setColorKey(d.colorKey);
+      if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
+      if (d.preview) setPreview(d.preview);
+      setRestored(true);
+    });
+    return () => { cancelled = true; };
+  }, [sku.slug]);
+
+  useEffect(() => {
+    if (!restored) return;
+    const hasAnything = photo || preview || heading || footnote || Object.keys(values).length;
+    if (!hasAnything) return;
+    const id = window.setTimeout(() => {
+      void saveDraft({
+        skuSlug: sku.slug,
+        savedAt: Date.now(),
+        mode,
+        photo,
+        heading,
+        footnote,
+        values,
+        colorKey,
+        sizeKey,
+        preview,
+      });
+    }, 400);
+    return () => window.clearTimeout(id);
+  }, [restored, sku.slug, mode, photo, heading, footnote, values, colorKey, sizeKey, preview]);
+
+  // Back button should step out of the payment panel, not off the page.
+  useEffect(() => {
+    const open = razorpayOpen || Boolean(clientSecret);
+    if (!open) return;
+    window.history.pushState({ nyzoraCheckout: true }, "");
+    const onPop = () => {
+      setRazorpayOpen(false);
+      setClientSecret(null);
+      requestAnimationFrame(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      // Don't rewind while we're handing off to the payment window.
+      if (!payingRef.current && window.history.state?.nyzoraCheckout) window.history.back();
+    };
+
+  }, [razorpayOpen, clientSecret]);
+
+
+
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote where we can.
@@ -233,7 +299,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   });
 
   const resetForAnother = () => {
+    void clearDraft(sku.slug);
     setPreview(null);
+
     setPrevPreview(null);
     setClientSecret(null);
     setRazorpayOpen(false);
@@ -668,7 +736,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                       items={basketLines.map((l) => ({ ...l, quantity: l.quantity ?? 1 }))}
                       returnUrl={`${window.location.origin}/originals/checkout/return`}
                       totalUsd={basketTotal}
+                      onPaying={() => { payingRef.current = true; }}
                     />
+
                   )}
                 </div>
               </div>
