@@ -115,6 +115,25 @@ Deno.serve(async (req) => {
       return json({ id, status: res.status, body: await res.text() });
     }
 
+    // --- Assign a pixel to an ad account (required before audience creation) ---
+    if (action === "share_pixel") {
+      const { pixel_id, ad_account_id, business_id } = body as {
+        pixel_id: string;
+        ad_account_id: string;
+        business_id: string;
+      };
+      const numericAct = String(ad_account_id).replace("act_", "");
+      const res = await graph(`/${pixel_id}/shared_accounts`, token, {
+        account_id: numericAct,
+        business: String(business_id),
+      }).catch((e) => ({ error: String(e) }));
+      const check = await graph(`/act_${numericAct}/adspixels?fields=id,name`, token).catch((e) => ({
+        error: String(e),
+      }));
+      return json({ share: res, pixels_on_account: check });
+    }
+
+
     // --- Interest lookup ---
     if (action === "interests") {
       const q = encodeURIComponent(String(body.q ?? "pet"));
