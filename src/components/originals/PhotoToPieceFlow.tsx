@@ -97,6 +97,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [prevPreview, setPrevPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
+  // Bounded iteration: two adjustments max, then the piece is the piece.
+  const MAX_TWEAKS = 2;
+  const [tweakCount, setTweakCount] = useState(0);
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   // Nobody buys until they have consciously picked a size — that click is also
