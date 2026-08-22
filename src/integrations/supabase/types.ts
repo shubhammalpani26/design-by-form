@@ -124,6 +124,51 @@ export type Database = {
         }
         Relationships: []
       }
+      brand_reviews: {
+        Row: {
+          author_email: string | null
+          author_location: string | null
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          photo_url: string | null
+          rating: number
+          status: string
+          title: string | null
+          verified_purchase: boolean
+          video_url: string | null
+        }
+        Insert: {
+          author_email?: string | null
+          author_location?: string | null
+          author_name: string
+          body: string
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          rating: number
+          status?: string
+          title?: string | null
+          verified_purchase?: boolean
+          video_url?: string | null
+        }
+        Update: {
+          author_email?: string | null
+          author_location?: string | null
+          author_name?: string
+          body?: string
+          created_at?: string
+          id?: string
+          photo_url?: string | null
+          rating?: number
+          status?: string
+          title?: string | null
+          verified_purchase?: boolean
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       cart: {
         Row: {
           created_at: string
