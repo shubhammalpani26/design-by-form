@@ -83,7 +83,7 @@ export default function OriginalsReturn() {
     return () => {
       stop = true;
     };
-  }, [orderId, groupId, provider]);
+  }, [orderId, groupId, provider, params]);
 
   const paid = order && order.status !== "pending" && order.status !== "cancelled";
   const pieceCount = items.reduce((n, i) => n + (i.quantity || 1), 0) || 1;
