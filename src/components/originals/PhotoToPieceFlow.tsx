@@ -286,7 +286,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           : raw || "We couldn't render that one. Try a clearer, well-lit photo of their face."
       );
       toast({ title: "Couldn't make that one", description: raw, variant: "destructive" });
-      if (isTweak && prevPreview === null) setPrevPreview(null);
     } finally {
       setLoading(false);
       setRefining(false);
