@@ -107,6 +107,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
   const [restored, setRestored] = useState(false);
+  const payingRef = useRef(false);
+
 
   // ---- Draft persistence: never lose an upload or a render on reload/back ----
   useEffect(() => {
