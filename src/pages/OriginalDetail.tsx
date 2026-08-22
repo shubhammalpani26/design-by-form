@@ -8,6 +8,7 @@ import { ArrowLeft, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
 import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
+import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
 
 const OriginalDetail = () => {
