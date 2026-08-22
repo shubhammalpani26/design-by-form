@@ -659,15 +659,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     This is the one
                   </p>
                 )}
-                {prevPreview && !refining && (
-                  <button
-                    type="button"
-                    onClick={() => { setPreview(prevPreview); setPrevPreview(null); }}
-                    className="inline-flex items-center gap-1.5 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
-                  >
-                    <Undo2 className="h-3 w-3" /> Back to previous
-                  </button>
-                )}
               </div>
             ) : (
               <div className="border border-border p-4">
