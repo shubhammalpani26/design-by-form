@@ -44,9 +44,9 @@ export const ReviewsManagement = () => {
   const queryClient = useQueryClient();
   const [filter, setFilter] = useState<ReviewStatus | "all">("pending");
 
-  const { data: reviews, isLoading } = useQuery<AdminReview[]>({
+  const { data: reviews, isLoading } = useQuery({
     queryKey: ["admin-brand-reviews", filter],
-    queryFn: async () => {
+    queryFn: async (): Promise<AdminReview[]> => {
       let query = supabase
         .from("brand_reviews")
         .select(
@@ -57,7 +57,7 @@ export const ReviewsManagement = () => {
       if (filter !== "all") query = query.eq("status", filter);
       const { data, error } = await query;
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as AdminReview[];
     },
   });
 

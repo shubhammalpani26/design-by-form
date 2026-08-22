@@ -79,9 +79,9 @@ const Reviews = () => {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  const { data: reviews, isLoading } = useQuery<BrandReview[]>({
+  const { data: reviews, isLoading } = useQuery({
     queryKey: ["brand-reviews"],
-    queryFn: async () => {
+    queryFn: async (): Promise<BrandReview[]> => {
       const { data, error } = await supabase
         .from("brand_reviews")
         .select(
@@ -91,7 +91,7 @@ const Reviews = () => {
         .order("created_at", { ascending: false })
         .limit(50);
       if (error) throw error;
-      return data ?? [];
+      return (data ?? []) as BrandReview[];
     },
   });
 
