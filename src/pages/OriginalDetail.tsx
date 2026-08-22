@@ -10,6 +10,8 @@ import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
 import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
+import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
+
 
 const OriginalDetail = () => {
   const { slug } = useParams();
@@ -106,10 +108,12 @@ const OriginalDetail = () => {
       </div>
 
       <section className="border-t border-border">
-        <div className="container mx-auto px-4 py-14">
+        <div className="container mx-auto px-4 py-14 space-y-14">
+          <BuyerPhotoStrip />
           <ReviewsSection skuSlug={sku.slug} />
         </div>
       </section>
+
 
       <section className="border-t border-border">
         <div className="container mx-auto px-4 py-14">

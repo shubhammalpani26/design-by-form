@@ -1492,6 +1492,7 @@ export type Database = {
           provider_payment_id: string | null
           quantity: number
           quote_source: string | null
+          review_requested_at: string | null
           shipped_at: string | null
           shipping_address: Json | null
           shipping_notified_at: string | null
@@ -1529,6 +1530,7 @@ export type Database = {
           provider_payment_id?: string | null
           quantity?: number
           quote_source?: string | null
+          review_requested_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_notified_at?: string | null
@@ -1566,6 +1568,7 @@ export type Database = {
           provider_payment_id?: string | null
           quantity?: number
           quote_source?: string | null
+          review_requested_at?: string | null
           shipped_at?: string | null
           shipping_address?: Json | null
           shipping_notified_at?: string | null

@@ -19,7 +19,7 @@ const admin = createClient(
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
 );
 
-const OPEN = ["in_production", "queued", "awaiting_shipment", "pending"];
+const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shipped"];
 
 /**
  * Once a partner order exists the piece IS in production — the partner's own
@@ -88,6 +88,30 @@ async function notifyShipped(
     .eq("id", row.id);
 }
 
+/** Asks the buyer for a review once the piece has actually landed. */
+async function notifyReviewRequest(
+  row: { id: string; customer_email: string | null; sku_slug: string | null; size_label: string | null },
+) {
+  const { error } = await admin.functions.invoke("send-transactional-email", {
+    body: {
+      templateName: "originals-review-request",
+      recipientEmail: row.customer_email,
+      idempotencyKey: `originals-review-${row.id}`,
+      templateData: {
+        orderId: row.id,
+        productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || "Your Nyzora piece",
+        sizeLabel: row.size_label ?? undefined,
+      },
+    },
+  });
+  if (error) console.error("review request email failed", row.id, error);
+
+  await admin
+    .from("originals_orders")
+    .update({ review_requested_at: new Date().toISOString() })
+    .eq("id", row.id);
+}
+
 /**
  * Pulls partner tracking onto Originals orders. Safe to call from the buyer's
  * order page (anon) — it only ever writes partner-sourced tracking data and
@@ -103,7 +127,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipping_notified_at",
+        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       .limit(60);
@@ -142,6 +166,11 @@ Deno.serve(async (req) => {
         // One shipping notification per order, only once tracking exists.
         if (shipped && numbers.length && !row.shipping_notified_at && row.customer_email) {
           await notifyShipped(row, numbers);
+        }
+
+        // One review request per order, sent when the piece is actually in hand.
+        if (status === "delivered" && !row.review_requested_at && row.customer_email) {
+          await notifyReviewRequest(row);
         }
       } catch (e) {
         console.error("originals tracking sync failed", row.id, e instanceof Error ? e.message : e);
