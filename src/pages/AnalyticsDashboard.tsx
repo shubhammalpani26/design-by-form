@@ -90,7 +90,7 @@ const AnalyticsDashboard = () => {
       // Fetch designer profile
       const { data: profile } = await supabase
         .from('designer_profiles')
-        .select('*')
+        .select('id, user_id, name, status, slug, plan_tier, is_house, portfolio_url, design_background, furniture_interests, profile_picture_url, cover_image_url, created_at')
         .eq('user_id', user.id)
         .single();
 
