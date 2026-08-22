@@ -12,7 +12,7 @@
   "mcp": {
     "server": {
       "name": "nyzora",
-      "version": "0.4.0",
+      "version": "0.5.0",
       "title": "Nyzora"
     },
     "tools": [
@@ -411,6 +411,65 @@
             "primary_text",
             "headline",
             "link_url"
+          ]
+        },
+        "outputSchema": null
+      },
+      {
+        "name": "meta_ads_audiences",
+        "title": "List, create and look up Meta audiences",
+        "description": "Manages retargeting inputs. action 'list' returns existing custom audiences on the ad account. action 'create' builds a website custom audience from a Nyzora pixel event (customizers, checkout_starters, viewers, purchasers) — use 'customizers' for retargeting and 'purchasers' as an exclusion. action 'search_interests' looks up Meta detailed-targeting interest ids by keyword (e.g. 'pet loss', 'dog memorial') so ad sets target real ids. Creates no spend of any kind.",
+        "annotations": {
+          "readOnlyHint": false,
+          "destructiveHint": false,
+          "idempotentHint": false,
+          "openWorldHint": true
+        },
+        "inputSchema": {
+          "$schema": "http://json-schema.org/draft-07/schema#",
+          "type": "object",
+          "properties": {
+            "action": {
+              "type": "string",
+              "enum": [
+                "list",
+                "create",
+                "search_interests"
+              ]
+            },
+            "ad_account_id": {
+              "description": "Ad account id (act_... or numeric). Required for list and create.",
+              "type": "string"
+            },
+            "pixel_id": {
+              "description": "Meta pixel id. Required for action 'create'.",
+              "type": "string"
+            },
+            "audience": {
+              "description": "Which pixel-event audience to create.",
+              "type": "string",
+              "enum": [
+                "customizers",
+                "checkout_starters",
+                "viewers",
+                "purchasers"
+              ]
+            },
+            "query": {
+              "description": "Keyword for action 'search_interests'.",
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 80
+            },
+            "limit": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            }
+          },
+          "required": [
+            "action"
           ]
         },
         "outputSchema": null

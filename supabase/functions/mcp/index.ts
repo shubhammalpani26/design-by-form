@@ -790,18 +790,123 @@ var meta_ads_create_default = defineTool10({
   }
 });
 
+// src/lib/mcp/tools/meta-ads-audiences.ts
+import { defineTool as defineTool11, ToolError as ToolError10 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { z as z9 } from "npm:zod@^4.4.3";
+var EVENT_AUDIENCES = {
+  customizers: {
+    event: "CustomizeProduct",
+    days: 30,
+    label: "Customized a preview (30d)"
+  },
+  checkout_starters: {
+    event: "InitiateCheckout",
+    days: 30,
+    label: "Started checkout (30d)"
+  },
+  viewers: {
+    event: "ViewContent",
+    days: 30,
+    label: "Viewed a product (30d)"
+  },
+  purchasers: {
+    event: "Purchase",
+    days: 180,
+    label: "Purchased (180d) \u2014 use as an exclusion"
+  }
+};
+var meta_ads_audiences_default = defineTool11({
+  name: "meta_ads_audiences",
+  title: "List, create and look up Meta audiences",
+  description: "Manages retargeting inputs. action 'list' returns existing custom audiences on the ad account. action 'create' builds a website custom audience from a Nyzora pixel event (customizers, checkout_starters, viewers, purchasers) \u2014 use 'customizers' for retargeting and 'purchasers' as an exclusion. action 'search_interests' looks up Meta detailed-targeting interest ids by keyword (e.g. 'pet loss', 'dog memorial') so ad sets target real ids. Creates no spend of any kind.",
+  inputSchema: {
+    action: z9.enum(["list", "create", "search_interests"]),
+    ad_account_id: z9.string().optional().describe("Ad account id (act_... or numeric). Required for list and create."),
+    pixel_id: z9.string().optional().describe("Meta pixel id. Required for action 'create'."),
+    audience: z9.enum(["customizers", "checkout_starters", "viewers", "purchasers"]).optional().describe("Which pixel-event audience to create."),
+    query: z9.string().min(2).max(80).optional().describe("Keyword for action 'search_interests'."),
+    limit: z9.number().int().min(1).max(50).default(25)
+  },
+  annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: true },
+  handler: async (input, ctx) => {
+    const token = await adsToken(ctx);
+    if (input.action === "search_interests") {
+      if (!input.query) throw new ToolError10("query is required for action 'search_interests'.");
+      const res = await graph(
+        `/search?type=adinterest&q=${encodeURIComponent(input.query)}&limit=${input.limit}`,
+        token
+      );
+      const payload2 = {
+        query: input.query,
+        interests: (res.data ?? []).map((i) => ({
+          id: i.id,
+          name: i.name,
+          audience_size: i.audience_size_lower_bound ?? i.audience_size,
+          path: i.path
+        }))
+      };
+      return { ...text(payload2), structuredContent: payload2 };
+    }
+    if (!input.ad_account_id) throw new ToolError10("ad_account_id is required for this action.");
+    const act = normalizeActId(input.ad_account_id);
+    if (input.action === "list") {
+      const res = await graph(
+        `/${act}/customaudiences?fields=id,name,subtype,approximate_count_lower_bound,delivery_status,operation_status&limit=${input.limit}`,
+        token
+      );
+      const payload2 = { ad_account_id: act, audiences: res.data ?? [] };
+      return { ...text(payload2), structuredContent: payload2 };
+    }
+    if (!input.audience) throw new ToolError10("audience is required for action 'create'.");
+    if (!input.pixel_id) throw new ToolError10("pixel_id is required for action 'create'.");
+    const spec = EVENT_AUDIENCES[input.audience];
+    const rule = {
+      inclusions: {
+        operator: "or",
+        rules: [
+          {
+            event_sources: [{ type: "pixel", id: input.pixel_id }],
+            retention_seconds: spec.days * 86400,
+            filter: {
+              operator: "and",
+              filters: [{ field: "event", operator: "eq", value: spec.event }]
+            }
+          }
+        ]
+      }
+    };
+    const created = await graph(`/${act}/customaudiences`, token, {
+      form: {
+        name: `Nyzora \u2014 ${spec.label}`,
+        subtype: "WEBSITE",
+        description: `Auto-built from pixel event ${spec.event} over ${spec.days} days.`,
+        rule: JSON.stringify(rule),
+        prefill: "1"
+      }
+    });
+    const payload = {
+      audience_id: created.id,
+      name: `Nyzora \u2014 ${spec.label}`,
+      pixel_event: spec.event,
+      retention_days: spec.days,
+      note: input.audience === "purchasers" ? "Pass this id as excluded_custom_audience_ids on prospecting and retargeting ad sets." : "Pass this id as custom_audience_ids on the retargeting ad set. It needs ~1,000 people before it can deliver."
+    };
+    return { ...text(payload), structuredContent: payload };
+  }
+});
+
 // src/lib/mcp/index.ts
 var projectRef = "rdcfakdhgndnhgzfkuvw";
 var mcp_default = defineMcp({
   name: "nyzora",
   title: "Nyzora",
-  version: "0.4.0",
-  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
+  version: "0.5.0",
+  instructions: "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) `meta_ads_audiences` (pixel-based retargeting audiences and interest lookup) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated"
   }),
-  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default, meta_me_default, meta_ig_post_default, meta_ads_accounts_default, meta_ads_insights_default, meta_ads_create_default, meta_ads_manage_default]
+  tools: [search_products_default, get_product_default, list_my_designs_default, get_my_credits_default, meta_me_default, meta_ig_post_default, meta_ads_accounts_default, meta_ads_insights_default, meta_ads_create_default, meta_ads_audiences_default, meta_ads_manage_default]
 });
 
 // lovable-mcp-supabase-entry.ts

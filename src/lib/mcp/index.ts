@@ -9,18 +9,19 @@ import metaAdsAccountsTool from "./tools/meta-ads-accounts";
 import metaAdsInsightsTool from "./tools/meta-ads-insights";
 import metaAdsManageTool from "./tools/meta-ads-manage";
 import metaAdsCreateCampaignTool from "./tools/meta-ads-create";
+import metaAdsAudiencesTool from "./tools/meta-ads-audiences";
 
 const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
   name: "nyzora",
   title: "Nyzora",
-  version: "0.4.0",
+  version: "0.5.0",
   instructions:
-    "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
+    "Tools for Nyzora, an AI design-to-manufacturing marketplace. Use `search_products` and `get_product` to explore the published catalog, `list_my_designs` to check the signed-in creator's submissions and review status, and `get_my_credits` for their remaining AI design credits. Use `meta_me` to inspect the connected Meta/Instagram account, and `meta_ig_post` to publish an image post to Instagram. For paid media use `meta_ads_accounts` (ad accounts, campaigns, ad sets, ads), `meta_ads_insights` (spend, CTR, CPM, ROAS), `meta_ads_create_campaign` (drafts a full campaign that is always created PAUSED) `meta_ads_audiences` (pixel-based retargeting audiences and interest lookup) and `meta_ads_manage` (pause/resume/rebudget). Anything that can start or increase ad spend requires the owner\u2019s explicit confirm string \u2014 never launch an ad without asking the owner first.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
   }),
-  tools: [searchProductsTool, getProductTool, listMyDesignsTool, getMyCreditsTool, metaMeTool, metaIgPostTool, metaAdsAccountsTool, metaAdsInsightsTool, metaAdsCreateCampaignTool, metaAdsManageTool],
+  tools: [searchProductsTool, getProductTool, listMyDesignsTool, getMyCreditsTool, metaMeTool, metaIgPostTool, metaAdsAccountsTool, metaAdsInsightsTool, metaAdsCreateCampaignTool, metaAdsAudiencesTool, metaAdsManageTool],
 });
