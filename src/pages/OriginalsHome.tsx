@@ -188,6 +188,10 @@ const OriginalsHome = () => {
       {/* FAQ */}
       <section className="container mx-auto px-4 pb-20">
         <ScrollReveal>
+          <FounderNote className="mb-16" />
+        </ScrollReveal>
+        <ScrollReveal>
+
           <div className="border border-border p-8 md:p-12 mb-16">
             <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-4">
               The .ai in Nyzora
