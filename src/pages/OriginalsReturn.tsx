@@ -84,7 +84,7 @@ export default function OriginalsReturn() {
     if (paid) originalsCart.clear();
   }, [paid]);
 
-  // Report the sale to Google Ads exactly once per confirmed order.
+  // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {
     if (!paid || !order) return;
     const key = `nyzora_ads_conv_${order.id}`;
@@ -94,6 +94,7 @@ export default function OriginalsReturn() {
       ? items.reduce((sum, i) => sum + i.amountUsd * (i.quantity || 1), 0)
       : order.amountUsd;
     trackPurchaseConversion(order.id, total);
+    trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : [order.skuSlug ?? "originals"]);
   }, [paid, order, items]);
 
   return (
