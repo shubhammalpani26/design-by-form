@@ -734,7 +734,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                       items={basketLines.map((l) => ({ ...l, quantity: l.quantity ?? 1 }))}
                       returnUrl={`${window.location.origin}/originals/checkout/return`}
                       totalUsd={basketTotal}
+                      onPaying={() => { payingRef.current = true; }}
                     />
+
                   )}
                 </div>
               </div>
