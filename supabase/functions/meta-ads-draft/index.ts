@@ -175,6 +175,8 @@ Deno.serve(async (req) => {
           geo_locations: { countries: c.countries },
           age_min: c.age_min,
           age_max: c.age_max,
+          // Interest targeting stays as specified; Advantage+ expansion off so learnings stay readable.
+          targeting_automation: { advantage_audience: 0 },
         };
         if (c.interest_ids?.length) {
           targeting.flexible_spec = [{ interests: c.interest_ids.map((id) => ({ id })) }];
