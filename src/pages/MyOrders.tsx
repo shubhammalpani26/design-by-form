@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { SEOHead } from "@/components/SEOHead";
-import { Loader2, Package, Truck, CheckCircle2, Factory, Copy, FileText } from "lucide-react";
+import { Loader2, Package, Truck, CheckCircle2, Factory, Copy, FileText, Star } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { ORIGINALS_SKUS } from "@/data/originalsSkus";
 
@@ -245,6 +245,21 @@ export default function MyOrders() {
               )}
             </div>
 
+            {first.production_status === "delivered" && (
+              <div className="border-t border-foreground/10 p-4">
+                <p className="text-sm">
+                  It landed. Would you share a photo or short video of it?
+                </p>
+                <Link
+                  to={`/reviews?order=${first.id}`}
+                  className="mt-3 inline-flex items-center gap-2 border border-foreground px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-foreground hover:text-background"
+                >
+                  <Star className="h-3.5 w-3.5" />
+                  Rate & add your photo
+                </Link>
+              </div>
+            )}
+
             <div className="border-t border-foreground/10 p-4">
               <button
                 type="button"
@@ -260,6 +275,7 @@ export default function MyOrders() {
                 Invoice
               </button>
             </div>
+
 
           </section>
         );
