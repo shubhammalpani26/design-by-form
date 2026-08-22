@@ -143,9 +143,9 @@ const OriginalsHome = () => {
 
       {/* Trust strip */}
       <section className="border-b border-border">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 divide-x divide-border">
+        <div className="container mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 border-t border-l border-border">
           {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
-            <div key={t} className="py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+            <div key={t} className="border-r border-b border-border py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
               {t}
             </div>
           ))}
