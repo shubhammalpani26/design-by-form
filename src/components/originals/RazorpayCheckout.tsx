@@ -273,18 +273,71 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         </div>
       </div>
 
+      {/* ---- Promo code ---- */}
+      <div className="border border-border p-3">
+        <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+          Promo code
+        </Label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            id="rp-promo"
+            value={promoInput}
+            placeholder="Enter code"
+            onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
+            className="rounded-none uppercase"
+          />
+          {promo ? (
+            <Button type="button" variant="outline" className="rounded-none"
+              onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
+              Remove
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" className="rounded-none"
+              disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
+              {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+            </Button>
+          )}
+        </div>
+        {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
+        {promo && (
+          <p className="mt-2 text-xs text-muted-foreground tabular-nums">
+            {promo.code} applied — −${promo.discountUsd.toFixed(2)}
+          </p>
+        )}
+      </div>
+
+      <div className="space-y-1 text-sm tabular-nums">
+        <div className="flex justify-between text-muted-foreground">
+          <span>Subtotal</span><span>${totalUsd.toFixed(2)} USD</span>
+        </div>
+        {promo && (
+          <div className="flex justify-between text-muted-foreground">
+            <span>Discount</span><span>−${promo.discountUsd.toFixed(2)}</span>
+          </div>
+        )}
+        <div className="flex justify-between text-muted-foreground">
+          <span>Shipping</span><span>Free</span>
+        </div>
+        <div className="flex justify-between border-t border-border pt-1 font-medium">
+          <span>Total</span><span>${payableUsd.toFixed(2)} USD</span>
+        </div>
+      </div>
+
       <p className="text-xs text-muted-foreground">
-        We ship within the USA only. Free shipping is included in the price.
+        We ship within the USA only. Free shipping is included in the price. All prices and charges
+        are in US dollars (USD).
       </p>
 
       <Button type="button" size="lg" className="w-full rounded-none h-12" disabled={busy} onClick={() => void pay()}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Pay ${totalUsd}
+        Pay ${payableUsd.toFixed(2)} USD
       </Button>
 
       <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5" /> Card details are entered in the secure payment window.
+        Visa, Mastercard and Amex accepted.
       </p>
     </div>
   );
 }
+
