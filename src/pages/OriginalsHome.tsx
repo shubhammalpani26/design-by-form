@@ -143,12 +143,14 @@ const OriginalsHome = () => {
 
       {/* Trust strip */}
       <section className="border-b border-border">
-        <div className="container mx-auto px-4 grid grid-cols-2 md:grid-cols-4 border-t border-l border-border">
-          {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
-            <div key={t} className="border-r border-b border-border py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-              {t}
-            </div>
-          ))}
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-px p-px bg-border">
+            {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
+              <div key={t} className="bg-background py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                {t}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -163,12 +165,12 @@ const OriginalsHome = () => {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px p-px bg-border">
           {ORIGINALS_SKUS.map((sku) => (
             <Link
               key={sku.slug}
               to={`/originals/${sku.slug}`}
-              className="group border-r border-b border-border p-4 md:p-6 hover:bg-muted/40 transition-colors"
+              className="group bg-background p-4 md:p-6 hover:bg-muted/40 transition-colors"
             >
               <div className="aspect-[4/5] overflow-hidden bg-muted/30 mb-5">
                 <img
