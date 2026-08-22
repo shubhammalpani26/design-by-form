@@ -46,8 +46,54 @@ export const normalizeTracking = (v: Props['trackingNumbers']): string[] => {
     .slice(0, MAX_NUMBERS)
 }
 
-/** Carrier-agnostic lookup so the link works whoever ships it. */
-const trackUrl = (n: string) => `https://t.17track.net/en#nums=${encodeURIComponent(n)}`
+/**
+ * Detects the carrier from a tracking number's format and returns its
+ * official tracking page. Slant 3D ships from Boise, ID — almost always USPS —
+ * so we link the buyer to the carrier's own page, not a third-party aggregator.
+ * 17track is only the fallback for numbers we can't identify.
+ */
+export const detectCarrier = (
+  raw: string,
+): { name: string; url: string } => {
+  const n = clean(raw, 40).replace(/\s+/g, '').toUpperCase()
+  if (!n) return { name: '', url: '' }
+
+  // USPS: 22-digit numbers starting with 9, or 20-digit starting with 94/93.
+  if (/^9\d{20,21}$/.test(n) || /^(94|93)\d{18,19}$/.test(n)) {
+    return {
+      name: 'USPS',
+      url: `https://tools.usps.com/go/TrackConfirmAction?tLabels=${encodeURIComponent(n)}`,
+    }
+  }
+  // UPS: 1Z prefix or pure digits with check, often 18 chars.
+  if (/^1Z[0-9A-Z]{16}$/.test(n) || /^1Z/i.test(n)) {
+    return {
+      name: 'UPS',
+      url: `https://www.ups.com/track?tracknum=${encodeURIComponent(n)}&loc=en_US`,
+    }
+  }
+  // FedEx: 12, 15, 20, or 22 digit pure numbers.
+  if (/^\d{12}$|^\d{15}$|^\d{20}$|^\d{22}$/.test(n)) {
+    return {
+      name: 'FedEx',
+      url: `https://www.fedex.com/fedextrack/?trknbr=${encodeURIComponent(n)}`,
+    }
+  }
+  // DHL Express: 10-digit number.
+  if (/^\d{10}$/.test(n)) {
+    return {
+      name: 'DHL',
+      url: `https://www.dhl.com/en/express/tracking.html?AWB=${encodeURIComponent(n)}`,
+    }
+  }
+  return {
+    name: '',
+    url: `https://t.17track.net/en#nums=${encodeURIComponent(n)}`,
+  }
+}
+
+/** Link for the primary CTA — official carrier page when known, else 17track. */
+const trackUrl = (n: string) => detectCarrier(n).url
 
 export const shippedSubject = (data: Record<string, any> = {}) => {
   const name = clean(data?.productName, 60)
@@ -56,7 +102,10 @@ export const shippedSubject = (data: Record<string, any> = {}) => {
 
 const Email = (props: Props) => {
   const numbers = normalizeTracking(props.trackingNumbers)
-  const carrier = clean(props.carrier, 40)
+  // Prefer the carrier the partner gave us; otherwise infer it from the number.
+  const passedCarrier = clean(props.carrier, 40)
+  const detected = numbers.length ? detectCarrier(numbers[0]) : { name: '', url: '' }
+  const carrier = passedCarrier || detected.name
   const name = clean(props.productName, 80) || 'Your Nyzora piece'
   const size = clean(props.sizeLabel, 60)
   const orderId = clean(props.orderId, 64)

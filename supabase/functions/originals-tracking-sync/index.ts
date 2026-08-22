@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getTracking } from "../_shared/slant3d.ts";
+import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -122,11 +123,15 @@ Deno.serve(async (req) => {
         const { status, trackingNumbers } = seen.get(key)!;
         const numbers = trackingNumbers.map((t) => String(t)).filter(Boolean);
         const shipped = status === "shipped";
+        // Infer the carrier from the tracking number so the buyer's tracker
+        // and the shipping email link to the carrier's own page.
+        const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
         await admin
           .from("originals_orders")
           .update({
             production_status: toProductionStatus(status),
             tracking_numbers: numbers,
+            ...(carrier ? { carrier } : {}),
             ...(status === "shipped" ? { shipped_at: new Date().toISOString() } : {}),
             ...(status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
             updated_at: new Date().toISOString(),
