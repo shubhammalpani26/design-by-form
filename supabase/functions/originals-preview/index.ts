@@ -184,17 +184,9 @@ Deno.serve(async (req) => {
         }
       })();
 
-      // Start the real 3D mesh straight away so the size ladder can be priced
-      // from an actual partner slice while the buyer is still deciding.
-      fetch(`${SUPABASE_URL}/functions/v1/originals-feasibility`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${SERVICE_KEY}`,
-          "x-internal-key": SERVICE_KEY,
-        },
-        body: JSON.stringify({ previewId: row.id }),
-      }).catch((e) => console.error("feasibility kickoff failed", e));
+      // The real 3D mesh + partner slice only runs once the buyer picks a size,
+      // so we never spend a generation on a piece nobody is sizing up.
+
     }
 
 
