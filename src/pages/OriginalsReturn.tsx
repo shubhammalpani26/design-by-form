@@ -94,7 +94,7 @@ export default function OriginalsReturn() {
       ? items.reduce((sum, i) => sum + i.amountUsd * (i.quantity || 1), 0)
       : order.amountUsd;
     trackPurchaseConversion(order.id, total);
-    trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : [order.skuSlug ?? "originals"]);
+    trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : ["originals"]);
   }, [paid, order, items]);
 
   return (
