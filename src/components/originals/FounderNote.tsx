@@ -45,12 +45,30 @@ export const FounderNote = ({ compact = false, className = "" }: FounderNoteProp
             </p>
           )}
 
-          <div className="pt-4">
-            <p className="text-lg font-light italic tracking-tight">Shubham Malpani</p>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mt-1">
-              Founder, Nyzora
-            </p>
+          <div className="pt-4 flex items-center gap-4">
+            {FOUNDER_PHOTO ? (
+              <img
+                src={FOUNDER_PHOTO}
+                alt="Shubham Malpani, founder of Nyzora"
+                loading="lazy"
+                className="h-14 w-14 rounded-full object-cover border border-border"
+              />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="h-14 w-14 rounded-full border border-border flex items-center justify-center text-xs tracking-[0.2em] text-muted-foreground"
+              >
+                SM
+              </span>
+            )}
+            <div>
+              <p className="text-lg font-light italic tracking-tight">Shubham Malpani</p>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mt-1">
+                Founder, Nyzora
+              </p>
+            </div>
           </div>
+
         </div>
 
         <div className="md:border-l border-border md:pl-8 space-y-5 text-sm">
