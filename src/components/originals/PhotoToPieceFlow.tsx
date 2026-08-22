@@ -20,6 +20,8 @@ import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
 import { useOriginalsCart } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
+import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
+
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -116,7 +118,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   useEffect(() => {
     trackExperiment("render_progress", progressVariant, "flow_view", { skuSlug: sku.slug });
     trackExperiment("reveal_screen", revealVariant, "flow_view", { skuSlug: sku.slug });
-  }, [progressVariant, revealVariant, sku.slug]);
+    trackViewContent(sku.slug, sku.price);
+  }, [progressVariant, revealVariant, sku.slug, sku.price]);
+
 
   useEffect(() => {
     if (!loading) return;
