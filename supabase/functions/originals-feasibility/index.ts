@@ -183,13 +183,21 @@ Deno.serve(async (req) => {
     if (!preview) return json({ error: "Preview not found." }, 404);
 
     const files = (preview.print_files ?? {}) as Record<string, string>;
-    const sizeKeys = Object.keys(PRICE_BOOK[preview.sku_slug] ?? {});
-    if (!sizeKeys.length) return json({ status: "skipped" });
+    const allSizeKeys = Object.keys(PRICE_BOOK[preview.sku_slug] ?? {});
+    if (!allSizeKeys.length) return json({ status: "skipped" });
 
-    // Already fully checked.
-    if (preview.feasibility) {
-      return json({ status: "ready", sizes: publicShape(preview.feasibility as Record<string, unknown>) });
+    // We only spend a mesh + slice on the size the buyer actually picked.
+    const sizeKey = typeof body?.sizeKey === "string" ? body.sizeKey : null;
+    if (!sizeKey || !allSizeKeys.includes(sizeKey)) return json({ status: "idle" });
+    const sizeKeys = [sizeKey];
+
+    const existing = (preview.feasibility ?? null) as Record<string, unknown> | null;
+    const checked = Array.isArray(existing?.sizes) ? (existing!.sizes as SizeOutcome[]) : [];
+    // This size has already been proven and priced.
+    if (checked.some((s) => s.sizeKey === sizeKey)) {
+      return json({ status: "ready", sizes: publicShape(existing) });
     }
+
 
     // Mesh not started yet — kick it off (guarded so parallel polls don't double-spend).
     if (!preview.model_task_id) {
