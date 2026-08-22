@@ -220,6 +220,16 @@ const ENGINEERING_RETRIES = 2;
 
 async function renderDue() {
   const horizon = new Date(Date.now() + RENDER_LOOKAHEAD_MS).toISOString();
+
+  // A slot parked for review still has a posting time to make: requeue it for a
+  // fresh render pass while it has attempts left and hasn't slipped its slot.
+  await admin
+    .from("social_scheduled_posts")
+    .update({ status: "scheduled", image_url: null })
+    .eq("status", "needs_review")
+    .lt("attempts", MAX_ATTEMPTS)
+    .gt("scheduled_at", new Date().toISOString());
+
   const { data } = await admin
     .from("social_scheduled_posts")
     .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
