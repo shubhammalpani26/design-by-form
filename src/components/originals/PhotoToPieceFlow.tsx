@@ -637,17 +637,28 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-4">
             {!showTweak ? (
               <div className="flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  disabled={refining}
-                  onClick={() => {
-                    setShowTweak(true);
-                    trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
-                  }}
-                  className="text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground underline underline-offset-4"
-                >
-                  Not quite right?
-                </button>
+                {tweakCount < MAX_TWEAKS ? (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      setShowTweak(true);
+                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
+                    }}
+                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
+                  >
+                    Adjust one thing
+                    {tweakCount > 0 && (
+                      <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
+                        ({MAX_TWEAKS - tweakCount} left)
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
+                    This is the one
+                  </p>
+                )}
                 {prevPreview && !refining && (
                   <button
                     type="button"
