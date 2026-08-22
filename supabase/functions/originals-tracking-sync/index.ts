@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getTracking } from "../_shared/slant3d.ts";
+import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
