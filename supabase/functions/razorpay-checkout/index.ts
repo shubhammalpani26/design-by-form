@@ -6,6 +6,8 @@ import {
   razorpayMode,
 } from "../_shared/razorpay.ts";
 import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
+import { isPromoError, resolvePromo } from "../_shared/originalsPromo.ts";
+
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
