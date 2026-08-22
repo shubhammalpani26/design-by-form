@@ -220,6 +220,23 @@ export default function MyOrders() {
                 </p>
               )}
             </div>
+
+            <div className="border-t border-foreground/10 p-4">
+              <button
+                type="button"
+                onClick={() => openInvoice(first)}
+                disabled={invoiceBusy === first.id}
+                className="inline-flex items-center gap-2 border border-foreground/20 px-4 py-2 text-xs uppercase tracking-[0.2em] hover:bg-foreground hover:text-background disabled:opacity-50"
+              >
+                {invoiceBusy === first.id ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <FileText className="h-3.5 w-3.5" />
+                )}
+                Invoice
+              </button>
+            </div>
+
           </section>
         );
       })}
