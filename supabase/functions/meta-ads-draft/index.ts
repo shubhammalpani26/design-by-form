@@ -86,13 +86,25 @@ Deno.serve(async (req) => {
         ),
       ]);
       let pixels: unknown = null;
-      const firstAct = (accounts as any)?.data?.[0]?.id;
+      const firstAct = body.ad_account_id
+        ? (String(body.ad_account_id).startsWith("act_") ? body.ad_account_id : `act_${body.ad_account_id}`)
+        : (accounts as any)?.data?.[0]?.id;
       if (firstAct) {
         pixels = await graph(`/${firstAct}/adspixels?fields=id,name,last_fired_time`, token).catch((e) => ({
           error: String(e),
         }));
       }
       return json({ accounts, pages, pixels });
+    }
+
+    // --- Interest lookup ---
+    if (action === "interests") {
+      const q = encodeURIComponent(String(body.q ?? "pet"));
+      const res = await graph(
+        `/search?type=adinterest&q=${q}&limit=15&fields=id,name,audience_size_lower_bound,audience_size_upper_bound,topic`,
+        token,
+      );
+      return json(res);
     }
 
     // --- Draft: campaign + ad set, PAUSED, no ads/creative yet ---
@@ -120,6 +132,13 @@ Deno.serve(async (req) => {
       };
       if (!ad_account_id || !pixel_id) return json({ error: "ad_account_id and pixel_id required" }, 400);
       const act = ad_account_id.startsWith("act_") ? ad_account_id : `act_${ad_account_id}`;
+
+      // Meta budgets are in the ad account's own currency (minor units).
+      const acct = await graph<{ currency?: string }>(`/${act}?fields=currency`, token);
+      const currency = acct?.currency ?? "USD";
+      const FX: Record<string, number> = { USD: 1, INR: 87.5, EUR: 0.92, GBP: 0.78, CAD: 1.37, AUD: 1.52 };
+      const rate = FX[currency] ?? 1;
+      const minorUnits = (usd: number) => String(Math.round(usd * rate * 100));
 
       const created: unknown[] = [];
       for (const c of campaigns) {
@@ -152,7 +171,7 @@ Deno.serve(async (req) => {
         const adset = await graph<{ id: string }>(`/${act}/adsets`, token, {
           name: `${c.name} — Ad set`,
           campaign_id: campaign.id,
-          daily_budget: String(Math.round(c.daily_budget_usd * 100)),
+          daily_budget: minorUnits(c.daily_budget_usd),
           billing_event: "IMPRESSIONS",
           optimization_goal: "OFFSITE_CONVERSIONS",
           bid_strategy: "LOWEST_COST_WITHOUT_CAP",
@@ -166,16 +185,24 @@ Deno.serve(async (req) => {
           campaign_id: campaign.id,
           adset_id: adset.id,
           daily_budget_usd: c.daily_budget_usd,
+          daily_budget_account_currency: `${currency} ${(c.daily_budget_usd * rate).toFixed(0)}`,
           status: "PAUSED",
         });
       }
-      return json({ ad_account_id: act, created, note: "Creative/ads intentionally not created yet." });
+      return json({ ad_account_id: act, currency, created, note: "Creative/ads intentionally not created yet." });
     }
 
     // --- Audiences: pixel-based custom audiences for retargeting ---
     if (action === "audiences") {
       const { ad_account_id, pixel_id } = body as { ad_account_id: string; pixel_id: string };
       const act = ad_account_id.startsWith("act_") ? ad_account_id : `act_${ad_account_id}`;
+
+      // Meta budgets are in the ad account's own currency (minor units).
+      const acct = await graph<{ currency?: string }>(`/${act}?fields=currency`, token);
+      const currency = acct?.currency ?? "USD";
+      const FX: Record<string, number> = { USD: 1, INR: 87.5, EUR: 0.92, GBP: 0.78, CAD: 1.37, AUD: 1.52 };
+      const rate = FX[currency] ?? 1;
+      const minorUnits = (usd: number) => String(Math.round(usd * rate * 100));
       const make = (name: string, event: string, days: number) =>
         graph<{ id: string }>(`/${act}/customaudiences`, token, {
           name,
