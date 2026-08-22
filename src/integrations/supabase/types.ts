@@ -1595,6 +1595,7 @@ export type Database = {
         Row: {
           created_at: string
           engineering: Json | null
+          feasibility: Json | null
           id: string
           ip_hash: string | null
           model_error: string | null
@@ -1603,6 +1604,7 @@ export type Database = {
           personalization: Json
           preview_image_url: string | null
           print_file_url: string | null
+          print_files: Json
           sku_slug: string
           source_image_url: string | null
           user_id: string | null
@@ -1610,6 +1612,7 @@ export type Database = {
         Insert: {
           created_at?: string
           engineering?: Json | null
+          feasibility?: Json | null
           id?: string
           ip_hash?: string | null
           model_error?: string | null
@@ -1618,6 +1621,7 @@ export type Database = {
           personalization?: Json
           preview_image_url?: string | null
           print_file_url?: string | null
+          print_files?: Json
           sku_slug: string
           source_image_url?: string | null
           user_id?: string | null
@@ -1625,6 +1629,7 @@ export type Database = {
         Update: {
           created_at?: string
           engineering?: Json | null
+          feasibility?: Json | null
           id?: string
           ip_hash?: string | null
           model_error?: string | null
@@ -1633,6 +1638,7 @@ export type Database = {
           personalization?: Json
           preview_image_url?: string | null
           print_file_url?: string | null
+          print_files?: Json
           sku_slug?: string
           source_image_url?: string | null
           user_id?: string | null
