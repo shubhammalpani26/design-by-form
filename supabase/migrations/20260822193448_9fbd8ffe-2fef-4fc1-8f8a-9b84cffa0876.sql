@@ -1,0 +1,1 @@
+ALTER TABLE public.originals_orders ADD COLUMN IF NOT EXISTS review_requested_at timestamp with time zone;
