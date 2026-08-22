@@ -18,6 +18,7 @@ import OriginalsHome from "./pages/OriginalsHome";
 const OriginalDetail = lazy(() => import("./pages/OriginalDetail"));
 const OriginalsReturn = lazy(() => import("./pages/OriginalsReturn"));
 const MyOrders = lazy(() => import("./pages/MyOrders"));
+const Reviews = lazy(() => import("./pages/Reviews"));
 const Unsubscribe = lazy(() => import("./pages/Unsubscribe"));
 
 // Lazy load everything else
@@ -137,6 +138,7 @@ const App = () => (
               <Route path="/originals/:slug" element={<OriginalDetail />} />
               <Route path="/originals/checkout/return" element={<OriginalsReturn />} />
               <Route path="/orders" element={<MyOrders />} />
+              <Route path="/reviews" element={<Reviews />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Existing platform homepage preserved verbatim at its own route */}
               <Route path="/platform" element={<Home />} />

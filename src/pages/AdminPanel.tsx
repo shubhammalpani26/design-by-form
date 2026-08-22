@@ -15,6 +15,7 @@ import { CreditsManagement } from "@/components/admin/CreditsManagement";
 import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
 import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
 import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManagement";
+import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
 import { SEOHead } from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -28,6 +29,7 @@ const TABS = [
   { value: "early-access", label: "Early Access" },
   { value: "contacts", label: "Contacts" },
   { value: "notifications", label: "Notifications" },
+  { value: "reviews", label: "Reviews" },
   { value: "social", label: "Social" },
 ];
 
@@ -170,6 +172,10 @@ export default function AdminPanel() {
 
           <TabsContent value="notifications">
             <NotificationsManagement />
+          </TabsContent>
+
+          <TabsContent value="reviews">
+            <ReviewsManagement />
           </TabsContent>
         </Tabs>
       </div>

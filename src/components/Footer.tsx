@@ -74,6 +74,8 @@ export const Footer = () => {
             <ul className="space-y-2 text-sm">
               <li><button onClick={() => handleNavigation("/about")} className="text-muted-foreground hover:text-primary transition-colors text-left">About Us</button></li>
               <li><button onClick={() => handleNavigation("/plans")} className="text-muted-foreground hover:text-primary transition-colors text-left">Pricing Plans</button></li>
+              <li><button onClick={() => handleNavigation("/reviews")} className="text-muted-foreground hover:text-primary transition-colors text-left">Reviews</button></li>
+              
               
               <li><button onClick={() => handleNavigation("/contact")} className="text-muted-foreground hover:text-primary transition-colors text-left">Contact</button></li>
             </ul>
