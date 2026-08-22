@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
 import { FOOTNOTE_MAX, HEADING_MAX } from "@/data/originalsSkus";
-import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Undo2, Wand2 } from "lucide-react";
+import { Camera, Loader2, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Wand2 } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
@@ -94,7 +94,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [preview, setPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
-  const [prevPreview, setPrevPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
+  
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
   // Bounded iteration: two adjustments max, then the piece is the piece.
@@ -227,7 +227,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     const isRefine = isTweak || Boolean(overrideColor);
     if (isRefine) {
       setRefining(true);
-      setPrevPreview(preview);
     } else {
       setLoading(true);
       setPreview(null);
@@ -287,7 +286,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           : raw || "We couldn't render that one. Try a clearer, well-lit photo of their face."
       );
       toast({ title: "Couldn't make that one", description: raw, variant: "destructive" });
-      if (isTweak && prevPreview === null) setPrevPreview(null);
     } finally {
       setLoading(false);
       setRefining(false);
@@ -308,8 +306,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const resetForAnother = () => {
     void clearDraft(sku.slug);
     setPreview(null);
-
-    setPrevPreview(null);
     setClientSecret(null);
     setRazorpayOpen(false);
     setPhoto(null);
@@ -658,15 +654,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
                     This is the one
                   </p>
-                )}
-                {prevPreview && !refining && (
-                  <button
-                    type="button"
-                    onClick={() => { setPreview(prevPreview); setPrevPreview(null); }}
-                    className="inline-flex items-center gap-1.5 text-xs tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
-                  >
-                    <Undo2 className="h-3 w-3" /> Back to previous
-                  </button>
                 )}
               </div>
             ) : (
