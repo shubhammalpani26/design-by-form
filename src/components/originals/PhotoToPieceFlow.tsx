@@ -306,8 +306,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const resetForAnother = () => {
     void clearDraft(sku.slug);
     setPreview(null);
-
-    setPrevPreview(null);
     setClientSecret(null);
     setRazorpayOpen(false);
     setPhoto(null);
