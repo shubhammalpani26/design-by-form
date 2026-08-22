@@ -165,12 +165,12 @@ const OriginalsHome = () => {
           </div>
         </ScrollReveal>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-l border-border">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-px p-px bg-border">
           {ORIGINALS_SKUS.map((sku) => (
             <Link
               key={sku.slug}
               to={`/originals/${sku.slug}`}
-              className="group border-r border-b border-border p-4 md:p-6 hover:bg-muted/40 transition-colors"
+              className="group bg-background p-4 md:p-6 hover:bg-muted/40 transition-colors"
             >
               <div className="aspect-[4/5] overflow-hidden bg-muted/30 mb-5">
                 <img
