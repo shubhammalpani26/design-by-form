@@ -69,7 +69,31 @@ export default function MyOrders() {
   const [signedIn, setSignedIn] = useState(false);
   const [lookupId, setLookupId] = useState(params.get("order") ?? "");
   const [lookupError, setLookupError] = useState<string | null>(null);
+  const [invoiceBusy, setInvoiceBusy] = useState<string | null>(null);
   const { toast } = useToast();
+
+  /** Opens the Nyzora invoice in a print-ready window. */
+  const openInvoice = async (order: OrderRow) => {
+    setInvoiceBusy(order.id);
+    try {
+      const { data, error } = await supabase.functions.invoke("originals-invoice", {
+        body: order.group_id ? { groupId: order.group_id } : { orderId: order.id },
+      });
+      if (error || !data?.invoice) throw new Error(error?.message ?? "No invoice");
+      const w = window.open("", "_blank");
+      if (!w) throw new Error("Please allow pop-ups to view your invoice.");
+      w.document.write(data.invoice);
+      w.document.close();
+    } catch (e) {
+      toast({
+        title: "Couldn't open the invoice",
+        description: e instanceof Error ? e.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setInvoiceBusy(null);
+    }
+  };
 
   useEffect(() => {
     (async () => {
