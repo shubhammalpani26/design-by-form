@@ -10,6 +10,8 @@ import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
 import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
+import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
+
 
 const OriginalDetail = () => {
   const { slug } = useParams();
