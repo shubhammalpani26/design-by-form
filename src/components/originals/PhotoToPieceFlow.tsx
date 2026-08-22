@@ -292,7 +292,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const currentLine = () => ({
     skuSlug: sku.slug,
-    sizeKey,
+    sizeKey: sizeKey ?? selectedSize.key,
     sizeLabel: selectedSize.label,
     price: selectedPrice,
     productName: sku.name ?? "Nyzora Original",
@@ -327,7 +327,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const basketLines = [
     ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
-    { skuSlug: sku.slug, sizeKey, previewId: preview?.id ?? null, quantity: 1 },
+    { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1 },
   ];
   const basketCount = cart.count + 1;
   const basketTotal = cart.total + selectedPrice;
