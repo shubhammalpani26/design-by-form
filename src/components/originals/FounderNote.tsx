@@ -1,5 +1,13 @@
 import { Mail } from "lucide-react";
 
+/**
+ * Drop the founder photo in here later:
+ *   import founderPhoto from "@/assets/founder.jpg";
+ *   const FOUNDER_PHOTO: string | null = founderPhoto;
+ * Leave as null and the block renders a clean initials mark instead.
+ */
+const FOUNDER_PHOTO: string | null = null;
+
 interface FounderNoteProps {
   /** Compact version for product pages */
   compact?: boolean;
@@ -12,6 +20,7 @@ interface FounderNoteProps {
  * person behind this?
  */
 export const FounderNote = ({ compact = false, className = "" }: FounderNoteProps) => {
+
   return (
     <section className={`border border-border p-8 md:p-12 ${className}`}>
       <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground mb-6">
@@ -36,12 +45,30 @@ export const FounderNote = ({ compact = false, className = "" }: FounderNoteProp
             </p>
           )}
 
-          <div className="pt-4">
-            <p className="text-lg font-light italic tracking-tight">Shubham Malpani</p>
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mt-1">
-              Founder, Nyzora
-            </p>
+          <div className="pt-4 flex items-center gap-4">
+            {FOUNDER_PHOTO ? (
+              <img
+                src={FOUNDER_PHOTO}
+                alt="Shubham Malpani, founder of Nyzora"
+                loading="lazy"
+                className="h-14 w-14 rounded-full object-cover border border-border"
+              />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="h-14 w-14 rounded-full border border-border flex items-center justify-center text-xs tracking-[0.2em] text-muted-foreground"
+              >
+                SM
+              </span>
+            )}
+            <div>
+              <p className="text-lg font-light italic tracking-tight">Shubham Malpani</p>
+              <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground mt-1">
+                Founder, Nyzora
+              </p>
+            </div>
           </div>
+
         </div>
 
         <div className="md:border-l border-border md:pl-8 space-y-5 text-sm">
