@@ -106,10 +106,12 @@ const OriginalDetail = () => {
       </div>
 
       <section className="border-t border-border">
-        <div className="container mx-auto px-4 py-14">
+        <div className="container mx-auto px-4 py-14 space-y-14">
+          <BuyerPhotoStrip />
           <ReviewsSection skuSlug={sku.slug} />
         </div>
       </section>
+
 
       <section className="border-t border-border">
         <div className="container mx-auto px-4 py-14">
