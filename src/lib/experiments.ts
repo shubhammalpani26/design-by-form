@@ -20,7 +20,7 @@ export const EXPERIMENTS = {
     b: {
       headline: ["They don't have to", "be just a photo."],
       sub: "Send us one picture and we sculpt them into a solid piece with a matte stone-look finish, their name engraved in the base. See yours free before you decide. Made in the USA, free shipping.",
-      cta: "See mine free",
+      cta: "See your pet sculpted — free",
     },
   },
   /** Copy shown while the render is being generated. */
