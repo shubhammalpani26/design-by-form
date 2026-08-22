@@ -359,11 +359,11 @@
             },
             "optimize_for": {
               "default": "PURCHASE",
-              "description": "Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin.",
+              "description": "Pixel event the sales ad set optimizes for. Use INITIATED_CHECKOUT while purchase volume is thin.",
               "type": "string",
               "enum": [
                 "PURCHASE",
-                "INITIATE_CHECKOUT",
+                "INITIATED_CHECKOUT",
                 "CONTENT_VIEW",
                 "LEAD"
               ]

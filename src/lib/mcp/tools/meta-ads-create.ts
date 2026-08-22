@@ -60,9 +60,9 @@ export default defineTool({
         "Meta pixel id. Required for OUTCOME_SALES so the ad set optimizes for a conversion event instead of clicks.",
       ),
     optimize_for: z
-      .enum(["PURCHASE", "INITIATE_CHECKOUT", "CONTENT_VIEW", "LEAD"])
+      .enum(["PURCHASE", "INITIATED_CHECKOUT", "CONTENT_VIEW", "LEAD"])
       .default("PURCHASE")
-      .describe("Pixel event the sales ad set optimizes for. Use INITIATE_CHECKOUT while purchase volume is thin."),
+      .describe("Pixel event the sales ad set optimizes for. Use INITIATED_CHECKOUT while purchase volume is thin."),
     interest_ids: z
       .array(z.string())
       .default([])
@@ -99,6 +99,7 @@ export default defineTool({
         objective: input.objective,
         status: "PAUSED",
         special_ad_categories: "[]",
+        is_adset_budget_sharing_enabled: "false",
       },
     });
 
@@ -118,6 +119,7 @@ export default defineTool({
       geo_locations: { countries: input.countries },
       age_min: input.age_min,
       age_max: input.age_max,
+      targeting_automation: { advantage_audience: 0 },
     };
     if (input.interest_ids.length) {
       targeting.flexible_spec = [{ interests: input.interest_ids.map((id) => ({ id })) }];
