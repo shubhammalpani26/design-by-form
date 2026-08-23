@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendAppEmail } from "./appEmail.ts";
 
 interface AlertInput {
   orderId?: string | null;
@@ -52,21 +53,17 @@ export async function alertFulfillmentFailure(
   }
 
   try {
-    await admin.functions.invoke("send-transactional-email", {
-      body: {
-        templateName: "fulfillment-failed",
-        // The template pins the internal recipient; this is only a fallback.
-        recipientEmail: "contact@nyzora.ai",
-        idempotencyKey: `fulfillment-failed-${orderId}-${message.slice(0, 60)}`,
-        templateData: {
-          orderId: input.orderId ?? input.groupId ?? null,
-          groupId: input.groupId ?? null,
-          customerEmail: input.customerEmail ?? null,
-          pieces: input.pieces ?? null,
-          amountUsd: input.amountUsd ?? null,
-          stage: input.stage ?? "fulfillment",
-          error: message,
-        },
+    // The template pins the internal recipient; this address is only a fallback.
+    await sendAppEmail("fulfillment-failed", "contact@nyzora.ai", {
+      idempotencyKey: `fulfillment-failed-${orderId}-${message.slice(0, 60)}`,
+      templateData: {
+        orderId: input.orderId ?? input.groupId ?? null,
+        groupId: input.groupId ?? null,
+        customerEmail: input.customerEmail ?? null,
+        pieces: input.pieces ?? null,
+        amountUsd: input.amountUsd ?? null,
+        stage: input.stage ?? "fulfillment",
+        error: message,
       },
     });
   } catch (e) {

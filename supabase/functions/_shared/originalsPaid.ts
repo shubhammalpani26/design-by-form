@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { sendAppEmail } from "./appEmail.ts";
 
 const db = () =>
   createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -29,26 +30,16 @@ async function sendReceipt(email: string | null, orders: any[]) {
     totalUsd: orders.reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0),
   };
 
-  const { error } = await db().functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-order-confirmation",
-      recipientEmail: email,
-      idempotencyKey: `originals-confirmation-${orders[0].id}`,
-      templateData,
-    },
+  await sendAppEmail("originals-order-confirmation", email, {
+    idempotencyKey: `originals-confirmation-${orders[0].id}`,
+    templateData,
   });
-  if (error) console.error("Originals confirmation email failed:", error);
 
   // Internal copy so the team sees every order that comes in.
-  const { error: internalError } = await db().functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-order-confirmation",
-      recipientEmail: "contact@nyzora.ai",
-      idempotencyKey: `originals-internal-${orders[0].id}`,
-      templateData,
-    },
+  await sendAppEmail("originals-order-confirmation", "contact@nyzora.ai", {
+    idempotencyKey: `originals-internal-${orders[0].id}`,
+    templateData,
   });
-  if (internalError) console.error("Originals internal copy failed:", internalError);
 }
 
 /**
