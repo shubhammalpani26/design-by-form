@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
+import { ApplePayButton, type ApplePayOrder } from "./ApplePayButton";
+
 
 export interface RazorpayLine {
   skuSlug: string;
