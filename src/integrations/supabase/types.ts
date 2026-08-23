@@ -2536,6 +2536,23 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_list_brand_reviews: {
+        Args: { _status?: string }
+        Returns: {
+          author_email: string
+          author_location: string
+          author_name: string
+          body: string
+          created_at: string
+          id: string
+          photo_url: string
+          rating: number
+          status: string
+          title: string
+          verified_purchase: boolean
+          video_url: string
+        }[]
+      }
       claim_social_scheduler_lease: {
         Args: { p_lease_seconds?: number }
         Returns: boolean
