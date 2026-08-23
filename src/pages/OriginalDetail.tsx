@@ -37,7 +37,7 @@ const OriginalDetail = () => {
         title={sku.seo?.title ?? `${sku.name} — Personalized Piece | Nyzora Originals`}
         description={
           sku.seo?.description ??
-          `${sku.tagline} Made to order in the USA and shipped in 3–5 days. $${sku.price}.`
+          `${sku.tagline} Made to order in the USA and shipped in 7–8 days. $${sku.price}.`
         }
         keywords={sku.seo?.keywords}
         type="product"
@@ -99,7 +99,7 @@ const OriginalDetail = () => {
 
           <div className="mt-8 grid grid-cols-3 gap-4 text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex flex-col gap-2"><Truck className="h-4 w-4" /> Ships in 3–5 days</div>
+            <div className="flex flex-col gap-2"><Truck className="h-4 w-4" /> Ships in 7–8 days</div>
             <div className="flex flex-col gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 

@@ -148,7 +148,7 @@ const Terms = () => {
               <h3 className="text-xl font-semibold mb-3">4.2 Shipping and Delivery</h3>
               <p className="text-muted-foreground mb-4">
                 Delivery times are estimates and may vary. Nyzora Originals are typically produced in 2-3 days and
-                delivered within 5-7 days in the United States. Larger marketplace furniture is manufactured to order
+                delivered within 7-8 days in the United States. Larger marketplace furniture is manufactured to order
                 and typically requires 21-35 days for production and delivery, with custom pieces occasionally taking
                 longer. Tracking is added to your order in your account as soon as the piece ships.
               </p>

@@ -192,7 +192,7 @@ export default function OriginalsReturn() {
 
           <div className="mt-8 grid grid-cols-1 gap-3 border-t border-foreground/10 pt-6 text-sm text-muted-foreground sm:grid-cols-3">
             <div className="flex items-center gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> Ships in 3–5 days</div>
+            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> Ships in 7–8 days</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 

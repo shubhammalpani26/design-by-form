@@ -837,8 +837,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 </button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
                   {basketCount > 1
-                    ? "One payment, one shipment · Free US shipping · Ships in 3–5 days"
-                    : "Free US shipping · Made to order in the USA · Ships in 3–5 days"}
+                    ? "One payment, one shipment · Free US shipping · Ships in 7–8 days"
+                    : "Free US shipping · Made to order in the USA · Ships in 7–8 days"}
                 </p>
               </>
             )}
@@ -877,7 +877,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
           <div className="mt-6 grid grid-cols-3 gap-3 border-t border-border pt-5 text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-1.5"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 3–5 day ship</div>
+            <div className="flex flex-col gap-1.5"><Truck className="h-4 w-4" /> 7–8 day ship</div>
             <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
           <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
