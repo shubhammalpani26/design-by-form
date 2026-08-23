@@ -18,7 +18,7 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 /** Bounded work per run — the scheduler never drains the whole queue at once. */
 const RENDER_BATCH = 4;
-const PUBLISH_BATCH = 2;
+const PUBLISH_BATCH = 1;
 /** Render only 2 days ahead so creatives stay in sync with the live narrative. */
 const RENDER_LOOKAHEAD_MS = 2 * 24 * 60 * 60 * 1000;
 const LEASE_MS = 5 * 60 * 1000;
