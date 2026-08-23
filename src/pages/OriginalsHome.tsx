@@ -15,11 +15,11 @@ import heroImg from "@/assets/originals-hero.jpg";
 const STEPS = [
   { n: "01", t: "Pick a piece", d: "Nyzora Originals — each designed to be personal without being kitsch." },
   { n: "02", t: "Make it yours", d: "Add a name, a date, a place — or describe a change and our AI redraws the piece." },
-  { n: "03", t: "Made in the USA", d: "Printed to order in our US network and shipped in 3–5 business days." },
+  { n: "03", t: "Made in the USA", d: "Printed to order in our US network and shipped in 7–8 days." },
 ];
 
 const FAQS = [
-  { q: "How long does it take?", a: "Every Original is made to order. Production takes 2–3 business days and delivery is 5–7 business days anywhere in the US." },
+  { q: "How long does it take?", a: "Every Original is made to order. Production starts within a day and your piece arrives in 7–8 days anywhere in the US." },
   { q: "What is it made of?", a: "Plant-based PLA — a dense matte polymer, precision 3D-printed as one solid part in the USA. The finish reads and feels stone-like — but to be clear, it is a durable printed material, not natural stone or ceramic. It is solid through, not hollow-feeling, and safe indoors on any shelf." },
   { q: "Is this a real product or just an AI image?", a: "The AI only designs it. What you see in the preview is turned into a manufacturable 3D model, checked by our engineering system for wall thickness, stability and print feasibility, then produced by a real US workshop and shipped to you as a physical object." },
   { q: "What if it arrives damaged or doesn't look right?", a: "You approve the render before anything is made, so the piece you get is the one you signed off on. If anything arrives the worse for wear in transit, send us a photo and a fresh piece goes into production the same day — at our cost, no return postage. If it doesn't match the render you approved, we remake it free and ship the new one." },
@@ -248,7 +248,7 @@ const OriginalsHome = () => {
                 { n: "01", t: "AI sculpts the design", d: "Your photo and details become a one-of-one sculpture, previewed free in about a minute." },
                 { n: "02", t: "Engineering checks it", d: "Wall thickness, overhangs, stability and print settings are validated before anything is made." },
                 { n: "03", t: "Printed in the USA", d: "Produced as one solid part in plant-based PLA with a stone-look finish — a real, weighty object." },
-                { n: "04", t: "Shipped to your door", d: "Made to order and delivered in 3–5 business days, with free US shipping." },
+                { n: "04", t: "Shipped to your door", d: "Made to order and delivered in 7–8 days, with free US shipping." },
               ].map((s) => (
                 <div key={s.n} className="border-r border-b border-border p-6">
                   <span className="text-[11px] tracking-[0.3em] text-muted-foreground">{s.n}</span>

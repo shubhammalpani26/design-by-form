@@ -85,7 +85,7 @@ export const FounderNote = ({ compact = false, className = "" }: FounderNoteProp
           <div>
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Made &amp; shipped</p>
             <p className="mt-2 text-muted-foreground">
-              Produced in our US facility and shipped free within the USA in 3–5 business days.
+              Produced in our US facility and shipped free within the USA in 7–8 days.
             </p>
           </div>
         </div>
