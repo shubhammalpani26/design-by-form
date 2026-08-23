@@ -47,17 +47,14 @@ export const ReviewsManagement = () => {
   const { data: reviews, isLoading } = useQuery({
     queryKey: ["admin-brand-reviews", filter],
     queryFn: async (): Promise<AdminReview[]> => {
-      let query = supabase
-        .from("brand_reviews")
-        .select(
-          "id, author_name, author_location, author_email, rating, title, body, photo_url, video_url, verified_purchase, status, created_at"
-        )
-        .order("created_at", { ascending: false })
-        .limit(100);
-      if (filter !== "all") query = query.eq("status", filter);
-      const { data, error } = await query;
+      // Reviewer emails are admin-only: served by a security-definer function
+      // instead of a direct table read, so the column stays hidden publicly.
+      const { data, error } = await (supabase.rpc as any)("admin_list_brand_reviews", {
+        _status: filter === "all" ? null : filter,
+      });
       if (error) throw error;
-      return (data ?? []) as AdminReview[];
+      return ((data ?? []) as unknown) as AdminReview[];
+
     },
   });
 
