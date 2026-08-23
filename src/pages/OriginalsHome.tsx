@@ -145,7 +145,7 @@ const OriginalsHome = () => {
       <section className="border-b border-border">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-px p-px bg-border">
-            {["Made in the USA", "Ships in 3–5 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
+            {["Made in the USA", "Ships in 7–8 days", "One-of-one, no minimums", "Remake if it's not right"].map((t) => (
               <div key={t} className="bg-background py-5 px-4 text-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
                 {t}
               </div>
@@ -217,7 +217,7 @@ const OriginalsHome = () => {
           </h2>
           <p className="mt-4 text-sm text-muted-foreground max-w-xl mx-auto">
             Upload a photo of your pet and see the memorial sculpture before anything is made or charged.
-            Made to order in the USA, shipped in 3–5 days.
+            Made to order in the USA, shipped in 7–8 days.
           </p>
           <Button size="lg" className="mt-8 rounded-none" onClick={() => navigate("/originals/pet-silhouette-keepsake")}>
             <Wand2 className="mr-2 h-4 w-4" /> Upload a photo — free
