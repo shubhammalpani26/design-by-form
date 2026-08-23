@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { sendAppEmail } from "../_shared/appEmail.ts";
 import { type StripeEnv, verifyWebhook } from "../_shared/stripe.ts";
 import {
   CREDIT_PACK_PRICES,
@@ -330,26 +331,16 @@ async function sendOriginalsReceipt(email: string | null, orders: any[]) {
     items,
     totalUsd: orders.reduce((sum, o) => sum + Number(o.amount_usd ?? 0), 0),
   };
-  const { error } = await db().functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-order-confirmation",
-      recipientEmail: email,
-      idempotencyKey: `originals-confirmation-${first.id}`,
-      templateData,
-    },
+  await sendAppEmail("originals-order-confirmation", email, {
+    idempotencyKey: `originals-confirmation-${first.id}`,
+    templateData,
   });
-  if (error) console.error("Originals confirmation email failed:", error);
 
   // Internal copy so the team sees every order that comes in.
-  const { error: internalError } = await db().functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-order-confirmation",
-      recipientEmail: "contact@nyzora.ai",
-      idempotencyKey: `originals-internal-${first.id}`,
-      templateData,
-    },
+  await sendAppEmail("originals-order-confirmation", "contact@nyzora.ai", {
+    idempotencyKey: `originals-internal-${first.id}`,
+    templateData,
   });
-  if (internalError) console.error("Originals internal copy failed:", internalError);
 }
 
 async function fulfilCreditPackInner(

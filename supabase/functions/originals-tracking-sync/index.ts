@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { sendAppEmail } from "../_shared/appEmail.ts";
 import { getTracking } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
@@ -58,30 +59,20 @@ async function notifyShipped(
     trackingNumbers: numbers,
   };
 
-  const { error } = await admin.functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-order-shipped",
-      recipientEmail: row.customer_email,
-      idempotencyKey: `originals-shipped-${row.id}`,
-      templateData,
-    },
+  const result = await sendAppEmail("originals-order-shipped", row.customer_email ?? "", {
+    idempotencyKey: `originals-shipped-${row.id}`,
+    templateData,
   });
-  if (error) {
-    console.error("shipping email failed", row.id, error);
+  if (result.sent === false && result.reason === "failed") {
+    console.error("shipping email failed", row.id, result.error);
     return;
   }
 
   // Internal copy so the team sees every shipment go out.
-  await admin.functions
-    .invoke("send-transactional-email", {
-      body: {
-        templateName: "originals-order-shipped",
-        recipientEmail: "contact@nyzora.ai",
-        idempotencyKey: `originals-shipped-internal-${row.id}`,
-        templateData,
-      },
-    })
-    .catch(() => {});
+  await sendAppEmail("originals-order-shipped", "contact@nyzora.ai", {
+    idempotencyKey: `originals-shipped-internal-${row.id}`,
+    templateData,
+  });
 
   await admin
     .from("originals_orders")
@@ -93,19 +84,17 @@ async function notifyShipped(
 async function notifyReviewRequest(
   row: { id: string; customer_email: string | null; sku_slug: string | null; size_label: string | null },
 ) {
-  const { error } = await admin.functions.invoke("send-transactional-email", {
-    body: {
-      templateName: "originals-review-request",
-      recipientEmail: row.customer_email,
-      idempotencyKey: `originals-review-${row.id}`,
-      templateData: {
-        orderId: row.id,
-        productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || "Your Nyzora piece",
-        sizeLabel: row.size_label ?? undefined,
-      },
+  const result = await sendAppEmail("originals-review-request", row.customer_email ?? "", {
+    idempotencyKey: `originals-review-${row.id}`,
+    templateData: {
+      orderId: row.id,
+      productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || "Your Nyzora piece",
+      sizeLabel: row.size_label ?? undefined,
     },
   });
-  if (error) console.error("review request email failed", row.id, error);
+  if (result.sent === false && result.reason === "failed") {
+    console.error("review request email failed", row.id, result.error);
+  }
 
   await admin
     .from("originals_orders")

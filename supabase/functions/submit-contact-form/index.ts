@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { sendAppEmail } from "../_shared/appEmail.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
@@ -69,18 +70,14 @@ serve(async (req) => {
     // Email the enquiry to the internal inbox. Never fail the submission on this:
     // the row is already saved and visible in the admin panel.
     try {
-      await supabase.functions.invoke("send-transactional-email", {
-        body: {
-          templateName: "contact-form-submission",
-          recipientEmail: "contact@nyzora.ai",
-          idempotencyKey: `contact-${email}-${subject}-${Date.now()}`,
-          templateData: {
-            name: `${firstName} ${lastName}`,
-            email,
-            subject,
-            message,
-            source: "contact form",
-          },
+      await sendAppEmail("contact-form-submission", "contact@nyzora.ai", {
+        idempotencyKey: `contact-${email}-${subject}-${Date.now()}`,
+        templateData: {
+          name: `${firstName} ${lastName}`,
+          email,
+          subject,
+          message,
+          source: "contact form",
         },
       });
     } catch (e) {
