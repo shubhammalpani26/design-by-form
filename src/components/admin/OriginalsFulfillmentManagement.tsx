@@ -104,7 +104,11 @@ export function OriginalsFulfillmentManagement() {
   }, [events]);
 
   const unmatched = useMemo(
-    () => events.filter((e) => !e.originals_order_id),
+    // Our own webhook connectivity pings aren't real fulfilment events.
+    () =>
+      events.filter(
+        (e) => !e.originals_order_id && e.partner_order_id !== "NYZORA_VERIFY_TEST",
+      ),
     [events],
   );
 
