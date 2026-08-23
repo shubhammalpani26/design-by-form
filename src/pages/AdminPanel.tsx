@@ -10,6 +10,7 @@ import { ProductsManagement } from "@/components/admin/ProductsManagement";
 import { UsersManagement } from "@/components/admin/UsersManagement";
 import { OrdersManagement } from "@/components/admin/OrdersManagement";
 import { PrintFarmManagement } from "@/components/admin/PrintFarmManagement";
+import { OriginalsFulfillmentManagement } from "@/components/admin/OriginalsFulfillmentManagement";
 import { NotificationsManagement } from "@/components/admin/NotificationsManagement";
 import { CreditsManagement } from "@/components/admin/CreditsManagement";
 import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
@@ -26,6 +27,7 @@ const TABS = [
   { value: "credits", label: "Credits" },
   { value: "orders", label: "Orders" },
   { value: "print-farm", label: "US Print" },
+  { value: "originals-ops", label: "Originals Ops" },
   { value: "early-access", label: "Early Access" },
   { value: "contacts", label: "Contacts" },
   { value: "notifications", label: "Notifications" },
@@ -160,6 +162,10 @@ export default function AdminPanel() {
 
           <TabsContent value="print-farm">
             <PrintFarmManagement />
+          </TabsContent>
+
+          <TabsContent value="originals-ops">
+            <OriginalsFulfillmentManagement />
           </TabsContent>
 
           <TabsContent value="early-access">

@@ -1,0 +1,257 @@
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Loader2, RefreshCw, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+
+interface OriginalsOrder {
+  id: string;
+  group_id: string | null;
+  sku_slug: string;
+  size_label: string | null;
+  quantity: number;
+  status: string;
+  production_status: string;
+  partner_order_id: string | null;
+  tracking_numbers: string[] | null;
+  carrier: string | null;
+  customer_email: string | null;
+  amount_usd: number;
+  fulfillment_error: string | null;
+  created_at: string;
+}
+
+interface PartnerEvent {
+  id: string;
+  originals_order_id: string | null;
+  partner_order_id: string | null;
+  source: string;
+  stage: string;
+  event: string;
+  status: string | null;
+  message: string | null;
+  details: unknown;
+  occurred_at: string;
+}
+
+const tone: Record<string, string> = {
+  delivered: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30",
+  shipped: "bg-blue-500/10 text-blue-600 border-blue-500/30",
+  in_production: "bg-amber-500/10 text-amber-600 border-amber-500/30",
+  failed: "bg-destructive/10 text-destructive border-destructive/30",
+  needs_file: "bg-destructive/10 text-destructive border-destructive/30",
+};
+
+const when = (iso: string) =>
+  new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+
+const pretty = (s: string) => s.replace(/_/g, " ");
+
+/** Internal fulfillment console for Nyzora Originals — admins only. */
+export function OriginalsFulfillmentManagement() {
+  const [orders, setOrders] = useState<OriginalsOrder[]>([]);
+  const [events, setEvents] = useState<PartnerEvent[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const { toast } = useToast();
+
+  const load = useCallback(async () => {
+    const [ordersRes, eventsRes] = await Promise.all([
+      supabase
+        .from("originals_orders")
+        .select(
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(100),
+      supabase
+        .from("partner_order_events")
+        .select(
+          "id, originals_order_id, partner_order_id, source, stage, event, status, message, details, occurred_at",
+        )
+        .order("occurred_at", { ascending: false })
+        .limit(500),
+    ]);
+
+    if (ordersRes.error) console.error(ordersRes.error);
+    if (eventsRes.error) console.error(eventsRes.error);
+    setOrders((ordersRes.data as OriginalsOrder[]) ?? []);
+    setEvents((eventsRes.data as PartnerEvent[]) ?? []);
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const eventsByOrder = useMemo(() => {
+    const map = new Map<string, PartnerEvent[]>();
+    for (const e of events) {
+      const key = e.originals_order_id ?? `partner:${e.partner_order_id}`;
+      const list = map.get(key) ?? [];
+      list.push(e);
+      map.set(key, list);
+    }
+    return map;
+  }, [events]);
+
+  const unmatched = useMemo(
+    () => events.filter((e) => !e.originals_order_id),
+    [events],
+  );
+
+  const runSync = async () => {
+    setBusy("sync");
+    const { error } = await supabase.functions.invoke("originals-tracking-sync", { body: {} });
+    setBusy(null);
+    if (error) {
+      toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Synced", description: "Pulled the latest partner status." });
+    load();
+  };
+
+  const sweepDrafts = async () => {
+    setBusy("drafts");
+    const { data, error } = await supabase.functions.invoke("partner-draft-cleanup", { body: {} });
+    setBusy(null);
+    if (error) {
+      toast({ title: "Cleanup failed", description: error.message, variant: "destructive" });
+      return;
+    }
+    const res = data as { drafts?: number; released?: number; failed?: unknown[] };
+    toast({
+      title: "Draft cleanup done",
+      description: `${res?.released ?? 0} of ${res?.drafts ?? 0} drafts released${
+        res?.failed?.length ? `, ${res.failed.length} failed` : ""
+      }.`,
+    });
+    load();
+  };
+
+  if (loading) return <div className="py-8 text-center text-muted-foreground">Loading orders…</div>;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-2xl font-bold">Originals Fulfillment</h2>
+          <p className="text-sm text-muted-foreground">
+            Internal partner timeline — never shown to customers.
+          </p>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={runSync} disabled={busy !== null}>
+            {busy === "sync" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-2 h-4 w-4" />}
+            Sync partner status
+          </Button>
+          <Button variant="outline" size="sm" onClick={sweepDrafts} disabled={busy !== null}>
+            {busy === "drafts" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+            Clean up drafts
+          </Button>
+        </div>
+      </div>
+
+      {orders.map((order) => {
+        const list = eventsByOrder.get(order.id) ?? [];
+        const expanded = open[order.id] ?? false;
+        return (
+          <Card key={order.id}>
+            <CardHeader className="pb-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <CardTitle className="text-base">
+                    {order.sku_slug} · {order.size_label ?? "—"} × {order.quantity}
+                  </CardTitle>
+                  <p className="text-xs text-muted-foreground">
+                    #{order.id.slice(0, 8)} · {order.customer_email ?? "no email"} · {when(order.created_at)}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <Badge variant="outline" className={tone[order.production_status] ?? ""}>
+                    {pretty(order.production_status)}
+                  </Badge>
+                  <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm">
+              <div className="grid gap-1 text-muted-foreground sm:grid-cols-2">
+                <div>Partner order: {order.partner_order_id ?? "—"}</div>
+                <div>
+                  Tracking:{" "}
+                  {order.tracking_numbers?.length
+                    ? `${order.carrier ?? ""} ${order.tracking_numbers.join(", ")}`
+                    : "—"}
+                </div>
+              </div>
+              {order.fulfillment_error && (
+                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-destructive">
+                  {order.fulfillment_error}
+                </div>
+              )}
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="px-0"
+                onClick={() => setOpen((o) => ({ ...o, [order.id]: !expanded }))}
+              >
+                {expanded ? <ChevronDown className="mr-1 h-4 w-4" /> : <ChevronRight className="mr-1 h-4 w-4" />}
+                Timeline ({list.length})
+              </Button>
+
+              {expanded && (
+                <ol className="space-y-3 border-l pl-4">
+                  {list.length === 0 && (
+                    <li className="text-muted-foreground">No partner events recorded yet.</li>
+                  )}
+                  {list.map((e) => (
+                    <li key={e.id} className="relative">
+                      <span className="absolute -left-[21px] top-1.5 h-2 w-2 rounded-full bg-foreground/40" />
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-medium">{pretty(e.event)}</span>
+                        <Badge variant="outline" className="text-[10px]">{e.stage}</Badge>
+                        <Badge variant="secondary" className="text-[10px]">{pretty(e.source)}</Badge>
+                        <span className="text-xs text-muted-foreground">{when(e.occurred_at)}</span>
+                      </div>
+                      {e.message && <p className="text-xs text-muted-foreground">{e.message}</p>}
+                      {e.details && Object.keys(e.details as object).length > 0 && (
+                        <pre className="mt-1 max-h-40 overflow-auto rounded-md bg-muted p-2 text-[10px] leading-tight">
+                          {JSON.stringify(e.details, null, 2)}
+                        </pre>
+                      )}
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </CardContent>
+          </Card>
+        );
+      })}
+
+      {unmatched.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Unmatched partner events ({unmatched.length})</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm">
+            {unmatched.map((e) => (
+              <div key={e.id} className="flex flex-wrap items-center gap-2">
+                <span className="font-medium">{pretty(e.event)}</span>
+                <span className="text-xs text-muted-foreground">
+                  {e.partner_order_id ?? "no partner id"} · {when(e.occurred_at)}
+                </span>
+                {e.message && <span className="text-xs text-muted-foreground">{e.message}</span>}
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+    </div>
+  );
+}

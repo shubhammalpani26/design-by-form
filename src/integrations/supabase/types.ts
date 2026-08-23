@@ -1819,6 +1819,59 @@ export type Database = {
         }
         Relationships: []
       }
+      partner_order_events: {
+        Row: {
+          created_at: string
+          details: Json
+          event: string
+          group_id: string | null
+          id: string
+          message: string | null
+          occurred_at: string
+          originals_order_id: string | null
+          partner_order_id: string | null
+          source: string
+          stage: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          event: string
+          group_id?: string | null
+          id?: string
+          message?: string | null
+          occurred_at?: string
+          originals_order_id?: string | null
+          partner_order_id?: string | null
+          source?: string
+          stage: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          event?: string
+          group_id?: string | null
+          id?: string
+          message?: string | null
+          occurred_at?: string
+          originals_order_id?: string | null
+          partner_order_id?: string | null
+          source?: string
+          stage?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "partner_order_events_originals_order_id_fkey"
+            columns: ["originals_order_id"]
+            isOneToOne: false
+            referencedRelation: "originals_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payout_requests: {
         Row: {
           amount: number
