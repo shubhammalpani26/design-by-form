@@ -490,7 +490,9 @@ export async function estimateLandedUnitCost(
     );
     if (draft.total > 0) {
       // Free the draft so it never lingers on the partner dashboard.
-      cancelOrder(draft.publicId).catch(() => {});
+      // Awaited + retried: a silently failed cancel leaves DRAFT clutter.
+      const cancelError = await releaseDraftOrder(draft.publicId);
+      if (cancelError) console.error("quote draft not released", draft.publicId, cancelError);
       const printCost = draft.printingCost > 0 ? draft.printingCost : printUsd;
       // A zero delivery cost means the partner did not price the leg, not that
       // shipping is free to us — substitute the weight-based estimate.
