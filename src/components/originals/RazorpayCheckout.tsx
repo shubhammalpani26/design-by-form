@@ -52,19 +52,25 @@ function formatUsPhone(raw: string): string {
 
 const RAZORPAY_SDK = "https://checkout.razorpay.com/v1/checkout.js";
 
+let standardCtor: any = null;
+
 function loadRazorpay(): Promise<any> {
+  // The Apple Pay flow loads a different Razorpay bundle onto the same global,
+  // so hold our own reference instead of trusting window.Razorpay.
+  if (standardCtor) return Promise.resolve(standardCtor);
   return new Promise((resolve, reject) => {
-    const w = window as any;
-    if (w.Razorpay) return resolve(w.Razorpay);
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_SDK}"]`);
-    const script = existing ?? document.createElement("script");
+    const script = document.createElement("script");
     script.src = RAZORPAY_SDK;
     script.async = true;
-    script.onload = () => resolve((window as any).Razorpay);
+    script.onload = () => {
+      standardCtor = (window as any).Razorpay;
+      resolve(standardCtor);
+    };
     script.onerror = () => reject(new Error("Could not load the payment window."));
-    if (!existing) document.body.appendChild(script);
+    document.body.appendChild(script);
   });
 }
+
 
 /**
  * Razorpay does not collect a shipping address for us, so we take the buyer's
