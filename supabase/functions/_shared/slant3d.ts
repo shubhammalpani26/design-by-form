@@ -321,6 +321,44 @@ export async function cancelOrder(orderId: string): Promise<void> {
   await request(`/orders/${encodeURIComponent(orderId)}`, { method: "DELETE" });
 }
 
+/** All orders on our partner account (used to sweep abandoned drafts). */
+export async function listPartnerOrders(): Promise<Array<Record<string, unknown>>> {
+  const data = await request<unknown>("/orders");
+  const record = (data ?? {}) as Record<string, unknown>;
+  const list = Array.isArray(data) ? data : (record.orders ?? record.results ?? []);
+  return Array.isArray(list) ? (list as Array<Record<string, unknown>>) : [];
+}
+
+/**
+ * Releases a draft order. The partner's DELETE occasionally 404s/405s on fresh
+ * drafts, so we retry once and then fall back to a status PATCH. Returns the
+ * failure reason instead of throwing — callers are always best-effort — but it
+ * must never fail silently: the reason is logged and surfaced to admins.
+ */
+export async function releaseDraftOrder(publicId: string): Promise<string | null> {
+  const attempts: Array<() => Promise<unknown>> = [
+    () => request(`/orders/${encodeURIComponent(publicId)}`, { method: "DELETE" }),
+    () => request(`/orders/${encodeURIComponent(publicId)}`, { method: "DELETE" }),
+    () =>
+      request(`/orders/${encodeURIComponent(publicId)}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status: "CANCELED" }),
+      }),
+  ];
+  let last = "unknown error";
+  for (const run of attempts) {
+    try {
+      await run();
+      return null;
+    } catch (e) {
+      last = e instanceof Error ? e.message : String(e);
+    }
+  }
+  console.error("partner draft release failed", publicId, last);
+  return last;
+}
+
+
 export interface PartnerFilament {
   filament: string;
   hexColor: string;
