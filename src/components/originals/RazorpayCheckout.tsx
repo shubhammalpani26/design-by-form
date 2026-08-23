@@ -360,10 +360,21 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         are in US dollars (USD).
       </p>
 
+      <ApplePayButton
+        createOrder={createOrder}
+        buildReturnUrl={buildReturnUrl}
+        onPaying={onPaying}
+        onError={(description) =>
+          toast({ title: "Apple Pay failed", description, variant: "destructive" })
+        }
+        disabled={busy}
+      />
+
       <Button type="button" size="lg" className="w-full rounded-none h-12" disabled={busy} onClick={() => void pay()}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Pay ${payableUsd.toFixed(2)} USD
       </Button>
+
 
       <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5" /> Card details are entered in the secure payment window.
