@@ -8,6 +8,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2, ShieldCheck } from "lucide-react";
+import { ApplePayButton, type ApplePayOrder } from "./ApplePayButton";
+
 
 export interface RazorpayLine {
   skuSlug: string;
@@ -52,19 +54,25 @@ function formatUsPhone(raw: string): string {
 
 const RAZORPAY_SDK = "https://checkout.razorpay.com/v1/checkout.js";
 
+let standardCtor: any = null;
+
 function loadRazorpay(): Promise<any> {
+  // The Apple Pay flow loads a different Razorpay bundle onto the same global,
+  // so hold our own reference instead of trusting window.Razorpay.
+  if (standardCtor) return Promise.resolve(standardCtor);
   return new Promise((resolve, reject) => {
-    const w = window as any;
-    if (w.Razorpay) return resolve(w.Razorpay);
-    const existing = document.querySelector<HTMLScriptElement>(`script[src="${RAZORPAY_SDK}"]`);
-    const script = existing ?? document.createElement("script");
+    const script = document.createElement("script");
     script.src = RAZORPAY_SDK;
     script.async = true;
-    script.onload = () => resolve((window as any).Razorpay);
+    script.onload = () => {
+      standardCtor = (window as any).Razorpay;
+      resolve(standardCtor);
+    };
     script.onerror = () => reject(new Error("Could not load the payment window."));
-    if (!existing) document.body.appendChild(script);
+    document.body.appendChild(script);
   });
 }
+
 
 /**
  * Razorpay does not collect a shipping address for us, so we take the buyer's
@@ -138,6 +146,30 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   };
 
   const payableUsd = Math.max(0, Math.round((totalUsd - (promo?.discountUsd ?? 0)) * 100) / 100);
+
+  /** Server-side order creation shared by the card window and Apple Pay. */
+  const createOrder = async (): Promise<ApplePayOrder | null> => {
+    const missing = missingLabel();
+    if (missing) {
+      toast({ title: "A few details missing", description: `Please add your ${missing}.`, variant: "destructive" });
+      return null;
+    }
+    const { data, error } = await supabase.functions.invoke("razorpay-checkout", {
+      body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
+    });
+    if (error || data?.error || !data?.providerOrderId) {
+      throw new Error(data?.error || "Checkout is temporarily unavailable.");
+    }
+    return data as ApplePayOrder;
+  };
+
+  const buildReturnUrl = (order: ApplePayOrder, paymentId: string, signature: string) => {
+    const sep = returnUrl.includes("?") ? "&" : "?";
+    const params = new URLSearchParams({ payment_id: paymentId, signature });
+    return `${returnUrl}${sep}group=${order.groupId}&order=${order.orderId}&provider=razorpay&${params.toString()}`;
+  };
+
+
 
   const pay = async () => {
     const missing = missingLabel();
@@ -328,10 +360,21 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         are in US dollars (USD).
       </p>
 
+      <ApplePayButton
+        createOrder={createOrder}
+        buildReturnUrl={buildReturnUrl}
+        onPaying={onPaying}
+        onError={(description) =>
+          toast({ title: "Apple Pay failed", description, variant: "destructive" })
+        }
+        disabled={busy}
+      />
+
       <Button type="button" size="lg" className="w-full rounded-none h-12" disabled={busy} onClick={() => void pay()}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
         Pay ${payableUsd.toFixed(2)} USD
       </Button>
+
 
       <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <ShieldCheck className="h-3.5 w-3.5" /> Card details are entered in the secure payment window.
