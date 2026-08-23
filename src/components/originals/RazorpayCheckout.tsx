@@ -145,6 +145,30 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
 
   const payableUsd = Math.max(0, Math.round((totalUsd - (promo?.discountUsd ?? 0)) * 100) / 100);
 
+  /** Server-side order creation shared by the card window and Apple Pay. */
+  const createOrder = async (): Promise<ApplePayOrder | null> => {
+    const missing = missingLabel();
+    if (missing) {
+      toast({ title: "A few details missing", description: `Please add your ${missing}.`, variant: "destructive" });
+      return null;
+    }
+    const { data, error } = await supabase.functions.invoke("razorpay-checkout", {
+      body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
+    });
+    if (error || data?.error || !data?.providerOrderId) {
+      throw new Error(data?.error || "Checkout is temporarily unavailable.");
+    }
+    return data as ApplePayOrder;
+  };
+
+  const buildReturnUrl = (order: ApplePayOrder, paymentId: string, signature: string) => {
+    const sep = returnUrl.includes("?") ? "&" : "?";
+    const params = new URLSearchParams({ payment_id: paymentId, signature });
+    return `${returnUrl}${sep}group=${order.groupId}&order=${order.orderId}&provider=razorpay&${params.toString()}`;
+  };
+
+
+
   const pay = async () => {
     const missing = missingLabel();
     if (missing) {
