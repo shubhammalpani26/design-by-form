@@ -13,7 +13,7 @@ import {
 
 const FAQ_ITEMS: { q: string; a: string }[] = [
   { q: "What makes Nyzora furniture unique?", a: "Every piece is designed by independent creators and crafted using high-grade resin reinforced with composite fibre, produced through hybrid fabrication with meticulous hand-finishing. Each piece is unique." },
-  { q: "What is the typical lead time for orders?", a: "Nyzora Originals (personalised keepsake pieces) are produced in 2-3 days and delivered in 5-7 days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized pieces may take 28-35 days." },
+  { q: "What is the typical lead time for orders?", a: "Nyzora Originals (personalised keepsake pieces) are produced in 3-4 days and delivered in 7-8 days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized pieces may take 28-35 days." },
   { q: "Can I customize the colors, finishes, or sizes?", a: "Yes. Each product page offers basic customization options like finish and size. For deeper customizations use the Request More Customizations button to work with our design team." },
   { q: "What is your return and refund policy?", a: "You approve the render before anything is made. If the delivered piece doesn't match the approved render, or arrives damaged or defective, we remake and reship at our cost — just send photographs within 30 days of delivery. Because every piece is made to order for one customer, we don't accept change-of-mind cancellations, returns, or refunds for personalisation text you supplied." },
   { q: "What are your shipping and delivery options?", a: "Shipping costs are calculated separately based on size, weight, and destination. We offer worldwide shipping. Smaller items ship via courier; larger furniture uses freight delivery." },
@@ -83,7 +83,7 @@ const ShopperFAQ = () => {
                 What is the typical lead time for orders?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Nyzora Originals — our personalised keepsake pieces — go into production within a day of your order, take 2-3 days to make, and typically arrive in 5-7 days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized or specially finished pieces may take 28-35 days. We confirm an accurate timeline when you place your order.
+                Nyzora Originals — our personalised keepsake pieces — go into production within a day of your order, take 3-4 days to make, and typically arrive in 7-8 days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized or specially finished pieces may take 28-35 days. We confirm an accurate timeline when you place your order.
               </AccordionContent>
             </AccordionItem>
 
