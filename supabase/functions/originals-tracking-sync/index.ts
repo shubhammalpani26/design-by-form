@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getTracking } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
+import { logPartnerEvent } from "../_shared/partnerEvents.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -162,6 +163,21 @@ Deno.serve(async (req) => {
           })
           .eq("id", row.id);
         synced += 1;
+
+        // Only log real movement so the admin timeline stays signal, not noise.
+        if (toProductionStatus(status) !== row.production_status || numbers.length) {
+          await logPartnerEvent(admin, {
+            orderId: row.id,
+            groupId: row.group_id,
+            partnerOrderId: key,
+            source: "tracking_sync",
+            stage: shipped ? "shipping" : "production",
+            event: `partner_status_${status}`,
+            status: toProductionStatus(status),
+            message: numbers.length ? `Tracking: ${numbers.join(", ")}` : null,
+            details: { partnerStatus: status, tracking: numbers, carrier },
+          });
+        }
 
         // One shipping notification per order, only once tracking exists.
         if (shipped && numbers.length && !row.shipping_notified_at && row.customer_email) {

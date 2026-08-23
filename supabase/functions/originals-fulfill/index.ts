@@ -1,9 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
-  cancelOrder,
   draftOrder,
   isPrintableFileUrl,
   placeOrder,
+  releaseDraftOrder,
   resolveFilamentId,
   uploadPrintFile,
   type PartnerAddress,
@@ -11,6 +11,7 @@ import {
 } from "../_shared/slant3d.ts";
 import { findOriginalsColor } from "../_shared/originalsColors.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
+import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -156,7 +157,20 @@ Deno.serve(async (req) => {
 
     if (dryRun) {
       const draft = await draftOrder(buyer, items, "nyzora-originals");
-      cancelOrder(draft.publicId).catch(() => {});
+      const cancelError = await releaseDraftOrder(draft.publicId);
+      await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
+        groupId,
+        partnerOrderId: draft.publicId,
+        stage: "quote",
+        event: cancelError ? "dry_run_draft_release_failed" : "dry_run_draft_released",
+        status: cancelError ? "failed" : draft.status,
+        message: cancelError,
+        details: {
+          printingCost: draft.printingCost,
+          deliveryCost: draft.deliveryCost,
+          total: draft.total,
+        },
+      });
       return json({
         dryRun: true,
         draftId: draft.publicId,
@@ -168,9 +182,30 @@ Deno.serve(async (req) => {
       });
     }
 
+    await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
+      groupId,
+      stage: "print file",
+      event: "files_uploaded",
+      status: "ok",
+      details: { pieces: items.length, filamentId },
+    });
+
     const placed = await placeOrder(buyer, items, "nyzora-originals");
 
     const now = new Date().toISOString();
+    await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
+      groupId,
+      partnerOrderId: placed.orderId,
+      stage: "partner order",
+      event: "order_processed",
+      status: "in_production",
+      message: "Draft created and processed with the US partner (billed at processing)",
+      details: {
+        printingCost: placed.draft.printingCost,
+        deliveryCost: placed.draft.deliveryCost,
+        total: placed.draft.total,
+      },
+    });
     for (const f of usedFiles) {
       await admin
         .from("originals_orders")
@@ -202,6 +237,14 @@ Deno.serve(async (req) => {
         await (scopeGroupId ? q.eq("group_id", scopeGroupId) : q.eq("id", scopeOrderId!));
       }
     } catch (_e) { /* logging must never mask the original failure */ }
+    await logPartnerEvent(admin, {
+      orderId: scopeOrderId,
+      groupId: scopeGroupId,
+      stage: "partner order",
+      event: "fulfillment_failed",
+      status: "failed",
+      message,
+    });
     // A dry run charges nothing and is operator-initiated, so it isn't an alert.
     if (!scopeDryRun && (scopeGroupId || scopeOrderId)) {
       const q = admin
