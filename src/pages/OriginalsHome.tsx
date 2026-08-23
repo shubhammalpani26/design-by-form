@@ -247,7 +247,7 @@ const OriginalsHome = () => {
               {[
                 { n: "01", t: "AI sculpts the design", d: "Your photo and details become a one-of-one sculpture, previewed free in about a minute." },
                 { n: "02", t: "Engineering checks it", d: "Wall thickness, overhangs, stability and print settings are validated before anything is made." },
-                { n: "03", t: "Printed in the USA", d: "Produced as one solid part in dense matte polymer with a stone-look finish — a real, weighty object." },
+                { n: "03", t: "Printed in the USA", d: "Produced as one solid part in plant-based PLA with a stone-look finish — a real, weighty object." },
                 { n: "04", t: "Shipped to your door", d: "Made to order and delivered in 3–5 business days, with free US shipping." },
               ].map((s) => (
                 <div key={s.n} className="border-r border-b border-border p-6">
