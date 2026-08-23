@@ -49,11 +49,11 @@ export const ReviewsManagement = () => {
     queryFn: async (): Promise<AdminReview[]> => {
       // Reviewer emails are admin-only: served by a security-definer function
       // instead of a direct table read, so the column stays hidden publicly.
-      const { data, error } = await supabase.rpc("admin_list_brand_reviews", {
+      const { data, error } = await (supabase.rpc as any)("admin_list_brand_reviews", {
         _status: filter === "all" ? null : filter,
       });
       if (error) throw error;
-      return (data ?? []) as AdminReview[];
+      return ((data ?? []) as unknown) as AdminReview[];
 
     },
   });
