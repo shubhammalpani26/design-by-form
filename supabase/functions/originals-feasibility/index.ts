@@ -11,8 +11,8 @@
  * poll it and finish the pricing.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { ensurePrintFile, US_MAX_MM } from "../_shared/printFile.ts";
-import { analyseStl, type MeshReport } from "../_shared/meshCheck.ts";
+import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
+import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
 import { estimateLandedUnitCost, partnerCostToMbpUsd } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
@@ -263,7 +263,7 @@ Deno.serve(async (req) => {
 
     const { data: preview } = await admin
       .from("originals_previews")
-      .select("id, sku_slug, preview_image_url, print_files, print_file_url, model_task_id, model_status, feasibility")
+      .select("id, sku_slug, preview_image_url, print_files, print_file_url, model_task_id, model_status, feasibility, engineering")
       .eq("id", previewId)
       .maybeSingle();
     if (!preview) return json({ error: "Preview not found." }, 404);
@@ -471,7 +471,13 @@ Deno.serve(async (req) => {
     }).eq("id", previewId);
 
 
-    return json({ status: "ready", sizes: publicShape(feasibility) });
+    return json({
+      status: "ready",
+      sizes: publicShape(feasibility),
+      score: geometry?.score ?? null,
+      metrics: geometry?.metrics ?? [],
+      repaired: geometry?.repaired ?? false,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("originals-feasibility error", message);
