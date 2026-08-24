@@ -109,5 +109,5 @@ export function useOriginalsQuotes(
     [quotes],
   );
 
-  return { quotes, priceFor, loading, checking };
+  return { quotes, priceFor, loading, checking, unprintable };
 }
