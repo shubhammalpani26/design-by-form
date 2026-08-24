@@ -178,9 +178,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
+  // Mid size is our silent head start — checked the moment the render lands.
+  const defaultSizeKey = (sku.sizes[1] ?? sku.sizes[0])?.key ?? null;
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable, confirmed, checkFor, renderRejected } = useOriginalsQuotes(
+    sku.slug,
+    preview?.id ?? null,
+    sizeKey,
+    defaultSizeKey,
+  );
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
+  // Only hold checkout while we're still confirming the size they picked.
+  const awaitingConfirmation = Boolean(sizeKey) && checking && !confirmed && !unprintable;
+
 
   const displayName =
     mode === "photo"
