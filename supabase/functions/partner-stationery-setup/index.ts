@@ -1,6 +1,21 @@
 // Temporary maintenance function: registers the branded 4x6 packing insert on
 // the US print partner account and returns the valid stationery ids.
-import { listStationery, createStationery, updateStationery } from "../_shared/slant3d.ts";
+import { listStationery, createStationery } from "../_shared/slant3d.ts";
+
+const BASE_URL = "https://slant3dapi.com/v2/api";
+async function raw(method: string, path: string, body?: unknown) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    method,
+    headers: {
+      Authorization: `Bearer ${Deno.env.get("SLANT3D_API_KEY")}`,
+      "Content-Type": "application/json",
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  return { status: res.status, body: text.slice(0, 600) };
+}
+
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
