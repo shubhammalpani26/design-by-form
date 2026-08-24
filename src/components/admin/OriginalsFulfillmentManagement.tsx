@@ -88,12 +88,15 @@ export function OriginalsFulfillmentManagement() {
 
     if (ordersRes.error) console.error(ordersRes.error);
     if (eventsRes.error) console.error(eventsRes.error);
-    // Ops only cares about money that actually landed — abandoned carts
-    // (pending) and failed payments never reach the partner.
-    const paidOnly = ((ordersRes.data as OriginalsOrder[]) ?? []).filter(
-      (o) => !["pending", "failed", "cancelled"].includes(o.status),
+    // Abandoned carts and failed payments never reach the partner — keep them
+    // visible but plainly marked, and always below the real orders.
+    const all = (ordersRes.data as OriginalsOrder[]) ?? [];
+    setOrders(
+      [...all].sort(
+        (a, b) => Number(UNPAID.includes(a.status)) - Number(UNPAID.includes(b.status)),
+      ),
     );
-    setOrders(paidOnly);
+
     setEvents((eventsRes.data as PartnerEvent[]) ?? []);
     setLoading(false);
   }, []);
