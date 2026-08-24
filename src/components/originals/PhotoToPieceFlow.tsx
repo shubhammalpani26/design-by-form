@@ -179,7 +179,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable, printability } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
@@ -749,12 +749,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           )}
 
-          {printability && printability.passed && (
-            <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              Checked by our makers — this piece is ready to be made.
-            </p>
-          )}
 
 
 
