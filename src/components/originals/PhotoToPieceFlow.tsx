@@ -744,48 +744,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 Can't be made as-is
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Our makers checked the actual shape and it won't hold up in production
-                {unprintable.length ? `: ${unprintable.join(" ")}` : "."} Adjust one thing and we'll re-check.
+                Our makers checked this shape and it won't hold up in production. Adjust one thing and we'll re-check.
               </p>
             </div>
           )}
 
-          {printability && printability.metrics.length > 0 && (
-            <div className="mt-4 border border-border p-3">
-              <div className="flex items-baseline justify-between">
-                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                  Printability check
-                </p>
-                <p className="text-sm font-medium">
-                  {printability.score}
-                  <span className="text-muted-foreground">/100</span>
-                </p>
-              </div>
-              <ul className="mt-2 space-y-1">
-                {printability.metrics.map((m) => (
-                  <li key={m.key} className="flex items-center justify-between gap-3 text-xs">
-                    <span className="text-muted-foreground">{m.label}</span>
-                    <span
-                      className={
-                        m.status === "fail"
-                          ? "text-destructive"
-                          : m.status === "warn"
-                            ? "text-muted-foreground"
-                            : "text-foreground"
-                      }
-                    >
-                      {m.value}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {printability.repaired && (
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Mesh auto-repaired before manufacturing.
-                </p>
-              )}
-            </div>
+          {printability && printability.passed && (
+            <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+              <ShieldCheck className="h-3.5 w-3.5" />
+              Checked by our makers — this piece is ready to be made.
+            </p>
           )}
+
 
 
           <div ref={checkoutRef}>
