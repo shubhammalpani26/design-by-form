@@ -22,6 +22,23 @@ function isPrintable(url: string): boolean {
   return /\.(stl|3mf|obj)(\?|$)/i.test(url);
 }
 
+/** Stores binary STL bytes in the public `3d-models` bucket and returns its URL. */
+export async function uploadStl(
+  admin: any,
+  key: string,
+  stl: Uint8Array,
+): Promise<{ url: string; path: string }> {
+  const path = `print-files/${key}.stl`;
+  const { error } = await admin.storage.from("3d-models").upload(path, stl, {
+    contentType: "model/stl",
+    upsert: true,
+  });
+  if (error) throw new Error(`Could not store the print file: ${error.message}`);
+  const { data } = admin.storage.from("3d-models").getPublicUrl(path);
+  return { url: data.publicUrl, path };
+}
+
+
 /**
  * Ensures a slicer-readable mesh exists for a model URL. `.stl/.3mf/.obj`
  * pass through untouched; `.glb` is converted, scaled into the print

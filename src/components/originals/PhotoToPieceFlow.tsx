@@ -179,7 +179,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable, printability } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
@@ -749,6 +749,44 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </p>
             </div>
           )}
+
+          {printability && printability.metrics.length > 0 && (
+            <div className="mt-4 border border-border p-3">
+              <div className="flex items-baseline justify-between">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Printability check
+                </p>
+                <p className="text-sm font-medium">
+                  {printability.score}
+                  <span className="text-muted-foreground">/100</span>
+                </p>
+              </div>
+              <ul className="mt-2 space-y-1">
+                {printability.metrics.map((m) => (
+                  <li key={m.key} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="text-muted-foreground">{m.label}</span>
+                    <span
+                      className={
+                        m.status === "fail"
+                          ? "text-destructive"
+                          : m.status === "warn"
+                            ? "text-muted-foreground"
+                            : "text-foreground"
+                      }
+                    >
+                      {m.value}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {printability.repaired && (
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Mesh auto-repaired before manufacturing.
+                </p>
+              )}
+            </div>
+          )}
+
 
           <div ref={checkoutRef}>
             {clientSecret || razorpayOpen ? (

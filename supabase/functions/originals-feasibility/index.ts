@@ -11,8 +11,8 @@
  * poll it and finish the pricing.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { ensurePrintFile, US_MAX_MM } from "../_shared/printFile.ts";
-import { analyseStl, type MeshReport } from "../_shared/meshCheck.ts";
+import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
+import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
 import { estimateLandedUnitCost, partnerCostToMbpUsd } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
@@ -90,11 +90,27 @@ interface SizeOutcome {
   error?: string;
 }
 
+interface PriceCtx {
+  previewId: string;
+  modelTaskId?: string | null;
+  modelUrl?: string | null;
+  /** Produces a repaired print file for this size, or null if repair is impossible. */
+  makeRepaired?: (sizeKey: string) => Promise<string | null>;
+}
+
+/** Writes a structured row to the admin print-validation log. Never throws. */
+async function logValidation(row: Record<string, unknown>) {
+  await admin.from("print_validation_events").insert(row).then(() => {}, (e: unknown) => {
+    console.error("print validation log failed", e);
+  });
+}
+
 /** Slices the requested size(s) of this piece and caches the result as a live quote. */
 async function priceSizes(
   skuSlug: string,
   files: Record<string, string>,
-  only?: string | null,
+  only: string | null | undefined,
+  ctx: PriceCtx,
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
@@ -103,19 +119,53 @@ async function priceSizes(
     if (only && sizeKey !== only) continue;
     const fileUrl = files[sizeKey];
     if (!fileUrl) continue;
-    try {
-      const landed = await estimateLandedUnitCost(
-        fileUrl,
+
+    const slice = async (url: string) =>
+      await estimateLandedUnitCost(
+        url,
         `${SKU_NAMES[skuSlug] ?? "Nyzora Original"} ${sizeKey}`,
         "PLA BLACK",
       );
+
+    let usedUrl = fileUrl;
+    let repaired = false;
+    let firstError: string | null = null;
+
+    try {
+      let landed;
+      try {
+        landed = await slice(fileUrl);
+      } catch (e) {
+        firstError = e instanceof Error ? e.message : String(e);
+        console.warn("partner slice failed, attempting mesh repair", skuSlug, sizeKey, firstError);
+        await logValidation({
+          preview_id: ctx.previewId,
+          sku_slug: skuSlug,
+          size_key: sizeKey,
+          stage: "slice",
+          passed: false,
+          print_file_url: fileUrl,
+          model_task_id: ctx.modelTaskId ?? null,
+          model_url: ctx.modelUrl ?? null,
+          error: firstError.slice(0, 500),
+          blockers: [firstError.slice(0, 300)],
+        });
+        const repairedUrl = ctx.makeRepaired ? await ctx.makeRepaired(sizeKey) : null;
+        if (!repairedUrl) throw e;
+        usedUrl = repairedUrl;
+        repaired = true;
+        landed = await slice(repairedUrl);
+      }
+
       const retail = Math.max(entry.usd, roundUpTo5(landed.landedUsd * RETAIL_MULTIPLE));
       const mbpUsd = partnerCostToMbpUsd(landed.landedUsd);
+
+      files[sizeKey] = usedUrl;
 
       await admin.from("originals_quotes").insert({
         sku_slug: skuSlug,
         size_key: sizeKey,
-        print_file_url: fileUrl,
+        print_file_url: usedUrl,
         print_usd: landed.printUsd,
         shipping_usd: landed.shippingUsd,
         landed_usd: landed.landedUsd,
@@ -125,9 +175,28 @@ async function priceSizes(
         source: "live",
       });
 
+      await logValidation({
+        preview_id: ctx.previewId,
+        sku_slug: skuSlug,
+        size_key: sizeKey,
+        stage: "slice",
+        passed: true,
+        repaired,
+        print_file_url: usedUrl,
+        model_task_id: ctx.modelTaskId ?? null,
+        model_url: ctx.modelUrl ?? null,
+        metrics: {
+          printUsd: landed.printUsd,
+          shippingUsd: landed.shippingUsd,
+          landedUsd: landed.landedUsd,
+          retailUsd: retail,
+        },
+        error: repaired && firstError ? `Recovered after repair: ${firstError.slice(0, 300)}` : null,
+      });
+
       out.push({
         sizeKey,
-        printFileUrl: fileUrl,
+        printFileUrl: usedUrl,
         landedUsd: landed.landedUsd,
         mbpUsd,
         retailUsd: retail,
@@ -140,15 +209,30 @@ async function priceSizes(
       await admin.from("originals_quotes").insert({
         sku_slug: skuSlug,
         size_key: sizeKey,
-        print_file_url: fileUrl,
+        print_file_url: usedUrl,
         retail_usd: entry.usd,
         feasible: false,
         source: "list",
         error: message.slice(0, 500),
       }).then(() => {}, () => {});
+      if (repaired) {
+        await logValidation({
+          preview_id: ctx.previewId,
+          sku_slug: skuSlug,
+          size_key: sizeKey,
+          stage: "slice",
+          passed: false,
+          repaired: true,
+          print_file_url: usedUrl,
+          model_task_id: ctx.modelTaskId ?? null,
+          model_url: ctx.modelUrl ?? null,
+          error: `Repair retry also failed: ${message.slice(0, 400)}`,
+          blockers: [message.slice(0, 300)],
+        });
+      }
       out.push({
         sizeKey,
-        printFileUrl: fileUrl,
+        printFileUrl: usedUrl,
         landedUsd: null,
         mbpUsd: null,
         retailUsd: entry.usd,
@@ -161,6 +245,7 @@ async function priceSizes(
 
   return out;
 }
+
 
 function publicShape(feasibility: Record<string, unknown> | null) {
   const sizes = Array.isArray(feasibility?.sizes) ? (feasibility!.sizes as SizeOutcome[]) : [];
@@ -178,7 +263,7 @@ Deno.serve(async (req) => {
 
     const { data: preview } = await admin
       .from("originals_previews")
-      .select("id, sku_slug, preview_image_url, print_files, print_file_url, model_task_id, model_status, feasibility")
+      .select("id, sku_slug, preview_image_url, print_files, print_file_url, model_task_id, model_status, feasibility, engineering")
       .eq("id", previewId)
       .maybeSingle();
     if (!preview) return json({ error: "Preview not found." }, 404);
@@ -245,7 +330,41 @@ Deno.serve(async (req) => {
 
     // Mesh is ready — build the print file for the chosen size only.
     const nextFiles: Record<string, string> = { ...files };
-    let geometry: (MeshReport & { sizeKey: string }) | null = null;
+    let geometry: (MeshReport & { sizeKey: string; repaired?: boolean }) | null = null;
+    /** Raw STL bytes per size, kept so a slice failure can trigger a repair retry. */
+    const rawStl: Record<string, Uint8Array> = {};
+    const repairedOnce = new Set<string>();
+
+    const makeRepaired = async (key: string): Promise<string | null> => {
+      if (repairedOnce.has(key)) return null;
+      repairedOnce.add(key);
+      const bytes = rawStl[key];
+      if (!bytes) return null;
+      const { stl, summary } = repairStl(bytes);
+      if (!summary.changed) return null;
+      const { url } = await uploadStl(admin, `originals/preview/${previewId}/${key}-repaired`, stl);
+      const after = analyseStl(stl, { envelopeMm: US_MAX_MM });
+      rawStl[key] = stl;
+      await logValidation({
+        preview_id: previewId,
+        sku_slug: preview.sku_slug,
+        size_key: key,
+        stage: "repair",
+        passed: after.printable,
+        repaired: true,
+        score: after.score,
+        metrics: after as unknown as Record<string, unknown>,
+        blockers: after.blockers,
+        warnings: after.warnings,
+        repair_summary: summary as unknown as Record<string, unknown>,
+        print_file_url: url,
+        model_task_id: preview.model_task_id ?? null,
+        model_url: task.glb ?? null,
+        engineering: preview.engineering ?? null,
+      });
+      return url;
+    };
+
     for (const key of sizeKeys) {
       if (nextFiles[key]) continue;
       const prepared = await ensurePrintFile(admin, {
@@ -257,14 +376,48 @@ Deno.serve(async (req) => {
 
       // Geometry gate: measure the actual solid before we pay for a slice.
       if (prepared.stl) {
-        const report = analyseStl(prepared.stl, { envelopeMm: US_MAX_MM });
-        geometry = { ...report, sizeKey: key };
+        rawStl[key] = prepared.stl;
+        let report = analyseStl(prepared.stl, { envelopeMm: US_MAX_MM });
+        let repaired = false;
+
+        await logValidation({
+          preview_id: previewId,
+          sku_slug: preview.sku_slug,
+          size_key: key,
+          stage: "geometry",
+          passed: report.printable,
+          score: report.score,
+          metrics: report as unknown as Record<string, unknown>,
+          blockers: report.blockers,
+          warnings: report.warnings,
+          print_file_url: prepared.url,
+          model_task_id: preview.model_task_id ?? null,
+          model_url: task.glb ?? null,
+          engineering: preview.engineering ?? null,
+          error: report.printable ? null : report.blockers.join(" ").slice(0, 500),
+        });
+
+        // Auto-repair before giving up: weld cracks, drop degenerates, re-seat.
+        if (!report.printable) {
+          const repairedUrl = await makeRepaired(key);
+          if (repairedUrl && rawStl[key]) {
+            const after = analyseStl(rawStl[key], { envelopeMm: US_MAX_MM });
+            if (after.printable) {
+              nextFiles[key] = repairedUrl;
+              report = after;
+              repaired = true;
+            }
+          }
+        }
+
+        geometry = { ...report, sizeKey: key, repaired };
+
         if (!report.printable) {
           console.warn("originals geometry gate failed", previewId, key, report.blockers);
           await admin.from("originals_quotes").insert({
             sku_slug: preview.sku_slug,
             size_key: key,
-            print_file_url: prepared.url,
+            print_file_url: nextFiles[key],
             feasible: false,
             source: "geometry",
             error: report.blockers.join(" ").slice(0, 500),
@@ -282,13 +435,21 @@ Deno.serve(async (req) => {
           return json({
             status: "unprintable",
             reasons: report.blockers,
+            score: report.score,
+            metrics: report.metrics,
             sizes: publicShape({ sizes: checked }),
           });
         }
       }
     }
 
-    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey);
+    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey, {
+      previewId,
+      modelTaskId: preview.model_task_id as string | null,
+      modelUrl: task.glb,
+      makeRepaired,
+    });
+
     const sizes = [...checked.filter((s) => s.sizeKey !== sizeKey), ...priced];
     const worst = sizes.filter((s) => !s.marginOk);
     const feasibility = {
@@ -310,7 +471,13 @@ Deno.serve(async (req) => {
     }).eq("id", previewId);
 
 
-    return json({ status: "ready", sizes: publicShape(feasibility) });
+    return json({
+      status: "ready",
+      sizes: publicShape(feasibility),
+      score: geometry?.score ?? null,
+      metrics: geometry?.metrics ?? [],
+      repaired: geometry?.repaired ?? false,
+    });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
     console.error("originals-feasibility error", message);
