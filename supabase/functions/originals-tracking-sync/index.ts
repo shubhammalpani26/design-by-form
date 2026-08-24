@@ -27,11 +27,36 @@ const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shippe
  * Once a partner order exists the piece IS in production — the partner's own
  * "queued"/"pending"/"awaiting_shipment" are internal queue states and must
  * never push the buyer's tracker back to "Order confirmed".
+ *
+ * A tracking number is the point of no return: once a label exists the piece
+ * has shipped, whatever the partner's own queue says, and a later sync must
+ * never walk the buyer's tracker back from shipped/delivered.
  */
-const toProductionStatus = (partnerStatus: string) =>
-  ["shipped", "delivered", "cancelled", "failed"].includes(partnerStatus)
+const RANK: Record<string, number> = {
+  queued: 0,
+  pending: 0,
+  awaiting_shipment: 0,
+  in_production: 1,
+  shipped: 2,
+  delivered: 3,
+};
+
+const toProductionStatus = (
+  partnerStatus: string,
+  hasTracking: boolean,
+  current: string | null,
+) => {
+  if (["cancelled", "failed"].includes(partnerStatus)) return partnerStatus;
+  let next = ["shipped", "delivered"].includes(partnerStatus)
     ? partnerStatus
+    : hasTracking
+    ? "shipped"
     : "in_production";
+  const cur = current ?? "";
+  if ((RANK[cur] ?? -1) > (RANK[next] ?? -1)) next = cur;
+  return next;
+};
+
 
 const PRODUCT_NAME: Record<string, string> = {
   "pet-silhouette-keepsake": "Pet Memorial Sculpture",
