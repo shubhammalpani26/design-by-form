@@ -14,6 +14,8 @@ export interface PreparedPrintFile {
   triangleCount: number;
   size: { x: number; y: number; z: number };
   converted: boolean;
+  /** Binary STL bytes when we generated the file (used for the geometry gate). */
+  stl?: Uint8Array;
 }
 
 function isPrintable(url: string): boolean {
