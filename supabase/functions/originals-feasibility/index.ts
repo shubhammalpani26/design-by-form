@@ -90,11 +90,27 @@ interface SizeOutcome {
   error?: string;
 }
 
+interface PriceCtx {
+  previewId: string;
+  modelTaskId?: string | null;
+  modelUrl?: string | null;
+  /** Produces a repaired print file for this size, or null if repair is impossible. */
+  makeRepaired?: (sizeKey: string) => Promise<string | null>;
+}
+
+/** Writes a structured row to the admin print-validation log. Never throws. */
+async function logValidation(row: Record<string, unknown>) {
+  await admin.from("print_validation_events").insert(row).then(() => {}, (e: unknown) => {
+    console.error("print validation log failed", e);
+  });
+}
+
 /** Slices the requested size(s) of this piece and caches the result as a live quote. */
 async function priceSizes(
   skuSlug: string,
   files: Record<string, string>,
-  only?: string | null,
+  only: string | null | undefined,
+  ctx: PriceCtx,
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
@@ -103,19 +119,53 @@ async function priceSizes(
     if (only && sizeKey !== only) continue;
     const fileUrl = files[sizeKey];
     if (!fileUrl) continue;
-    try {
-      const landed = await estimateLandedUnitCost(
-        fileUrl,
+
+    const slice = async (url: string) =>
+      await estimateLandedUnitCost(
+        url,
         `${SKU_NAMES[skuSlug] ?? "Nyzora Original"} ${sizeKey}`,
         "PLA BLACK",
       );
+
+    let usedUrl = fileUrl;
+    let repaired = false;
+    let firstError: string | null = null;
+
+    try {
+      let landed;
+      try {
+        landed = await slice(fileUrl);
+      } catch (e) {
+        firstError = e instanceof Error ? e.message : String(e);
+        console.warn("partner slice failed, attempting mesh repair", skuSlug, sizeKey, firstError);
+        await logValidation({
+          preview_id: ctx.previewId,
+          sku_slug: skuSlug,
+          size_key: sizeKey,
+          stage: "slice",
+          passed: false,
+          print_file_url: fileUrl,
+          model_task_id: ctx.modelTaskId ?? null,
+          model_url: ctx.modelUrl ?? null,
+          error: firstError.slice(0, 500),
+          blockers: [firstError.slice(0, 300)],
+        });
+        const repairedUrl = ctx.makeRepaired ? await ctx.makeRepaired(sizeKey) : null;
+        if (!repairedUrl) throw e;
+        usedUrl = repairedUrl;
+        repaired = true;
+        landed = await slice(repairedUrl);
+      }
+
       const retail = Math.max(entry.usd, roundUpTo5(landed.landedUsd * RETAIL_MULTIPLE));
       const mbpUsd = partnerCostToMbpUsd(landed.landedUsd);
+
+      files[sizeKey] = usedUrl;
 
       await admin.from("originals_quotes").insert({
         sku_slug: skuSlug,
         size_key: sizeKey,
-        print_file_url: fileUrl,
+        print_file_url: usedUrl,
         print_usd: landed.printUsd,
         shipping_usd: landed.shippingUsd,
         landed_usd: landed.landedUsd,
@@ -125,9 +175,28 @@ async function priceSizes(
         source: "live",
       });
 
+      await logValidation({
+        preview_id: ctx.previewId,
+        sku_slug: skuSlug,
+        size_key: sizeKey,
+        stage: "slice",
+        passed: true,
+        repaired,
+        print_file_url: usedUrl,
+        model_task_id: ctx.modelTaskId ?? null,
+        model_url: ctx.modelUrl ?? null,
+        metrics: {
+          printUsd: landed.printUsd,
+          shippingUsd: landed.shippingUsd,
+          landedUsd: landed.landedUsd,
+          retailUsd: retail,
+        },
+        error: repaired && firstError ? `Recovered after repair: ${firstError.slice(0, 300)}` : null,
+      });
+
       out.push({
         sizeKey,
-        printFileUrl: fileUrl,
+        printFileUrl: usedUrl,
         landedUsd: landed.landedUsd,
         mbpUsd,
         retailUsd: retail,
@@ -140,15 +209,30 @@ async function priceSizes(
       await admin.from("originals_quotes").insert({
         sku_slug: skuSlug,
         size_key: sizeKey,
-        print_file_url: fileUrl,
+        print_file_url: usedUrl,
         retail_usd: entry.usd,
         feasible: false,
         source: "list",
         error: message.slice(0, 500),
       }).then(() => {}, () => {});
+      if (repaired) {
+        await logValidation({
+          preview_id: ctx.previewId,
+          sku_slug: skuSlug,
+          size_key: sizeKey,
+          stage: "slice",
+          passed: false,
+          repaired: true,
+          print_file_url: usedUrl,
+          model_task_id: ctx.modelTaskId ?? null,
+          model_url: ctx.modelUrl ?? null,
+          error: `Repair retry also failed: ${message.slice(0, 400)}`,
+          blockers: [message.slice(0, 300)],
+        });
+      }
       out.push({
         sizeKey,
-        printFileUrl: fileUrl,
+        printFileUrl: usedUrl,
         landedUsd: null,
         mbpUsd: null,
         retailUsd: entry.usd,
@@ -161,6 +245,7 @@ async function priceSizes(
 
   return out;
 }
+
 
 function publicShape(feasibility: Record<string, unknown> | null) {
   const sizes = Array.isArray(feasibility?.sizes) ? (feasibility!.sizes as SizeOutcome[]) : [];
