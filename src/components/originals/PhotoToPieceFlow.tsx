@@ -827,7 +827,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey}
+                  disabled={checkingOut || !sizeKey || !!unprintable}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
