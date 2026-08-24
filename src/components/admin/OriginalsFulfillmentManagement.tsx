@@ -42,12 +42,22 @@ const tone: Record<string, string> = {
   in_production: "bg-amber-500/10 text-amber-600 border-amber-500/30",
   failed: "bg-destructive/10 text-destructive border-destructive/30",
   needs_file: "bg-destructive/10 text-destructive border-destructive/30",
+  unpaid: "bg-muted text-muted-foreground border-foreground/20",
 };
+
+const UNPAID = ["pending", "failed", "cancelled"];
+
+/** Never show a production stage for money that never landed. */
+const displayStatus = (o: OriginalsOrder) =>
+  UNPAID.includes(o.status)
+    ? { key: "unpaid", label: o.status === "pending" ? "Not paid — never ordered" : `Not paid (${o.status})` }
+    : { key: o.production_status, label: o.production_status.replace(/_/g, " ") };
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 const pretty = (s: string) => s.replace(/_/g, " ");
+
 
 /** Internal fulfillment console for Nyzora Originals — admins only. */
 export function OriginalsFulfillmentManagement() {
@@ -78,12 +88,15 @@ export function OriginalsFulfillmentManagement() {
 
     if (ordersRes.error) console.error(ordersRes.error);
     if (eventsRes.error) console.error(eventsRes.error);
-    // Ops only cares about money that actually landed — abandoned carts
-    // (pending) and failed payments never reach the partner.
-    const paidOnly = ((ordersRes.data as OriginalsOrder[]) ?? []).filter(
-      (o) => !["pending", "failed", "cancelled"].includes(o.status),
+    // Abandoned carts and failed payments never reach the partner — keep them
+    // visible but plainly marked, and always below the real orders.
+    const all = (ordersRes.data as OriginalsOrder[]) ?? [];
+    setOrders(
+      [...all].sort(
+        (a, b) => Number(UNPAID.includes(a.status)) - Number(UNPAID.includes(b.status)),
+      ),
     );
-    setOrders(paidOnly);
+
     setEvents((eventsRes.data as PartnerEvent[]) ?? []);
     setLoading(false);
   }, []);
@@ -168,8 +181,9 @@ export function OriginalsFulfillmentManagement() {
       {orders.map((order) => {
         const list = eventsByOrder.get(order.id) ?? [];
         const expanded = open[order.id] ?? false;
+        const badge = displayStatus(order);
         return (
-          <Card key={order.id}>
+          <Card key={order.id} className={badge.key === "unpaid" ? "opacity-70" : ""}>
             <CardHeader className="pb-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -181,9 +195,10 @@ export function OriginalsFulfillmentManagement() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={tone[order.production_status] ?? ""}>
-                    {pretty(order.production_status)}
+                  <Badge variant="outline" className={tone[badge.key] ?? ""}>
+                    {badge.label}
                   </Badge>
+
                   <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
                 </div>
               </div>
