@@ -330,7 +330,41 @@ Deno.serve(async (req) => {
 
     // Mesh is ready — build the print file for the chosen size only.
     const nextFiles: Record<string, string> = { ...files };
-    let geometry: (MeshReport & { sizeKey: string }) | null = null;
+    let geometry: (MeshReport & { sizeKey: string; repaired?: boolean }) | null = null;
+    /** Raw STL bytes per size, kept so a slice failure can trigger a repair retry. */
+    const rawStl: Record<string, Uint8Array> = {};
+    const repairedOnce = new Set<string>();
+
+    const makeRepaired = async (key: string): Promise<string | null> => {
+      if (repairedOnce.has(key)) return null;
+      repairedOnce.add(key);
+      const bytes = rawStl[key];
+      if (!bytes) return null;
+      const { stl, summary } = repairStl(bytes);
+      if (!summary.changed) return null;
+      const { url } = await uploadStl(admin, `originals/preview/${previewId}/${key}-repaired`, stl);
+      const after = analyseStl(stl, { envelopeMm: US_MAX_MM });
+      rawStl[key] = stl;
+      await logValidation({
+        preview_id: previewId,
+        sku_slug: preview.sku_slug,
+        size_key: key,
+        stage: "repair",
+        passed: after.printable,
+        repaired: true,
+        score: after.score,
+        metrics: after as unknown as Record<string, unknown>,
+        blockers: after.blockers,
+        warnings: after.warnings,
+        repair_summary: summary as unknown as Record<string, unknown>,
+        print_file_url: url,
+        model_task_id: preview.model_task_id ?? null,
+        model_url: task.glb ?? null,
+        engineering: preview.engineering ?? null,
+      });
+      return url;
+    };
+
     for (const key of sizeKeys) {
       if (nextFiles[key]) continue;
       const prepared = await ensurePrintFile(admin, {
@@ -342,14 +376,48 @@ Deno.serve(async (req) => {
 
       // Geometry gate: measure the actual solid before we pay for a slice.
       if (prepared.stl) {
-        const report = analyseStl(prepared.stl, { envelopeMm: US_MAX_MM });
-        geometry = { ...report, sizeKey: key };
+        rawStl[key] = prepared.stl;
+        let report = analyseStl(prepared.stl, { envelopeMm: US_MAX_MM });
+        let repaired = false;
+
+        await logValidation({
+          preview_id: previewId,
+          sku_slug: preview.sku_slug,
+          size_key: key,
+          stage: "geometry",
+          passed: report.printable,
+          score: report.score,
+          metrics: report as unknown as Record<string, unknown>,
+          blockers: report.blockers,
+          warnings: report.warnings,
+          print_file_url: prepared.url,
+          model_task_id: preview.model_task_id ?? null,
+          model_url: task.glb ?? null,
+          engineering: preview.engineering ?? null,
+          error: report.printable ? null : report.blockers.join(" ").slice(0, 500),
+        });
+
+        // Auto-repair before giving up: weld cracks, drop degenerates, re-seat.
+        if (!report.printable) {
+          const repairedUrl = await makeRepaired(key);
+          if (repairedUrl && rawStl[key]) {
+            const after = analyseStl(rawStl[key], { envelopeMm: US_MAX_MM });
+            if (after.printable) {
+              nextFiles[key] = repairedUrl;
+              report = after;
+              repaired = true;
+            }
+          }
+        }
+
+        geometry = { ...report, sizeKey: key, repaired };
+
         if (!report.printable) {
           console.warn("originals geometry gate failed", previewId, key, report.blockers);
           await admin.from("originals_quotes").insert({
             sku_slug: preview.sku_slug,
             size_key: key,
-            print_file_url: prepared.url,
+            print_file_url: nextFiles[key],
             feasible: false,
             source: "geometry",
             error: report.blockers.join(" ").slice(0, 500),
@@ -367,13 +435,21 @@ Deno.serve(async (req) => {
           return json({
             status: "unprintable",
             reasons: report.blockers,
+            score: report.score,
+            metrics: report.metrics,
             sizes: publicShape({ sizes: checked }),
           });
         }
       }
     }
 
-    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey);
+    const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey, {
+      previewId,
+      modelTaskId: preview.model_task_id as string | null,
+      modelUrl: task.glb,
+      makeRepaired,
+    });
+
     const sizes = [...checked.filter((s) => s.sizeKey !== sizeKey), ...priced];
     const worst = sizes.filter((s) => !s.marginOk);
     const feasibility = {
