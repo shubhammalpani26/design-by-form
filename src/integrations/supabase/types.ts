@@ -1964,6 +1964,87 @@ export type Database = {
         }
         Relationships: []
       }
+      print_validation_events: {
+        Row: {
+          blockers: Json
+          created_at: string
+          engineering: Json | null
+          error: string | null
+          id: string
+          metrics: Json
+          model_task_id: string | null
+          model_url: string | null
+          passed: boolean
+          preview_id: string | null
+          print_file_url: string | null
+          product_id: string | null
+          repair_summary: Json | null
+          repaired: boolean
+          score: number | null
+          size_key: string | null
+          sku_slug: string | null
+          stage: string
+          warnings: Json
+        }
+        Insert: {
+          blockers?: Json
+          created_at?: string
+          engineering?: Json | null
+          error?: string | null
+          id?: string
+          metrics?: Json
+          model_task_id?: string | null
+          model_url?: string | null
+          passed?: boolean
+          preview_id?: string | null
+          print_file_url?: string | null
+          product_id?: string | null
+          repair_summary?: Json | null
+          repaired?: boolean
+          score?: number | null
+          size_key?: string | null
+          sku_slug?: string | null
+          stage: string
+          warnings?: Json
+        }
+        Update: {
+          blockers?: Json
+          created_at?: string
+          engineering?: Json | null
+          error?: string | null
+          id?: string
+          metrics?: Json
+          model_task_id?: string | null
+          model_url?: string | null
+          passed?: boolean
+          preview_id?: string | null
+          print_file_url?: string | null
+          product_id?: string | null
+          repair_summary?: Json | null
+          repaired?: boolean
+          score?: number | null
+          size_key?: string | null
+          sku_slug?: string | null
+          stage?: string
+          warnings?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "print_validation_events_preview_id_fkey"
+            columns: ["preview_id"]
+            isOneToOne: false
+            referencedRelation: "originals_previews"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "print_validation_events_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_finish_images: {
         Row: {
           created_at: string
