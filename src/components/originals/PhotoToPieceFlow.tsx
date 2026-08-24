@@ -857,21 +857,24 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey || !!unprintable}
+                  disabled={checkingOut || !sizeKey || !!unprintable || awaitingConfirmation}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
                   }}
                 >
-                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {checkingOut || awaitingConfirmation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {unprintable
                     ? "Adjust one thing to continue"
                     : !sizeKey
                     ? "Choose a size to continue"
-                    : basketCount > 1
-                      ? `Check out ${basketCount} pieces — $${basketTotal}`
-                      : reveal.cta(selectedPrice)}
+                    : awaitingConfirmation
+                      ? "Confirming this size…"
+                      : basketCount > 1
+                        ? `Check out ${basketCount} pieces — $${basketTotal}`
+                        : reveal.cta(selectedPrice)}
                 </Button>
+
                 <button
                   type="button"
                   onClick={addAnother}
