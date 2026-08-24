@@ -60,5 +60,5 @@ export async function ensurePrintFile(
   if (error) throw new Error(`Could not store the print file: ${error.message}`);
 
   const { data } = admin.storage.from("3d-models").getPublicUrl(path);
-  return { url: data.publicUrl, path, triangleCount, size, converted: true };
+  return { url: data.publicUrl, path, triangleCount, size, converted: true, stl };
 }
