@@ -215,6 +215,68 @@ export function analyseStl(
     blockers.push(`Piece exceeds the build envelope (${envelope} mm).`);
   }
 
+  const envelopeMax = Math.max(size.x, size.y, size.z);
+  const metrics: MeshMetric[] = [
+    {
+      key: "watertight",
+      label: "Watertight solid",
+      value: openEdges === 0 ? "Closed" : `${openEdges} open edges`,
+      status: openEdges === 0 ? "pass" : openEdges > tris.length * 0.01 ? "fail" : "warn",
+      target: "0 open edges",
+    },
+    {
+      key: "wall",
+      label: "Mean wall thickness",
+      value: `${meanWallMm.toFixed(2)} mm`,
+      status:
+        meanWallMm < FDM.hardMinMeanWallMm
+          ? "fail"
+          : meanWallMm < FDM.minMeanWallMm
+            ? "warn"
+            : "pass",
+      target: `≥ ${FDM.minMeanWallMm} mm`,
+    },
+    {
+      key: "overhang",
+      label: "Unsupported overhang",
+      value: `${Math.round(overhangFraction * 100)}% of surface`,
+      status:
+        overhangFraction >= FDM.overhangFailFraction
+          ? "fail"
+          : overhangFraction >= FDM.overhangWarnFraction
+            ? "warn"
+            : "pass",
+      target: `< ${Math.round(FDM.overhangWarnFraction * 100)}%`,
+    },
+    {
+      key: "footprint",
+      label: "Base stability",
+      value: baseArea <= 0
+        ? "No flat contact"
+        : `${Math.round(baseArea)} mm² base, h/w ${tipRatio.toFixed(1)}`,
+      status:
+        tipRatio >= FDM.tipRatioFail
+          ? "fail"
+          : tipRatio >= FDM.tipRatioWarn || baseArea <= 0
+            ? "warn"
+            : "pass",
+      target: `h/w < ${FDM.tipRatioWarn}`,
+    },
+    {
+      key: "envelope",
+      label: "Build envelope",
+      value: `${envelopeMax.toFixed(0)} mm longest edge`,
+      status: opts.envelopeMm && envelopeMax > opts.envelopeMm + 0.5 ? "fail" : "pass",
+      target: opts.envelopeMm ? `≤ ${opts.envelopeMm} mm` : "n/a",
+    },
+  ];
+
+  const penalty = metrics.reduce(
+    (sum, m) => sum + (m.status === "fail" ? 34 : m.status === "warn" ? 12 : 0),
+    0,
+  );
+  const score = Math.max(0, Math.min(100, 100 - penalty));
+
   return {
     triangleCount: tris.length,
     sizeMm: size,
@@ -229,5 +291,124 @@ export function analyseStl(
     warnings,
     blockers,
     printable: blockers.length === 0,
+    score,
+    metrics,
   };
 }
+
+export interface RepairSummary {
+  weldedVertices: number;
+  removedDegenerates: number;
+  removedDuplicates: number;
+  trianglesBefore: number;
+  trianglesAfter: number;
+  reseated: boolean;
+  changed: boolean;
+}
+
+/**
+ * Best-effort mesh repair for meshes that fail validation or slicing.
+ *
+ * Works purely on triangle soup, which is all a binary STL carries:
+ *  - welds vertices onto a 10 µm grid so hairline cracks close (watertightness)
+ *  - drops degenerate (zero-area) and duplicated facets that break slicers
+ *  - recomputes outward normals and re-seats the solid on Z=0
+ *
+ * It cannot add material, so a genuinely paper-thin shell stays thin — the
+ * validator still has the last word after the repair.
+ */
+export function repairStl(bytes: Uint8Array): { stl: Uint8Array; summary: RepairSummary } {
+  const tris = parseBinaryStl(bytes);
+  const trianglesBefore = tris.length;
+  const WELD = 100; // grid steps per mm -> 10 µm
+
+  const snap = (v: V3): V3 => [
+    Math.round(v[0] * WELD) / WELD,
+    Math.round(v[1] * WELD) / WELD,
+    Math.round(v[2] * WELD) / WELD,
+  ];
+
+  let weldedVertices = 0;
+  let removedDegenerates = 0;
+  let removedDuplicates = 0;
+  const seen = new Set<string>();
+  const kept: V3[][] = [];
+  let minZ = Infinity;
+
+  for (const tri of tris) {
+    const snapped = tri.map((v) => {
+      const s = snap(v);
+      if (s[0] !== v[0] || s[1] !== v[1] || s[2] !== v[2]) weldedVertices++;
+      return s;
+    }) as V3[];
+
+    const [a, b, c] = snapped;
+    if (!snapped.every((v) => v.every((n) => Number.isFinite(n)))) {
+      removedDegenerates++;
+      continue;
+    }
+    const u: V3 = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const w: V3 = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    const n: V3 = [
+      u[1] * w[2] - u[2] * w[1],
+      u[2] * w[0] - u[0] * w[2],
+      u[0] * w[1] - u[1] * w[0],
+    ];
+    if (Math.hypot(n[0], n[1], n[2]) < 1e-9) {
+      removedDegenerates++;
+      continue;
+    }
+
+    const ids = snapped.map(key);
+    const canonical = [...ids].sort().join("|");
+    if (seen.has(canonical)) {
+      removedDuplicates++;
+      continue;
+    }
+    seen.add(canonical);
+    kept.push(snapped);
+    for (const v of snapped) if (v[2] < minZ) minZ = v[2];
+  }
+
+  const reseated = Number.isFinite(minZ) && Math.abs(minZ) > 1e-4;
+  const buffer = new ArrayBuffer(84 + kept.length * 50);
+  const view = new DataView(buffer);
+  new Uint8Array(buffer, 0, 80).set(
+    new TextEncoder().encode("Nyzora repaired print file").subarray(0, 80),
+  );
+  view.setUint32(80, kept.length, true);
+
+  let p = 84;
+  for (const tri of kept) {
+    const [a, b, c] = tri.map(([x, y, z]) => [x, y, reseated ? z - minZ : z]) as V3[];
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    let nrm = [
+      u[1] * w[2] - u[2] * w[1],
+      u[2] * w[0] - u[0] * w[2],
+      u[0] * w[1] - u[1] * w[0],
+    ];
+    const len = Math.hypot(nrm[0], nrm[1], nrm[2]) || 1;
+    nrm = [nrm[0] / len, nrm[1] / len, nrm[2] / len];
+    for (const val of [...nrm, ...a, ...b, ...c]) {
+      view.setFloat32(p, val, true);
+      p += 4;
+    }
+    view.setUint16(p, 0, true);
+    p += 2;
+  }
+
+  const summary: RepairSummary = {
+    weldedVertices,
+    removedDegenerates,
+    removedDuplicates,
+    trianglesBefore,
+    trianglesAfter: kept.length,
+    reseated,
+    changed:
+      weldedVertices > 0 || removedDegenerates > 0 || removedDuplicates > 0 || reseated,
+  };
+
+  return { stl: new Uint8Array(buffer), summary };
+}
+
