@@ -33,8 +33,14 @@ Deno.serve(async (req) => {
       out.created = await createStationery("Nyzora Insert 4x6", body.imageUrl);
     }
     if (body.activateId) {
-      out.activated = await updateStationery(String(body.activateId), { available: true });
+      const id = String(body.activateId);
+      out.tries = {
+        put: await raw("PUT", `/stationery/${id}`, { available: true, public: true }),
+        patchAvail: await raw("PATCH", `/stationery`, { id, available: true, public: true }),
+        get: await raw("GET", `/stationery/${id}`),
+      };
     }
+
 
     out.after = await listStationery();
     return new Response(JSON.stringify(out, null, 2), {
