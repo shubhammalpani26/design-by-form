@@ -33,6 +33,8 @@ export function useOriginalsQuotes(
   const [quotes, setQuotes] = useState<Record<string, OriginalsQuote>>({});
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
+  /** Set when the geometry gate rejects this render for FDM. */
+  const [unprintable, setUnprintable] = useState<string[] | null>(null);
 
   const fetchQuotes = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("originals-quote", {
