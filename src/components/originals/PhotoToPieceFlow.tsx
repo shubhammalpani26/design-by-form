@@ -737,19 +737,25 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             <div className="mt-3 grid grid-cols-3 gap-2">
               {sku.sizes.map((s) => {
                 const active = s.key === sizeKey;
+                const state = checkFor(s.key).state;
                 return (
                   <button
                     key={s.key}
                     type="button"
                     onClick={() => setSizeKey(s.key)}
-                    className={`border p-3 text-left transition-colors ${active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
+                    className={`border p-3 text-left transition-colors ${state === "unprintable" ? "border-destructive/40 opacity-60" : active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
-                    {active && checking && (
+                    {active && state === "checking" && (
                       <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">
                         Confirming price…
+                      </span>
+                    )}
+                    {state === "unprintable" && (
+                      <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-destructive">
+                        Not available
                       </span>
                     )}
                     {s.note && <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">{s.note}</span>}
@@ -757,6 +763,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 );
               })}
             </div>
+
           </div>
 
           {unprintable && (
