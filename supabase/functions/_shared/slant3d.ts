@@ -192,16 +192,17 @@ export async function createStationery(
   });
 }
 
-/** Updates a registered insert (e.g. flipping `available` on). */
+/** Updates a registered insert (e.g. flipping `available` on). Partner uses PUT. */
 export async function updateStationery(
   id: string,
   patch: Record<string, unknown>,
 ): Promise<unknown> {
   return await request<unknown>(`/stationery/${id}`, {
-    method: "PATCH",
+    method: "PUT",
     body: JSON.stringify(patch),
   });
 }
+
 
 export interface PartnerDraftOrder {
   publicId: string;
