@@ -78,6 +78,11 @@ export function useOriginalsQuotes(
         setChecking(false);
         return;
       }
+      if (status === "unprintable") {
+        setUnprintable(Array.isArray(data?.reasons) ? data.reasons : ["This shape can't be made yet."]);
+        setChecking(false);
+        return;
+      }
       if (
         status === "failed" ||
         status === "skipped" ||
