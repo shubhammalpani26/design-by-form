@@ -179,7 +179,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable, printability } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
