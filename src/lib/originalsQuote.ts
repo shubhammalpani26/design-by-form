@@ -63,6 +63,7 @@ export function useOriginalsQuotes(
     let cancelled = false;
     let polls = 0;
     setChecking(true);
+    setUnprintable(null);
 
     const tick = async () => {
       if (cancelled) return;
