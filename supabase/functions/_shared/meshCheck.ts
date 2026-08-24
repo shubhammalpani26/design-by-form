@@ -30,6 +30,16 @@ export const FDM = {
   baseSlabMm: 1.0,
 } as const;
 
+export interface MeshMetric {
+  key: string;
+  label: string;
+  /** Human-readable measured value. */
+  value: string;
+  status: "pass" | "warn" | "fail";
+  /** What we require for a pass. */
+  target: string;
+}
+
 export interface MeshReport {
   triangleCount: number;
   sizeMm: { x: number; y: number; z: number };
@@ -44,7 +54,11 @@ export interface MeshReport {
   warnings: string[];
   blockers: string[];
   printable: boolean;
+  /** 0-100 confidence that this prints cleanly on FDM. */
+  score: number;
+  metrics: MeshMetric[];
 }
+
 
 type V3 = [number, number, number];
 
