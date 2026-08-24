@@ -14,6 +14,8 @@ export interface PreparedPrintFile {
   triangleCount: number;
   size: { x: number; y: number; z: number };
   converted: boolean;
+  /** Binary STL bytes when we generated the file (used for the geometry gate). */
+  stl?: Uint8Array;
 }
 
 function isPrintable(url: string): boolean {
@@ -58,5 +60,5 @@ export async function ensurePrintFile(
   if (error) throw new Error(`Could not store the print file: ${error.message}`);
 
   const { data } = admin.storage.from("3d-models").getPublicUrl(path);
-  return { url: data.publicUrl, path, triangleCount, size, converted: true };
+  return { url: data.publicUrl, path, triangleCount, size, converted: true, stl };
 }

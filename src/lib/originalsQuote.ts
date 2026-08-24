@@ -33,6 +33,8 @@ export function useOriginalsQuotes(
   const [quotes, setQuotes] = useState<Record<string, OriginalsQuote>>({});
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(false);
+  /** Set when the geometry gate rejects this render for FDM. */
+  const [unprintable, setUnprintable] = useState<string[] | null>(null);
 
   const fetchQuotes = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("originals-quote", {
@@ -61,6 +63,7 @@ export function useOriginalsQuotes(
     let cancelled = false;
     let polls = 0;
     setChecking(true);
+    setUnprintable(null);
 
     const tick = async () => {
       if (cancelled) return;
@@ -72,6 +75,11 @@ export function useOriginalsQuotes(
       const status = data?.status;
       if (status === "ready") {
         await fetchQuotes();
+        setChecking(false);
+        return;
+      }
+      if (status === "unprintable") {
+        setUnprintable(Array.isArray(data?.reasons) ? data.reasons : ["This shape can't be made yet."]);
         setChecking(false);
         return;
       }
@@ -101,5 +109,5 @@ export function useOriginalsQuotes(
     [quotes],
   );
 
-  return { quotes, priceFor, loading, checking };
+  return { quotes, priceFor, loading, checking, unprintable };
 }

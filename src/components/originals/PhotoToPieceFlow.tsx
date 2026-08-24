@@ -179,7 +179,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
 
   const displayName =
@@ -738,6 +738,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           </div>
 
+          {unprintable && (
+            <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
+              <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
+                Can't be made as-is
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Our makers checked the actual shape and it won't hold up in production
+                {unprintable.length ? `: ${unprintable.join(" ")}` : "."} Adjust one thing and we'll re-check.
+              </p>
+            </div>
+          )}
+
           <div ref={checkoutRef}>
             {clientSecret || razorpayOpen ? (
               <div className="mt-5 border-t border-border pt-5">
@@ -815,14 +827,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey}
+                  disabled={checkingOut || !sizeKey || !!unprintable}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
                   }}
                 >
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {!sizeKey
+                  {unprintable
+                    ? "Adjust one thing to continue"
+                    : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
                       ? `Check out ${basketCount} pieces — $${basketTotal}`

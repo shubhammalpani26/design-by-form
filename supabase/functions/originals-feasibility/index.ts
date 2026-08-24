@@ -11,7 +11,8 @@
  * poll it and finish the pricing.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-import { ensurePrintFile } from "../_shared/printFile.ts";
+import { ensurePrintFile, US_MAX_MM } from "../_shared/printFile.ts";
+import { analyseStl, type MeshReport } from "../_shared/meshCheck.ts";
 import { estimateLandedUnitCost, partnerCostToMbpUsd } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
@@ -244,6 +245,7 @@ Deno.serve(async (req) => {
 
     // Mesh is ready — build the print file for the chosen size only.
     const nextFiles: Record<string, string> = { ...files };
+    let geometry: (MeshReport & { sizeKey: string }) | null = null;
     for (const key of sizeKeys) {
       if (nextFiles[key]) continue;
       const prepared = await ensurePrintFile(admin, {
@@ -252,6 +254,38 @@ Deno.serve(async (req) => {
         targetMaxMm: sizeMm(preview.sku_slug, key),
       });
       nextFiles[key] = prepared.url;
+
+      // Geometry gate: measure the actual solid before we pay for a slice.
+      if (prepared.stl) {
+        const report = analyseStl(prepared.stl, { envelopeMm: US_MAX_MM });
+        geometry = { ...report, sizeKey: key };
+        if (!report.printable) {
+          console.warn("originals geometry gate failed", previewId, key, report.blockers);
+          await admin.from("originals_quotes").insert({
+            sku_slug: preview.sku_slug,
+            size_key: key,
+            print_file_url: prepared.url,
+            feasible: false,
+            source: "geometry",
+            error: report.blockers.join(" ").slice(0, 500),
+          }).then(() => {}, () => {});
+          await admin.from("originals_previews").update({
+            print_files: nextFiles,
+            model_status: "ready",
+            feasibility: {
+              checkedAt: new Date().toISOString(),
+              sizes: checked,
+              geometry,
+              geometryBlocked: true,
+            },
+          }).eq("id", previewId);
+          return json({
+            status: "unprintable",
+            reasons: report.blockers,
+            sizes: publicShape({ sizes: checked }),
+          });
+        }
+      }
     }
 
     const priced = await priceSizes(preview.sku_slug, nextFiles, sizeKey);
@@ -260,6 +294,7 @@ Deno.serve(async (req) => {
     const feasibility = {
       checkedAt: new Date().toISOString(),
       sizes,
+      geometry,
       allPriced: sizes.every((s) => s.landedUsd !== null),
       marginBreaches: worst.map((s) => s.sizeKey),
     };
