@@ -750,6 +750,44 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           )}
 
+          {printability && printability.metrics.length > 0 && (
+            <div className="mt-4 border border-border p-3">
+              <div className="flex items-baseline justify-between">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Printability check
+                </p>
+                <p className="text-sm font-medium">
+                  {printability.score}
+                  <span className="text-muted-foreground">/100</span>
+                </p>
+              </div>
+              <ul className="mt-2 space-y-1">
+                {printability.metrics.map((m) => (
+                  <li key={m.key} className="flex items-center justify-between gap-3 text-xs">
+                    <span className="text-muted-foreground">{m.label}</span>
+                    <span
+                      className={
+                        m.status === "fail"
+                          ? "text-destructive"
+                          : m.status === "warn"
+                            ? "text-muted-foreground"
+                            : "text-foreground"
+                      }
+                    >
+                      {m.value}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {printability.repaired && (
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Mesh auto-repaired before manufacturing.
+                </p>
+              )}
+            </div>
+          )}
+
+
           <div ref={checkoutRef}>
             {clientSecret || razorpayOpen ? (
               <div className="mt-5 border-t border-border pt-5">
