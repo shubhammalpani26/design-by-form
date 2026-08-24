@@ -42,12 +42,22 @@ const tone: Record<string, string> = {
   in_production: "bg-amber-500/10 text-amber-600 border-amber-500/30",
   failed: "bg-destructive/10 text-destructive border-destructive/30",
   needs_file: "bg-destructive/10 text-destructive border-destructive/30",
+  unpaid: "bg-muted text-muted-foreground border-foreground/20",
 };
+
+const UNPAID = ["pending", "failed", "cancelled"];
+
+/** Never show a production stage for money that never landed. */
+const displayStatus = (o: OriginalsOrder) =>
+  UNPAID.includes(o.status)
+    ? { key: "unpaid", label: o.status === "pending" ? "Not paid — never ordered" : `Not paid (${o.status})` }
+    : { key: o.production_status, label: o.production_status.replace(/_/g, " ") };
 
 const when = (iso: string) =>
   new Date(iso).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
 
 const pretty = (s: string) => s.replace(/_/g, " ");
+
 
 /** Internal fulfillment console for Nyzora Originals — admins only. */
 export function OriginalsFulfillmentManagement() {
