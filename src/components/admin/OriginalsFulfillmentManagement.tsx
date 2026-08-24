@@ -181,8 +181,9 @@ export function OriginalsFulfillmentManagement() {
       {orders.map((order) => {
         const list = eventsByOrder.get(order.id) ?? [];
         const expanded = open[order.id] ?? false;
+        const badge = displayStatus(order);
         return (
-          <Card key={order.id}>
+          <Card key={order.id} className={badge.key === "unpaid" ? "opacity-70" : ""}>
             <CardHeader className="pb-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
@@ -194,9 +195,10 @@ export function OriginalsFulfillmentManagement() {
                   </p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline" className={tone[order.production_status] ?? ""}>
-                    {pretty(order.production_status)}
+                  <Badge variant="outline" className={tone[badge.key] ?? ""}>
+                    {badge.label}
                   </Badge>
+
                   <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
                 </div>
               </div>
