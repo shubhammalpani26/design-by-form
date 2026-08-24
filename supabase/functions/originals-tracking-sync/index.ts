@@ -160,11 +160,23 @@ Deno.serve(async (req) => {
       try {
         if (!seen.has(key)) seen.set(key, await getTracking(key));
         const { status, trackingNumbers } = seen.get(key)!;
-        // Partner payloads sometimes nest the numbers one level deep.
-        const numbers = (trackingNumbers as unknown[])
-          .flat(Infinity as 1)
-          .map((t) => String(t).trim())
-          .filter(Boolean);
+        // The partner sometimes hands back the numbers JSON-encoded, or nested
+        // one level deep — flatten it all down to plain tracking strings.
+        const flatten = (v: unknown): string[] => {
+          if (Array.isArray(v)) return v.flatMap(flatten);
+          const s = String(v ?? "").trim();
+          if (!s) return [];
+          if (s.startsWith("[")) {
+            try {
+              return flatten(JSON.parse(s));
+            } catch {
+              /* fall through to the raw string */
+            }
+          }
+          return [s];
+        };
+        const numbers = flatten(trackingNumbers);
+
         const nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
         // Infer the carrier from the tracking number so the buyer's tracker
