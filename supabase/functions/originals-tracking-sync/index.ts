@@ -27,11 +27,36 @@ const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shippe
  * Once a partner order exists the piece IS in production — the partner's own
  * "queued"/"pending"/"awaiting_shipment" are internal queue states and must
  * never push the buyer's tracker back to "Order confirmed".
+ *
+ * A tracking number is the point of no return: once a label exists the piece
+ * has shipped, whatever the partner's own queue says, and a later sync must
+ * never walk the buyer's tracker back from shipped/delivered.
  */
-const toProductionStatus = (partnerStatus: string) =>
-  ["shipped", "delivered", "cancelled", "failed"].includes(partnerStatus)
+const RANK: Record<string, number> = {
+  queued: 0,
+  pending: 0,
+  awaiting_shipment: 0,
+  in_production: 1,
+  shipped: 2,
+  delivered: 3,
+};
+
+const toProductionStatus = (
+  partnerStatus: string,
+  hasTracking: boolean,
+  current: string | null,
+) => {
+  if (["cancelled", "failed"].includes(partnerStatus)) return partnerStatus;
+  let next = ["shipped", "delivered"].includes(partnerStatus)
     ? partnerStatus
+    : hasTracking
+    ? "shipped"
     : "in_production";
+  const cur = current ?? "";
+  if ((RANK[cur] ?? -1) > (RANK[next] ?? -1)) next = cur;
+  return next;
+};
+
 
 const PRODUCT_NAME: Record<string, string> = {
   "pet-silhouette-keepsake": "Pet Memorial Sculpture",
@@ -135,26 +160,43 @@ Deno.serve(async (req) => {
       try {
         if (!seen.has(key)) seen.set(key, await getTracking(key));
         const { status, trackingNumbers } = seen.get(key)!;
-        const numbers = trackingNumbers.map((t) => String(t)).filter(Boolean);
-        const shipped = status === "shipped";
+        // The partner sometimes hands back the numbers JSON-encoded, or nested
+        // one level deep — flatten it all down to plain tracking strings.
+        const flatten = (v: unknown): string[] => {
+          if (Array.isArray(v)) return v.flatMap(flatten);
+          const s = String(v ?? "").trim();
+          if (!s) return [];
+          if (s.startsWith("[")) {
+            try {
+              return flatten(JSON.parse(s));
+            } catch {
+              /* fall through to the raw string */
+            }
+          }
+          return [s];
+        };
+        const numbers = flatten(trackingNumbers);
+
+        const nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
+        const shipped = nextStatus === "shipped" || nextStatus === "delivered";
         // Infer the carrier from the tracking number so the buyer's tracker
         // and the shipping email link to the carrier's own page.
         const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
         await admin
           .from("originals_orders")
           .update({
-            production_status: toProductionStatus(status),
+            production_status: nextStatus,
             tracking_numbers: numbers,
             ...(carrier ? { carrier } : {}),
-            ...(status === "shipped" ? { shipped_at: new Date().toISOString() } : {}),
-            ...(status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
+            ...(shipped ? { shipped_at: new Date().toISOString() } : {}),
+            ...(nextStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("id", row.id);
         synced += 1;
 
         // Only log real movement so the admin timeline stays signal, not noise.
-        if (toProductionStatus(status) !== row.production_status || numbers.length) {
+        if (nextStatus !== row.production_status || numbers.length) {
           await logPartnerEvent(admin, {
             orderId: row.id,
             groupId: row.group_id,
@@ -162,7 +204,7 @@ Deno.serve(async (req) => {
             source: "tracking_sync",
             stage: shipped ? "shipping" : "production",
             event: `partner_status_${status}`,
-            status: toProductionStatus(status),
+            status: nextStatus,
             message: numbers.length ? `Tracking: ${numbers.join(", ")}` : null,
             details: { partnerStatus: status, tracking: numbers, carrier },
           });
@@ -172,6 +214,7 @@ Deno.serve(async (req) => {
         if (shipped && numbers.length && !row.shipping_notified_at && row.customer_email) {
           await notifyShipped(row, numbers);
         }
+
 
         // One review request per order, sent when the piece is actually in hand.
         if (status === "delivered" && !row.review_requested_at && row.customer_email) {
