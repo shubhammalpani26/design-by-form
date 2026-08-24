@@ -834,7 +834,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   }}
                 >
                   {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  {!sizeKey
+                  {unprintable
+                    ? "Adjust one thing to continue"
+                    : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
                       ? `Check out ${basketCount} pieces — $${basketTotal}`
