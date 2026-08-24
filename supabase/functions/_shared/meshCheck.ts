@@ -111,6 +111,8 @@ export function analyseStl(
       warnings,
       blockers: ["The mesh has no geometry."],
       printable: false,
+      score: 0,
+      metrics: [],
     };
   }
 
