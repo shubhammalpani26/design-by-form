@@ -1,6 +1,21 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+export interface PrintabilityMetric {
+  key: string;
+  label: string;
+  value: string;
+  status: "pass" | "warn" | "fail";
+  target: string;
+}
+
+export interface PrintabilityReport {
+  score: number;
+  metrics: PrintabilityMetric[];
+  repaired: boolean;
+  passed: boolean;
+}
+
 export interface OriginalsQuote {
   skuSlug: string;
   sizeKey: string;
@@ -35,6 +50,8 @@ export function useOriginalsQuotes(
   const [checking, setChecking] = useState(false);
   /** Set when the geometry gate rejects this render for FDM. */
   const [unprintable, setUnprintable] = useState<string[] | null>(null);
+  /** Geometry scorecard for the buyer's render at the chosen size. */
+  const [printability, setPrintability] = useState<PrintabilityReport | null>(null);
 
   const fetchQuotes = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("originals-quote", {
@@ -64,6 +81,7 @@ export function useOriginalsQuotes(
     let polls = 0;
     setChecking(true);
     setUnprintable(null);
+    setPrintability(null);
 
     const tick = async () => {
       if (cancelled) return;
@@ -74,12 +92,26 @@ export function useOriginalsQuotes(
       if (cancelled) return;
       const status = data?.status;
       if (status === "ready") {
+        if (typeof data?.score === "number") {
+          setPrintability({
+            score: data.score,
+            metrics: Array.isArray(data?.metrics) ? data.metrics : [],
+            repaired: Boolean(data?.repaired),
+            passed: true,
+          });
+        }
         await fetchQuotes();
         setChecking(false);
         return;
       }
       if (status === "unprintable") {
         setUnprintable(Array.isArray(data?.reasons) ? data.reasons : ["This shape can't be made yet."]);
+        setPrintability({
+          score: typeof data?.score === "number" ? data.score : 0,
+          metrics: Array.isArray(data?.metrics) ? data.metrics : [],
+          repaired: false,
+          passed: false,
+        });
         setChecking(false);
         return;
       }
@@ -109,5 +141,5 @@ export function useOriginalsQuotes(
     [quotes],
   );
 
-  return { quotes, priceFor, loading, checking, unprintable };
+  return { quotes, priceFor, loading, checking, unprintable, printability };
 }
