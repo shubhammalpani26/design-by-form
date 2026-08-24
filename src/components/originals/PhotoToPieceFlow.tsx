@@ -600,7 +600,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 <img
                   src={preview.url}
                   alt="Your personalized piece"
-                  className={`w-full object-contain transition ${refining ? "opacity-40 blur-[2px]" : ""}`}
+                  className={`w-full object-contain transition ${refining || renderRejected ? "opacity-30 blur-[3px]" : ""}`}
                 />
                 {refining && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-xs text-foreground">
@@ -608,8 +608,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     Adjusting your piece…
                   </div>
                 )}
+                {!refining && renderRejected && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/70 p-4 text-center">
+                    <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                      This one won't hold up
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Adjust one thing and we'll make you a new version.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
+
           </div>
 
           {/* ---- Not quite right? inline tweaks ---- */}
