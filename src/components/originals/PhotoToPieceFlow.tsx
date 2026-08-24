@@ -738,6 +738,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           </div>
 
+          {unprintable && (
+            <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
+              <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
+                Can't be made as-is
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Our makers checked the actual shape and it won't hold up in production
+                {unprintable.length ? `: ${unprintable.join(" ")}` : "."} Adjust one thing and we'll re-check.
+              </p>
+            </div>
+          )}
+
           <div ref={checkoutRef}>
             {clientSecret || razorpayOpen ? (
               <div className="mt-5 border-t border-border pt-5">
