@@ -160,26 +160,31 @@ Deno.serve(async (req) => {
       try {
         if (!seen.has(key)) seen.set(key, await getTracking(key));
         const { status, trackingNumbers } = seen.get(key)!;
-        const numbers = trackingNumbers.map((t) => String(t)).filter(Boolean);
-        const shipped = status === "shipped";
+        // Partner payloads sometimes nest the numbers one level deep.
+        const numbers = (trackingNumbers as unknown[])
+          .flat(Infinity as 1)
+          .map((t) => String(t).trim())
+          .filter(Boolean);
+        const nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
+        const shipped = nextStatus === "shipped" || nextStatus === "delivered";
         // Infer the carrier from the tracking number so the buyer's tracker
         // and the shipping email link to the carrier's own page.
         const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
         await admin
           .from("originals_orders")
           .update({
-            production_status: toProductionStatus(status),
+            production_status: nextStatus,
             tracking_numbers: numbers,
             ...(carrier ? { carrier } : {}),
-            ...(status === "shipped" ? { shipped_at: new Date().toISOString() } : {}),
-            ...(status === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
+            ...(shipped ? { shipped_at: new Date().toISOString() } : {}),
+            ...(nextStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("id", row.id);
         synced += 1;
 
         // Only log real movement so the admin timeline stays signal, not noise.
-        if (toProductionStatus(status) !== row.production_status || numbers.length) {
+        if (nextStatus !== row.production_status || numbers.length) {
           await logPartnerEvent(admin, {
             orderId: row.id,
             groupId: row.group_id,
@@ -187,7 +192,7 @@ Deno.serve(async (req) => {
             source: "tracking_sync",
             stage: shipped ? "shipping" : "production",
             event: `partner_status_${status}`,
-            status: toProductionStatus(status),
+            status: nextStatus,
             message: numbers.length ? `Tracking: ${numbers.join(", ")}` : null,
             details: { partnerStatus: status, tracking: numbers, carrier },
           });
@@ -197,6 +202,7 @@ Deno.serve(async (req) => {
         if (shipped && numbers.length && !row.shipping_notified_at && row.customer_email) {
           await notifyShipped(row, numbers);
         }
+
 
         // One review request per order, sent when the piece is actually in hand.
         if (status === "delivered" && !row.review_requested_at && row.customer_email) {
