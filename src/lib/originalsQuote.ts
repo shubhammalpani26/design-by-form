@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface PrintabilityMetric {
@@ -16,6 +16,14 @@ export interface PrintabilityReport {
   passed: boolean;
 }
 
+export type SizeCheckState = "idle" | "checking" | "confirmed" | "unprintable" | "unknown";
+
+export interface SizeCheck {
+  state: SizeCheckState;
+  reasons?: string[];
+  report?: PrintabilityReport | null;
+}
+
 export interface OriginalsQuote {
   skuSlug: string;
   sizeKey: string;
@@ -31,27 +39,28 @@ const POLL_MS = 12000;
 const MAX_POLLS = 25;
 
 /**
- * Live manufacturing quote for a piece. Prices come back from the production
- * partner via the `originals-quote` edge function; if that is unavailable the
- * server returns our standard list price, so the UI always has a number.
+ * Live manufacturing quote for a piece plus the pre-purchase printability gate.
  *
- * When a buyer has picked a size for their own render we also drive the
- * pre-purchase feasibility check (real 3D mesh + partner slice) for *that*
- * size and refresh the ladder as soon as the true cost lands — so what we show
- * is what we can actually make.
+ * The gate starts silently as soon as a render exists — on the default size —
+ * so by the time a buyer picks a size we usually already know the piece can be
+ * made. Results are cached per size, so re-selecting a size never re-runs the
+ * (slow, paid) mesh + partner slice pipeline.
  */
 export function useOriginalsQuotes(
   skuSlug: string,
   previewId?: string | null,
   sizeKey?: string | null,
+  defaultSizeKey?: string | null,
 ) {
   const [quotes, setQuotes] = useState<Record<string, OriginalsQuote>>({});
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(false);
-  /** Set when the geometry gate rejects this render for FDM. */
-  const [unprintable, setUnprintable] = useState<string[] | null>(null);
-  /** Geometry scorecard for the buyer's render at the chosen size. */
-  const [printability, setPrintability] = useState<PrintabilityReport | null>(null);
+  /** Per-size printability results, cached for the lifetime of this render. */
+  const [checks, setChecks] = useState<Record<string, SizeCheck>>({});
+
+  /** Sizes we've already kicked off (or finished) a check for, per preview. */
+  const startedRef = useRef<Record<string, true>>({});
+  const timersRef = useRef<number[]>([]);
+  const cancelledRef = useRef(false);
 
   const fetchQuotes = useCallback(async () => {
     const { data, error } = await supabase.functions.invoke("originals-quote", {
@@ -74,72 +83,135 @@ export function useOriginalsQuotes(
     };
   }, [skuSlug, fetchQuotes]);
 
-  // Drive the mesh + slice check for this buyer's render, at their chosen size.
+  // A new render invalidates every cached check.
+  useEffect(() => {
+    cancelledRef.current = false;
+    startedRef.current = {};
+    setChecks({});
+    return () => {
+      cancelledRef.current = true;
+      timersRef.current.forEach((t) => window.clearTimeout(t));
+      timersRef.current = [];
+    };
+  }, [previewId]);
+
+  const runCheck = useCallback(
+    (targetSize: string) => {
+      if (!previewId || !targetSize) return;
+      if (startedRef.current[targetSize]) return;
+      startedRef.current[targetSize] = true;
+      setChecks((c) => ({ ...c, [targetSize]: { state: "checking" } }));
+
+      let polls = 0;
+      const tick = async () => {
+        if (cancelledRef.current) return;
+        polls += 1;
+        const { data } = await supabase.functions.invoke("originals-feasibility", {
+          body: { previewId, sizeKey: targetSize },
+        });
+        if (cancelledRef.current) return;
+        const status = data?.status;
+
+        if (status === "ready") {
+          setChecks((c) => ({
+            ...c,
+            [targetSize]: {
+              state: "confirmed",
+              report:
+                typeof data?.score === "number"
+                  ? {
+                      score: data.score,
+                      metrics: Array.isArray(data?.metrics) ? data.metrics : [],
+                      repaired: Boolean(data?.repaired),
+                      passed: true,
+                    }
+                  : null,
+            },
+          }));
+          await fetchQuotes();
+          return;
+        }
+
+        if (status === "unprintable") {
+          setChecks((c) => ({
+            ...c,
+            [targetSize]: {
+              state: "unprintable",
+              reasons: Array.isArray(data?.reasons) ? data.reasons : ["This shape can't be made yet."],
+              report: {
+                score: typeof data?.score === "number" ? data.score : 0,
+                metrics: Array.isArray(data?.metrics) ? data.metrics : [],
+                repaired: false,
+                passed: false,
+              },
+            },
+          }));
+          return;
+        }
+
+        if (
+          status === "failed" ||
+          status === "skipped" ||
+          status === "idle" ||
+          status === "error" ||
+          polls >= MAX_POLLS
+        ) {
+          // We couldn't confirm — don't block the buyer, but don't claim confirmed either.
+          setChecks((c) => ({ ...c, [targetSize]: { state: "unknown" } }));
+          return;
+        }
+
+        timersRef.current.push(window.setTimeout(tick, POLL_MS));
+      };
+
+      timersRef.current.push(window.setTimeout(tick, 1200));
+    },
+    [previewId, fetchQuotes],
+  );
+
+  // Silent head start on the default size the moment a render exists.
+  useEffect(() => {
+    if (!previewId || !defaultSizeKey) return;
+    runCheck(defaultSizeKey);
+  }, [previewId, defaultSizeKey, runCheck]);
+
+  // And for whatever size the buyer actually picks (cached if already run).
   useEffect(() => {
     if (!previewId || !sizeKey) return;
-    let cancelled = false;
-    let polls = 0;
-    setChecking(true);
-    setUnprintable(null);
-    setPrintability(null);
-
-    const tick = async () => {
-      if (cancelled) return;
-      polls += 1;
-      const { data } = await supabase.functions.invoke("originals-feasibility", {
-        body: { previewId, sizeKey },
-      });
-      if (cancelled) return;
-      const status = data?.status;
-      if (status === "ready") {
-        if (typeof data?.score === "number") {
-          setPrintability({
-            score: data.score,
-            metrics: Array.isArray(data?.metrics) ? data.metrics : [],
-            repaired: Boolean(data?.repaired),
-            passed: true,
-          });
-        }
-        await fetchQuotes();
-        setChecking(false);
-        return;
-      }
-      if (status === "unprintable") {
-        setUnprintable(Array.isArray(data?.reasons) ? data.reasons : ["This shape can't be made yet."]);
-        setPrintability({
-          score: typeof data?.score === "number" ? data.score : 0,
-          metrics: Array.isArray(data?.metrics) ? data.metrics : [],
-          repaired: false,
-          passed: false,
-        });
-        setChecking(false);
-        return;
-      }
-      if (
-        status === "failed" ||
-        status === "skipped" ||
-        status === "idle" ||
-        status === "error" ||
-        polls >= MAX_POLLS
-      ) {
-        setChecking(false);
-        return;
-      }
-      timer = window.setTimeout(tick, POLL_MS);
-    };
-
-    let timer = window.setTimeout(tick, 1500);
-    return () => {
-      cancelled = true;
-      window.clearTimeout(timer);
-    };
-  }, [previewId, sizeKey, fetchQuotes]);
-
+    runCheck(sizeKey);
+  }, [previewId, sizeKey, runCheck]);
 
   const priceFor = useCallback(
-    (sizeKey: string, fallback: number) => quotes[sizeKey]?.unitUsd ?? fallback,
+    (key: string, fallback: number) => quotes[key]?.unitUsd ?? fallback,
     [quotes],
   );
 
-  return { quotes, priceFor, loading, checking, unprintable, printability };
+  const checkFor = useCallback(
+    (key?: string | null): SizeCheck => (key && checks[key]) || { state: "idle" },
+    [checks],
+  );
+
+  const activeKey = sizeKey ?? defaultSizeKey ?? null;
+  const active = checkFor(activeKey);
+
+  /** True once every size we've evaluated came back unmakeable. */
+  const renderRejected = useMemo(() => {
+    const values = Object.values(checks);
+    return values.length > 0 && values.every((c) => c.state === "unprintable");
+  }, [checks]);
+
+  return {
+    quotes,
+    priceFor,
+    loading,
+    checks,
+    checkFor,
+    checking: active.state === "checking",
+    /** Blocks checkout: the selected size is known to be unmakeable. */
+    unprintable: active.state === "unprintable" ? active.reasons ?? [] : null,
+    /** Selected size has passed the geometry + partner slice gate. */
+    confirmed: active.state === "confirmed",
+    printability: active.report ?? null,
+    renderRejected,
+  };
 }

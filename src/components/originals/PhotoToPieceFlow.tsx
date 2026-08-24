@@ -178,9 +178,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
 
   const selectedSize = sku.sizes.find((s) => s.key === sizeKey) ?? sku.sizes[1] ?? sku.sizes[0];
+  // Mid size is our silent head start — checked the moment the render lands.
+  const defaultSizeKey = (sku.sizes[1] ?? sku.sizes[0])?.key ?? null;
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable } = useOriginalsQuotes(sku.slug, preview?.id ?? null, sizeKey);
+  const { priceFor, checking, unprintable, confirmed, checkFor, renderRejected } = useOriginalsQuotes(
+    sku.slug,
+    preview?.id ?? null,
+    sizeKey,
+    defaultSizeKey,
+  );
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
+  // Only hold checkout while we're still confirming the size they picked.
+  const awaitingConfirmation = Boolean(sizeKey) && checking && !confirmed && !unprintable;
+
 
   const displayName =
     mode === "photo"
@@ -590,7 +600,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 <img
                   src={preview.url}
                   alt="Your personalized piece"
-                  className={`w-full object-contain transition ${refining ? "opacity-40 blur-[2px]" : ""}`}
+                  className={`w-full object-contain transition ${refining || renderRejected ? "opacity-30 blur-[3px]" : ""}`}
                 />
                 {refining && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-xs text-foreground">
@@ -598,8 +608,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     Adjusting your piece…
                   </div>
                 )}
+                {!refining && renderRejected && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-background/70 p-4 text-center">
+                    <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                      This one won't hold up
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Adjust one thing and we'll make you a new version.
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
+
           </div>
 
           {/* ---- Not quite right? inline tweaks ---- */}
@@ -716,19 +737,25 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             <div className="mt-3 grid grid-cols-3 gap-2">
               {sku.sizes.map((s) => {
                 const active = s.key === sizeKey;
+                const state = checkFor(s.key).state;
                 return (
                   <button
                     key={s.key}
                     type="button"
                     onClick={() => setSizeKey(s.key)}
-                    className={`border p-3 text-left transition-colors ${active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
+                    className={`border p-3 text-left transition-colors ${state === "unprintable" ? "border-destructive/40 opacity-60" : active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
-                    {active && checking && (
+                    {active && state === "checking" && (
                       <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">
                         Confirming price…
+                      </span>
+                    )}
+                    {state === "unprintable" && (
+                      <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-destructive">
+                        Not available
                       </span>
                     )}
                     {s.note && <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">{s.note}</span>}
@@ -736,6 +763,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 );
               })}
             </div>
+
           </div>
 
           {unprintable && (
@@ -829,21 +857,24 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey || !!unprintable}
+                  disabled={checkingOut || !sizeKey || !!unprintable || awaitingConfirmation}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
                   }}
                 >
-                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {checkingOut || awaitingConfirmation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {unprintable
                     ? "Adjust one thing to continue"
                     : !sizeKey
                     ? "Choose a size to continue"
-                    : basketCount > 1
-                      ? `Check out ${basketCount} pieces — $${basketTotal}`
-                      : reveal.cta(selectedPrice)}
+                    : awaitingConfirmation
+                      ? "Confirming this size…"
+                      : basketCount > 1
+                        ? `Check out ${basketCount} pieces — $${basketTotal}`
+                        : reveal.cta(selectedPrice)}
                 </Button>
+
                 <button
                   type="button"
                   onClick={addAnother}
