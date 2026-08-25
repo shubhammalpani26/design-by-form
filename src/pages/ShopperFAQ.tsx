@@ -119,7 +119,7 @@ const ShopperFAQ = () => {
                 What is your return and refund policy?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                You approve the render before anything is made. If the delivered piece doesn't materially match the render you approved, or it arrives damaged or defective, send us photographs within 30 days of delivery and we remake and reship at our cost — and refund you if a remake isn't possible. Because every piece is made to order for a single customer, we don't accept change-of-mind cancellations or returns, and personalisation text you supply (spelling, dates, photographs) isn't refundable.
+                You approve the render before anything is made. If the delivered piece doesn't materially match the render you approved, or it arrives damaged or defective, send us photographs within 30 days of delivery and we remake and reship at our cost. Because every piece is made to order for a single customer, we don't accept change-of-mind cancellations or returns, and personalisation text you supply (spelling, dates, photographs) isn't refundable.
               </AccordionContent>
             </AccordionItem>
 

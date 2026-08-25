@@ -2,7 +2,7 @@ import { PackageCheck, Repeat2, Sparkles } from "lucide-react";
 
 /**
  * Made-to-order terms shown before payment. Each piece is produced for one
- * buyer, so the promise is a remake or a refund on our fault — not a
+ * buyer, so the promise is a free remake on our fault — not a
  * change-of-mind cancellation.
  */
 export const MadeToOrderPolicy = ({ className = "" }: { className?: string }) => (
