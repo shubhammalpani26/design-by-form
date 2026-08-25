@@ -290,15 +290,19 @@ Deno.serve(async (req) => {
       const imageUrl = preview.preview_image_url as string | null;
       if (!imageUrl || !/^https:\/\//i.test(imageUrl)) return json({ status: "skipped" });
 
-      const { data: claimed } = await admin
+      // Another poll already grabbed this preview.
+      if (preview.model_status === "claiming") return json({ status: "generating", progress: 0 });
+      const { data: claimed, error: claimError } = await admin
         .from("originals_previews")
         .update({ model_status: "claiming" })
         .eq("id", previewId)
         .is("model_task_id", null)
-        .neq("model_status", "claiming")
         .select("id")
         .maybeSingle();
+      if (claimError) console.error("claim failed", previewId, claimError.message);
       if (!claimed) return json({ status: "generating", progress: 0 });
+
+
 
       try {
         const taskId = await startModelTask(imageUrl);

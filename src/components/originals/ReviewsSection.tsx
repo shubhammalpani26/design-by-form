@@ -45,7 +45,7 @@ export const ReviewsSection = ({ skuSlug }: Props) => {
             </div>
             <div className="flex items-start gap-2">
               <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>If the piece that arrives doesn't look like them, we remake it and reship it free.</span>
+              <span>If it arrives damaged, broken or clearly not your pet, we remake it and reship it free.</span>
             </div>
           </div>
         </div>
