@@ -63,9 +63,6 @@ export default function OriginalsReturn() {
           },
         });
         if (stop) return;
-      } else if (provider === "cashfree" && groupId && tries === 0) {
-        await supabase.functions.invoke("cashfree-verify", { body: { groupId } });
-        if (stop) return;
       }
       const { data } = await supabase.functions.invoke("originals-order-status", {
         body: groupId ? { groupId } : { orderId },
