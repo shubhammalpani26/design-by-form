@@ -198,9 +198,9 @@ export default function OriginalsReturn() {
 
           <div className="mt-6 border-t border-foreground/10 pt-6 text-xs leading-relaxed text-muted-foreground">
             Your piece is made to order and is already heading into production, so it can't be cancelled or
-            returned for a change of mind. If it arrives damaged or defective, or it doesn't match the render
-            you approved, we remake and reship it free.
-
+            returned for a change of mind. Your render is a design preview — the finished print is a solid
+            single-colour piece, so texture and tone will differ slightly. If it arrives damaged or
+            defective, we remake and reship it free.
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-5 text-sm">

@@ -40,8 +40,8 @@ export const FounderNote = ({ compact = false, className = "" }: FounderNoteProp
           </p>
           {!compact && (
             <p className="text-sm text-muted-foreground leading-relaxed max-w-xl">
-              If a piece arrives and it doesn't look like your pet, we remake it. That promise is the
-              whole business — I read the inbox myself.
+              If a piece arrives broken or clearly isn't the pet you uploaded, we remake it. That promise
+              is the whole business — I read the inbox myself.
             </p>
           )}
 
