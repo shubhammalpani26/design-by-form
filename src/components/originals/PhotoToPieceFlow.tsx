@@ -908,7 +908,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </div>
           ) : (
             <p className="mt-5 border border-border p-4 text-xs text-muted-foreground leading-relaxed">
-              If it doesn't match the render you approved, we remake it free — no return postage to pay.
+              If it arrives damaged or defective, we remake it free — no return postage to pay.
             </p>
           )}
 
@@ -932,6 +932,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a
             stone-look finish, not natural stone. Designed by our AI, checked by our engineers, made by a
             real workshop and shipped to your door.
+          </p>
+          <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+            Your render is a design preview — the finished print is a solid single-colour piece, so texture
+            and tone will differ slightly. That's what makes it one of a kind.
           </p>
         </div>
       )}
