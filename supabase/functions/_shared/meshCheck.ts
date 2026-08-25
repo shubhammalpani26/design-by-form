@@ -153,11 +153,14 @@ export function analyseStl(
 
     if (len > 0) {
       const nz = n[2] / len;
-      // Down-facing and shallower than the overhang limit -> needs support.
-      if (nz < 0 && Math.abs(nz) >= cosLimit) overhangArea += triArea;
       const zMax = Math.max(a[2], b[2], c[2]);
-      if (nz < -0.5 && zMax <= FDM.baseSlabMm) baseArea += triArea;
+      // Down-facing facets resting on the build plate are supported by the bed.
+      const onBed = nz < -0.5 && zMax <= FDM.baseSlabMm;
+      if (onBed) baseArea += triArea;
+      // Down-facing, shallower than the overhang limit, and off the bed -> needs support.
+      if (!onBed && nz < 0 && Math.abs(nz) >= cosLimit) overhangArea += triArea;
     }
+
 
     const ks = [key(a), key(b), key(c)];
     for (let i = 0; i < 3; i++) {
