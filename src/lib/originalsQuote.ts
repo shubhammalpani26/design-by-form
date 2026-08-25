@@ -193,6 +193,12 @@ export function useOriginalsQuotes(
 
   const activeKey = sizeKey ?? defaultSizeKey ?? null;
   const active = checkFor(activeKey);
+  /**
+   * The buyer only ever waits on the default size. Every other size is proven
+   * in the background — the shape is the same, only the scale differs — so
+   * switching to a small or large size never re-blocks checkout.
+   */
+  const gate = checkFor(defaultSizeKey ?? activeKey);
 
   /** True once every size we've evaluated came back unmakeable. */
   const renderRejected = useMemo(() => {
@@ -206,12 +212,18 @@ export function useOriginalsQuotes(
     loading,
     checks,
     checkFor,
-    checking: active.state === "checking",
-    /** Blocks checkout: the selected size is known to be unmakeable. */
-    unprintable: active.state === "unprintable" ? active.reasons ?? [] : null,
-    /** Selected size has passed the geometry + partner slice gate. */
-    confirmed: active.state === "confirmed",
-    printability: active.report ?? null,
+    checking: gate.state === "checking",
+    /** Blocks checkout: a size we've proven is unmakeable. */
+    unprintable:
+      active.state === "unprintable"
+        ? active.reasons ?? []
+        : gate.state === "unprintable"
+          ? gate.reasons ?? []
+          : null,
+    /** The piece has passed the geometry + partner slice gate. */
+    confirmed: gate.state === "confirmed" || active.state === "confirmed",
+    printability: active.report ?? gate.report ?? null,
     renderRejected,
   };
 }
+

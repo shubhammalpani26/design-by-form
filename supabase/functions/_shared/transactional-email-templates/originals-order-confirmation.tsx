@@ -188,11 +188,12 @@ const Email = (props: Props) => {
           <Section>
             <Text style={body}>
               We're making {multi ? 'them' : 'it'} now in our US workshop.{' '}
-              {multi ? 'They ship' : 'It ships'} in 3–5 business days and you'll get
+              {multi ? 'They ship' : 'It ships'} in 7–8 business days and you'll get
               tracking by email. If {multi ? 'anything arrives' : 'it arrives'} damaged
-              or defective we refund you in full, and if {multi ? "anything doesn't" : "it doesn't"}{' '}
-              match the render you approved we remake it free. Because {multi ? 'these are' : 'this is'}{' '}
+              or defective, or {multi ? "anything doesn't" : "it doesn't"}{' '}
+              match the render you approved, we remake and reship it free. Because {multi ? 'these are' : 'this is'}{' '}
               made to order, {multi ? 'they' : 'it'} can't be cancelled or returned for a change of mind.
+
             </Text>
           </Section>
 
