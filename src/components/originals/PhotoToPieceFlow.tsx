@@ -181,15 +181,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   // Mid size is our silent head start — checked the moment the render lands.
   const defaultSizeKey = (sku.sizes[1] ?? sku.sizes[0])?.key ?? null;
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, checking, unprintable, confirmed, checkFor, renderRejected } = useOriginalsQuotes(
+  const { priceFor, unprintable, checkFor, renderRejected } = useOriginalsQuotes(
     sku.slug,
     preview?.id ?? null,
     sizeKey,
     defaultSizeKey,
   );
   const selectedPrice = priceFor(selectedSize.key, selectedSize.price);
-  // Only hold checkout while we're still confirming the size they picked.
-  const awaitingConfirmation = Boolean(sizeKey) && checking && !confirmed && !unprintable;
+  // The print check runs silently in the background. It never makes the buyer
+  // wait — checkout is only ever stopped by a size we've *proven* unmakeable.
+
 
 
   const displayName =
@@ -748,11 +749,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
-                    {active && state === "checking" && s.key === defaultSizeKey && (
-                      <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-muted-foreground">
-                        Confirming price…
-                      </span>
-                    )}
 
                     {state === "unprintable" && (
                       <span className="mt-1 block text-[10px] tracking-[0.1em] uppercase text-destructive">
@@ -858,20 +854,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey || !!unprintable || awaitingConfirmation}
+                  disabled={checkingOut || !sizeKey || !!unprintable}
                   onClick={(e) => {
                     e.preventDefault();
                     void checkout();
                   }}
                 >
-                  {checkingOut || awaitingConfirmation ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {unprintable
                     ? "Adjust one thing to continue"
                     : !sizeKey
                     ? "Choose a size to continue"
-                    : awaitingConfirmation
-                      ? "Confirming this size…"
-                      : basketCount > 1
+                    : basketCount > 1
                         ? `Check out ${basketCount} pieces — $${basketTotal}`
                         : reveal.cta(selectedPrice)}
                 </Button>
