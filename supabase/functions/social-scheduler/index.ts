@@ -18,8 +18,8 @@ const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
 /** One scheduled invocation renders one due creative; it never pre-renders future slots. */
 const RENDER_BATCH = 1;
-/** Bounded catch-up without allowing an invocation to drain the entire queue. */
-const PUBLISH_BATCH = 4;
+/** One scheduled invocation publishes at most one post. */
+const PUBLISH_BATCH = 1;
 const LEASE_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
@@ -526,14 +526,13 @@ Deno.serve(async (req) => {
     if (leaseErr) throw new Error(`lease failed: ${leaseErr.message}`);
     if (leased !== true) return json({ skipped: "locked" });
 
-    // Publishing does not consume AI credits. Always release approved creatives,
-    // even while generation is circuit-broken by a 402/403.
-    const publishedResult = await publishDue();
-
     // While AI is paused, one due item is the permitted recovery probe. A denied
     // probe keeps the circuit open; a successful render clears it automatically.
     const rendered = await renderDue();
-    const justRenderedPublish = rendered.paused ? { published: 0 } : await publishDue();
+
+    // Publishing does not consume AI credits. Always release one approved creative,
+    // even when the generation probe keeps the AI circuit paused.
+    const publishedResult = await publishDue();
 
     await admin
       .from("social_scheduler_state")
@@ -543,7 +542,7 @@ Deno.serve(async (req) => {
     return json({
       ok: true,
       ...rendered,
-      published: (publishedResult.published ?? 0) + (justRenderedPublish.published ?? 0),
+      published: publishedResult.published ?? 0,
       ai_paused: rendered.paused === true,
     });
   } catch (e) {
