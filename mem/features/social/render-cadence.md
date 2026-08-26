@@ -1,13 +1,13 @@
 ---
 name: Social scheduler render cadence
-description: Only render Instagram creatives 2 days ahead; keep cron/auto-publish always on; happy/calm expression mix, never sad
+description: Render each Instagram creative only when its posting slot is due; four posts daily; happy/calm expression mix, never sad
 type: preference
 ---
-Render creatives only for posts scheduled within the next 2 days (RENDER_LOOKAHEAD_MS = 2 days in `social-scheduler`). Never bulk-render the whole 7-day queue.
+Render one creative only when its scheduled posting slot is due. Never pre-render future slots or bulk-render the queue.
 
-**Why:** keeps creatives in context and in sync with the current narrative; avoids stale/off-message posts and wasted AI credits.
+**Why:** keeps creatives current and limits paid AI use to the four actual daily posts.
 
-**How to apply:** keep the 5-minute cron and auto-publishing enabled at all times; the queue stays seeded for 7 days but images generate rolling 2 days out. Every render still passes the engineering agent and carries the engraving + 4:5 portrait clauses.
+**How to apply:** invoke the scheduler exactly four times daily at the four posting slots. Each invocation may render at most one due creative, run its engineering check, and publish one approved post. A 402/403 AI circuit pause must not prevent already-rendered approved posts from publishing. Every render still carries the engraving + 4:5 portrait clauses.
 
 **Expression mix:** every render uses a deterministic happy-or-calm expression (`expressionFor(id)` in `social-scheduler`) — roughly half joyful open-mouthed smiles, half calm content faces. NEVER solemn, grieving, or sad. Do not force every render to be happy.
 
