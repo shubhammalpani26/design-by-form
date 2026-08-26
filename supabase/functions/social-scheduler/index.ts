@@ -543,7 +543,7 @@ Deno.serve(async (req) => {
       ok: true,
       ...rendered,
       published: publishedResult.published ?? 0,
-      ai_paused: rendered.paused === true,
+      ai_paused: rendered.paused === true || (aiCircuitPaused && (rendered.rendered ?? 0) === 0),
     });
   } catch (e) {
     console.error("social-scheduler error", e);

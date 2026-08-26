@@ -47,12 +47,16 @@ const et = (iso: string) =>
     minute: "2-digit",
   });
 
+const isAiCreditPause = (reason: string | null | undefined) =>
+  reason?.startsWith("AI gateway 402:") === true || reason?.startsWith("AI gateway 403:") === true;
+
 export const SocialScheduleManagement = () => {
   const [posts, setPosts] = useState<ScheduledPost[]>([]);
   const [state, setState] = useState<SchedulerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
   const { toast } = useToast();
+  const aiRenderingPaused = state?.paused === true && isAiCreditPause(state.pause_reason);
 
   const load = useCallback(async () => {
     const [{ data: rows }, { data: st }] = await Promise.all([
@@ -126,14 +130,19 @@ export const SocialScheduleManagement = () => {
       <div className="flex flex-wrap items-center justify-between gap-3 border border-border p-4">
         <div className="text-sm">
           <div className="font-medium">
-            Auto-publishing to @nyzora.ai — {state?.paused ? "paused" : "live"}
+            Auto-publishing to @nyzora.ai — {state?.paused && !aiRenderingPaused ? "paused" : "live"}
           </div>
           <div className="text-muted-foreground">
-            {state?.pause_reason ?? `Last checked ${state?.last_run_at ? et(state.last_run_at) : "never"} ET`}
+            {aiRenderingPaused
+              ? "Publishing approved posts; new rendering is paused by the workspace AI credit limit"
+              : state?.pause_reason ?? `Last checked ${state?.last_run_at ? et(state.last_run_at) : "never"} ET`}
           </div>
         </div>
-        <Button variant={state?.paused ? "default" : "outline"} onClick={() => setPaused(!state?.paused)}>
-          {state?.paused ? "Resume" : "Pause"}
+        <Button
+          variant={state?.paused && !aiRenderingPaused ? "default" : "outline"}
+          onClick={() => setPaused(!(state?.paused && !aiRenderingPaused))}
+        >
+          {state?.paused && !aiRenderingPaused ? "Resume" : "Pause"}
         </Button>
       </div>
 
