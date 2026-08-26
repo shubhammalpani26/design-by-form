@@ -16,11 +16,10 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-/** Bounded work per run — the scheduler never drains the whole queue at once. */
-const RENDER_BATCH = 4;
-const PUBLISH_BATCH = 1;
-/** Render only 2 days ahead so creatives stay in sync with the live narrative. */
-const RENDER_LOOKAHEAD_MS = 2 * 24 * 60 * 60 * 1000;
+/** One scheduled invocation renders one due creative; it never pre-renders future slots. */
+const RENDER_BATCH = 1;
+/** Bounded catch-up without allowing an invocation to drain the entire queue. */
+const PUBLISH_BATCH = 4;
 const LEASE_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 3;
 
@@ -160,6 +159,16 @@ async function pause(reason: string) {
     .eq("id", "default");
 }
 
+const isAiCircuitPause = (reason: string | null | undefined) =>
+  reason?.startsWith("AI gateway 402:") === true || reason?.startsWith("AI gateway 403:") === true;
+
+async function clearAiPause() {
+  await admin
+    .from("social_scheduler_state")
+    .update({ paused: false, pause_reason: null, last_error: null, updated_at: new Date().toISOString() })
+    .eq("id", "default");
+}
+
 /* ------------------------------- rendering ------------------------------- */
 
 function decodeDataUrl(dataUrl: string) {
@@ -219,23 +228,22 @@ async function engineeringCheck(imageUrl: string, prompt: string) {
 const ENGINEERING_RETRIES = 2;
 
 async function renderDue() {
-  const horizon = new Date(Date.now() + RENDER_LOOKAHEAD_MS).toISOString();
+  const now = new Date().toISOString();
 
-  // A slot parked for review still has a posting time to make: requeue it for a
-  // fresh render pass while it has attempts left and hasn't slipped its slot.
+  // A rejected render gets another bounded pass only when its posting slot is due.
   await admin
     .from("social_scheduled_posts")
     .update({ status: "scheduled", image_url: null })
     .eq("status", "needs_review")
     .lt("attempts", MAX_ATTEMPTS)
-    .gt("scheduled_at", new Date().toISOString());
+    .lte("scheduled_at", now);
 
   const { data } = await admin
     .from("social_scheduled_posts")
     .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
     .eq("status", "scheduled")
     .is("image_url", null)
-    .lte("scheduled_at", horizon)
+    .lte("scheduled_at", now)
     .lt("attempts", MAX_ATTEMPTS)
     .order("scheduled_at", { ascending: true })
     .limit(RENDER_BATCH);
@@ -262,6 +270,8 @@ async function renderDue() {
         break;
       }
       imageUrl = rendered.url;
+      // A successful probe proves the workspace can generate again.
+      await clearAiPause();
       if (!post.is_render) {
         engineering_status = "skipped";
         break;
@@ -504,7 +514,8 @@ Deno.serve(async (req) => {
       .eq("id", "default")
       .maybeSingle();
 
-    if (state?.paused) {
+    const aiCircuitPaused = state?.paused === true && isAiCircuitPause(state.pause_reason);
+    if (state?.paused && !aiCircuitPaused) {
       return json({ skipped: "paused", reason: state.pause_reason });
     }
 
@@ -515,15 +526,26 @@ Deno.serve(async (req) => {
     if (leaseErr) throw new Error(`lease failed: ${leaseErr.message}`);
     if (leased !== true) return json({ skipped: "locked" });
 
+    // Publishing does not consume AI credits. Always release approved creatives,
+    // even while generation is circuit-broken by a 402/403.
+    const publishedResult = await publishDue();
+
+    // While AI is paused, one due item is the permitted recovery probe. A denied
+    // probe keeps the circuit open; a successful render clears it automatically.
     const rendered = await renderDue();
-    const publishedResult = rendered.paused ? { published: 0 } : await publishDue();
+    const justRenderedPublish = rendered.paused ? { published: 0 } : await publishDue();
 
     await admin
       .from("social_scheduler_state")
       .update({ lease_until: null, updated_at: new Date().toISOString() })
       .eq("id", "default");
 
-    return json({ ok: true, ...rendered, ...publishedResult });
+    return json({
+      ok: true,
+      ...rendered,
+      published: (publishedResult.published ?? 0) + (justRenderedPublish.published ?? 0),
+      ai_paused: rendered.paused === true,
+    });
   } catch (e) {
     console.error("social-scheduler error", e);
     await admin
