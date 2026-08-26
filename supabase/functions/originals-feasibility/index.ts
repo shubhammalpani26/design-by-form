@@ -290,13 +290,18 @@ Deno.serve(async (req) => {
       const imageUrl = preview.preview_image_url as string | null;
       if (!imageUrl || !/^https:\/\//i.test(imageUrl)) return json({ status: "skipped" });
 
-      // Another poll already grabbed this preview.
+      // Another poll already grabbed this preview (fast path on the stale read).
       if (preview.model_status === "claiming") return json({ status: "generating", progress: 0 });
+      // Atomic claim: the status filter is re-evaluated at write time, so a
+      // concurrent poll that loses the race matches 0 rows and bails — the
+      // Meshy job can only be started once. NULL status (fresh previews) must
+      // still be claimable, hence the explicit is.null branch.
       const { data: claimed, error: claimError } = await admin
         .from("originals_previews")
         .update({ model_status: "claiming" })
         .eq("id", previewId)
         .is("model_task_id", null)
+        .or("model_status.is.null,model_status.neq.claiming")
         .select("id")
         .maybeSingle();
       if (claimError) console.error("claim failed", previewId, claimError.message);
