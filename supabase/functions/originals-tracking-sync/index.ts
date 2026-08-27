@@ -3,6 +3,7 @@ import { sendAppEmail } from "../_shared/appEmail.ts";
 import { getTracking } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
+import { requireCaller, unauthorized } from "../_shared/requireCaller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -134,6 +135,10 @@ async function notifyReviewRequest(
  */
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+
+  // Triggers partner API calls and buyer emails — never open to anonymous callers.
+  const caller = await requireCaller(req);
+  if (!caller) return unauthorized(corsHeaders);
 
   try {
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
