@@ -319,8 +319,11 @@ async function renderDue() {
         last_error: engineering_status === "fail" ? "Engineering agent rejected this render" : null,
       })
       .eq("id", post.id);
+
+    if (status === "ready") succeeded++;
   }
-  return { rendered: posts.length };
+  return { rendered: succeeded };
+
 }
 
 /* ------------------------------- publishing ------------------------------ */
