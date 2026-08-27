@@ -230,11 +230,13 @@ const ENGINEERING_RETRIES = 2;
 async function renderDue() {
   const now = new Date().toISOString();
 
-  // A rejected render gets another bounded pass only when its posting slot is due.
+  // Only an agent-rejected render is unusable and worth re-rendering. Posts parked for any
+  // other reason keep their generated image so an admin can still publish them manually.
   await admin
     .from("social_scheduled_posts")
     .update({ status: "scheduled", image_url: null })
     .eq("status", "needs_review")
+    .eq("engineering_status", "fail")
     .lt("attempts", MAX_ATTEMPTS)
     .lte("scheduled_at", now);
 
@@ -246,10 +248,15 @@ async function renderDue() {
     .lte("scheduled_at", now)
     .lt("attempts", MAX_ATTEMPTS)
     .order("scheduled_at", { ascending: true })
-    .limit(RENDER_BATCH);
+    .limit(RENDER_CANDIDATES);
 
+  // Walk the due backlog oldest-first but stop as soon as one creative lands, so a failed
+  // or rejected slot cannot silently swallow the whole run's posting capacity.
   const posts = (data ?? []) as Post[];
+  let succeeded = 0;
   for (const post of posts) {
+    if (succeeded >= RENDER_BATCH) break;
+
     let engineering: unknown = null;
     let engineering_status = "skipped";
     let imageUrl: string | null = null;
