@@ -252,9 +252,9 @@ const handler = async (req: Request): Promise<Response> => {
           `,
         });
 
-        console.log(`Email sent to ${designer.email}:`, emailResponse);
+        console.log("Designer order email sent", { designerId: designer.id ?? null });
       } catch (emailError) {
-        console.error(`Error sending email to ${designer.email}:`, emailError);
+        console.error("Designer order email failed", { designerId: designer.id ?? null, error: emailError });
         // Continue processing other designers even if one fails
       }
     }

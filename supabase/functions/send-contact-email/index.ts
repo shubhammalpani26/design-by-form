@@ -66,7 +66,7 @@ const handler = async (req: Request): Promise<Response> => {
     const validatedData = contactSchema.parse(rawData);
     const { firstName, lastName, email, subject, message } = validatedData;
 
-    console.log("Processing contact form submission from:", email);
+    console.log("Processing contact form submission");
 
     // Send confirmation email to the user with escaped HTML
     const userEmailResponse = await resend.emails.send({

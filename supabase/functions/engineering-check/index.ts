@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 import { buildBudgetBrief, formatMoney } from "../_shared/budget.ts";
+import { requireCaller, unauthorized } from "../_shared/requireCaller.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -106,7 +107,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // This endpoint spends AI credits — internal service calls or signed-in users only.
+  const caller = await requireCaller(req);
+  if (!caller) return unauthorized(corsHeaders);
+
   try {
+
     const raw = await req.json();
     const parsed = inputSchema.safeParse(raw);
     if (!parsed.success) {
