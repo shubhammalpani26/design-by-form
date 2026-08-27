@@ -106,7 +106,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // This endpoint spends AI credits — internal service calls or signed-in users only.
+  const caller = await requireCaller(req);
+  if (!caller) return unauthorized(corsHeaders);
+
   try {
+
     const raw = await req.json();
     const parsed = inputSchema.safeParse(raw);
     if (!parsed.success) {
