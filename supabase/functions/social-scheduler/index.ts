@@ -16,8 +16,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-/** One scheduled invocation renders one due creative; it never pre-renders future slots. */
+/** One scheduled invocation lands one due creative; it never pre-renders future slots. */
 const RENDER_BATCH = 1;
+/** How far down the due backlog a run may walk when the first candidates fail or are rejected. */
+const RENDER_CANDIDATES = 3;
+
 /** One scheduled invocation publishes at most one post. */
 const PUBLISH_BATCH = 1;
 const LEASE_MS = 5 * 60 * 1000;
@@ -230,11 +233,13 @@ const ENGINEERING_RETRIES = 2;
 async function renderDue() {
   const now = new Date().toISOString();
 
-  // A rejected render gets another bounded pass only when its posting slot is due.
+  // Only an agent-rejected render is unusable and worth re-rendering. Posts parked for any
+  // other reason keep their generated image so an admin can still publish them manually.
   await admin
     .from("social_scheduled_posts")
     .update({ status: "scheduled", image_url: null })
     .eq("status", "needs_review")
+    .eq("engineering_status", "fail")
     .lt("attempts", MAX_ATTEMPTS)
     .lte("scheduled_at", now);
 
@@ -246,10 +251,15 @@ async function renderDue() {
     .lte("scheduled_at", now)
     .lt("attempts", MAX_ATTEMPTS)
     .order("scheduled_at", { ascending: true })
-    .limit(RENDER_BATCH);
+    .limit(RENDER_CANDIDATES);
 
+  // Walk the due backlog oldest-first but stop as soon as one creative lands, so a failed
+  // or rejected slot cannot silently swallow the whole run's posting capacity.
   const posts = (data ?? []) as Post[];
+  let succeeded = 0;
   for (const post of posts) {
+    if (succeeded >= RENDER_BATCH) break;
+
     let engineering: unknown = null;
     let engineering_status = "skipped";
     let imageUrl: string | null = null;
@@ -312,8 +322,11 @@ async function renderDue() {
         last_error: engineering_status === "fail" ? "Engineering agent rejected this render" : null,
       })
       .eq("id", post.id);
+
+    if (status === "ready") succeeded++;
   }
-  return { rendered: posts.length };
+  return { rendered: succeeded };
+
 }
 
 /* ------------------------------- publishing ------------------------------ */
