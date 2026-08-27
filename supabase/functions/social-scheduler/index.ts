@@ -16,8 +16,11 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
 
-/** One scheduled invocation renders one due creative; it never pre-renders future slots. */
+/** One scheduled invocation lands one due creative; it never pre-renders future slots. */
 const RENDER_BATCH = 1;
+/** How far down the due backlog a run may walk when the first candidates fail or are rejected. */
+const RENDER_CANDIDATES = 3;
+
 /** One scheduled invocation publishes at most one post. */
 const PUBLISH_BATCH = 1;
 const LEASE_MS = 5 * 60 * 1000;
