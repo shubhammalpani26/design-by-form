@@ -28,7 +28,7 @@ const Terms = () => {
                   <div className="space-y-2 text-sm">
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
-                      <a href="tel:+919082582002" className="hover:underline">+91 90825 82002</a>
+                      <a href="tel:+18885002881" className="hover:underline">1 (888) 500-2881</a>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
@@ -283,7 +283,7 @@ const Terms = () => {
               <div className="bg-muted/50 rounded-lg p-6 space-y-3">
                 <div>
                   <p className="text-sm text-muted-foreground">Email: contact@nyzora.ai</p>
-                  <p className="text-sm text-muted-foreground">Phone: +91 90825 82002</p>
+                  <p className="text-sm text-muted-foreground">Phone: 1 (888) 500-2881</p>
                 </div>
               </div>
             </section>
