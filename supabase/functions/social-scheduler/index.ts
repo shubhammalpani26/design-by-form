@@ -137,11 +137,22 @@ const FORMAT_CLAUSE = " Vertical 4:5 portrait framing suitable for an Instagram 
 /** The piece is printed in one filament, so nothing on it can be a different colour. */
 const MONOCHROME_CLAUSE =
   " Material: printed in a single filament colour — the whole piece including the eyes, pupils, nose, tongue, mouth and base " +
-  "is exactly the same matte colour and finish as the body. No coloured irises, no glossy or wet highlights, no pink tongue, " +
+  "is exactly the same colour and finish as the body. No coloured irises, no wet or mirror highlights, no pink tongue, " +
   "no painted details, no two-tone or multi-colour areas anywhere; eyes and details read purely as sculpted form.";
 
+/** Matches the product renders: a real satin PLA print, not a flat matte CG object. */
+const SATIN_CLAUSE =
+  " Finish: a soft satin PLA sheen photographed as a real 3D-printed object in a studio — broad gentle highlights rolling " +
+  "over the curved surfaces, warm soft-box reflections, and very fine even horizontal print layer lines in the same colour " +
+  "catching the light along the curves. Not glossy, not a flat matte CG render.";
+
+/** Every edge is eased — the first physical print came back uncomfortably sharp. */
+const SOFT_EDGE_CLAUSE =
+  " Edges: the plinth is deep and heavy with generously rounded corners and a soft chamfer along every top and bottom edge — " +
+  "no sharp knife edges anywhere, every transition eased and hand-friendly, the piece reading substantial and heavy in the hand.";
+
 const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${MONOCHROME_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${MONOCHROME_CLAUSE}${SATIN_CLAUSE}${SOFT_EDGE_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
