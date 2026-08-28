@@ -137,7 +137,12 @@ export function OriginalsFulfillmentManagement() {
     load();
   };
 
-  /** The partner stops at "shipped" — carriers confirm delivery, so we stamp it. */
+  /**
+   * The partner stops at "shipped" — carriers confirm delivery, so we stamp it.
+   * Marking delivered manually also fires the review-request email by asking
+   * tracking-sync to process this order group (it sends the email once, when
+   * review_requested_at is still null).
+   */
   const markDelivered = async (order: OriginalsOrder) => {
     setBusy(order.id);
     const now = new Date().toISOString();
@@ -145,12 +150,19 @@ export function OriginalsFulfillmentManagement() {
       .from("originals_orders")
       .update({ production_status: "delivered", delivered_at: now, updated_at: now })
       .eq("id", order.id);
-    setBusy(null);
     if (error) {
+      setBusy(null);
       toast({ title: "Couldn't update", description: error.message, variant: "destructive" });
       return;
     }
-    toast({ title: "Marked delivered", description: `#${order.id.slice(0, 8)} is now delivered.` });
+    // Trigger the review-request email for this group (safe to call as admin).
+    if (order.group_id) {
+      await supabase.functions.invoke("originals-tracking-sync", {
+        body: { group_id: order.group_id },
+      });
+    }
+    setBusy(null);
+    toast({ title: "Marked delivered", description: `#${order.id.slice(0, 8)} is now delivered — review email sent.` });
     load();
   };
 
