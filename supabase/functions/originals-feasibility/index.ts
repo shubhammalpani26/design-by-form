@@ -207,7 +207,7 @@ async function priceSizes(
           // feels in hand — flag light pieces for a plinth/volume tweak.
           grams: landed.metrics?.weight ?? null,
           lightForPrice: typeof landed.metrics?.weight === "number"
-            ? landed.metrics.weight < MIN_GRAMS[sizeKey] ?? 0
+            ? landed.metrics.weight < (MIN_GRAMS[sizeKey] ?? 0)
             : null,
         },
         error: repaired && firstError ? `Recovered after repair: ${firstError.slice(0, 300)}` : null,
