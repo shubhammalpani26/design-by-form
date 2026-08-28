@@ -25,6 +25,13 @@ const admin = createClient(
 const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shipped"];
 
 /**
+ * The partner never reports delivery. US ground from Boise is 7-8 business
+ * days worst case, so a label older than this is treated as delivered — that
+ * closes the order and triggers the review request without an admin clicking.
+ */
+const ASSUME_DELIVERED_AFTER_MS = 9 * 24 * 60 * 60 * 1000;
+
+/**
  * Once a partner order exists the piece IS in production — the partner's own
  * "queued"/"pending"/"awaiting_shipment" are internal queue states and must
  * never push the buyer's tracker back to "Order confirmed".
@@ -147,7 +154,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipping_notified_at, review_requested_at",
+        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       .limit(60);
