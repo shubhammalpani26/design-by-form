@@ -45,6 +45,26 @@ export const SKU_NAMES: Record<string, string> = {
 };
 
 /**
+ * SKUs whose piece is sculpted from the buyer's own photo. For these, the SKU
+ * master STL is a pricing reference only — it must never be manufactured, or
+ * the buyer receives a generic bust with no engraving.
+ */
+export const PHOTO_PERSONALIZED_SKUS = new Set([
+  "pet-silhouette-keepsake",
+  "pet-portrait-sculpture",
+]);
+
+/** True when this URL is a SKU master reference model rather than a buyer's own piece. */
+export async function isMasterPrintFile(admin: any, url: string): Promise<boolean> {
+  const { data } = await admin
+    .from("originals_print_models")
+    .select("id")
+    .eq("stl_url", url)
+    .maybeSingle();
+  return Boolean(data);
+}
+
+/**
  * Minimum retail multiple over the landed manufacturing cost. Covers the
  * manufacturing margin plus ad spend, packaging and payment fees.
  */
