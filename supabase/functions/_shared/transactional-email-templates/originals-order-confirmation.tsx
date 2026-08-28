@@ -20,6 +20,8 @@ interface Item {
   previewImageUrl?: string
   quantity?: number | string
   skuSlug?: string
+  /** Typical finished weight, e.g. "approx. 180 g (6.3 oz)". */
+  weightLabel?: string
 }
 
 interface Props extends Item {
@@ -99,6 +101,7 @@ export const normalizeItems = (props: Props): Item[] => {
         previewImageUrl: props.previewImageUrl,
         quantity: props.quantity,
         skuSlug: props.skuSlug,
+        weightLabel: props.weightLabel,
       },
     ]
   }
@@ -127,6 +130,7 @@ const ItemRow = ({ item, layout }: { item: Item; layout: 'single' | 'multi' }) =
   const size = clean(item.sizeLabel, 60)
   const qty = Math.max(1, Number(item.quantity ?? 1) || 1)
   const price = money(item.amountUsd)
+  const weight = clean(item.weightLabel, 40)
   const raw = itemImage(item)
   const src = raw ? emailImage(raw, layout === 'single' ? 900 : 320) : null
   return (
@@ -144,6 +148,7 @@ const ItemRow = ({ item, layout }: { item: Item; layout: 'single' | 'multi' }) =
         {qty > 1 ? ` × ${qty}` : ''}
       </Text>
       {size ? <Text style={itemMeta}>{size}</Text> : null}
+      {weight ? <Text style={itemMeta}>Weight: {weight}</Text> : null}
       {price ? <Text style={itemMeta}>{price}</Text> : null}
     </Section>
   )
@@ -218,6 +223,7 @@ export const template = {
   previewData: {
     orderId: '8f2c1a90-1111-2222-3333-444455556666',
     sizeLabel: 'Statement — 196 mm',
+    weightLabel: 'approx. 340 g (12.0 oz)',
     amountUsd: 139,
     productName: 'Pet Sculpture Piece',
   },

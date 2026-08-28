@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { sendAppEmail } from "./appEmail.ts";
+import { sizeWeightLabel } from "./originalsWeight.ts";
 
 const db = () =>
   createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -22,6 +23,7 @@ async function sendReceipt(email: string | null, orders: any[]) {
       previewImageUrl: o.preview_image_url ?? "",
       skuSlug: o.sku_slug ?? "",
       quantity: qty,
+      weightLabel: sizeWeightLabel(o.size_key) ?? "",
     };
   });
   const templateData = {
@@ -54,7 +56,7 @@ export async function markOriginalsPaid(
   const admin = db();
   const { data: orders } = await admin
     .from("originals_orders")
-    .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, customer_email")
+    .select("id, status, sku_slug, size_key, size_label, amount_usd, quantity, preview_image_url, customer_email")
     .eq("provider_order_id", providerOrderId)
     .order("created_at", { ascending: true });
 
