@@ -37,6 +37,18 @@ const admin = createClient(
 const MESHY = "https://api.meshy.ai/openapi/v1/image-to-3d";
 const roundUpTo5 = (n: number) => Math.ceil(n / 5) * 5;
 
+/**
+ * Mass we expect a piece to carry so it feels worth its price in hand.
+ * The partner prints at fixed slicer settings (we cannot raise infill through
+ * the API), so mass is purely geometry — a light result means the form needs
+ * a deeper plinth or more volume, and gets flagged in the validation log.
+ */
+const MIN_GRAMS: Record<string, number> = {
+  petite: 90,
+  standard: 140,
+  statement: 280,
+};
+
 function meshyKey(): string {
   const key = Deno.env.get("MESHY_API_KEY");
   if (!key) throw new Error("3D generation is not configured");
@@ -190,6 +202,13 @@ async function priceSizes(
           shippingUsd: landed.shippingUsd,
           landedUsd: landed.landedUsd,
           retailUsd: retail,
+          // Partner-reported print mass. The partner slices at its own fixed
+          // settings, so grams are our only read on how substantial the piece
+          // feels in hand — flag light pieces for a plinth/volume tweak.
+          grams: landed.metrics?.weight ?? null,
+          lightForPrice: typeof landed.metrics?.weight === "number"
+            ? landed.metrics.weight < (MIN_GRAMS[sizeKey] ?? 0)
+            : null,
         },
         error: repaired && firstError ? `Recovered after repair: ${firstError.slice(0, 300)}` : null,
       });
