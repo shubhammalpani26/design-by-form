@@ -207,9 +207,6 @@ Deno.serve(async (req) => {
         }
 
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
-        // Infer the carrier from the tracking number so the buyer's tracker
-        // and the shipping email link to the carrier's own page.
-        const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
         await admin
           .from("originals_orders")
           .update({
@@ -219,7 +216,9 @@ Deno.serve(async (req) => {
             // Stamp the ship date once — re-stamping it every sync would keep
             // pushing the delivery estimate forward forever.
             ...(shipped && !row.shipped_at ? { shipped_at: new Date().toISOString() } : {}),
-            ...(nextStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
+            ...(nextStatus === "delivered"
+              ? { delivered_at: carrierDeliveredAt ?? new Date().toISOString() }
+              : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("id", row.id);
@@ -227,20 +226,21 @@ Deno.serve(async (req) => {
 
         // Only log real movement so the admin timeline stays signal, not noise.
         if (nextStatus !== row.production_status || numbers.length) {
+          const carrierConfirmed = nextStatus === "delivered" && carrierDeliveredAt !== null;
           await logPartnerEvent(admin, {
             orderId: row.id,
             groupId: row.group_id,
             partnerOrderId: key,
             source: "tracking_sync",
             stage: shipped ? "shipping" : "production",
-            event: assumedDelivered ? "delivery_assumed" : `partner_status_${status}`,
+            event: carrierConfirmed ? "carrier_delivery_confirmed" : `partner_status_${status}`,
             status: nextStatus,
-            message: assumedDelivered
-              ? "No partner delivery event — marked delivered from transit time"
+            message: carrierConfirmed
+              ? `Carrier confirmed delivery${carrierStatusText ? `: ${carrierStatusText}` : ""}`
               : numbers.length
-              ? `Tracking: ${numbers.join(", ")}`
+              ? `Tracking: ${numbers.join(", ")}${carrierStatusText ? ` — carrier says: ${carrierStatusText}` : ""}`
               : null,
-            details: { partnerStatus: status, tracking: numbers, carrier, assumedDelivered },
+            details: { partnerStatus: status, tracking: numbers, carrier, carrierStatusText },
           });
         }
 
