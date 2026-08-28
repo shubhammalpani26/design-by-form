@@ -142,6 +142,34 @@ Deno.serve(async (req) => {
         });
         return json({ error: `Piece ${row.id.slice(0, 8)} has no printable .stl yet`, needsFile: row.id }, 400);
       }
+      // Hard stop: a photo piece must be the buyer's own sculpted, engraved
+      // model. The SKU master is a pricing reference — printing it ships a
+      // generic bust with none of their personalisation.
+      if (
+        PHOTO_PERSONALIZED_SKUS.has(row.sku_slug) &&
+        !files[row.id] &&
+        (await isMasterPrintFile(admin, url!))
+      ) {
+        const reason =
+          "Generic reference model attached — this piece needs the buyer's own sculpted, engraved .stl";
+        await admin
+          .from("originals_orders")
+          .update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        await alertFulfillmentFailure(admin, {
+          orderId: row.id,
+          groupId: row.group_id,
+          customerEmail: row.customer_email,
+          pieces: paid.length,
+          stage: "print file",
+          error: reason,
+        });
+        return json({ error: reason, needsFile: row.id }, 400);
+      }
       const uploaded = await uploadPrintFile(url!, {
         name: `${row.sku_slug}-${row.id.slice(0, 8)}.stl`,
         ownerId: "nyzora-originals",
