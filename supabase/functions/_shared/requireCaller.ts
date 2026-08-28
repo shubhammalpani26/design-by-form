@@ -12,6 +12,12 @@ export type CallerKind = "service" | "user";
 export async function requireCaller(
   req: Request,
 ): Promise<{ kind: CallerKind; userId: string | null } | null> {
+  // Internal scheduler calls authenticate with a shared cron secret header.
+  const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (cronSecret && req.headers.get("x-cron-secret") === cronSecret) {
+    return { kind: "service", userId: null };
+  }
+
   const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "").trim();
   if (!token) return null;
 
