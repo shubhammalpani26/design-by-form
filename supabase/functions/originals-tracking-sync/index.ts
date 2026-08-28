@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 import { getTracking } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
+import { confirmCarrierDelivery } from "../_shared/carrierTracking.ts";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
 import { requireCaller, unauthorized } from "../_shared/requireCaller.ts";
 
@@ -25,11 +26,11 @@ const admin = createClient(
 const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shipped"];
 
 /**
- * The partner never reports delivery. US ground from Boise is 7-8 business
- * days worst case, so a label older than this is treated as delivered — that
- * closes the order and triggers the review request without an admin clicking.
+ * The partner never reports delivery, and we never assume it from transit
+ * time — a box delayed by weather is not delivered. Delivery is only set when
+ * the carrier's own tracking feed confirms it (see _shared/carrierTracking.ts)
+ * or an admin marks it manually in the ops console.
  */
-const ASSUME_DELIVERED_AFTER_MS = 9 * 24 * 60 * 60 * 1000;
 
 /**
  * Once a partner order exists the piece IS in production — the partner's own
@@ -190,21 +191,22 @@ Deno.serve(async (req) => {
         const numbers = flatten(trackingNumbers);
 
         let nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
-        // The partner's lifecycle stops at "shipped" — carriers, not the maker,
-        // complete the journey. US ground from Boise lands well inside a week,
-        // so a label that's been live this long is treated as delivered rather
-        // than waiting on a manual click in the ops console.
-        const shippedAt = row.shipped_at ? new Date(row.shipped_at).getTime() : null;
-        const assumedDelivered =
-          nextStatus === "shipped" &&
-          shippedAt !== null &&
-          Date.now() - shippedAt >= ASSUME_DELIVERED_AFTER_MS;
-        if (assumedDelivered) nextStatus = "delivered";
+        // The partner's lifecycle stops at "shipped" — only the carrier knows
+        // the box landed. Ask the carrier's tracking feed; a null answer means
+        // "unknown", and unknown is never delivered.
+        const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
+        let carrierDeliveredAt: string | null = null;
+        let carrierStatusText: string | null = null;
+        if (nextStatus === "shipped" && numbers.length) {
+          const check = await confirmCarrierDelivery(carrier, numbers[0]);
+          carrierStatusText = check?.statusText ?? null;
+          if (check?.delivered) {
+            nextStatus = "delivered";
+            carrierDeliveredAt = check.deliveredAt;
+          }
+        }
 
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
-        // Infer the carrier from the tracking number so the buyer's tracker
-        // and the shipping email link to the carrier's own page.
-        const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
         await admin
           .from("originals_orders")
           .update({
@@ -214,7 +216,9 @@ Deno.serve(async (req) => {
             // Stamp the ship date once — re-stamping it every sync would keep
             // pushing the delivery estimate forward forever.
             ...(shipped && !row.shipped_at ? { shipped_at: new Date().toISOString() } : {}),
-            ...(nextStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
+            ...(nextStatus === "delivered"
+              ? { delivered_at: carrierDeliveredAt ?? new Date().toISOString() }
+              : {}),
             updated_at: new Date().toISOString(),
           })
           .eq("id", row.id);
@@ -222,20 +226,21 @@ Deno.serve(async (req) => {
 
         // Only log real movement so the admin timeline stays signal, not noise.
         if (nextStatus !== row.production_status || numbers.length) {
+          const carrierConfirmed = nextStatus === "delivered" && carrierDeliveredAt !== null;
           await logPartnerEvent(admin, {
             orderId: row.id,
             groupId: row.group_id,
             partnerOrderId: key,
             source: "tracking_sync",
             stage: shipped ? "shipping" : "production",
-            event: assumedDelivered ? "delivery_assumed" : `partner_status_${status}`,
+            event: carrierConfirmed ? "carrier_delivery_confirmed" : `partner_status_${status}`,
             status: nextStatus,
-            message: assumedDelivered
-              ? "No partner delivery event — marked delivered from transit time"
+            message: carrierConfirmed
+              ? `Carrier confirmed delivery${carrierStatusText ? `: ${carrierStatusText}` : ""}`
               : numbers.length
-              ? `Tracking: ${numbers.join(", ")}`
+              ? `Tracking: ${numbers.join(", ")}${carrierStatusText ? ` — carrier says: ${carrierStatusText}` : ""}`
               : null,
-            details: { partnerStatus: status, tracking: numbers, carrier, assumedDelivered },
+            details: { partnerStatus: status, tracking: numbers, carrier, carrierStatusText },
           });
         }
 
