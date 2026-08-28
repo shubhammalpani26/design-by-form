@@ -26,7 +26,7 @@ import { sizeWeightLabel } from "@/lib/originalsWeight";
 
 
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 25 * 1024 * 1024;
 
 /** One-tap corrections buyers ask for most, per flow. */
 /** Single-material colours — the piece is printed in one filament, never two-tone. */
@@ -58,6 +58,37 @@ async function fileToDataUrl(file: File) {
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * Phone photos are 4–12 MB — far bigger than the model needs and big enough to
+ * blow the request limit. Downscale to a long edge of 1400px JPEG before upload.
+ */
+async function preparePhotoDataUrl(file: File) {
+  const original = await fileToDataUrl(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error("decode failed"));
+      el.src = original;
+    });
+    const maxEdge = 1400;
+    const scale = Math.min(1, maxEdge / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return original;
+    ctx.drawImage(img, 0, 0, w, h);
+    const out = canvas.toDataURL("image/jpeg", 0.85);
+    return out.length > 64 && out.length < original.length ? out : original;
+  } catch {
+    return original;
+  }
+}
+
 
 async function readFnError(error: unknown, fallback: string) {
   const ctx = (error as { context?: Response })?.context;
@@ -225,10 +256,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast({ title: "That photo is over 8 MB", description: "Try a smaller one.", variant: "destructive" });
+      toast({ title: "That photo is over 25 MB", description: "Try a smaller one.", variant: "destructive" });
       return;
     }
-    setPhoto({ dataUrl: await fileToDataUrl(file), name: file.name });
+    setPhoto({ dataUrl: await preparePhotoDataUrl(file), name: file.name });
+
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 

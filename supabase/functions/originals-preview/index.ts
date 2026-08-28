@@ -116,12 +116,14 @@ Deno.serve(async (req) => {
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 
     let previewDataUrl: string | undefined;
-    for (let attempt = 1; attempt <= 2 && !previewDataUrl; attempt++) {
+    const MODELS = ["google/gemini-3-pro-image-preview", "google/gemini-2.5-flash-image"];
+    for (let attempt = 0; attempt < MODELS.length + 1 && !previewDataUrl; attempt++) {
+      const model = MODELS[Math.min(attempt, MODELS.length - 1)];
       const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
         method: "POST",
         headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "google/gemini-3-pro-image-preview",
+          model,
           messages: [{ role: "user", content }],
           modalities: ["image", "text"],
         }),
@@ -129,11 +131,12 @@ Deno.serve(async (req) => {
       if (res.status === 429) return json({ error: "We're at capacity for a moment — try again shortly." }, 429);
       if (res.status === 402) return json({ error: "AI capacity unavailable. Please try again later." }, 402);
       if (!res.ok) {
-        console.error("gateway error", res.status, await res.text());
+        console.error("gateway error", model, res.status, (await res.text()).slice(0, 400));
         continue;
       }
       const data = await res.json();
       previewDataUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+      if (!previewDataUrl) console.error("no image returned", model, JSON.stringify(data).slice(0, 400));
     }
 
     if (!previewDataUrl) return json({ error: "We couldn't render that one. Try a clearer, well-lit photo." }, 502);
