@@ -26,7 +26,7 @@ import { sizeWeightLabel } from "@/lib/originalsWeight";
 
 
 
-const MAX_BYTES = 8 * 1024 * 1024;
+const MAX_BYTES = 25 * 1024 * 1024;
 
 /** One-tap corrections buyers ask for most, per flow. */
 /** Single-material colours — the piece is printed in one filament, never two-tone. */
