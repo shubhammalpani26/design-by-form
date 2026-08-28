@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 import { getTracking } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
+import { confirmCarrierDelivery } from "../_shared/carrierTracking.ts";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
 import { requireCaller, unauthorized } from "../_shared/requireCaller.ts";
 
@@ -25,11 +26,11 @@ const admin = createClient(
 const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shipped"];
 
 /**
- * The partner never reports delivery. US ground from Boise is 7-8 business
- * days worst case, so a label older than this is treated as delivered — that
- * closes the order and triggers the review request without an admin clicking.
+ * The partner never reports delivery, and we never assume it from transit
+ * time — a box delayed by weather is not delivered. Delivery is only set when
+ * the carrier's own tracking feed confirms it (see _shared/carrierTracking.ts)
+ * or an admin marks it manually in the ops console.
  */
-const ASSUME_DELIVERED_AFTER_MS = 9 * 24 * 60 * 60 * 1000;
 
 /**
  * Once a partner order exists the piece IS in production — the partner's own
