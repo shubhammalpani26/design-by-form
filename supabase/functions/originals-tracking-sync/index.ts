@@ -25,6 +25,13 @@ const admin = createClient(
 const OPEN = ["in_production", "queued", "awaiting_shipment", "pending", "shipped"];
 
 /**
+ * The partner never reports delivery. US ground from Boise is 7-8 business
+ * days worst case, so a label older than this is treated as delivered — that
+ * closes the order and triggers the review request without an admin clicking.
+ */
+const ASSUME_DELIVERED_AFTER_MS = 9 * 24 * 60 * 60 * 1000;
+
+/**
  * Once a partner order exists the piece IS in production — the partner's own
  * "queued"/"pending"/"awaiting_shipment" are internal queue states and must
  * never push the buyer's tracker back to "Order confirmed".
@@ -147,7 +154,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipping_notified_at, review_requested_at",
+        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       .limit(60);
@@ -182,7 +189,18 @@ Deno.serve(async (req) => {
         };
         const numbers = flatten(trackingNumbers);
 
-        const nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
+        let nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
+        // The partner's lifecycle stops at "shipped" — carriers, not the maker,
+        // complete the journey. US ground from Boise lands well inside a week,
+        // so a label that's been live this long is treated as delivered rather
+        // than waiting on a manual click in the ops console.
+        const shippedAt = row.shipped_at ? new Date(row.shipped_at).getTime() : null;
+        const assumedDelivered =
+          nextStatus === "shipped" &&
+          shippedAt !== null &&
+          Date.now() - shippedAt >= ASSUME_DELIVERED_AFTER_MS;
+        if (assumedDelivered) nextStatus = "delivered";
+
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
         // Infer the carrier from the tracking number so the buyer's tracker
         // and the shipping email link to the carrier's own page.
@@ -193,7 +211,9 @@ Deno.serve(async (req) => {
             production_status: nextStatus,
             tracking_numbers: numbers,
             ...(carrier ? { carrier } : {}),
-            ...(shipped ? { shipped_at: new Date().toISOString() } : {}),
+            // Stamp the ship date once — re-stamping it every sync would keep
+            // pushing the delivery estimate forward forever.
+            ...(shipped && !row.shipped_at ? { shipped_at: new Date().toISOString() } : {}),
             ...(nextStatus === "delivered" ? { delivered_at: new Date().toISOString() } : {}),
             updated_at: new Date().toISOString(),
           })
@@ -208,10 +228,14 @@ Deno.serve(async (req) => {
             partnerOrderId: key,
             source: "tracking_sync",
             stage: shipped ? "shipping" : "production",
-            event: `partner_status_${status}`,
+            event: assumedDelivered ? "delivery_assumed" : `partner_status_${status}`,
             status: nextStatus,
-            message: numbers.length ? `Tracking: ${numbers.join(", ")}` : null,
-            details: { partnerStatus: status, tracking: numbers, carrier },
+            message: assumedDelivered
+              ? "No partner delivery event — marked delivered from transit time"
+              : numbers.length
+              ? `Tracking: ${numbers.join(", ")}`
+              : null,
+            details: { partnerStatus: status, tracking: numbers, carrier, assumedDelivered },
           });
         }
 
@@ -222,9 +246,10 @@ Deno.serve(async (req) => {
 
 
         // One review request per order, sent when the piece is actually in hand.
-        if (status === "delivered" && !row.review_requested_at && row.customer_email) {
+        if (nextStatus === "delivered" && !row.review_requested_at && row.customer_email) {
           await notifyReviewRequest(row);
         }
+
       } catch (e) {
         console.error("originals tracking sync failed", row.id, e instanceof Error ? e.message : e);
       }
