@@ -748,6 +748,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
+                    {sizeWeightLabel(s.key) && (
+                      <span className="block text-[11px] text-muted-foreground/80">{sizeWeightLabel(s.key)}</span>
+                    )}
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
 
                     {state === "unprintable" && (
