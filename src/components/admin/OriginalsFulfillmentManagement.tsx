@@ -137,6 +137,23 @@ export function OriginalsFulfillmentManagement() {
     load();
   };
 
+  /** The partner stops at "shipped" — carriers confirm delivery, so we stamp it. */
+  const markDelivered = async (order: OriginalsOrder) => {
+    setBusy(order.id);
+    const now = new Date().toISOString();
+    const { error } = await supabase
+      .from("originals_orders")
+      .update({ production_status: "delivered", delivered_at: now, updated_at: now })
+      .eq("id", order.id);
+    setBusy(null);
+    if (error) {
+      toast({ title: "Couldn't update", description: error.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Marked delivered", description: `#${order.id.slice(0, 8)} is now delivered.` });
+    load();
+  };
+
   const sweepDrafts = async () => {
     setBusy("drafts");
     const { data, error } = await supabase.functions.invoke("partner-draft-cleanup", { body: {} });
@@ -218,6 +235,19 @@ export function OriginalsFulfillmentManagement() {
                   {order.fulfillment_error}
                 </div>
               )}
+
+              {badge.key === "shipped" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => markDelivered(order)}
+                >
+                  {busy === order.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Mark delivered
+                </Button>
+              )}
+
 
               <Button
                 variant="ghost"

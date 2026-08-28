@@ -108,6 +108,8 @@ export default function MyOrders() {
         .select(
           "id, group_id, created_at, status, production_status, sku_slug, size_label, amount_usd, quantity, preview_image_url, tracking_numbers, partner_order_id",
         )
+        // Admins can read every order — this page is always "my orders" only.
+        .eq("user_id", user.id)
         .neq("status", "pending")
         .order("created_at", { ascending: false });
       setRows((data as OrderRow[]) ?? []);
