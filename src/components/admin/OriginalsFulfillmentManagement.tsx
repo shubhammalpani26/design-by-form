@@ -236,6 +236,19 @@ export function OriginalsFulfillmentManagement() {
                 </div>
               )}
 
+              {badge.key === "shipped" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={busy !== null}
+                  onClick={() => markDelivered(order)}
+                >
+                  {busy === order.id && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Mark delivered
+                </Button>
+              )}
+
+
               <Button
                 variant="ghost"
                 size="sm"
