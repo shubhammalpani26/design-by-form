@@ -256,10 +256,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast({ title: "That photo is over 8 MB", description: "Try a smaller one.", variant: "destructive" });
+      toast({ title: "That photo is over 25 MB", description: "Try a smaller one.", variant: "destructive" });
       return;
     }
-    setPhoto({ dataUrl: await fileToDataUrl(file), name: file.name });
+    setPhoto({ dataUrl: await preparePhotoDataUrl(file), name: file.name });
+
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
 
