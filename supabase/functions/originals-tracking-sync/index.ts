@@ -191,16 +191,20 @@ Deno.serve(async (req) => {
         const numbers = flatten(trackingNumbers);
 
         let nextStatus = toProductionStatus(status, numbers.length > 0, row.production_status);
-        // The partner's lifecycle stops at "shipped" — carriers, not the maker,
-        // complete the journey. US ground from Boise lands well inside a week,
-        // so a label that's been live this long is treated as delivered rather
-        // than waiting on a manual click in the ops console.
-        const shippedAt = row.shipped_at ? new Date(row.shipped_at).getTime() : null;
-        const assumedDelivered =
-          nextStatus === "shipped" &&
-          shippedAt !== null &&
-          Date.now() - shippedAt >= ASSUME_DELIVERED_AFTER_MS;
-        if (assumedDelivered) nextStatus = "delivered";
+        // The partner's lifecycle stops at "shipped" — only the carrier knows
+        // the box landed. Ask the carrier's tracking feed; a null answer means
+        // "unknown", and unknown is never delivered.
+        const carrier = numbers.length ? detectCarrier(numbers[0]).name : null;
+        let carrierDeliveredAt: string | null = null;
+        let carrierStatusText: string | null = null;
+        if (nextStatus === "shipped" && numbers.length) {
+          const check = await confirmCarrierDelivery(carrier, numbers[0]);
+          carrierStatusText = check?.statusText ?? null;
+          if (check?.delivered) {
+            nextStatus = "delivered";
+            carrierDeliveredAt = check.deliveredAt;
+          }
+        }
 
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
         // Infer the carrier from the tracking number so the buyer's tracker
