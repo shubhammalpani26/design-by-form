@@ -31,7 +31,7 @@ export const Footer = () => {
             </p>
             <div className="space-y-1 text-sm text-muted-foreground">
               <a href="mailto:contact@nyzora.ai" className="hover:text-primary transition-colors block">contact@nyzora.ai</a>
-              <a href="tel:+919082582002" className="hover:text-primary transition-colors block">+91 90825 82002</a>
+              <a href="tel:+18885002881" className="hover:text-primary transition-colors block">1 (888) 500-2881</a>
             </div>
           </div>
           

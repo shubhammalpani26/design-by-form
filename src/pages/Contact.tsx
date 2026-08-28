@@ -72,7 +72,7 @@ const Contact = () => {
         name: "Nyzora",
         url: "https://nyzora.ai",
         email: "contact@nyzora.ai",
-        telephone: "+91-90825-82002",
+        telephone: "+1-888-500-2881",
         image: "https://nyzora.ai/og-default.png",
         address: {
           "@type": "PostalAddress",
@@ -90,7 +90,7 @@ const Contact = () => {
           "@type": "ContactPoint",
           contactType: "customer support",
           email: "contact@nyzora.ai",
-          telephone: "+91-90825-82002",
+          telephone: "+1-888-500-2881",
           areaServed: "Worldwide",
         },
       }} />
@@ -202,8 +202,8 @@ const Contact = () => {
                     </div>
                     <div className="flex items-start gap-3">
                       <Phone className="h-4 w-4 text-muted-foreground/40 mt-0.5" />
-                      <a href="tel:+919082582002" className="text-sm text-foreground hover:text-primary transition-colors">
-                        +91 90825 82002
+                      <a href="tel:+18885002881" className="text-sm text-foreground hover:text-primary transition-colors">
+                        1 (888) 500-2881
                       </a>
                     </div>
                     <div className="flex items-start gap-3">
