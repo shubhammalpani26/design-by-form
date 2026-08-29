@@ -156,13 +156,21 @@ export function OriginalsFulfillmentManagement() {
       return;
     }
     // Trigger the review-request email for this group (safe to call as admin).
+    // Only claim the email went out when the sync actually sent one.
+    let emailNote = " — review email not sent (no order group).";
     if (order.group_id) {
-      await supabase.functions.invoke("originals-tracking-sync", {
+      const { data, error: syncError } = await supabase.functions.invoke("originals-tracking-sync", {
         body: { group_id: order.group_id },
       });
+      const sent = (data as { reviewsRequested?: number } | null)?.reviewsRequested ?? 0;
+      emailNote = syncError
+        ? ` — review email could not be sent (${syncError.message}).`
+        : sent > 0
+        ? " — review email sent."
+        : " — review email was already sent earlier.";
     }
     setBusy(null);
-    toast({ title: "Marked delivered", description: `#${order.id.slice(0, 8)} is now delivered — review email sent.` });
+    toast({ title: "Marked delivered", description: `#${order.id.slice(0, 8)} is now delivered${emailNote}` });
     load();
   };
 

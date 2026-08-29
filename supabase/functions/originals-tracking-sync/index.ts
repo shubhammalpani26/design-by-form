@@ -271,6 +271,7 @@ Deno.serve(async (req) => {
         // One review request per order, sent when the piece is actually in hand.
         if (nextStatus === "delivered" && !row.review_requested_at && row.customer_email) {
           await notifyReviewRequest(row);
+          reviewsRequested += 1;
         }
 
       } catch (e) {
@@ -289,7 +290,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify(groupId ? { group_id: groupId } : { sweep: true }),
     }).catch(() => {});
 
-    return json({ synced });
+    return json({ synced, reviewsRequested });
   } catch (e) {
     console.error("originals-tracking-sync error", e);
     return json({ error: "Could not sync tracking" }, 500);
