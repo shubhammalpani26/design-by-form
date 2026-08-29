@@ -152,6 +152,24 @@ Deno.serve(async (req) => {
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const groupId = typeof body?.group_id === "string" ? body.group_id : null;
 
+    // Orders marked delivered by hand (no partner order, or the partner API is
+    // down) still owe the buyer a review request — handle them up front so the
+    // email never depends on a successful partner tracking call.
+    let reviewsRequested = 0;
+    if (groupId) {
+      const { data: manual } = await admin
+        .from("originals_orders")
+        .select("id, customer_email, sku_slug, size_label, review_requested_at, production_status")
+        .eq("group_id", groupId)
+        .eq("production_status", "delivered")
+        .is("review_requested_at", null)
+        .not("customer_email", "is", null);
+      for (const row of manual ?? []) {
+        await notifyReviewRequest(row);
+        reviewsRequested += 1;
+      }
+    }
+
     let query = admin
       .from("originals_orders")
       .select(
@@ -253,6 +271,7 @@ Deno.serve(async (req) => {
         // One review request per order, sent when the piece is actually in hand.
         if (nextStatus === "delivered" && !row.review_requested_at && row.customer_email) {
           await notifyReviewRequest(row);
+          reviewsRequested += 1;
         }
 
       } catch (e) {
@@ -271,7 +290,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify(groupId ? { group_id: groupId } : { sweep: true }),
     }).catch(() => {});
 
-    return json({ synced });
+    return json({ synced, reviewsRequested });
   } catch (e) {
     console.error("originals-tracking-sync error", e);
     return json({ error: "Could not sync tracking" }, 500);

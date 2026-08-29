@@ -23,7 +23,7 @@ async function sendReceipt(email: string | null, orders: any[]) {
       previewImageUrl: o.preview_image_url ?? "",
       skuSlug: o.sku_slug ?? "",
       quantity: qty,
-      weightLabel: sizeWeightLabel(o.size_key) ?? "",
+      weightLabel: sizeWeightLabel(o.sku_slug, o.size_key) ?? "",
     };
   });
   const templateData = {

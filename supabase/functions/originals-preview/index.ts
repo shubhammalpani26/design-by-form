@@ -131,7 +131,16 @@ Deno.serve(async (req) => {
       if (res.status === 429) return json({ error: "We're at capacity for a moment — try again shortly." }, 429);
       if (res.status === 402) return json({ error: "AI capacity unavailable. Please try again later." }, 402);
       if (!res.ok) {
-        console.error("gateway error", model, res.status, (await res.text()).slice(0, 400));
+        const detail = (await res.text()).slice(0, 400);
+        console.error("gateway error", model, res.status, detail);
+        // A credit/quota block is on us, not the buyer's photo — never tell
+        // them to retake a picture they can never fix.
+        if (res.status === 403 && detail.includes("credit_limit_reached")) {
+          return json({
+            error: "Our studio is briefly out of capacity. Nothing's wrong with your photo — please try again shortly.",
+            code: "AI_CAPACITY",
+          }, 503);
+        }
         continue;
       }
       const data = await res.json();
