@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
           modalities: ["image", "text"],
         }),
       });
-if (res.status === 429) return json({ error: "We're at capacity for a moment — try again shortly." }, 429);
+      if (res.status === 429) return json({ error: "We're at capacity for a moment — try again shortly." }, 429);
       if (res.status === 402) return json({ error: "AI capacity unavailable. Please try again later." }, 402);
       if (res.status === 403) {
         // Any workspace-level block (credit cap, policy, disabled AI) is on us,
