@@ -157,6 +157,88 @@ Deno.serve(async (req) => {
       return json(res);
     }
 
+    // --- Update an existing ad set to match a locked test spec ---
+    // Only touches budget, conversion event and targeting. Never flips status.
+    if (action === "update_adset") {
+      const {
+        adset_id,
+        daily_budget_usd,
+        custom_event_type,
+        pixel_id,
+        broad,
+        age_min,
+        age_max,
+        countries,
+        locales,
+        excluded_custom_audience_ids,
+      } = body as {
+        adset_id: string;
+        daily_budget_usd?: number;
+        custom_event_type?: string;
+        pixel_id?: string;
+        broad?: boolean;
+        age_min?: number;
+        age_max?: number;
+        countries?: string[];
+        locales?: number[];
+        excluded_custom_audience_ids?: string[];
+      };
+      if (!/^\d+$/.test(String(adset_id ?? ""))) return json({ error: "adset_id must be numeric" }, 400);
+
+      const current = await graph<any>(
+        `/${adset_id}?fields=id,name,account_id,daily_budget,promoted_object,targeting`,
+        token,
+      );
+      const acct = await graph<{ currency?: string }>(`/act_${current.account_id}?fields=currency`, token);
+      const currency = acct?.currency ?? "USD";
+      const FX: Record<string, number> = { USD: 1, INR: 87.5, EUR: 0.92, GBP: 0.78, CAD: 1.37, AUD: 1.52 };
+      const rate = FX[currency] ?? 1;
+
+      const form: Record<string, string> = {};
+      if (daily_budget_usd != null) {
+        if (!(daily_budget_usd > 0) || daily_budget_usd > MAX_DAILY_BUDGET_USD) {
+          return json({ error: "Invalid daily budget" }, 400);
+        }
+        form.daily_budget = String(Math.round(daily_budget_usd * rate * 100));
+      }
+      if (custom_event_type) {
+        form.promoted_object = JSON.stringify({
+          pixel_id: pixel_id ?? current?.promoted_object?.pixel_id,
+          custom_event_type,
+        });
+      }
+
+      const t = { ...(current.targeting ?? {}) } as Record<string, unknown>;
+      if (broad) {
+        delete t.flexible_spec;
+        delete t.interests;
+        delete t.behaviors;
+      }
+      if (age_min != null) t.age_min = age_min;
+      if (age_max != null) t.age_max = age_max;
+      if (countries?.length) t.geo_locations = { countries };
+      if (locales?.length) t.locales = locales;
+      if (excluded_custom_audience_ids) {
+        if (excluded_custom_audience_ids.length) {
+          t.excluded_custom_audiences = excluded_custom_audience_ids.map((id) => ({ id }));
+        } else {
+          delete t.excluded_custom_audiences;
+        }
+      }
+      t.targeting_automation = { advantage_audience: 0 };
+      if (broad || age_min != null || age_max != null || countries || locales || excluded_custom_audience_ids) {
+        form.targeting = JSON.stringify(t);
+      }
+
+      if (!Object.keys(form).length) return json({ error: "nothing to update" }, 400);
+      const update = await graph(`/${adset_id}`, token, form);
+      const after = await graph(
+        `/${adset_id}?fields=id,name,status,daily_budget,optimization_goal,promoted_object,targeting`,
+        token,
+      );
+      return json({ update, currency, adset: after });
+    }
+
     // --- Draft: campaign + ad set, PAUSED, no ads/creative yet ---
     if (action === "draft") {
       const {
