@@ -13,7 +13,7 @@ Six pieces, chosen so each one kills a specific doubt:
 | 3 | Pet memorial (photo) | Cat, long hair | Standard 140 mm | `ZOË` only, no footnote | Accent stripping + heading-only layout |
 | 4 | Pet portrait (photo) | Dog, floppy ears (beagle/spaniel) | Statement 196 mm | `DUSKY` + `GOOD GIRL` | Largest size, the SKU that failed before, non-date footnote |
 | 5 | Pet memorial (photo) | Rabbit (non-dog/cat form) | Petite 120 mm | `PIP` | Meshy handles an unusual silhouette; short text on small plinth |
-| 6 | Nursery name plaque | n/a (text only) | Default | `AARAV` + `03 · 11 · 2025` | Non-photo SKU, plaque geometry, numeric/punctuation glyphs |
+| 6 | Pet memorial (photo) | Bird / parrot (beak + crest) | Statement 196 mm | `KIWI` + `FLY FREE` | Meshy sculpts a non-mammal head (beak, feathers, crest) at the largest size; verifies the generator generalises beyond dogs/cats |
 
 All six placed as a single cart so they share one `group_id` and go to the partner as one shipment.
 
