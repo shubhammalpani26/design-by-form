@@ -30,7 +30,14 @@ export interface EngraveResult {
   reason?: string;
   /** True when a nameplate base had to be added to carry the lettering. */
   addedPlinth?: boolean;
+  /** Triangles added by the lettering — proof the text is real geometry. */
+  triangleDelta?: number;
+  /** How far the letters stand off the face (mm). */
+  reliefMm?: number;
+  /** Printed stroke thickness of the lettering (mm). */
+  strokeMm?: number;
 }
+
 
 
 type V3 = [number, number, number];
