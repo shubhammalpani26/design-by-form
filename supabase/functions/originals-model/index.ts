@@ -152,10 +152,15 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
     .update({
       engraved_text: label,
       engraved_at: new Date().toISOString(),
-      engraving_meta: { face: result.face, capHeightMm: result.capHeightMm },
+      engraving_meta: {
+        face: result.face,
+        capHeightMm: result.capHeightMm,
+        addedPlinth: result.addedPlinth ?? false,
+      },
     })
     .eq("id", row.id);
   return stored.url;
+
 }
 
 
