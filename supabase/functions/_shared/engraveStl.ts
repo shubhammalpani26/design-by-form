@@ -28,7 +28,10 @@ export interface EngraveResult {
   face?: "+x" | "-x" | "+y" | "-y";
   capHeightMm?: number;
   reason?: string;
+  /** True when a nameplate base had to be added to carry the lettering. */
+  addedPlinth?: boolean;
 }
+
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
@@ -46,13 +49,30 @@ const strokeFor = (cap: number) =>
   Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
 
 
-export function parseStl(bytes: Uint8Array): Tri[] {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.byteLength < 84) throw new Error("Print file is too small to be an STL");
-  const count = view.getUint32(80, true);
-  if (84 + count * 50 !== bytes.byteLength) {
-    throw new Error("Only binary STL print files can be engraved");
+/** Reads the `vertex x y z` triples of an ASCII STL. */
+function parseAsciiStl(bytes: Uint8Array): Tri[] {
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  const verts: V3[] = [];
+  const re = /vertex\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    verts.push([Number(m[1]), Number(m[2]), Number(m[3])]);
   }
+  const tris: Tri[] = [];
+  for (let i = 0; i + 2 < verts.length; i += 3) {
+    tris.push([verts[i], verts[i + 1], verts[i + 2]]);
+  }
+  if (!tris.length) throw new Error("Only STL print files can be engraved");
+  return tris;
+}
+
+export function parseStl(bytes: Uint8Array): Tri[] {
+  if (bytes.byteLength < 84) throw new Error("Print file is too small to be an STL");
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const count = view.getUint32(80, true);
+  // Anything that isn't an exact binary STL is retried as ASCII rather than
+  // failing the whole order — both encodings are legitimate print files.
+  if (84 + count * 50 !== bytes.byteLength) return parseAsciiStl(bytes);
   const tris: Tri[] = [];
   let p = 84;
   for (let i = 0; i < count; i++) {
@@ -67,6 +87,7 @@ export function parseStl(bytes: Uint8Array): Tri[] {
   }
   return tris;
 }
+
 
 export function writeStl(tris: Tri[]): Uint8Array {
   const buffer = new ArrayBuffer(84 + tris.length * 50);
@@ -173,20 +194,20 @@ function strokePrism(
   }
 }
 
-/**
- * Engraves heading/footnote onto the flattest vertical face of the plinth.
- * Returns `applied: false` (with the original bytes) when there is no text or
- * no usable face — the caller decides whether that should block fulfillment.
- */
-export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResult {
-  const heading = normalizeEngravingText(opts.heading ?? "");
-  const footnote = normalizeEngravingText(opts.footnote ?? "");
-  const label = [heading, footnote].filter(Boolean).join(" / ");
-  if (!heading && !footnote) {
-    return { stl: bytes, applied: false, text: "", reason: "no_text" };
-  }
+type Attempt =
+  | { ok: true; tris: Tri[]; face: "+x" | "-x" | "+y" | "-y"; cap: number }
+  | { ok: false; reason: string };
 
-  const tris = parseStl(bytes);
+/**
+ * Engraves heading/footnote onto the flattest vertical face of the plinth of
+ * the supplied mesh. `bandTopZ` overrides where the plinth is assumed to end.
+ */
+function engraveTris(
+  tris: Tri[],
+  heading: string,
+  footnote: string,
+  bandTopZ?: number,
+): Attempt {
   let minX = Infinity, minY = Infinity, minZ = Infinity;
   let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
   for (const t of tris) {
@@ -197,12 +218,13 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     }
   }
   const height = maxZ - minZ;
-  if (!(height > 0)) return { stl: bytes, applied: false, text: label, reason: "degenerate_mesh" };
+  if (!(height > 0)) return { ok: false, reason: "degenerate_mesh" };
 
   // The plinth is the bottom slab of the piece.
-  const bandTop = minZ + height * 0.3;
+  const bandTop = bandTopZ ?? (minZ + height * 0.3);
   const band = tris.filter((t) => t.every(([, , z]) => z <= bandTop));
-  if (!band.length) return { stl: bytes, applied: false, text: label, reason: "no_plinth" };
+  if (!band.length) return { ok: false, reason: "no_plinth" };
+
 
   // Pick the face with the most near-vertical, outward-facing area.
   let best: { key: "+x" | "-x" | "+y" | "-y"; axis: "x" | "y"; outward: number; area: number } | null = null;
@@ -223,8 +245,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     }
   }
   if (!best || best.area <= 0) {
-    return { stl: bytes, applied: false, text: label, reason: "no_flat_face" };
+    return { ok: false, reason: "no_flat_face" };
   }
+
 
   const axis = best.axis;
   const outward = best.outward;
@@ -246,8 +269,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   const faceWidth = uMax - uMin;
   const faceHeight = zMax - zMin;
   if (!(faceWidth > 6) || !(faceHeight > 4)) {
-    return { stl: bytes, applied: false, text: label, reason: "face_too_small" };
+    return { ok: false, reason: "face_too_small" };
   }
+
 
   const usableW = faceWidth * 0.78;
 
@@ -286,8 +310,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   }
   const primaryCap = lines[0].cap;
   if (primaryCap < MIN_CAP_MM) {
-    return { stl: bytes, applied: false, text: label, reason: "plinth_too_small_for_readable_text" };
+    return { ok: false, reason: "plinth_too_small_for_readable_text" };
   }
+
 
   const gap = primaryCap * 0.45;
   const blockHeight = lines.reduce((s, l) => s + l.cap, 0) + gap * (lines.length - 1);
@@ -337,14 +362,113 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   }
 
 
+  return { ok: true, tris: out, face: best.key, cap: Number(primaryCap.toFixed(2)) };
+}
+
+/** Failures that a purpose-built nameplate base can rescue. */
+const RESCUABLE = new Set([
+  "no_plinth",
+  "no_flat_face",
+  "face_too_small",
+  "plinth_too_small_for_readable_text",
+]);
+
+/**
+ * Builds a nameplate base under the piece so there is always a flat, readable
+ * face for the buyer's lettering. Used only when the generated mesh has no
+ * usable plinth of its own — a paid keepsake must never stall for want of a
+ * surface to engrave.
+ */
+function addNameplate(tris: Tri[], heading: string, footnote: string): { tris: Tri[]; bandTopZ: number } | null {
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity;
+  for (const t of tris) {
+    for (const [x, y, z] of t) {
+      if (x < minX) minX = x; if (x > maxX) maxX = x;
+      if (y < minY) minY = y; if (y > maxY) maxY = y;
+      if (z < minZ) minZ = z;
+    }
+  }
+  const footW = maxX - minX;
+  const footD = maxY - minY;
+  if (!(footW > 0) || !(footD > 0)) return null;
+
+  // Width the target cap height needs, allowing the engraver's own wrapping.
+  const capTarget = MIN_CAP_MM * 1.25;
+  const words = heading.split(" ").filter(Boolean);
+  let headingUnits = textWidth(heading);
+  if (words.length > 1) {
+    for (let i = 1; i < words.length; i++) {
+      headingUnits = Math.min(
+        headingUnits,
+        Math.max(textWidth(words.slice(0, i).join(" ")), textWidth(words.slice(i).join(" "))),
+      );
+    }
+  }
+  const unitsNeeded = Math.max(headingUnits, textWidth(footnote) * 0.6, 0.001);
+  const neededW = (unitsNeeded * capTarget) / 0.78;
+
+  // Keep the base inside the printer envelope even for very long names.
+  const MAX_PLATE_MM = 200;
+  const plateW = Math.min(MAX_PLATE_MM, Math.max(footW * 1.08, neededW + 8));
+  const plateD = Math.min(MAX_PLATE_MM, Math.max(footD * 1.08, 20));
+  const plateH = Math.max(16, capTarget / 0.4 + 5);
+
+  const cx = (minX + maxX) / 2;
+  const cy = (minY + maxY) / 2;
+  const out = tris.slice();
+  box(
+    out,
+    [cx - plateW / 2, cy - plateD / 2, minZ - plateH],
+    [cx + plateW / 2, cy + plateD / 2, minZ + 0.2],
+  );
+  // Only the new plate counts as the plinth band.
+  return { tris: out, bandTopZ: minZ + 0.25 };
+}
+
+/**
+ * Engraves heading/footnote onto the piece. Falls back to adding a nameplate
+ * base when the mesh has no engravable plinth, so personalised orders cannot
+ * get permanently stuck before printing. Returns `applied: false` only when
+ * there is no text or the mesh is unusable.
+ */
+export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResult {
+  const heading = normalizeEngravingText(opts.heading ?? "");
+  const footnote = normalizeEngravingText(opts.footnote ?? "");
+  const label = [heading, footnote].filter(Boolean).join(" / ");
+  if (!heading && !footnote) {
+    return { stl: bytes, applied: false, text: "", reason: "no_text" };
+  }
+
+  const tris = parseStl(bytes);
+  let attempt = engraveTris(tris, heading, footnote);
+  let addedPlinth = false;
+
+  if (!attempt.ok && RESCUABLE.has(attempt.reason)) {
+    const plated = addNameplate(tris, heading, footnote);
+    if (plated) {
+      const retry = engraveTris(plated.tris, heading, footnote, plated.bandTopZ);
+      if (retry.ok) {
+        attempt = retry;
+        addedPlinth = true;
+      }
+    }
+  }
+
+  if (!attempt.ok) {
+    return { stl: bytes, applied: false, text: label, reason: attempt.reason };
+  }
+
   return {
-    stl: writeStl(out),
+    stl: writeStl(attempt.tris),
     applied: true,
     text: label,
-    face: best.key,
-    capHeightMm: Number(primaryCap.toFixed(2)),
+    face: attempt.face,
+    capHeightMm: attempt.cap,
+    addedPlinth,
   };
 }
+
 
 /**
  * The exact lettering a buyer paid for, normalised the same way the engraver
