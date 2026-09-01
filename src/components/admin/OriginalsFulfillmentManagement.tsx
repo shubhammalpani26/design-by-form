@@ -24,7 +24,23 @@ interface OriginalsOrder {
   personalization: unknown;
   engraved_text: string | null;
   engraved_at: string | null;
+  engraving_meta: unknown;
 }
+
+/** Physical proof the lettering is geometry, not a render — shown inline. */
+const geometryNote = (o: OriginalsOrder) => {
+  const m = (o.engraving_meta ?? {}) as Record<string, unknown>;
+  const relief = Number(m.reliefMm ?? 0);
+  const cap = Number(m.capHeightMm ?? 0);
+  if (!relief && !cap) return "";
+  const parts = [
+    cap ? `${cap} mm caps` : null,
+    relief ? `${relief} mm proud` : null,
+    m.addedPlinth ? "nameplate base" : null,
+  ].filter(Boolean);
+  return parts.length ? ` · ${parts.join(", ")}` : "";
+};
+
 
 
 interface PartnerEvent {
