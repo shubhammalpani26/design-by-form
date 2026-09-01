@@ -102,9 +102,40 @@ Deno.serve(async (req) => {
 
     const paid = rows.filter((r) => r.status === "paid" || r.status === "fulfilled");
     if (!paid.length) return json({ error: "Order is not paid yet" }, 400);
+
+    // Operator escape hatch: pull a mis-sent partner order back so it can be
+    // re-placed (e.g. wrong filament). Only valid before the partner ships.
+    if (body?.cancel === true) {
+      const partnerId = paid.find((r) => r.partner_order_id)?.partner_order_id as string | undefined;
+      if (!partnerId) return json({ error: "No partner order to cancel" }, 400);
+      await cancelOrder(partnerId);
+      const ids = paid.map((r) => r.id);
+      await admin
+        .from("originals_orders")
+        .update({
+          partner_order_id: null,
+          production_status: "pending",
+          status: "paid",
+          fulfillment_error: null,
+          updated_at: new Date().toISOString(),
+        })
+        .in("id", ids);
+      await logPartnerEvent(admin, {
+        orderId: paid[0].id,
+        groupId: paid[0].group_id,
+        partnerOrderId: partnerId,
+        stage: "partner order",
+        event: "order_cancelled",
+        status: "cancelled",
+        message: "Operator cancelled the partner order so it can be re-placed",
+      });
+      return json({ cancelled: partnerId, pieces: ids.length });
+    }
+
     if (paid.some((r) => r.partner_order_id)) {
       return json({ skipped: "already_sent", partnerOrderId: paid[0].partner_order_id });
     }
+
 
     const customer = addressFrom(paid[0].shipping_address);
     if (!customer.address.line1 || !customer.address.zip) {
