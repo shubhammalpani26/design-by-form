@@ -170,6 +170,31 @@ Deno.serve(async (req) => {
         });
         return json({ error: reason, needsFile: row.id }, 400);
       }
+      // Hard stop: if the buyer paid for a name/date, the file we send must
+      // physically carry it. Lettering that only lives in the 2D render gets
+      // smoothed away by the mesh generator, which is how a blank plinth can
+      // reach production. No engraving record => nothing ships.
+      const wanted = engravingLabel(row.personalization as Record<string, unknown> | null);
+      if (wanted && !files[row.id] && row.engraved_text !== wanted) {
+        const reason = `Personalisation "${wanted}" is not cut into this print file yet`;
+        await admin
+          .from("originals_orders")
+          .update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        await alertFulfillmentFailure(admin, {
+          orderId: row.id,
+          groupId: row.group_id,
+          customerEmail: row.customer_email,
+          pieces: paid.length,
+          stage: "engraving",
+          error: reason,
+        });
+        return json({ error: reason, needsFile: row.id }, 400);
+      }
       const uploaded = await uploadPrintFile(url!, {
         name: `${row.sku_slug}-${row.id.slice(0, 8)}.stl`,
         ownerId: "nyzora-originals",
