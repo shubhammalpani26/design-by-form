@@ -128,3 +128,6 @@ verify_jwt = false
 
 [functions.originals-tracking-sync]
 verify_jwt = false
+
+[functions.notify-partner-refund]
+verify_jwt = false
