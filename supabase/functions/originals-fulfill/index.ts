@@ -110,17 +110,20 @@ Deno.serve(async (req) => {
       return json({ error: "Order has no usable shipping address" }, 400);
     }
 
-    // Colour is chosen by the buyer and stored on the piece — honour it unless
-    // an operator explicitly overrides the filament on this call.
-    const chosen = findOriginalsColor(
-      (paid[0].personalization as Record<string, unknown> | null)?.color as string | undefined,
-    );
-    const explicitId = (paid[0].personalization as Record<string, unknown> | null)?.filamentId;
-    const filamentId = filamentName
-      ? await resolveFilamentId(filamentName)
-      : (typeof explicitId === "string" && explicitId ? explicitId : chosen.filamentId);
+    // Colour is chosen per piece by the buyer — honour each row's own colour
+    // unless an operator explicitly overrides the filament on this call.
+    const overrideId = filamentName ? await resolveFilamentId(filamentName) : undefined;
+    const filamentFor = (row: { personalization: unknown }) => {
+      if (overrideId) return overrideId;
+      const p = row.personalization as Record<string, unknown> | null;
+      const explicitId = p?.filamentId;
+      if (typeof explicitId === "string" && explicitId) return explicitId;
+      return findOriginalsColor(p?.color as string | undefined).filamentId;
+    };
+    const filamentId = filamentFor(paid[0]);
     const items: PartnerPrintItem[] = [];
     const usedFiles: Array<{ id: string; url: string }> = [];
+
 
     for (const row of paid) {
       const url = files[row.id] ?? row.print_file_url ?? null;
