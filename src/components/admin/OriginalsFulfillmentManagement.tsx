@@ -266,10 +266,37 @@ export function OriginalsFulfillmentManagement() {
         </div>
       </div>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Engraving success rate</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-2xl font-bold">
+              {engraving.total ? Math.round((engraving.engraved / engraving.total) * 100) : 100}%
+            </span>
+            <span className="text-muted-foreground">
+              {engraving.engraved} of {engraving.total} paid personalised pieces carry real lettering
+            </span>
+            {engraving.blocked > 0 && (
+              <Badge variant="outline" className={tone.failed}>
+                {engraving.blocked} blocked — won't ship
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Fulfillment refuses to send a personalised piece without a matching engraving record.
+            Anything counted as blocked is sitting still and needs a look.
+          </p>
+        </CardContent>
+      </Card>
+
       {orders.map((order) => {
         const list = eventsByOrder.get(order.id) ?? [];
         const expanded = open[order.id] ?? false;
         const badge = displayStatus(order);
+        const engraved = engravingState(order);
+
         return (
           <Card key={order.id} className={badge.key === "unpaid" ? "opacity-70" : ""}>
             <CardHeader className="pb-3">
