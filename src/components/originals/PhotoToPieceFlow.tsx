@@ -44,7 +44,7 @@ const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
     "Make the engraved name larger and more prominent.",
   ],
   template: [
-    "Make the engraving larger and deeper.",
+    "Make the engraving larger and more prominent.",
     "Give the form a softer, more sculptural curve.",
     "Shift the angle so the front face reads straight on.",
   ],
