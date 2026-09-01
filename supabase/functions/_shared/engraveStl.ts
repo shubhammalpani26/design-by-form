@@ -245,8 +245,9 @@ function engraveTris(
     }
   }
   if (!best || best.area <= 0) {
-    return { stl: bytes, applied: false, text: label, reason: "no_flat_face" };
+    return { ok: false, reason: "no_flat_face" };
   }
+
 
   const axis = best.axis;
   const outward = best.outward;
