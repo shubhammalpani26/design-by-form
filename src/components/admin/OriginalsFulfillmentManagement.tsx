@@ -115,7 +115,7 @@ export function OriginalsFulfillmentManagement() {
       supabase
         .from("originals_orders")
         .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at",
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at",
         )
         .order("created_at", { ascending: false })
         .limit(100),
