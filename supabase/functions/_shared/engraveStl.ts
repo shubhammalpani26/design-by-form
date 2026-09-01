@@ -30,7 +30,14 @@ export interface EngraveResult {
   reason?: string;
   /** True when a nameplate base had to be added to carry the lettering. */
   addedPlinth?: boolean;
+  /** Triangles added by the lettering — proof the text is real geometry. */
+  triangleDelta?: number;
+  /** How far the letters stand off the face (mm). */
+  reliefMm?: number;
+  /** Printed stroke thickness of the lettering (mm). */
+  strokeMm?: number;
 }
+
 
 
 type V3 = [number, number, number];
@@ -443,6 +450,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   const tris = parseStl(bytes);
   let attempt = engraveTris(tris, heading, footnote);
   let addedPlinth = false;
+  let baseCount = tris.length;
 
   if (!attempt.ok && RESCUABLE.has(attempt.reason)) {
     const plated = addNameplate(tris, heading, footnote);
@@ -451,12 +459,20 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
       if (retry.ok) {
         attempt = retry;
         addedPlinth = true;
+        baseCount = plated.tris.length;
       }
     }
   }
 
   if (!attempt.ok) {
     return { stl: bytes, applied: false, text: label, reason: attempt.reason };
+  }
+
+  // Last line of defence: an "engraved" file that gained no geometry is a
+  // blank plinth waiting to ship. Refuse it rather than record a false pass.
+  const triangleDelta = attempt.tris.length - baseCount;
+  if (triangleDelta <= 0) {
+    return { stl: bytes, applied: false, text: label, reason: "no_geometry_added" };
   }
 
   return {
@@ -466,8 +482,12 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     face: attempt.face,
     capHeightMm: attempt.cap,
     addedPlinth,
+    triangleDelta,
+    reliefMm: PROUD_MM,
+    strokeMm: Number(strokeFor(attempt.cap).toFixed(2)),
   };
 }
+
 
 
 /**

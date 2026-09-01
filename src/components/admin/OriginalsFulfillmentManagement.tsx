@@ -24,7 +24,23 @@ interface OriginalsOrder {
   personalization: unknown;
   engraved_text: string | null;
   engraved_at: string | null;
+  engraving_meta: unknown;
 }
+
+/** Physical proof the lettering is geometry, not a render — shown inline. */
+const geometryNote = (o: OriginalsOrder) => {
+  const m = (o.engraving_meta ?? {}) as Record<string, unknown>;
+  const relief = Number(m.reliefMm ?? 0);
+  const cap = Number(m.capHeightMm ?? 0);
+  if (!relief && !cap) return "";
+  const parts = [
+    cap ? `${cap} mm caps` : null,
+    relief ? `${relief} mm proud` : null,
+    m.addedPlinth ? "nameplate base" : null,
+  ].filter(Boolean);
+  return parts.length ? ` · ${parts.join(", ")}` : "";
+};
+
 
 
 interface PartnerEvent {
@@ -117,7 +133,7 @@ export function OriginalsFulfillmentManagement() {
       supabase
         .from("originals_orders")
         .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at",
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta",
         )
         .order("created_at", { ascending: false })
         .limit(100),
@@ -321,10 +337,11 @@ export function OriginalsFulfillmentManagement() {
                       className={engraved === "engraved" ? tone.delivered : tone.failed}
                     >
                       {engraved === "engraved"
-                        ? `Engraved: ${order.engraved_text}`
+                        ? `Engraved: ${order.engraved_text}${geometryNote(order)}`
                         : "Engraving missing — blocked"}
                     </Badge>
                   )}
+
 
 
                   <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
