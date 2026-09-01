@@ -423,7 +423,7 @@ function addNameplate(tris: Tri[], heading: string, footnote: string): { tris: T
     [cx + plateW / 2, cy + plateD / 2, minZ + 0.2],
   );
   // Only the new plate counts as the plinth band.
-  return { tris: out, bandTopZ: minZ + 0.19 };
+  return { tris: out, bandTopZ: minZ + 0.25 };
 }
 
 /**
