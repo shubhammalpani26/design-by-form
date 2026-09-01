@@ -158,7 +158,16 @@ export function OriginalsFulfillmentManagement() {
     return map;
   }, [events]);
 
+  /** Personalised orders that shipped (or will ship) with real lettering. */
+  const engraving = useMemo(() => {
+    const states = orders.map(engravingState);
+    const total = states.filter((s) => s !== "none").length;
+    const engraved = states.filter((s) => s === "engraved").length;
+    return { total, engraved, blocked: total - engraved };
+  }, [orders]);
+
   const unmatched = useMemo(
+
     // Our own webhook connectivity pings aren't real fulfilment events.
     () =>
       events.filter(
