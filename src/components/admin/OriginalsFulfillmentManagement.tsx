@@ -21,7 +21,11 @@ interface OriginalsOrder {
   amount_usd: number;
   fulfillment_error: string | null;
   created_at: string;
+  personalization: unknown;
+  engraved_text: string | null;
+  engraved_at: string | null;
 }
+
 
 interface PartnerEvent {
   id: string;
