@@ -72,15 +72,20 @@ export const SPACE_ADVANCE = 0.5;
 /** Normalises free text to the characters this font can actually cut. */
 export function normalizeEngravingText(input: string): string {
   return input
+    // "Café" must engrave as CAFE, not CAF — strip accents, keep the letter.
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[\u2010-\u2015]/g, "-")
     .replace(/[\u2018\u2019]/g, "'")
-    .replace(/\s+/g, " ")
     .split("")
-    .filter((ch) => ch === " " || ch in G)
+    .filter((ch) => /\s/.test(ch) || ch in G)
     .join("")
+    // Collapse after filtering so dropped characters leave no gaps.
+    .replace(/\s+/g, " ")
     .trim();
 }
+
 
 export function glyph(ch: string): Polyline[] | null {
   return G[ch] ?? null;
