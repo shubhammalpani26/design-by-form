@@ -313,6 +313,17 @@ export function OriginalsFulfillmentManagement() {
                   <Badge variant="outline" className={tone[badge.key] ?? ""}>
                     {badge.label}
                   </Badge>
+                  {engraved !== "none" && (
+                    <Badge
+                      variant="outline"
+                      className={engraved === "engraved" ? tone.delivered : tone.failed}
+                    >
+                      {engraved === "engraved"
+                        ? `Engraved: ${order.engraved_text}`
+                        : "Engraving missing — blocked"}
+                    </Badge>
+                  )}
+
 
                   <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
                 </div>
