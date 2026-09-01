@@ -275,8 +275,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
       usableW / Math.max(textWidth(heading), 0.001) < MIN_CAP_MM ? wrap(heading) : [heading];
     const widest = Math.max(...headingLines.map((l) => textWidth(l)), 0.001);
     const capByWidth = usableW / widest;
-    const rows = headingLines.length + (footnote ? 1 : 0);
-    const capByHeight = (faceHeight * 0.72) / (rows * 1.45);
+    const capByHeight = (faceHeight * (footnote ? 0.42 : 0.55)) / headingLines.length;
     const cap = Math.min(MAX_CAP_MM, capByWidth, capByHeight);
     for (const l of headingLines) lines.push({ text: l, cap });
   }
