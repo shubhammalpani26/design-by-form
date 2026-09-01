@@ -254,7 +254,9 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
 
   let query = admin
     .from("originals_orders")
-    .select("id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd")
+    .select(
+      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text",
+    )
     .eq("status", "paid")
     .is("partner_order_id", null)
     .order("created_at", { ascending: true })
@@ -274,14 +276,16 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     try {
       const out = await resolveFile(row);
       if (out.url) {
+        const finalUrl = await applyEngraving(row, out.url);
         await admin.from("originals_orders").update({
-          print_file_url: out.url,
+          print_file_url: finalUrl,
           model_status: "ready",
           fulfillment_error: null,
           updated_at: new Date().toISOString(),
         }).eq("id", row.id);
         groups.add(row.group_id ?? row.id);
       } else if (out.status === "failed" || out.status === "needs_file") {
+
         await admin.from("originals_orders").update({
           model_status: out.status,
           production_status: "needs_file",
