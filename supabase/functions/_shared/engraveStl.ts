@@ -49,13 +49,30 @@ const strokeFor = (cap: number) =>
   Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
 
 
-export function parseStl(bytes: Uint8Array): Tri[] {
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  if (bytes.byteLength < 84) throw new Error("Print file is too small to be an STL");
-  const count = view.getUint32(80, true);
-  if (84 + count * 50 !== bytes.byteLength) {
-    throw new Error("Only binary STL print files can be engraved");
+/** Reads the `vertex x y z` triples of an ASCII STL. */
+function parseAsciiStl(bytes: Uint8Array): Tri[] {
+  const text = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+  const verts: V3[] = [];
+  const re = /vertex\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)\s+(-?[\d.eE+]+)/g;
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(text)) !== null) {
+    verts.push([Number(m[1]), Number(m[2]), Number(m[3])]);
   }
+  const tris: Tri[] = [];
+  for (let i = 0; i + 2 < verts.length; i += 3) {
+    tris.push([verts[i], verts[i + 1], verts[i + 2]]);
+  }
+  if (!tris.length) throw new Error("Only STL print files can be engraved");
+  return tris;
+}
+
+export function parseStl(bytes: Uint8Array): Tri[] {
+  if (bytes.byteLength < 84) throw new Error("Print file is too small to be an STL");
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const count = view.getUint32(80, true);
+  // Anything that isn't an exact binary STL is retried as ASCII rather than
+  // failing the whole order — both encodings are legitimate print files.
+  if (84 + count * 50 !== bytes.byteLength) return parseAsciiStl(bytes);
   const tris: Tri[] = [];
   let p = 84;
   for (let i = 0; i < count; i++) {
@@ -70,6 +87,7 @@ export function parseStl(bytes: Uint8Array): Tri[] {
   }
   return tris;
 }
+
 
 export function writeStl(tris: Tri[]): Uint8Array {
   const buffer = new ArrayBuffer(84 + tris.length * 50);
