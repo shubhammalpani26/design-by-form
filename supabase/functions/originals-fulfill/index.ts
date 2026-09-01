@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const base = admin
       .from("originals_orders")
       .select(
-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id",
+        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text",
       );
     const { data: rows, error } = groupId
       ? await base.eq("group_id", groupId)
