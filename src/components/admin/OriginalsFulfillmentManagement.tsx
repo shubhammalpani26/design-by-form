@@ -68,11 +68,13 @@ const pretty = (s: string) => s.replace(/_/g, " ");
  */
 const normalizeEngraving = (input: string) =>
   input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .toUpperCase()
     .replace(/[\u2010-\u2015]/g, "-")
     .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[^A-Z0-9 .,'&\-/!:+]/g, "")
     .replace(/\s+/g, " ")
-    .replace(/[^A-Z0-9 .,'&\-/#()!?:+]/g, "")
     .trim();
 
 /** The lettering the buyer paid for, or "" when the piece isn't personalised. */
