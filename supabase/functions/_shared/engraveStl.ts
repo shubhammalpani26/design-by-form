@@ -144,13 +144,15 @@ function strokePrism(
   w0: number,
   u1: number,
   w1: number,
+  strokeMm: number,
 ) {
   const dx = u1 - u0;
   const dz = w1 - w0;
   const len = Math.hypot(dx, dz);
   if (len < 1e-6) return;
-  const steps = Math.max(1, Math.ceil(len / (STROKE_MM * 0.6)));
-  const half = STROKE_MM / 2;
+  const steps = Math.max(1, Math.ceil(len / (strokeMm * 0.6)));
+  const half = strokeMm / 2;
+
   const near = facePlane - outward * EMBED_MM;
   const far = facePlane + outward * PROUD_MM;
   const nMin = Math.min(near, far);
