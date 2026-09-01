@@ -490,12 +490,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div>
               <Label htmlFor="heading" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                Heading
+                Heading (optional)
               </Label>
               <Input id="heading" className="mt-2 rounded-none" placeholder="MILO" maxLength={HEADING_MAX}
                 value={heading} onChange={(e) => setHeading(e.target.value)} />
               <p className="mt-1 text-[10px] text-muted-foreground tabular-nums">
-                Engraved large · {heading.length}/{HEADING_MAX}
+                Leave blank for a clean plinth · {heading.length}/{HEADING_MAX}
               </p>
             </div>
             <div>
