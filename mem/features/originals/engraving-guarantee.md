@@ -13,3 +13,9 @@ Fix (live):
 - `originals-fulfill` hard-gates: if `engravingLabel(personalization)` is non-empty and `engraved_text` does not match, the order is not sent to the partner.
 
 Raised (not recessed) lettering is deliberate — additive prisms need no boolean solver and read better on a 0.4 mm nozzle.
+
+## Small-plinth sizing (2026 update)
+- Stroke width scales with cap height (0.2x cap, clamped 0.9–1.6 mm) instead of a fixed 1.3 mm.
+- Readable floor lowered to 3.5 mm cap; long headings wrap onto two lines at the best word break.
+- Result: plinths from ~55 mm wide engrave successfully (was ~90 mm). Below that the fulfillment gate still blocks the order for admin review.
+- Supported glyphs: A-Z 0-9 and `.,'&-/!:+` — admin dashboard normalisation mirrors this exactly, including accent stripping.

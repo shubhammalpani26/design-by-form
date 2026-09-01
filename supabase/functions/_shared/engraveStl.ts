@@ -36,9 +36,15 @@ type Tri = [V3, V3, V3];
 /** FDM-safe engraving parameters (mm). */
 const PROUD_MM = 1.2; // how far letters stand off the face
 const EMBED_MM = 0.6; // how far the prism sinks into the face so it fuses
-const STROKE_MM = 1.3; // stroke thickness — >= 3 x nozzle width
-const MIN_CAP_MM = 5.0; // below this, text is unreadable when printed
+const STROKE_MIN_MM = 0.9; // >= 2 x nozzle width — the thinnest wall we trust
+const STROKE_MAX_MM = 1.6;
+const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
+const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
+
+const strokeFor = (cap: number) =>
+  Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
+
 
 export function parseStl(bytes: Uint8Array): Tri[] {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
@@ -138,13 +144,15 @@ function strokePrism(
   w0: number,
   u1: number,
   w1: number,
+  strokeMm: number,
 ) {
   const dx = u1 - u0;
   const dz = w1 - w0;
   const len = Math.hypot(dx, dz);
   if (len < 1e-6) return;
-  const steps = Math.max(1, Math.ceil(len / (STROKE_MM * 0.6)));
-  const half = STROKE_MM / 2;
+  const steps = Math.max(1, Math.ceil(len / (strokeMm * 0.6)));
+  const half = strokeMm / 2;
+
   const near = facePlane - outward * EMBED_MM;
   const far = facePlane + outward * PROUD_MM;
   const nMin = Math.min(near, far);
@@ -242,11 +250,34 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   }
 
   const usableW = faceWidth * 0.78;
+
+  /** Splits a long line at a word break so a small plinth keeps readable type. */
+  const wrap = (text: string): string[] => {
+    const words = text.split(" ").filter(Boolean);
+    if (words.length < 2) return [text];
+    let best: string[] = [text];
+    let bestWidth = textWidth(text);
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(" ");
+      const b = words.slice(i).join(" ");
+      const widest = Math.max(textWidth(a), textWidth(b));
+      if (widest < bestWidth) {
+        bestWidth = widest;
+        best = [a, b];
+      }
+    }
+    return best;
+  };
+
   const lines: Array<{ text: string; cap: number }> = [];
   if (heading) {
-    const capByWidth = usableW / Math.max(textWidth(heading), 0.001);
-    const capByHeight = footnote ? faceHeight * 0.42 : faceHeight * 0.55;
-    lines.push({ text: heading, cap: Math.min(MAX_CAP_MM, capByWidth, capByHeight) });
+    const headingLines =
+      usableW / Math.max(textWidth(heading), 0.001) < MIN_CAP_MM ? wrap(heading) : [heading];
+    const widest = Math.max(...headingLines.map((l) => textWidth(l)), 0.001);
+    const capByWidth = usableW / widest;
+    const capByHeight = (faceHeight * (footnote ? 0.42 : 0.55)) / headingLines.length;
+    const cap = Math.min(MAX_CAP_MM, capByWidth, capByHeight);
+    for (const l of headingLines) lines.push({ text: l, cap });
   }
   if (footnote) {
     const capByWidth = usableW / Math.max(textWidth(footnote), 0.001);
@@ -269,6 +300,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   for (const line of lines) {
     const baseline = cursorTop - line.cap;
     const width = textWidth(line.text) * line.cap;
+    const strokeMm = strokeFor(line.cap);
     let pen = uCenter - width / 2;
     for (const ch of line.text) {
       if (ch === " ") {
@@ -294,6 +326,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
               baseline + ay * line.cap,
               toU(bx),
               baseline + by * line.cap,
+              strokeMm,
             );
           }
         }
@@ -302,6 +335,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     }
     cursorTop = baseline - gap;
   }
+
 
   return {
     stl: writeStl(out),

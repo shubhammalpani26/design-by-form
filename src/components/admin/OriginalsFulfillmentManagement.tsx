@@ -21,7 +21,11 @@ interface OriginalsOrder {
   amount_usd: number;
   fulfillment_error: string | null;
   created_at: string;
+  personalization: unknown;
+  engraved_text: string | null;
+  engraved_at: string | null;
 }
+
 
 interface PartnerEvent {
   id: string;
@@ -58,6 +62,46 @@ const when = (iso: string) =>
 
 const pretty = (s: string) => s.replace(/_/g, " ");
 
+/**
+ * Mirrors the engraver's own text normalisation so the dashboard compares
+ * like with like — anything else would report false mismatches.
+ */
+const normalizeEngraving = (input: string) =>
+  input
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toUpperCase()
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[^A-Z0-9 .,'&\-/!:+]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** The lettering the buyer paid for, or "" when the piece isn't personalised. */
+const wantedEngraving = (p: unknown): string => {
+  const o = (p ?? {}) as Record<string, unknown>;
+  const heading = normalizeEngraving(String(o.heading ?? o.name ?? ""));
+  const footnote = normalizeEngraving(String(o.footnote ?? o.dates ?? ""));
+  return [heading, footnote].filter(Boolean).join(" / ");
+};
+
+type EngravingState = "none" | "engraved" | "blocked";
+
+/**
+ * The fulfilment gate refuses to ship a personalised piece without a matching
+ * engraving record — silently. This makes that gate visible.
+ */
+const engravingState = (o: OriginalsOrder): EngravingState => {
+  if (UNPAID.includes(o.status)) return "none";
+  const wanted = wantedEngraving(o.personalization);
+  if (!wanted) return "none";
+  return o.engraved_at && normalizeEngraving(o.engraved_text ?? "") === wanted
+    ? "engraved"
+    : "blocked";
+};
+
+
+
 
 /** Internal fulfillment console for Nyzora Originals — admins only. */
 export function OriginalsFulfillmentManagement() {
@@ -73,7 +117,7 @@ export function OriginalsFulfillmentManagement() {
       supabase
         .from("originals_orders")
         .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at",
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at",
         )
         .order("created_at", { ascending: false })
         .limit(100),
@@ -116,7 +160,16 @@ export function OriginalsFulfillmentManagement() {
     return map;
   }, [events]);
 
+  /** Personalised orders that shipped (or will ship) with real lettering. */
+  const engraving = useMemo(() => {
+    const states = orders.map(engravingState);
+    const total = states.filter((s) => s !== "none").length;
+    const engraved = states.filter((s) => s === "engraved").length;
+    return { total, engraved, blocked: total - engraved };
+  }, [orders]);
+
   const unmatched = useMemo(
+
     // Our own webhook connectivity pings aren't real fulfilment events.
     () =>
       events.filter(
@@ -215,10 +268,37 @@ export function OriginalsFulfillmentManagement() {
         </div>
       </div>
 
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">Engraving success rate</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2 text-sm">
+          <div className="flex flex-wrap items-center gap-4">
+            <span className="text-2xl font-bold">
+              {engraving.total ? Math.round((engraving.engraved / engraving.total) * 100) : 100}%
+            </span>
+            <span className="text-muted-foreground">
+              {engraving.engraved} of {engraving.total} paid personalised pieces carry real lettering
+            </span>
+            {engraving.blocked > 0 && (
+              <Badge variant="outline" className={tone.failed}>
+                {engraving.blocked} blocked — won't ship
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Fulfillment refuses to send a personalised piece without a matching engraving record.
+            Anything counted as blocked is sitting still and needs a look.
+          </p>
+        </CardContent>
+      </Card>
+
       {orders.map((order) => {
         const list = eventsByOrder.get(order.id) ?? [];
         const expanded = open[order.id] ?? false;
         const badge = displayStatus(order);
+        const engraved = engravingState(order);
+
         return (
           <Card key={order.id} className={badge.key === "unpaid" ? "opacity-70" : ""}>
             <CardHeader className="pb-3">
@@ -235,6 +315,17 @@ export function OriginalsFulfillmentManagement() {
                   <Badge variant="outline" className={tone[badge.key] ?? ""}>
                     {badge.label}
                   </Badge>
+                  {engraved !== "none" && (
+                    <Badge
+                      variant="outline"
+                      className={engraved === "engraved" ? tone.delivered : tone.failed}
+                    >
+                      {engraved === "engraved"
+                        ? `Engraved: ${order.engraved_text}`
+                        : "Engraving missing — blocked"}
+                    </Badge>
+                  )}
+
 
                   <Badge variant="secondary">${Number(order.amount_usd).toFixed(2)}</Badge>
                 </div>
