@@ -13,6 +13,7 @@ import { findOriginalsColor } from "../_shared/originalsColors.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
+import { engravingLabel } from "../_shared/engraveStl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -90,7 +91,7 @@ Deno.serve(async (req) => {
     const base = admin
       .from("originals_orders")
       .select(
-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id",
+        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text",
       );
     const { data: rows, error } = groupId
       ? await base.eq("group_id", groupId)
@@ -166,6 +167,31 @@ Deno.serve(async (req) => {
           customerEmail: row.customer_email,
           pieces: paid.length,
           stage: "print file",
+          error: reason,
+        });
+        return json({ error: reason, needsFile: row.id }, 400);
+      }
+      // Hard stop: if the buyer paid for a name/date, the file we send must
+      // physically carry it. Lettering that only lives in the 2D render gets
+      // smoothed away by the mesh generator, which is how a blank plinth can
+      // reach production. No engraving record => nothing ships.
+      const wanted = engravingLabel(row.personalization as Record<string, unknown> | null);
+      if (wanted && !files[row.id] && row.engraved_text !== wanted) {
+        const reason = `Personalisation "${wanted}" is not cut into this print file yet`;
+        await admin
+          .from("originals_orders")
+          .update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", row.id);
+        await alertFulfillmentFailure(admin, {
+          orderId: row.id,
+          groupId: row.group_id,
+          customerEmail: row.customer_email,
+          pieces: paid.length,
+          stage: "engraving",
           error: reason,
         });
         return json({ error: reason, needsFile: row.id }, 400);

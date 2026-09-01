@@ -11,7 +11,9 @@
  * it. Safe to call repeatedly.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { ensurePrintFile } from "../_shared/printFile.ts";
+import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
+import { engraveStl } from "../_shared/engraveStl.ts";
+import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 
 const corsHeaders = {
@@ -115,7 +117,47 @@ interface OrderRow {
   print_file_url: string | null;
   model_task_id: string | null;
   status: string;
+  personalization: Record<string, unknown> | null;
+  engraved_text: string | null;
 }
+
+/** The personalisation lines a buyer expects to see physically on the piece. */
+export function engravingLines(personalization: Record<string, unknown> | null) {
+  const heading = normalizeEngravingText(String(personalization?.heading ?? personalization?.name ?? ""));
+  const footnote = normalizeEngravingText(String(personalization?.footnote ?? personalization?.dates ?? ""));
+  return { heading, footnote, label: [heading, footnote].filter(Boolean).join(" / ") };
+}
+
+/**
+ * Cuts the buyer's name/date into the mesh as real geometry.
+ *
+ * The 3D generator smooths lettering that only exists in the 2D render, so
+ * without this step a piece can reach the printer with a blank plinth. Any
+ * failure here is fatal for the piece — we never ship an unengraved keepsake.
+ */
+async function applyEngraving(row: OrderRow, url: string): Promise<string> {
+  const { heading, footnote, label } = engravingLines(row.personalization);
+  if (!label) return url;
+  if (row.engraved_text === label) return url;
+
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
+  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), { heading, footnote });
+  if (!result.applied) {
+    throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
+  }
+  const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, result.stl);
+  await admin
+    .from("originals_orders")
+    .update({
+      engraved_text: label,
+      engraved_at: new Date().toISOString(),
+      engraving_meta: { face: result.face, capHeightMm: result.capHeightMm },
+    })
+    .eq("id", row.id);
+  return stored.url;
+}
+
 
 /**
  * Resolves one order row to a printable .stl. Returns the url when ready,
@@ -212,7 +254,9 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
 
   let query = admin
     .from("originals_orders")
-    .select("id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd")
+    .select(
+      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text",
+    )
     .eq("status", "paid")
     .is("partner_order_id", null)
     .order("created_at", { ascending: true })
@@ -232,14 +276,16 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     try {
       const out = await resolveFile(row);
       if (out.url) {
+        const finalUrl = await applyEngraving(row, out.url);
         await admin.from("originals_orders").update({
-          print_file_url: out.url,
+          print_file_url: finalUrl,
           model_status: "ready",
           fulfillment_error: null,
           updated_at: new Date().toISOString(),
         }).eq("id", row.id);
         groups.add(row.group_id ?? row.id);
       } else if (out.status === "failed" || out.status === "needs_file") {
+
         await admin.from("originals_orders").update({
           model_status: out.status,
           production_status: "needs_file",
