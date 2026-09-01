@@ -8,7 +8,7 @@ Six pieces, chosen so each one kills a specific doubt:
 
 | # | Piece | Pet / input | Size | Engraving | What it proves |
 |---|---|---|---|---|---|
-| 1 | Pet memorial (photo) | Dog, long snout (retriever/lab) | Petite 120 mm | `MILO` + `2014 — 2024` | Smallest plinth still engraves legibly (the bug just fixed) |
+| 1 | Pet memorial (photo) | Cat, short hair (distinctive: Bengal / tabby) | Petite 120 mm | `MILO` + `2014 — 2024` | Smallest plinth still engraves legibly; a second cat form to match the unique-cat social posts |
 | 2 | Pet memorial (photo) | Dog, short snout (pug/bulldog) | Standard 140 mm | `BARTHOLOMEW REX` (18 chars, wraps) | Long-name wrapping on a mid plinth |
 | 3 | Pet memorial (photo) | Cat, long hair | Standard 140 mm | `ZOË` only, no footnote | Accent stripping + heading-only layout |
 | 4 | Pet portrait (photo) | Dog, floppy ears (beagle/spaniel) | Statement 196 mm | `DUSKY` + `GOOD GIRL` | Largest size, the SKU that failed before, non-date footnote |
