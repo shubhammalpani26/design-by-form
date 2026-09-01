@@ -310,8 +310,9 @@ function engraveTris(
   }
   const primaryCap = lines[0].cap;
   if (primaryCap < MIN_CAP_MM) {
-    return { stl: bytes, applied: false, text: label, reason: "plinth_too_small_for_readable_text" };
+    return { ok: false, reason: "plinth_too_small_for_readable_text" };
   }
+
 
   const gap = primaryCap * 0.45;
   const blockHeight = lines.reduce((s, l) => s + l.cap, 0) + gap * (lines.length - 1);
