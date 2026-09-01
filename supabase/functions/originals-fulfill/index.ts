@@ -13,6 +13,7 @@ import { findOriginalsColor } from "../_shared/originalsColors.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
+import { engravingLabel } from "../_shared/engraveStl.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

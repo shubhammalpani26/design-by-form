@@ -311,3 +311,13 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     capHeightMm: Number(primaryCap.toFixed(2)),
   };
 }
+
+/**
+ * The exact lettering a buyer paid for, normalised the same way the engraver
+ * normalises it. Used as the fulfillment gate's expected value.
+ */
+export function engravingLabel(personalization: Record<string, unknown> | null): string {
+  const heading = normalizeEngravingText(String(personalization?.heading ?? personalization?.name ?? ""));
+  const footnote = normalizeEngravingText(String(personalization?.footnote ?? personalization?.dates ?? ""));
+  return [heading, footnote].filter(Boolean).join(" / ");
+}
