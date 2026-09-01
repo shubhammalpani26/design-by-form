@@ -1,43 +1,50 @@
-# Internal test promo code for pre-ad order testing
+# Prove the engraving before spending on six pieces
 
-## Goal
-Let you place the 6-piece edge-case test batch (and any future internal tests) through the **real checkout** at essentially no cost, instead of server-side fake orders — no credit burn, no meaningful card charges.
+Your question is the right one: was the blank plinth our bug, or can the print partner simply not print engraved text? Before any money is spent, this gets answered with evidence, not assurance.
 
-## What already exists (verified)
-- `razorpay-checkout` validates and applies promo codes **server-side** via `_shared/originalsPromo.ts` — the browser never sets the price.
-- Discount is spread across line items and stored on each order (`promo_code`, `discount_usd`).
-- Redemption is counted only **after payment succeeds** (via `originalsPaid`).
-- Guardrail: a discount can never reduce the order below **$1.00** (gateways can't charge $0), so a 100% code still charges $1 per checkout.
+## What is already known
 
-## Changes
+The six test orders from the batch each have an engraved print file generated and recorded in the database:
 
-### 1. Create the code (database insert, no migration needed)
-Insert into `originals_promo_codes`:
-- code: `NYZORA-QA` (internal, unguessable enough; not shown anywhere public)
-- percent_off: `100`
-- min_subtotal_usd: `0`
-- active: `true`
-- max_redemptions: `25` (plenty for the 6-piece batch + retests; auto-expires after that)
-- description: "Internal QA testing — do not share"
+| Piece | Lettering recorded | Cap height |
+|---|---|---|
+| MILO (petite) | `MILO / 2014 - 2024` | 10.74 mm |
+| BARTHOLOMEW REX (standard) | `BARTHOLOMEW REX` | 6.83 mm |
+| ZOË (standard) | `ZOE` | 12 mm |
+| DUSKY (statement) | `DUSKY / GOOD GIRL` | 12 mm |
+| PIP (petite) | `PIP` | 10.65 mm |
+| KIWI (statement) | `KIWI / FLY FREE` | 12 mm |
 
-Effect at checkout: each piece charges **$1.00 total** on your live card (6 pieces = $6 across checkouts, or ~$1 per order if checked out together as one session).
+Every one has an `-engraved.stl` file and a timestamp. None of them was sent to the partner (they have no shipping address, so fulfilment stopped — as designed).
 
-### 2. Safety checks before handing it over
-- Confirm the code is rejected for expired/over-limit states (already enforced in `resolvePromo`).
-- Confirm it works in the live Razorpay checkout path end-to-end with a real $1 charge going to `paid` status and triggering the model-generation pipeline (that's exactly what we want to test).
+That confirms the software now produces engraved files. It does not yet confirm the lettering is physically printable. That is what this plan checks.
 
-### 3. Hand-off
-- Give you the code `NYZORA-QA` to use in the promo field at checkout.
-- You run the 6-piece batch yourself through the real flow (preview → size → checkout with code).
-- After testing, I deactivate the code (`active = false`) so it can't leak into customer hands.
+## The check, in three parts
 
-## Notes / caveats
-- **$1 floor is unavoidable** — a truly free order can't be created through the payment gateway. $1/order is the closest to free while still exercising the full real pipeline (payment → webhook → model gen → engraving → fulfillment gate).
-- Preview generation still uses your account's AI credits (4 free/day for anonymous, credits when logged in). The promo only zeroes the product price.
-- Fulfillment to Slant 3D still only happens on **paid** orders with a shipping address — these test orders will flow through like real ones, so only ship the ones you actually want manufactured.
+**1. Is the text real geometry in the file we would send?**
+Download all six `-engraved.stl` files and, for each one, compare against the same mesh before engraving: triangle-count increase, bounding box unchanged, and the letter prisms located on the plinth face. Then render each plinth face to an image and read the name with your own eyes. If a name is legible in the render of the actual file, the file is correct — that is the same file the partner slices.
 
-## Technical details
-- Table: `public.originals_promo_codes` (insert via SQL, service role)
-- Validation: `supabase/functions/_shared/originalsPromo.ts` (`resolvePromo`)
-- Checkout: `supabase/functions/razorpay-checkout/index.ts` (lines ~162–260)
-- Redemption: `supabase/functions/_shared/originalsPaid.ts`
+**2. Can the partner's process print it?**
+Measure the engraved features against FDM reality rather than assuming:
+- letter relief height (currently 1.2 mm proud — three layers at 0.2 mm)
+- stroke width (0.9-1.6 mm — two to four times a 0.4 mm nozzle)
+- cap heights above (6.8-12 mm)
+Raised lettering at those dimensions is ordinary FDM work; nothing here is near a tolerance edge. This is stated as a measurement from the actual files, not a claim about the partner.
+
+**3. Was the original failure ours?**
+The two delivered blank pieces (Roxy, Dusky) were sent with print files that had no letter geometry at all — the lettering existed only in the AI render, and the image-to-3D step smoothed it away. The partner printed exactly what we sent. Part 1 re-confirms this by checking whether the *old* file for the Dusky order contains letter geometry; if it does not, the cause was ours and is now fixed.
+
+## The guard that makes it not happen again
+
+Beyond the existing fulfilment stop (a personalised order with no matching engraving record cannot be sent), add one geometry assertion at the point of engraving: the engraved file must contain more triangles than the source and the added geometry must sit on the plinth face. An order that fails that assertion never reaches the partner. This closes the gap where a file could be recorded as engraved without carrying real geometry.
+
+## Then, and only then
+
+Once you have looked at six rendered plinths with six correct names on them, the six pieces get a shipping address and are released to the partner. If any render is wrong, that piece is fixed before anything ships — no repeat of paying for blank plinths.
+
+## Technical notes
+
+- Verification is read-only: download the stored STLs, parse triangles, render orthographic views of the plinth face, report per-piece measurements. No production data is modified.
+- The one code change is the triangle-delta/placement assertion inside the engraving step in `originals-model`, plus recording the measured relief and stroke width in `engraving_meta` so the admin card shows it.
+- The fulfilment hard stop in `originals-fulfill` stays exactly as it is.
+- Output is a per-piece checklist with the rendered plinth image for each of the six.
