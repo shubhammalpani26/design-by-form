@@ -28,7 +28,10 @@ export interface EngraveResult {
   face?: "+x" | "-x" | "+y" | "-y";
   capHeightMm?: number;
   reason?: string;
+  /** True when a nameplate base had to be added to carry the lettering. */
+  addedPlinth?: boolean;
 }
+
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
