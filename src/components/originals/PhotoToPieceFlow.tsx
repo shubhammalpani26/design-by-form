@@ -34,14 +34,14 @@ const COLORS = ORIGINALS_COLORS;
 
 const colorClause = (key: string) => {
   const c = findOriginalsColor(key);
-  return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the engraving reads through carved shadow only.`;
+  return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the raised lettering on the plinth reads through its own soft shadow only.`;
 };
 
 const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
   photo: [
     "Turn the head slightly toward the camera.",
     "Make the ears and muzzle more like my photo.",
-    "Make the engraved name larger and deeper.",
+    "Make the engraved name larger and more prominent.",
   ],
   template: [
     "Make the engraving larger and deeper.",
