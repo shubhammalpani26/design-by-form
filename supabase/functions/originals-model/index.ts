@@ -156,7 +156,11 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         face: result.face,
         capHeightMm: result.capHeightMm,
         addedPlinth: result.addedPlinth ?? false,
+        triangleDelta: result.triangleDelta ?? 0,
+        reliefMm: result.reliefMm,
+        strokeMm: result.strokeMm,
       },
+
     })
     .eq("id", row.id);
   return stored.url;
