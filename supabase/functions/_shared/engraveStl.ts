@@ -269,8 +269,9 @@ function engraveTris(
   const faceWidth = uMax - uMin;
   const faceHeight = zMax - zMin;
   if (!(faceWidth > 6) || !(faceHeight > 4)) {
-    return { stl: bytes, applied: false, text: label, reason: "face_too_small" };
+    return { ok: false, reason: "face_too_small" };
   }
+
 
   const usableW = faceWidth * 0.78;
 
