@@ -62,6 +62,44 @@ const when = (iso: string) =>
 
 const pretty = (s: string) => s.replace(/_/g, " ");
 
+/**
+ * Mirrors the engraver's own text normalisation so the dashboard compares
+ * like with like — anything else would report false mismatches.
+ */
+const normalizeEngraving = (input: string) =>
+  input
+    .toUpperCase()
+    .replace(/[\u2010-\u2015]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/\s+/g, " ")
+    .replace(/[^A-Z0-9 .,'&\-/#()!?:+]/g, "")
+    .trim();
+
+/** The lettering the buyer paid for, or "" when the piece isn't personalised. */
+const wantedEngraving = (p: unknown): string => {
+  const o = (p ?? {}) as Record<string, unknown>;
+  const heading = normalizeEngraving(String(o.heading ?? o.name ?? ""));
+  const footnote = normalizeEngraving(String(o.footnote ?? o.dates ?? ""));
+  return [heading, footnote].filter(Boolean).join(" / ");
+};
+
+type EngravingState = "none" | "engraved" | "blocked";
+
+/**
+ * The fulfilment gate refuses to ship a personalised piece without a matching
+ * engraving record — silently. This makes that gate visible.
+ */
+const engravingState = (o: OriginalsOrder): EngravingState => {
+  if (UNPAID.includes(o.status)) return "none";
+  const wanted = wantedEngraving(o.personalization);
+  if (!wanted) return "none";
+  return o.engraved_at && normalizeEngraving(o.engraved_text ?? "") === wanted
+    ? "engraved"
+    : "blocked";
+};
+
+
+
 
 /** Internal fulfillment console for Nyzora Originals — admins only. */
 export function OriginalsFulfillmentManagement() {
