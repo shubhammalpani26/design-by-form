@@ -1474,6 +1474,9 @@ export type Database = {
           customer_email: string | null
           delivered_at: string | null
           discount_usd: number
+          engraved_at: string | null
+          engraved_text: string | null
+          engraving_meta: Json | null
           fulfillment_error: string | null
           group_id: string | null
           id: string
@@ -1512,6 +1515,9 @@ export type Database = {
           customer_email?: string | null
           delivered_at?: string | null
           discount_usd?: number
+          engraved_at?: string | null
+          engraved_text?: string | null
+          engraving_meta?: Json | null
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
@@ -1550,6 +1556,9 @@ export type Database = {
           customer_email?: string | null
           delivered_at?: string | null
           discount_usd?: number
+          engraved_at?: string | null
+          engraved_text?: string | null
+          engraving_meta?: Json | null
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
