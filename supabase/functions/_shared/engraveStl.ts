@@ -36,9 +36,15 @@ type Tri = [V3, V3, V3];
 /** FDM-safe engraving parameters (mm). */
 const PROUD_MM = 1.2; // how far letters stand off the face
 const EMBED_MM = 0.6; // how far the prism sinks into the face so it fuses
-const STROKE_MM = 1.3; // stroke thickness — >= 3 x nozzle width
-const MIN_CAP_MM = 5.0; // below this, text is unreadable when printed
+const STROKE_MIN_MM = 0.9; // >= 2 x nozzle width — the thinnest wall we trust
+const STROKE_MAX_MM = 1.6;
+const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
+const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
+
+const strokeFor = (cap: number) =>
+  Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
+
 
 export function parseStl(bytes: Uint8Array): Tri[] {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
