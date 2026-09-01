@@ -194,20 +194,20 @@ function strokePrism(
   }
 }
 
-/**
- * Engraves heading/footnote onto the flattest vertical face of the plinth.
- * Returns `applied: false` (with the original bytes) when there is no text or
- * no usable face — the caller decides whether that should block fulfillment.
- */
-export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResult {
-  const heading = normalizeEngravingText(opts.heading ?? "");
-  const footnote = normalizeEngravingText(opts.footnote ?? "");
-  const label = [heading, footnote].filter(Boolean).join(" / ");
-  if (!heading && !footnote) {
-    return { stl: bytes, applied: false, text: "", reason: "no_text" };
-  }
+type Attempt =
+  | { ok: true; tris: Tri[]; face: "+x" | "-x" | "+y" | "-y"; cap: number }
+  | { ok: false; reason: string };
 
-  const tris = parseStl(bytes);
+/**
+ * Engraves heading/footnote onto the flattest vertical face of the plinth of
+ * the supplied mesh. `bandTopZ` overrides where the plinth is assumed to end.
+ */
+function engraveTris(
+  tris: Tri[],
+  heading: string,
+  footnote: string,
+  bandTopZ?: number,
+): Attempt {
   let minX = Infinity, minY = Infinity, minZ = Infinity;
   let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
   for (const t of tris) {
@@ -218,12 +218,13 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     }
   }
   const height = maxZ - minZ;
-  if (!(height > 0)) return { stl: bytes, applied: false, text: label, reason: "degenerate_mesh" };
+  if (!(height > 0)) return { ok: false, reason: "degenerate_mesh" };
 
   // The plinth is the bottom slab of the piece.
-  const bandTop = minZ + height * 0.3;
+  const bandTop = bandTopZ ?? (minZ + height * 0.3);
   const band = tris.filter((t) => t.every(([, , z]) => z <= bandTop));
-  if (!band.length) return { stl: bytes, applied: false, text: label, reason: "no_plinth" };
+  if (!band.length) return { ok: false, reason: "no_plinth" };
+
 
   // Pick the face with the most near-vertical, outward-facing area.
   let best: { key: "+x" | "-x" | "+y" | "-y"; axis: "x" | "y"; outward: number; area: number } | null = null;
