@@ -203,11 +203,13 @@ Deno.serve(async (req) => {
         name: `${row.sku_slug}-${row.id.slice(0, 8)}.stl`,
         ownerId: "nyzora-originals",
       });
+      const rowFilamentId = filamentFor(row);
       items.push({
         publicFileServiceId: uploaded.publicFileServiceId,
         quantity: Math.max(1, Number(row.quantity ?? 1)),
-        ...(filamentId ? { filamentId } : {}),
+        ...(rowFilamentId ? { filamentId: rowFilamentId } : {}),
       });
+
       usedFiles.push({ id: row.id, url: url! });
     }
 
