@@ -450,6 +450,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   const tris = parseStl(bytes);
   let attempt = engraveTris(tris, heading, footnote);
   let addedPlinth = false;
+  let baseCount = tris.length;
 
   if (!attempt.ok && RESCUABLE.has(attempt.reason)) {
     const plated = addNameplate(tris, heading, footnote);
@@ -458,12 +459,20 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
       if (retry.ok) {
         attempt = retry;
         addedPlinth = true;
+        baseCount = plated.tris.length;
       }
     }
   }
 
   if (!attempt.ok) {
     return { stl: bytes, applied: false, text: label, reason: attempt.reason };
+  }
+
+  // Last line of defence: an "engraved" file that gained no geometry is a
+  // blank plinth waiting to ship. Refuse it rather than record a false pass.
+  const triangleDelta = attempt.tris.length - baseCount;
+  if (triangleDelta <= 0) {
+    return { stl: bytes, applied: false, text: label, reason: "no_geometry_added" };
   }
 
   return {
@@ -473,8 +482,12 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     face: attempt.face,
     capHeightMm: attempt.cap,
     addedPlinth,
+    triangleDelta,
+    reliefMm: PROUD_MM,
+    strokeMm: Number(strokeFor(attempt.cap).toFixed(2)),
   };
 }
+
 
 
 /**
