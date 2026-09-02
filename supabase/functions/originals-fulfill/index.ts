@@ -286,7 +286,7 @@ Deno.serve(async (req) => {
       stage: "print file",
       event: "files_uploaded",
       status: "ok",
-      details: { pieces: items.length, filamentId },
+      details: { pieces: items.length, filaments: filamentByOrder },
     });
 
     const placed = await placeOrder(buyer, items, "nyzora-originals");
