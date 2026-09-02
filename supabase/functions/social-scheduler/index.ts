@@ -241,6 +241,96 @@ async function engineeringCheck(imageUrl: string, prompt: string) {
 /** Max render passes per slot in one run: the agent's revision note feeds straight back into the prompt. */
 const ENGINEERING_RETRIES = 2;
 
+/* ------------------------------ queue refill ------------------------------ */
+
+/** The four daily posting slots, in UTC (09:00 / 12:00 / 17:00 / 20:00 ET). */
+const SLOT_HOURS_UTC = [0, 13, 16, 21];
+/** Always keep this many days of slots queued ahead so the feed never runs dry. */
+const QUEUE_AHEAD_DAYS = 3;
+
+/**
+ * The original content plan was a fixed run of days; once it was exhausted the cron kept
+ * firing with nothing due and posting silently stopped. Top the queue up on every run by
+ * recycling the plan's captions and prompts — each new row gets a fresh id, so the species,
+ * engraving and expression all differ from the slot it was cloned from.
+ */
+async function ensureQueue() {
+  const now = Date.now();
+
+  const { data: library } = await admin
+    .from("social_scheduled_posts")
+    .select("caption, image_prompt, theme, slot_type, is_render, day_index")
+    .eq("slot_type", "feed")
+    .order("day_index", { ascending: true })
+    .order("scheduled_at", { ascending: true });
+
+  const plan = (library ?? []) as Array<{
+    caption: string;
+    image_prompt: string;
+    theme: string | null;
+    slot_type: string;
+    is_render: boolean;
+    day_index: number;
+  }>;
+  if (!plan.length) return { queued: 0 };
+
+  const windowEnd = new Date(now + QUEUE_AHEAD_DAYS * 86400000).toISOString();
+  const { data: existingRows } = await admin
+    .from("social_scheduled_posts")
+    .select("scheduled_at, day_index")
+    .gt("scheduled_at", new Date(now).toISOString())
+    .lte("scheduled_at", windowEnd);
+
+  const taken = new Set(
+    ((existingRows ?? []) as Array<{ scheduled_at: string }>).map((r) => new Date(r.scheduled_at).toISOString()),
+  );
+
+  const { data: maxRow } = await admin
+    .from("social_scheduled_posts")
+    .select("day_index")
+    .order("day_index", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  let nextDayIndex = ((maxRow as { day_index?: number } | null)?.day_index ?? 0) + 1;
+
+  const rows: Array<Record<string, unknown>> = [];
+  for (let d = 0; d < QUEUE_AHEAD_DAYS; d++) {
+    const day = new Date(now + d * 86400000);
+    let dayHasNew = false;
+    for (const hour of SLOT_HOURS_UTC) {
+      const at = new Date(Date.UTC(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), hour, 0, 0));
+      if (at.getTime() <= now) continue;
+      const iso = at.toISOString();
+      if (taken.has(iso)) continue;
+      const source = plan[(rows.length + nextDayIndex * SLOT_HOURS_UTC.length) % plan.length];
+      rows.push({
+        scheduled_at: iso,
+        slot_type: "feed",
+        day_index: nextDayIndex,
+        theme: source.theme,
+        caption: source.caption,
+        image_prompt: source.image_prompt,
+        is_render: source.is_render,
+        status: "scheduled",
+        engineering_status: "pending",
+      });
+      taken.add(iso);
+      dayHasNew = true;
+    }
+    if (dayHasNew) nextDayIndex++;
+  }
+
+  if (!rows.length) return { queued: 0 };
+  const { error } = await admin.from("social_scheduled_posts").insert(rows);
+  if (error) {
+    console.error("queue refill failed", error.message);
+    return { queued: 0 };
+  }
+  return { queued: rows.length };
+}
+
+
+
 async function renderDue() {
   const now = new Date().toISOString();
 
