@@ -240,11 +240,14 @@ Deno.serve(async (req) => {
         ownerId: "nyzora-originals",
       });
       const rowFilamentId = filamentFor(row);
+      filamentByOrder[row.id.slice(0, 8)] =
+        `${(row.personalization as Record<string, unknown> | null)?.color ?? "default"}:${rowFilamentId}`;
       items.push({
         publicFileServiceId: uploaded.publicFileServiceId,
         quantity: Math.max(1, Number(row.quantity ?? 1)),
         ...(rowFilamentId ? { filamentId: rowFilamentId } : {}),
       });
+
 
       usedFiles.push({ id: row.id, url: url! });
     }
