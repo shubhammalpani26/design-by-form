@@ -155,6 +155,10 @@ Deno.serve(async (req) => {
     const filamentId = filamentFor(paid[0]);
     const items: PartnerPrintItem[] = [];
     const usedFiles: Array<{ id: string; url: string }> = [];
+    // Per-piece colour record for the ops log — the single `filamentId` above is
+    // only a legacy summary field and hides the fact that colours differ.
+    const filamentByOrder: Record<string, string> = {};
+
 
 
     for (const row of paid) {
