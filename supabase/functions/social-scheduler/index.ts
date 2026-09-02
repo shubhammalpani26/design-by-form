@@ -660,7 +660,9 @@ Deno.serve(async (req) => {
     return json({
       ok: true,
       ...rendered,
+      queued: refill.queued,
       published: publishedResult.published ?? 0,
+
       ai_paused: rendered.paused === true || (aiCircuitPaused && (rendered.rendered ?? 0) === 0),
     });
   } catch (e) {
