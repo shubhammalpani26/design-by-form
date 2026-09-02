@@ -155,6 +155,10 @@ Deno.serve(async (req) => {
     const filamentId = filamentFor(paid[0]);
     const items: PartnerPrintItem[] = [];
     const usedFiles: Array<{ id: string; url: string }> = [];
+    // Per-piece colour record for the ops log — the single `filamentId` above is
+    // only a legacy summary field and hides the fact that colours differ.
+    const filamentByOrder: Record<string, string> = {};
+
 
 
     for (const row of paid) {
@@ -236,11 +240,14 @@ Deno.serve(async (req) => {
         ownerId: "nyzora-originals",
       });
       const rowFilamentId = filamentFor(row);
+      filamentByOrder[row.id.slice(0, 8)] =
+        `${(row.personalization as Record<string, unknown> | null)?.color ?? "default"}:${rowFilamentId}`;
       items.push({
         publicFileServiceId: uploaded.publicFileServiceId,
         quantity: Math.max(1, Number(row.quantity ?? 1)),
         ...(rowFilamentId ? { filamentId: rowFilamentId } : {}),
       });
+
 
       usedFiles.push({ id: row.id, url: url! });
     }
@@ -279,7 +286,7 @@ Deno.serve(async (req) => {
       stage: "print file",
       event: "files_uploaded",
       status: "ok",
-      details: { pieces: items.length, filamentId },
+      details: { pieces: items.length, filaments: filamentByOrder },
     });
 
     const placed = await placeOrder(buyer, items, "nyzora-originals");
