@@ -40,9 +40,9 @@ Deno.serve(async (req) => {
     "partner-refund-request",
     "support@slant3d.com",
     {
-      replyTo: "shubham.malpani@cyanique.com",
+      replyTo: "shubham.malpani@nyzora.ai",
       idempotencyKey: "partner-refund-SLANT_1788296455408",
-      templateData: {},
+      templateData: { requesterEmail: "shubham.malpani@nyzora.ai" },
     },
   );
 

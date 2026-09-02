@@ -98,7 +98,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       ],
     },
     fields: [
-      { key: "heading", label: "Heading", placeholder: "MARLOW", maxLength: HEADING_MAX, hint: "Their name, engraved large on the plinth" },
+      { key: "heading", label: "Heading", placeholder: "MARLOW", maxLength: HEADING_MAX, hint: "Their name — leave blank for a clean plinth" },
       { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
       { key: "footnote", label: "Footnote (optional)", placeholder: "2014 — 2024", maxLength: FOOTNOTE_MAX, hint: "Their dates or a short line, engraved below" },
@@ -142,7 +142,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       ],
     },
     fields: [
-      { key: "heading", label: "Heading", placeholder: "BAILEY", maxLength: HEADING_MAX, hint: "Their name, engraved large on the plinth" },
+      { key: "heading", label: "Heading", placeholder: "BAILEY", maxLength: HEADING_MAX, hint: "Their name — leave blank for a clean plinth" },
       { key: "petType", label: "Kind of pet", placeholder: "Choose a pet", options: PET_TYPES },
       { key: "breed", label: "Breed or type", placeholder: "Golden retriever" },
       { key: "footnote", label: "Footnote (optional)", placeholder: "DAD'S BEST FRIEND", maxLength: FOOTNOTE_MAX, hint: "A nickname or short line, engraved below" },

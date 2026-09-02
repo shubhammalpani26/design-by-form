@@ -21,7 +21,7 @@ const Email = ({
   deliveryCost = '$5.93',
   placedAt = '2026-09-01 21:00 UTC',
   cancelledAt = '2026-09-01 21:08 UTC',
-  requesterEmail = 'shubham.malpani@cyanique.com',
+  requesterEmail = 'shubham.malpani@nyzora.ai',
 }: Props) => (
   <Html lang="en" dir="ltr">
     <Head />
