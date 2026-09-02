@@ -640,9 +640,13 @@ Deno.serve(async (req) => {
     if (leaseErr) throw new Error(`lease failed: ${leaseErr.message}`);
     if (leased !== true) return json({ skipped: "locked" });
 
+    // Keep future slots seeded so an exhausted plan can never stop the feed.
+    const refill = await ensureQueue();
+
     // While AI is paused, one due item is the permitted recovery probe. A denied
     // probe keeps the circuit open; a successful render clears it automatically.
     const rendered = await renderDue();
+
 
     // Publishing does not consume AI credits. Always release one approved creative,
     // even when the generation probe keeps the AI circuit paused.
