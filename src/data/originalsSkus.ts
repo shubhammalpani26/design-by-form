@@ -47,6 +47,31 @@ export const MAX_ENVELOPE_MM = 220;
 export const HEADING_MAX = 18;
 export const FOOTNOTE_MAX = 24;
 
+/**
+ * Raised-lettering clause for prompt templates. When the buyer leaves both
+ * heading and footnote blank, the plinth must be explicitly clean — never fall
+ * back to a placeholder name, or the render shows someone else's name.
+ */
+const plinthLettering = (v: Record<string, string>): string => {
+  const heading = (v.heading || v.petName || "").trim();
+  const footnote = (v.footnote || v.date || "").trim();
+  if (!heading && !footnote) {
+    return "the plinth face left completely clean and unmarked — no lettering, no text, no nameplate, no monogram anywhere on the piece.";
+  }
+  const parts: string[] = [];
+  if (heading) {
+    parts.push(
+      `carrying the heading "${heading.toUpperCase()}" in raised fine sans-serif capitals standing slightly proud of the plinth face, like a cast nameplate`,
+    );
+  }
+  if (footnote) {
+    parts.push(
+      `with the smaller footnote line "${footnote}" raised ${heading ? "beneath it" : "on the plinth face"} in the same raised lettering`,
+    );
+  }
+  return parts.join(", ") + ".";
+};
+
 export const ORIGINALS_SKUS: OriginalSku[] = [
   {
     slug: "pet-silhouette-keepsake",
