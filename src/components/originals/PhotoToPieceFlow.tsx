@@ -593,6 +593,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               Made in one solid colour — pick the one that suits your space.
             </p>
           </div>
+          )}
+
 
           <Button
             size="lg"
