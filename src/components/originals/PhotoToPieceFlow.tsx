@@ -521,8 +521,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </p>
             </div>
           </div>
-          ) : (
+          ) : null}
+
+          {mode !== "photo" && (
           <div className="mt-4 space-y-3">
+
             {sku.fields.map((f) => (
               <div key={f.key}>
                 <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
