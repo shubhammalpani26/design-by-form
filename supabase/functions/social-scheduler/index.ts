@@ -112,11 +112,13 @@ function engravingFor(id: string) {
 
 /** Every product render must visibly prove the piece is personalised from the customer's own photo. */
 const engravingClause = (e: { name: string; sub: string }) =>
-  " Personalisation: the front face of the thick flat base plinth carries crisp recessed engraved lettering, " +
-  "clearly legible and correctly spelled, in a small clean uppercase sans-serif — the name " +
-  `"${e.name}" and beneath it a smaller line reading "${e.sub}". ` +
-  "The engraving is cut into the base itself, catches a soft shadow, and is sharp and in focus. " +
-  "Frame the shot so the engraved base is fully visible in the lower third and never cropped.";
+  " Personalisation: the front face of the thick flat base plinth carries RAISED EMBOSSED lettering that stands proud " +
+  "of the plinth surface by about 1.2 mm — extruded 3D letters printed in the same single filament colour, never carved, " +
+  "never recessed, never cut into or below the surface. Clearly legible and correctly spelled, in a small clean uppercase " +
+  `sans-serif — the name "${e.name}" and beneath it a smaller line reading "${e.sub}". ` +
+  "The raised letters cast their own small drop shadow onto the plinth face and show the same fine layer lines as the body. " +
+  "Frame the shot so the lettered base is fully visible in the lower third and never cropped.";
+
 
 /** A mix of joyful and calmly content expressions — never solemn, never grieving. */
 const HAPPY_EXPRESSION =

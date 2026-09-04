@@ -122,6 +122,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
+  const [showOptions, setShowOptions] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
@@ -486,8 +487,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </>
           )}
 
-          {mode === "photo" ? (
+          {mode === "photo" && !showOptions && (
+            <button
+              type="button"
+              onClick={() => setShowOptions(true)}
+              className="mt-4 w-full border border-foreground/15 bg-background px-3 py-2.5 text-left text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground"
+            >
+              + Add a name, a date or a colour (optional)
+            </button>
+          )}
+
+          {mode === "photo" && showOptions ? (
           <div className="mt-4 grid grid-cols-2 gap-3">
+
             <div>
               <Label htmlFor="heading" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
                 Heading (optional)
@@ -509,8 +521,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </p>
             </div>
           </div>
-          ) : (
+          ) : null}
+
+          {mode !== "photo" && (
           <div className="mt-4 space-y-3">
+
             {sku.fields.map((f) => (
               <div key={f.key}>
                 <Label htmlFor={f.key} className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
@@ -549,7 +564,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
           )}
 
+          {(mode !== "photo" || showOptions) && (
           <div className="mt-4">
+
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {COLORS.map((c) => {
@@ -576,6 +593,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               Made in one solid colour — pick the one that suits your space.
             </p>
           </div>
+          )}
+
 
           <Button
             size="lg"
