@@ -167,12 +167,14 @@ export async function estimateFilePrice(
   publicFileServiceId: string,
   filamentId?: string,
 ): Promise<number> {
-  const data = await request<{ total?: number; pricePerUnit?: number }>(
-    `/files/${encodeURIComponent(publicFileServiceId)}/estimate`,
-    {
-      method: "POST",
-      body: JSON.stringify({ options: filamentId ? { filamentId } : {} }),
-    },
+  const data = await withPartnerRetry(() =>
+    request<{ total?: number; pricePerUnit?: number }>(
+      `/files/${encodeURIComponent(publicFileServiceId)}/estimate`,
+      {
+        method: "POST",
+        body: JSON.stringify({ options: filamentId ? { filamentId } : {} }),
+      },
+    )
   );
   const price = data?.pricePerUnit ?? data?.total;
   if (typeof price !== "number") {
