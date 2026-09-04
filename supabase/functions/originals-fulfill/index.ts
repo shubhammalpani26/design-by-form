@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
       // reach production. No engraving record => nothing ships.
       const wanted = engravingLabel(row.personalization as Record<string, unknown> | null);
       if (wanted && !files[row.id] && row.engraved_text !== wanted) {
-        const reason = `Personalisation "${wanted}" is not cut into this print file yet`;
+        const reason = `Personalisation "${wanted}" is not raised/embossed on this print file yet`;
         await admin
           .from("originals_orders")
           .update({
