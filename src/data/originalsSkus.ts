@@ -43,7 +43,7 @@ export const PET_TYPES = [
 /** Every Original is printed as a single part inside a 220 x 220 x 220 mm envelope. */
 export const MAX_ENVELOPE_MM = 220;
 
-/** Engraving is cut into a fixed panel, so the text has to stay short to stay legible. */
+/** Lettering sits raised on a fixed panel, so the text has to stay short to stay legible. */
 export const HEADING_MAX = 18;
 export const FOOTNOTE_MAX = 24;
 
@@ -183,7 +183,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth recessed band runs across the front, engraved with your coordinates and the date. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close. Made from plant-based PLA, precision 3D-printed as one solid part in the USA and shipped free.",
+      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth flat band runs across the front carrying your coordinates and the date in raised lettering that stands proud of the surface. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close. Made from plant-based PLA, precision 3D-printed as one solid part in the USA and shipped free.",
     price: 85,
     image: weddingImg,
     dimensions: "154 × 174 × 56 mm",
