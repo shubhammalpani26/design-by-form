@@ -95,6 +95,27 @@ export interface PartnerFile {
 }
 
 /**
+ * The partner's file service intermittently answers 5xx ("Error processing
+ * uploaded file") when several slices are requested at once, even for files it
+ * happily accepts a second later. Without a retry a good piece silently drops
+ * to the fallback list price, so transient server-side failures are re-tried.
+ */
+async function withPartnerRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      return await fn();
+    } catch (e) {
+      lastError = e;
+      const transient = e instanceof PartnerApiError && e.status >= 500;
+      if (!transient || i === attempts - 1) throw e;
+      await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+    }
+  }
+  throw lastError;
+}
+
+/**
  * Uploads a printable file to the partner and returns its file record.
  * The partner only accepts STL; callers must convert first.
  */
@@ -110,42 +131,50 @@ export async function uploadPrintFile(
     throw new PartnerApiError(`Could not download the print file (${source.status})`, 400);
   }
   const bytes = new Uint8Array(await source.arrayBuffer());
-
-  const presign = await request<{
-    presignedUrl: string;
-    key: string;
-    filePlaceholder: Record<string, unknown>;
-  }>("/files/direct-upload", {
-    method: "POST",
-    body: JSON.stringify({ name, platformId: platformId(), ownerId: opts.ownerId ?? "nyzora" }),
-  });
-
-  const put = await fetch(presign.presignedUrl, {
-    method: "PUT",
-    headers: { "Content-Type": "application/octet-stream" },
-    body: bytes,
-  });
-  if (!put.ok) {
-    throw new PartnerApiError(`Print file upload failed (${put.status})`, 502);
+  if (bytes.byteLength < 200) {
+    throw new PartnerApiError("The print file is empty or truncated", 400);
   }
 
-  return await request<PartnerFile>("/files/confirm-upload", {
-    method: "POST",
-    body: JSON.stringify({ filePlaceholder: presign.filePlaceholder }),
+  return await withPartnerRetry(async () => {
+    const presign = await request<{
+      presignedUrl: string;
+      key: string;
+      filePlaceholder: Record<string, unknown>;
+    }>("/files/direct-upload", {
+      method: "POST",
+      body: JSON.stringify({ name, platformId: platformId(), ownerId: opts.ownerId ?? "nyzora" }),
+    });
+
+    const put = await fetch(presign.presignedUrl, {
+      method: "PUT",
+      headers: { "Content-Type": "application/octet-stream" },
+      body: bytes,
+    });
+    if (!put.ok) {
+      throw new PartnerApiError(`Print file upload failed (${put.status})`, 502);
+    }
+
+    return await request<PartnerFile>("/files/confirm-upload", {
+      method: "POST",
+      body: JSON.stringify({ filePlaceholder: presign.filePlaceholder }),
+    });
   });
 }
+
 
 /** Unit print price in USD for an already-uploaded partner file. */
 export async function estimateFilePrice(
   publicFileServiceId: string,
   filamentId?: string,
 ): Promise<number> {
-  const data = await request<{ total?: number; pricePerUnit?: number }>(
-    `/files/${encodeURIComponent(publicFileServiceId)}/estimate`,
-    {
-      method: "POST",
-      body: JSON.stringify({ options: filamentId ? { filamentId } : {} }),
-    },
+  const data = await withPartnerRetry(() =>
+    request<{ total?: number; pricePerUnit?: number }>(
+      `/files/${encodeURIComponent(publicFileServiceId)}/estimate`,
+      {
+        method: "POST",
+        body: JSON.stringify({ options: filamentId ? { filamentId } : {} }),
+      },
+    )
   );
   const price = data?.pricePerUnit ?? data?.total;
   if (typeof price !== "number") {
