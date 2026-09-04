@@ -564,7 +564,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </div>
           )}
 
+          {(mode !== "photo" || showOptions) && (
           <div className="mt-4">
+
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
             <div className="mt-2 flex flex-wrap gap-2">
               {COLORS.map((c) => {
