@@ -122,6 +122,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
+  const [showOptions, setShowOptions] = useState(false);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
