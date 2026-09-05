@@ -166,7 +166,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Baby Name & Date Piece",
     tagline: "The first thing they ever owned with their name on it.",
     description:
-      "Two soft dunes rising out of a single solid block — one tall, one low — carved with gentle concentric contour ridges that wrap the whole form. The taller dune opens onto a smooth, unbroken face where the name is engraved in fine capitals, with the date set quietly below on the lower dune. Rounded and hand-warm rather than architectural, so it reads as a sculpture first and a keepsake second. Made from plant-based PLA, precision 3D-printed as one solid part in the USA and shipped free.",
+      "Two soft dunes rising out of a single solid block — one tall, one low — wrapped in gentle concentric contour ridges. The taller dune opens onto a clean, unbroken face where the name stands in raised fine capitals, with the date set quietly below on the lower dune. Rounded and hand-warm rather than architectural, so it reads as a sculpture first and a keepsake second. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 60,
     image: nurseryImg,
     dimensions: "157 × 147 × 43 mm",
@@ -183,7 +183,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Wedding Coordinates Piece",
     tagline: "The exact place it happened, made into an object.",
     description:
-      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a smooth flat band runs across the front carrying your coordinates and the date in raised lettering that stands proud of the surface. Everything else is left as soft carved swell, so the object reads as sculpture on a console table and only reveals what it is up close. Made from plant-based PLA, precision 3D-printed as one solid part in the USA and shipped free.",
+      "Two sculpted waves rise from one solid mass and lean into each other until they meet — a single continuous form, never two pieces. Below them, a clean flat band runs across the front carrying your coordinates and the date in raised lettering that stands proud of the surface. Everything else is left as soft, sweeping swell, so the object reads as sculpture on a console table and only reveals what it is up close. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 85,
     image: weddingImg,
     dimensions: "154 × 174 × 56 mm",
