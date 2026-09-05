@@ -249,8 +249,59 @@ async function engineeringCheck(imageUrl: string, prompt: string) {
   };
 }
 
+/**
+ * Vision gate: the image model keeps sinking the nameplate into the plinth. Look at the
+ * finished render and reject anything where the text is cut in rather than standing out.
+ * Unknown/unavailable answers pass, so a flaky check never blocks the feed.
+ */
+async function letteringCheck(imageUrl: string): Promise<{ raised: boolean; note?: string }> {
+  if (!LOVABLE_API_KEY) return { raised: true };
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Look at the lettering on the base of this object. Is the text RAISED (standing out from the " +
+                  "surface, catching light on its top faces, casting shadows onto the base) or RECESSED (cut, " +
+                  "carved or stamped into the surface, sitting below it, shadow inside the letter strokes)? " +
+                  'Answer with JSON only: {"lettering":"raised"|"recessed"|"none"|"unclear"}.',
+              },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+    if (!res.ok) return { raised: true };
+    const data = await res.json();
+    const text: string = data.choices?.[0]?.message?.content ?? "";
+    const verdict = /"lettering"\s*:\s*"(\w+)"/.exec(text)?.[1]?.toLowerCase() ?? "unclear";
+    if (verdict === "recessed" || verdict === "none") {
+      return {
+        raised: false,
+        note:
+          "Correction: the name on the base must be built UP out of the surface — solid letters standing about " +
+          "1.2 mm out toward the viewer with lit top faces, visible side walls and shadows cast down onto the plinth, " +
+          "like a relief plaque. Do not cut, stamp or sink the text into the plinth.",
+      };
+    }
+    return { raised: true };
+  } catch {
+    return { raised: true };
+  }
+}
+
 /** Max render passes per slot in one run: the agent's revision note feeds straight back into the prompt. */
-const ENGINEERING_RETRIES = 2;
+const ENGINEERING_RETRIES = 3;
+
 
 /* ------------------------------ queue refill ------------------------------ */
 
