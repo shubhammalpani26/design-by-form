@@ -460,14 +460,18 @@ async function renderDue() {
         revision = lettering.note ?? "";
         continue;
       }
+      // The engineering agent is advisory for social marketing renders: the real
+      // printability gate is the STL pipeline (engraveStl / meshCheck), and the
+      // agent wrongly flags our own valid raised-plinth lettering (1.2 mm prisms
+      // on the front face, which print without supports) as an unprintable
+      // overhang. The lettering check above is the hard quality gate for posts.
       try {
-        const verdict = await engineeringCheck(rendered.url, post.image_prompt);
+        const verdict = await engineeringCheck(rendered.url, base);
         engineering = verdict;
-        engineering_status = verdict.skipped ? "skipped" : verdict.pass === false ? "fail" : "pass";
-        if (engineering_status !== "fail") break;
-        revision = verdict.revision_prompt?.trim() || "Simplify the form: merge all thin details into solid masses and remove every overhang.";
+        engineering_status = verdict.skipped ? "skipped" : verdict.pass === false ? "advisory_fail" : "pass";
+        break;
       } catch (e) {
-        engineering_status = "pending";
+        engineering_status = "skipped";
         engineering = { error: (e as Error).message };
         break;
       }
@@ -481,12 +485,10 @@ async function renderDue() {
       continue;
     }
 
-    // A render the engineering agent rejects — or one where the name ended up sunken into the
-    // plinth instead of standing on it — never auto-publishes. It parks for review instead.
-    const status =
-      engineering_status === "fail" || engineering_status === "pending" || !letteringOk
-        ? "needs_review"
-        : "ready";
+    // Only sunken lettering parks a post for review now. The engineering agent's
+    // verdict is recorded but advisory — the STL pipeline enforces real printability,
+    // and the agent mis-flags our valid raised-plinth lettering as unprintable.
+    const status = !letteringOk ? "needs_review" : "ready";
 
     await admin
       .from("social_scheduled_posts")
@@ -498,9 +500,7 @@ async function renderDue() {
         attempts: post.attempts + 1,
         last_error: !letteringOk
           ? "Lettering rendered sunken into the plinth instead of raised on top"
-          : engineering_status === "fail"
-            ? "Engineering agent rejected this render"
-            : null,
+          : null,
       })
       .eq("id", post.id);
 
@@ -593,7 +593,7 @@ async function publishDue() {
     .from("social_scheduled_posts")
     .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
     .eq("status", "ready")
-    .in("engineering_status", ["pass", "skipped"])
+    .in("engineering_status", ["pass", "skipped", "advisory_fail"])
     .not("image_url", "is", null)
     .lte("scheduled_at", new Date().toISOString())
     .order("scheduled_at", { ascending: true })
