@@ -451,6 +451,14 @@ async function renderDue() {
         engineering_status = "skipped";
         break;
       }
+      // Sunken lettering is the single most common failure — catch it before anything else
+      // and spend the remaining passes re-rendering with an explicit correction.
+      const lettering = await letteringCheck(rendered.url);
+      letteringOk = lettering.raised;
+      if (!lettering.raised && pass < ENGINEERING_RETRIES - 1) {
+        revision = lettering.note ?? "";
+        continue;
+      }
       try {
         const verdict = await engineeringCheck(rendered.url, post.image_prompt);
         engineering = verdict;
