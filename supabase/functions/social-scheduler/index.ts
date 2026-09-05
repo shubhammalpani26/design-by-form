@@ -110,14 +110,23 @@ function engravingFor(id: string) {
   return ENGRAVINGS[hash(id) % ENGRAVINGS.length];
 }
 
-/** Every product render must visibly prove the piece is personalised from the customer's own photo. */
+/**
+ * Every product render must visibly prove the piece is personalised.
+ *
+ * The lettering is described purely positively — as extra material added on top of the
+ * plinth. Earlier versions leaned on "never carved / never recessed" and the image model
+ * latched onto the very words we were forbidding, so every render came back sunken.
+ */
 const engravingClause = (e: { name: string; sub: string }) =>
-  " Personalisation: the front face of the thick flat base plinth carries RAISED EMBOSSED lettering that stands proud " +
-  "of the plinth surface by about 1.2 mm — extruded 3D letters printed in the same single filament colour, never carved, " +
-  "never recessed, never cut into or below the surface. Clearly legible and correctly spelled, in a small clean uppercase " +
-  `sans-serif — the name "${e.name}" and beneath it a smaller line reading "${e.sub}". ` +
-  "The raised letters cast their own small drop shadow onto the plinth face and show the same fine layer lines as the body. " +
+  " Personalisation: sitting ON TOP of the front face of the thick flat base plinth is a small nameplate made of " +
+  "letters that were printed as extra material standing out from the surface, like a raised sign or a relief plaque — " +
+  "each letter is a solid 3D block about 1.2 mm tall projecting outward toward the viewer, with its own lit top face, " +
+  "a visible side wall, and a soft contact shadow falling onto the plinth beneath it. The letters are the same single " +
+  `filament colour as the whole piece and carry the same fine layer lines. Text: the name "${e.name}" in a small clean ` +
+  `uppercase sans-serif and beneath it a smaller line reading "${e.sub}", clearly legible and correctly spelled. ` +
+  "Light rakes across the nameplate so the raised height of every letter is obvious. " +
   "Frame the shot so the lettered base is fully visible in the lower third and never cropped.";
+
 
 
 /** A mix of joyful and calmly content expressions — never solemn, never grieving. */
