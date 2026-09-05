@@ -480,9 +480,12 @@ async function renderDue() {
       continue;
     }
 
-    // A render the engineering agent rejects never auto-publishes — it parks for review.
+    // A render the engineering agent rejects — or one where the name ended up sunken into the
+    // plinth instead of standing on it — never auto-publishes. It parks for review instead.
     const status =
-      engineering_status === "fail" || engineering_status === "pending" ? "needs_review" : "ready";
+      engineering_status === "fail" || engineering_status === "pending" || !letteringOk
+        ? "needs_review"
+        : "ready";
 
     await admin
       .from("social_scheduled_posts")
@@ -492,7 +495,11 @@ async function renderDue() {
         engineering_status,
         status,
         attempts: post.attempts + 1,
-        last_error: engineering_status === "fail" ? "Engineering agent rejected this render" : null,
+        last_error: !letteringOk
+          ? "Lettering rendered sunken into the plinth instead of raised on top"
+          : engineering_status === "fail"
+            ? "Engineering agent rejected this render"
+            : null,
       })
       .eq("id", post.id);
 
