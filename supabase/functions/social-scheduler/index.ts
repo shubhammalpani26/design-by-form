@@ -110,14 +110,23 @@ function engravingFor(id: string) {
   return ENGRAVINGS[hash(id) % ENGRAVINGS.length];
 }
 
-/** Every product render must visibly prove the piece is personalised from the customer's own photo. */
+/**
+ * Every product render must visibly prove the piece is personalised.
+ *
+ * The lettering is described purely positively — as extra material added on top of the
+ * plinth. Earlier versions leaned on "never carved / never recessed" and the image model
+ * latched onto the very words we were forbidding, so every render came back sunken.
+ */
 const engravingClause = (e: { name: string; sub: string }) =>
-  " Personalisation: the front face of the thick flat base plinth carries RAISED EMBOSSED lettering that stands proud " +
-  "of the plinth surface by about 1.2 mm — extruded 3D letters printed in the same single filament colour, never carved, " +
-  "never recessed, never cut into or below the surface. Clearly legible and correctly spelled, in a small clean uppercase " +
-  `sans-serif — the name "${e.name}" and beneath it a smaller line reading "${e.sub}". ` +
-  "The raised letters cast their own small drop shadow onto the plinth face and show the same fine layer lines as the body. " +
+  " Personalisation: sitting ON TOP of the front face of the thick flat base plinth is a small nameplate made of " +
+  "letters that were printed as extra material standing out from the surface, like a raised sign or a relief plaque — " +
+  "each letter is a solid 3D block about 1.2 mm tall projecting outward toward the viewer, with its own lit top face, " +
+  "a visible side wall, and a soft contact shadow falling onto the plinth beneath it. The letters are the same single " +
+  `filament colour as the whole piece and carry the same fine layer lines. Text: the name "${e.name}" in a small clean ` +
+  `uppercase sans-serif and beneath it a smaller line reading "${e.sub}", clearly legible and correctly spelled. ` +
+  "Light rakes across the nameplate so the raised height of every letter is obvious. " +
   "Frame the shot so the lettered base is fully visible in the lower third and never cropped.";
+
 
 
 /** A mix of joyful and calmly content expressions — never solemn, never grieving. */
@@ -240,8 +249,59 @@ async function engineeringCheck(imageUrl: string, prompt: string) {
   };
 }
 
+/**
+ * Vision gate: the image model keeps sinking the nameplate into the plinth. Look at the
+ * finished render and reject anything where the text is cut in rather than standing out.
+ * Unknown/unavailable answers pass, so a flaky check never blocks the feed.
+ */
+async function letteringCheck(imageUrl: string): Promise<{ raised: boolean; note?: string }> {
+  if (!LOVABLE_API_KEY) return { raised: true };
+  try {
+    const res = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Look at the lettering on the base of this object. Is the text RAISED (standing out from the " +
+                  "surface, catching light on its top faces, casting shadows onto the base) or RECESSED (cut, " +
+                  "carved or stamped into the surface, sitting below it, shadow inside the letter strokes)? " +
+                  'Answer with JSON only: {"lettering":"raised"|"recessed"|"none"|"unclear"}.',
+              },
+              { type: "image_url", image_url: { url: imageUrl } },
+            ],
+          },
+        ],
+      }),
+    });
+    if (!res.ok) return { raised: true };
+    const data = await res.json();
+    const text: string = data.choices?.[0]?.message?.content ?? "";
+    const verdict = /"lettering"\s*:\s*"(\w+)"/.exec(text)?.[1]?.toLowerCase() ?? "unclear";
+    if (verdict === "recessed" || verdict === "none") {
+      return {
+        raised: false,
+        note:
+          "Correction: the name on the base must be built UP out of the surface — solid letters standing about " +
+          "1.2 mm out toward the viewer with lit top faces, visible side walls and shadows cast down onto the plinth, " +
+          "like a relief plaque. Do not cut, stamp or sink the text into the plinth.",
+      };
+    }
+    return { raised: true };
+  } catch {
+    return { raised: true };
+  }
+}
+
 /** Max render passes per slot in one run: the agent's revision note feeds straight back into the prompt. */
-const ENGINEERING_RETRIES = 2;
+const ENGINEERING_RETRIES = 3;
+
 
 /* ------------------------------ queue refill ------------------------------ */
 
@@ -370,6 +430,7 @@ async function renderDue() {
     let imageUrl: string | null = null;
     let revision = "";
     let renderError: { status?: number; error?: string } | null = null;
+    let letteringOk = true;
 
     // Re-render with the engineering agent's own revision note until it passes,
     // so a rejected slot still makes its posting time.
@@ -390,6 +451,14 @@ async function renderDue() {
       if (!post.is_render) {
         engineering_status = "skipped";
         break;
+      }
+      // Sunken lettering is the single most common failure — catch it before anything else
+      // and spend the remaining passes re-rendering with an explicit correction.
+      const lettering = await letteringCheck(rendered.url);
+      letteringOk = lettering.raised;
+      if (!lettering.raised && pass < ENGINEERING_RETRIES - 1) {
+        revision = lettering.note ?? "";
+        continue;
       }
       try {
         const verdict = await engineeringCheck(rendered.url, post.image_prompt);
@@ -412,9 +481,12 @@ async function renderDue() {
       continue;
     }
 
-    // A render the engineering agent rejects never auto-publishes — it parks for review.
+    // A render the engineering agent rejects — or one where the name ended up sunken into the
+    // plinth instead of standing on it — never auto-publishes. It parks for review instead.
     const status =
-      engineering_status === "fail" || engineering_status === "pending" ? "needs_review" : "ready";
+      engineering_status === "fail" || engineering_status === "pending" || !letteringOk
+        ? "needs_review"
+        : "ready";
 
     await admin
       .from("social_scheduled_posts")
@@ -424,7 +496,11 @@ async function renderDue() {
         engineering_status,
         status,
         attempts: post.attempts + 1,
-        last_error: engineering_status === "fail" ? "Engineering agent rejected this render" : null,
+        last_error: !letteringOk
+          ? "Lettering rendered sunken into the plinth instead of raised on top"
+          : engineering_status === "fail"
+            ? "Engineering agent rejected this render"
+            : null,
       })
       .eq("id", post.id);
 
