@@ -593,7 +593,7 @@ async function publishDue() {
     .from("social_scheduled_posts")
     .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
     .eq("status", "ready")
-    .in("engineering_status", ["pass", "skipped"])
+    .in("engineering_status", ["pass", "skipped", "advisory_fail"])
     .not("image_url", "is", null)
     .lte("scheduled_at", new Date().toISOString())
     .order("scheduled_at", { ascending: true })
