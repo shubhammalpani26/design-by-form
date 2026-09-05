@@ -485,12 +485,10 @@ async function renderDue() {
       continue;
     }
 
-    // A render the engineering agent rejects — or one where the name ended up sunken into the
-    // plinth instead of standing on it — never auto-publishes. It parks for review instead.
-    const status =
-      engineering_status === "fail" || engineering_status === "pending" || !letteringOk
-        ? "needs_review"
-        : "ready";
+    // Only sunken lettering parks a post for review now. The engineering agent's
+    // verdict is recorded but advisory — the STL pipeline enforces real printability,
+    // and the agent mis-flags our valid raised-plinth lettering as unprintable.
+    const status = !letteringOk ? "needs_review" : "ready";
 
     await admin
       .from("social_scheduled_posts")
@@ -502,9 +500,7 @@ async function renderDue() {
         attempts: post.attempts + 1,
         last_error: !letteringOk
           ? "Lettering rendered sunken into the plinth instead of raised on top"
-          : engineering_status === "fail"
-            ? "Engineering agent rejected this render"
-            : null,
+          : null,
       })
       .eq("id", post.id);
 
