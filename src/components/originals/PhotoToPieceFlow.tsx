@@ -437,7 +437,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {mode === "photo" ? "Make it from your photo" : "Make it from a template"}
           </p>
           <h2 className="mt-2 text-xl md:text-2xl font-light tracking-tight">
-            {mode === "photo" ? "Upload one photo. See them sculpted." : "Fill in the details. See it sculpted."}
+            {mode === "photo" ? "Upload one photo. See it come to life." : "Fill in the details. See it come to life."}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
@@ -608,7 +608,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
-              <>See {displayName || "it"} sculpted — free <ArrowRight className="ml-2 h-4 w-4" /></>
+              <>See {displayName || "it"} made — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
           {errorMsg && (
@@ -986,8 +986,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             real workshop and shipped to your door.
           </p>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Your render is a design preview — the finished print is a solid single-colour piece, so texture
-            and tone will differ slightly. That's what makes it one of a kind.
+            Your render is a design preview — the finished print is a solid single-colour piece with visible
+            3D-print layer lines, so texture and tone will differ slightly. That's what makes it one of a kind.
           </p>
         </div>
       )}
