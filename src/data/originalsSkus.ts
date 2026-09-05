@@ -122,7 +122,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Custom Pet Portrait Sculpture",
     tagline: "A personalized pet gift for the one still curled up next to you.",
     description:
-      "The same sculpture, made while they're still here. A custom 3D portrait of your dog or cat's head and shoulders, modelled from your photo and set on a weighted plinth engraved with their name — a personalized pet gift for a birthday, a gotcha day, or no reason at all. Rounded, carved volume you can hold and turn: cheeks, muzzle, brow and ears modelled all the way around, not a flat cut-out. The eyes are carved as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light. The surface is one smooth, uniform matte tone throughout — no banding, no grain, no contrasting base. Made from plant-based PLA, precision 3D-printed as one solid part in the USA and shipped free.",
+      "The same sculpture, made while they're still here. A custom 3D portrait of your dog or cat's head and shoulders, modelled from your photo and set on a weighted plinth engraved with their name — a personalized pet gift for a birthday, a gotcha day, or no reason at all. Rounded, modelled volume you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 59,
     image: petPortraitImg,
     dimensions: "196 × 150 × 120 mm",
