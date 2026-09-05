@@ -430,6 +430,7 @@ async function renderDue() {
     let imageUrl: string | null = null;
     let revision = "";
     let renderError: { status?: number; error?: string } | null = null;
+    let letteringOk = true;
 
     // Re-render with the engineering agent's own revision note until it passes,
     // so a rejected slot still makes its posting time.
