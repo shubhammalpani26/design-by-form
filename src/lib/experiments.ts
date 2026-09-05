@@ -14,12 +14,12 @@ export const EXPERIMENTS = {
   hero_copy: {
     a: {
       headline: ["Upload one photo.", "Hold them in your hands."],
-      sub: "A photo of your dog becomes a solid sculpture with their name on the base — matte stone-look finish, printed in durable material in the USA. See it free in about a minute, shipped in 7–8 days.",
+      sub: "A photo of your dog becomes a solid keepsake with their name on the base — one matte colour with the honest texture of a 3D print, made in the USA. See it free in about a minute, shipped in 7–8 days.",
       cta: "See your pet sculpted — free",
     },
     b: {
       headline: ["They don't have to", "be just a photo."],
-      sub: "Send us one picture and we sculpt them into a solid piece with a matte stone-look finish, their name engraved in the base. See yours free before you decide. Made in the USA, free shipping.",
+      sub: "Send us one picture and we turn them into a solid piece in one matte colour with the honest texture of a 3D print, their name on the base. See yours free before you decide. Made in the USA, free shipping.",
       cta: "See your pet sculpted — free",
     },
   },
