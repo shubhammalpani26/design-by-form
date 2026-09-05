@@ -608,7 +608,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
             ) : (
-              <>See {displayName || "it"} sculpted — free <ArrowRight className="ml-2 h-4 w-4" /></>
+              <>See {displayName || "it"} made — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
           </Button>
           {errorMsg && (
