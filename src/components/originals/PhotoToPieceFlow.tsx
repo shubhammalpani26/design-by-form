@@ -986,8 +986,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             real workshop and shipped to your door.
           </p>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
-            Your render is a design preview — the finished print is a solid single-colour piece, so texture
-            and tone will differ slightly. That's what makes it one of a kind.
+            Your render is a design preview — the finished print is a solid single-colour piece with visible
+            3D-print layer lines, so texture and tone will differ slightly. That's what makes it one of a kind.
           </p>
         </div>
       )}
