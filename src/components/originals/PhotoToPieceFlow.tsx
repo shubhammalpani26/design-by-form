@@ -160,6 +160,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       if (d.footnote) setFootnote(d.footnote);
       if (d.values) setValues(d.values);
       if (d.colorKey) setColorKey(d.colorKey);
+      // A returning visitor who saved a name/date/colour should see those
+      // fields expanded, not hidden behind the "+ Add" toggle.
+      if (d.heading || d.footnote || d.values || d.colorKey) setShowOptions(true);
       if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
       if (d.preview) setPreview(d.preview);
       setRestored(true);
