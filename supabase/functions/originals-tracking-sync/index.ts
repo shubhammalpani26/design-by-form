@@ -93,20 +93,20 @@ async function notifyShipped(
     trackingNumbers: numbers,
   };
 
+  // Internal copy first so the team always sees every shipment go out,
+  // even if the buyer send below fails.
+  await sendAppEmail("originals-order-shipped", "contact@nyzora.ai", {
+    idempotencyKey: `originals-shipped-internal-${row.id}`,
+    templateData,
+  });
+
   const result = await sendAppEmail("originals-order-shipped", row.customer_email ?? "", {
     idempotencyKey: `originals-shipped-${row.id}`,
     templateData,
   });
   if (result.sent === false && result.reason === "failed") {
     console.error("shipping email failed", row.id, result.error);
-    return;
   }
-
-  // Internal copy so the team sees every shipment go out.
-  await sendAppEmail("originals-order-shipped", "contact@nyzora.ai", {
-    idempotencyKey: `originals-shipped-internal-${row.id}`,
-    templateData,
-  });
 
   await admin
     .from("originals_orders")
