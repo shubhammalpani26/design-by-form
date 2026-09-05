@@ -16,7 +16,8 @@ export const MadeToOrderPolicy = ({ className = "" }: { className?: string }) =>
         <span>
           <strong className="font-medium">You approve the design first.</strong> Nothing is made until you're
           happy with the preview. The render is a design preview — the finished piece is printed in one solid
-          colour, so texture and tone read a little differently in the hand.
+          matte colour with the visible layer lines of a real 3D print, so texture and tone read a little
+          differently in the hand.
         </span>
       </li>
       <li className="flex gap-3 px-4 py-3">

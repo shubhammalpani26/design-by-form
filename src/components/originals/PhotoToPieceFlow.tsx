@@ -981,9 +981,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             <div className="flex flex-col gap-1.5"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
           <p className="mt-4 text-[11px] leading-relaxed text-muted-foreground">
-            Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a
-            stone-look finish, not natural stone. Designed by our AI, checked by our engineers, made by a
-            real workshop and shipped to your door.
+            Made from a dense matte polymer, precision 3D-printed as one solid part in the USA — a single
+            matte colour with the fine layer lines of a real print. Designed by our AI, checked by our
+            engineers, made by a real workshop and shipped to your door.
           </p>
           <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
             Your render is a design preview — the finished print is a solid single-colour piece with visible
