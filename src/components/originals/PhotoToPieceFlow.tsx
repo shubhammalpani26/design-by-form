@@ -437,7 +437,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {mode === "photo" ? "Make it from your photo" : "Make it from a template"}
           </p>
           <h2 className="mt-2 text-xl md:text-2xl font-light tracking-tight">
-            {mode === "photo" ? "Upload one photo. See them sculpted." : "Fill in the details. See it sculpted."}
+            {mode === "photo" ? "Upload one photo. See it come to life." : "Fill in the details. See it come to life."}
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
