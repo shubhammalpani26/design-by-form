@@ -2,7 +2,7 @@ import React from "react";
 import {
   AbsoluteFill,
   Audio,
-  OffthreadVideo,
+  Img,
   Sequence,
   spring,
   staticFile,
