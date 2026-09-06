@@ -398,13 +398,14 @@ async function ensureQueue() {
 async function renderDue() {
   const now = new Date().toISOString();
 
-  // Only an agent-rejected render is unusable and worth re-rendering. Posts parked for any
-  // other reason keep their generated image so an admin can still publish them manually.
+  // A sunken-lettering render is unusable and worth re-rendering (lettering is the only
+  // hard quality gate now; the engineering agent's verdict is advisory). Posts parked for
+  // any other reason keep their generated image so an admin can still publish them manually.
   await admin
     .from("social_scheduled_posts")
-    .update({ status: "scheduled", image_url: null })
+    .update({ status: "scheduled", image_url: null, last_error: null })
     .eq("status", "needs_review")
-    .eq("engineering_status", "fail")
+    .like("last_error", "Lettering rendered sunken%")
     .lt("attempts", MAX_ATTEMPTS)
     .lte("scheduled_at", now);
 
