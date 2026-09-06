@@ -165,6 +165,20 @@ const EndCard: React.FC = () => {
       >
         Your pet. Made real.
       </div>
+      <div
+        style={{
+          fontFamily: body,
+          fontWeight: 600,
+          fontSize: 28,
+          color: CLAY,
+          marginTop: 44,
+          letterSpacing: 3,
+          opacity: spring({ frame: frame - 40, fps, config: { damping: 200 } }),
+          textTransform: "uppercase",
+        }}
+      >
+        Engineering-verified. Always print-ready.
+      </div>
     </AbsoluteFill>
   );
 };
