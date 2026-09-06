@@ -153,8 +153,8 @@ export const SocialScheduleManagement = () => {
             <Card key={p.id} className="rounded-none">
               <CardContent className="flex flex-col gap-4 p-3 sm:flex-row sm:p-4">
                 <div className="h-56 w-full shrink-0 border border-border bg-muted sm:h-28 sm:w-28">
-                  {p.image_url ? (
-                    <a href={p.image_url} target="_blank" rel="noreferrer" className="block h-full w-full">
+                  {p.image_url && !p.image_url.startsWith("storage://") ? (
+                    <a href={p.image_url} target="_blank" rel="noreferrer" className="block h-full w-full" title="Open full size">
                       <img
                         src={p.image_url}
                         alt={p.theme ?? "Scheduled post creative"}
@@ -164,7 +164,7 @@ export const SocialScheduleManagement = () => {
                     </a>
                   ) : (
                     <div className="flex h-full items-center justify-center text-[10px] text-muted-foreground">
-                      Not rendered
+                      {p.image_url ? "Reel video" : "Not rendered"}
                     </div>
                   )}
                 </div>
