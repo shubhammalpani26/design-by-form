@@ -165,6 +165,20 @@ const EndCard: React.FC = () => {
       >
         Your pet. Made real.
       </div>
+      <div
+        style={{
+          fontFamily: body,
+          fontWeight: 600,
+          fontSize: 28,
+          color: CLAY,
+          marginTop: 44,
+          letterSpacing: 3,
+          opacity: spring({ frame: frame - 40, fps, config: { damping: 200 } }),
+          textTransform: "uppercase",
+        }}
+      >
+        Engineering-verified. Always print-ready.
+      </div>
     </AbsoluteFill>
   );
 };
@@ -182,8 +196,9 @@ export const Reel: React.FC = () => {
       </Sequence>
       <Sequence from={132} durationInFrames={146}>
         <ClipScene src="clips/step2-sculpt.mp4" step="02 — SCULPT">
-          <Caption words={["AI", "sculpts"]} start={10} y={1330} />
-          <Caption words={["their", "likeness"]} start={40} y={1490} />
+          <Caption words={["AI", "sculpts"]} start={10} y={1230} />
+          <Caption words={["their", "likeness"]} start={40} y={1390} />
+          <Caption words={["Engineering-checked."]} start={78} y={1560} size={48} />
         </ClipScene>
       </Sequence>
       <Sequence from={278} durationInFrames={146}>
