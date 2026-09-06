@@ -219,9 +219,9 @@ const EndCard: React.FC = () => {
           opacity: spring({ frame: frame - 40, fps, config: { damping: 200 } }),
           textTransform: "uppercase",
         }}
-      >
-        Engineering-verified. Always print-ready.
-      </div>
+        >
+          Made in the USA.
+        </div>
     </AbsoluteFill>
   );
 };
