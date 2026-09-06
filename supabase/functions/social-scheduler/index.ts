@@ -168,7 +168,7 @@ const renderPrompt = (p: string, id: string) =>
 type Post = {
   id: string;
   scheduled_at: string;
-  slot_type: "feed" | "story";
+  slot_type: "feed" | "story" | "reel";
   caption: string;
   image_prompt: string;
   image_url: string | null;
@@ -552,19 +552,44 @@ async function metaCreds() {
   throw new Error("No Meta page token available — connect Instagram via meta_me first.");
 }
 
+/** `storage://bucket/path` media lives in a private bucket; Meta needs a temporary fetchable URL. */
+async function resolveMediaUrl(raw: string): Promise<string> {
+  if (!raw.startsWith("storage://")) return raw;
+  const [bucket, ...rest] = raw.slice("storage://".length).split("/");
+  const { data, error } = await admin.storage.from(bucket).createSignedUrl(rest.join("/"), 60 * 60 * 6);
+  if (error || !data?.signedUrl) throw new Error(`could not sign media url: ${error?.message ?? "unknown"}`);
+  return data.signedUrl;
+}
+
 async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
-  const params = new URLSearchParams({ image_url: post.image_url! });
-  if (post.slot_type === "story") params.set("media_type", "STORIES");
-  else params.set("caption", post.caption);
+  const mediaUrl = await resolveMediaUrl(post.image_url!);
+  const isVideo = post.slot_type === "reel" || /\.(mp4|mov)(\?|$)/i.test(mediaUrl.split("?")[0]);
+  const params = new URLSearchParams();
+  if (isVideo) {
+    // Reels: Meta downloads the file itself, so the URL must be publicly fetchable and directly playable.
+    params.set("media_type", "REELS");
+    params.set("video_url", mediaUrl);
+    params.set("share_to_feed", "true");
+    params.set("caption", post.caption);
+  } else {
+    params.set("image_url", mediaUrl);
+    if (post.slot_type === "story") params.set("media_type", "STORIES");
+    else params.set("caption", post.caption);
+  }
+
 
   const container = (await fb(`/${creds.igUserId}/media?${params.toString()}`, creds.pageToken, {
     method: "POST",
   })) as { id?: string };
   if (!container.id) throw new Error("media container creation failed");
 
+
   let status = "IN_PROGRESS";
-  for (let attempt = 0; attempt < 20; attempt++) {
-    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : 3000));
+  // Video transcoding on Meta's side is much slower than image ingestion.
+  const maxAttempts = isVideo ? 60 : 20;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : isVideo ? 5000 : 3000));
+
     const s = (await fb(`/${container.id}?fields=status_code,status`, creds.pageToken)) as {
       status_code?: string;
       status?: string;

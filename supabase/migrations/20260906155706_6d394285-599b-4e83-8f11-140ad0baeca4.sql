@@ -1,0 +1,2 @@
+ALTER TABLE public.social_scheduled_posts DROP CONSTRAINT IF EXISTS social_scheduled_posts_slot_type_check;
+ALTER TABLE public.social_scheduled_posts ADD CONSTRAINT social_scheduled_posts_slot_type_check CHECK (slot_type IN ('feed','story','reel'));
