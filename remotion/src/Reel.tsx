@@ -176,8 +176,8 @@ export const Reel: React.FC = () => {
       <Audio src={staticFile("audio/reel-beat.wav")} />
       <Sequence from={0} durationInFrames={132}>
         <ClipScene src="clips/step1-photo.mp4" step="01 — SNAP">
-          <Caption words={["It", "starts"]} start={14} y={1330} />
-          <Caption words={["with", "a", "photo"]} start={44} y={1490} />
+          <Caption words={["This", "is"]} start={14} y={1330} />
+          <Caption words={["Toby."]} start={44} y={1490} size={130} />
         </ClipScene>
       </Sequence>
       <Sequence from={132} durationInFrames={146}>
@@ -194,8 +194,8 @@ export const Reel: React.FC = () => {
       </Sequence>
       <Sequence from={424} durationInFrames={116}>
         <ClipScene src="clips/step4-home.mp4" step="04 — HOME">
-          <Caption words={["Their", "name."]} start={10} y={1330} />
-          <Caption words={["Made", "real."]} start={40} y={1490} size={110} />
+          <Caption words={["His", "name,", "raised."]} start={10} y={1330} size={80} />
+          <Caption words={["TOBY"]} start={40} y={1490} size={150} />
         </ClipScene>
       </Sequence>
       <Sequence from={540} durationInFrames={60}>
