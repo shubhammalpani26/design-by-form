@@ -79,10 +79,16 @@ const ClipScene: React.FC<{
     extrapolateRight: "clamp",
   });
   const enter = spring({ frame, fps: 30, config: { damping: 200 } });
+  // Clips are pre-baked to JPEG sequences (sandbox compositor can't decode mp4)
+  const seqName = src.replace("clips/", "").replace(".mp4", "");
+  const frameFile = String(Math.min(frame, 150) + 1).padStart(4, "0");
   return (
     <AbsoluteFill style={{ backgroundColor: CHARCOAL }}>
       <AbsoluteFill style={{ opacity: enter, transform: `scale(${scale})` }}>
-        <OffthreadVideo src={staticFile(src)} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
+        <Img
+          src={staticFile(`seq/${seqName}/${frameFile}.jpg`)}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
       </AbsoluteFill>
       {/* vignette */}
       <AbsoluteFill
