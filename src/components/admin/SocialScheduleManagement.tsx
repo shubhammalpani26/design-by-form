@@ -190,6 +190,16 @@ export const SocialScheduleManagement = () => {
                     <p className="text-xs text-destructive">{p.last_error}</p>
                   )}
                   <div className="flex flex-wrap gap-2 pt-1">
+                    {p.image_url && !p.image_url.startsWith("storage://") && (
+                      <>
+                        <a href={p.image_url} target="_blank" rel="noreferrer" download>
+                          <Button size="sm" variant="default">Download HD</Button>
+                        </a>
+                        <a href={p.image_url} target="_blank" rel="noreferrer">
+                          <Button size="sm" variant="outline">Open full size</Button>
+                        </a>
+                      </>
+                    )}
                     {p.image_url && p.slot_type === "feed" && p.status !== "published" && p.status !== "cancelled" && (
                       <Button size="sm" disabled={publishing === p.id} onClick={() => publishNow(p.id)}>
                         {publishing === p.id ? "Publishing…" : "Publish now"}
