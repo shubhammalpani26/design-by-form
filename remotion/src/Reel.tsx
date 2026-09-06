@@ -119,6 +119,49 @@ const ClipScene: React.FC<{
   );
 };
 
+const StillScene: React.FC<{
+  src: string;
+  step: string;
+  children?: React.ReactNode;
+}> = ({ src, step, children }) => {
+  const frame = useCurrentFrame();
+  const scale = interpolate(frame, [0, 150], [1.08, 1.2], { extrapolateRight: "clamp" });
+  const enter = spring({ frame, fps: 30, config: { damping: 200 } });
+  return (
+    <AbsoluteFill style={{ backgroundColor: CHARCOAL }}>
+      <AbsoluteFill style={{ opacity: enter, transform: `scale(${scale})` }}>
+        <Img
+          src={staticFile(src)}
+          style={{ width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </AbsoluteFill>
+      <AbsoluteFill
+        style={{
+          background: "linear-gradient(to bottom, rgba(28,27,26,0.55) 0%, transparent 22%, transparent 68%, rgba(28,27,26,0.75) 100%)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          top: 90,
+          left: 64,
+          fontFamily: body,
+          fontWeight: 600,
+          fontSize: 34,
+          color: CHARCOAL,
+          backgroundColor: CREAM,
+          padding: "10px 22px",
+          letterSpacing: 4,
+          opacity: enter,
+        }}
+      >
+        {step}
+      </div>
+      {children}
+    </AbsoluteFill>
+  );
+};
+
 const EndCard: React.FC = () => {
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
@@ -208,10 +251,9 @@ export const Reel: React.FC = () => {
         </ClipScene>
       </Sequence>
       <Sequence from={424} durationInFrames={116}>
-        <ClipScene src="clips/step4-home.mp4" step="04 — HOME">
-          <Caption words={["His", "name,", "raised."]} start={10} y={1330} size={80} />
-          <Caption words={["TOBY"]} start={40} y={1490} size={150} />
-        </ClipScene>
+        <StillScene src="images/toby-final.jpg" step="04 — HOME">
+          <Caption words={["His", "name,", "raised."]} start={14} y={1210} size={80} />
+        </StillScene>
       </Sequence>
       <Sequence from={540} durationInFrames={60}>
         <EndCard />
