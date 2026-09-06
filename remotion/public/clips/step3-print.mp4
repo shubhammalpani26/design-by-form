@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script type="module">import { injectIntoGlobalHook } from "/@react-refresh";
+injectIntoGlobalHook(window);
+window.$RefreshReg$ = () => {};
+window.$RefreshSig$ = () => (type) => type;</script>
+
+    <script type="module" src="/@vite/client"></script>
+
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Nyzora — Personalized Pet Memorial & Keepsake Sculptures</title>
+    <meta name="description" content="Custom pet memorial sculptures made from your photo, plus baby name and wedding coordinate keepsakes. Made in the USA, free shipping, from $59." />
+    <meta name="author" content="Nyzora" />
+    <meta property="og:title" content="Nyzora — Personalized Pet Memorial & Keepsake Sculptures" />
+    <meta property="og:description" content="Custom pet memorial sculptures made from your photo, plus baby name and wedding coordinate keepsakes. Made in the USA, free shipping, from $59." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="" data-dynamic-url />
+    <meta property="og:site_name" content="Nyzora" />
+    <meta property="og:image" content="https://nyzora.ai/og-default.png" />
+    <script>
+      (function () {
+        var path = window.location.pathname.replace(/\/+$/, '') || '/';
+        var params = new URLSearchParams(window.location.search);
+        ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref', '__lovable_token'].forEach(function (key) { params.delete(key); });
+        var query = params.toString();
+        var canonicalUrl = 'https://nyzora.ai' + path + (query ? '?' + query : '');
+        var canonical = document.querySelector('link[rel="canonical"]');
+        if (!canonical) {
+          canonical = document.createElement('link');
+          canonical.setAttribute('rel', 'canonical');
+          document.head.appendChild(canonical);
+        }
+        if (canonical) canonical.setAttribute('href', canonicalUrl);
+        var ogUrl = document.querySelector('meta[property="og:url"]');
+        if (ogUrl) ogUrl.setAttribute('content', canonicalUrl);
+      })();
+    </script>
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://nyzora.ai/og-default.png" />
+
+    <!-- Organization schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Nyzora",
+      "url": "https://nyzora.ai",
+      "logo": "https://nyzora.ai/favicon.png",
+      "description": "Personalized keepsake sculptures made to order in the USA — custom pet memorials, baby name signs, and wedding coordinate pieces.",
+      "email": "contact@nyzora.ai",
+      "telephone": "+1-888-500-2881",
+      "alternateName": ["Nyzora.ai", "Nyzora Originals"],
+      "slogan": "Design Anything. We Make It Real.",
+      "sameAs": ["https://www.instagram.com/nyzora.ai/"]
+    }
+    </script>
+
+    <!-- WebSite schema with SearchAction -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Nyzora",
+      "url": "https://nyzora.ai",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://nyzora.ai/browse?q={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+  </head>
+
+  <body>
+    <!-- Meta Pixel noscript fallback -->
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=2121773078407819&ev=PageView&noscript=1"
+      alt="" /></noscript>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
