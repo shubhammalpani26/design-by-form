@@ -252,8 +252,7 @@ export const Reel: React.FC = () => {
       </Sequence>
       <Sequence from={424} durationInFrames={116}>
         <StillScene src="images/toby-final.jpg" step="04 — HOME">
-          <Caption words={["His", "name,", "raised."]} start={10} y={1330} size={80} />
-          <Caption words={["TOBY"]} start={40} y={1490} size={150} />
+          <Caption words={["His", "name,", "raised."]} start={14} y={1210} size={80} />
         </StillScene>
       </Sequence>
       <Sequence from={540} durationInFrames={60}>
