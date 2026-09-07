@@ -55,6 +55,7 @@ export const SocialScheduleManagement = () => {
   const [state, setState] = useState<SchedulerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [openingVideo, setOpeningVideo] = useState<string | null>(null);
   const { toast } = useToast();
   const aiRenderingPaused = state?.paused === true && isAiCreditPause(state.pause_reason);
 
