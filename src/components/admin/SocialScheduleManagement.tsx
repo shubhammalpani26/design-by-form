@@ -55,6 +55,7 @@ export const SocialScheduleManagement = () => {
   const [state, setState] = useState<SchedulerState | null>(null);
   const [loading, setLoading] = useState(true);
   const [publishing, setPublishing] = useState<string | null>(null);
+  const [openingVideo, setOpeningVideo] = useState<string | null>(null);
   const { toast } = useToast();
   const aiRenderingPaused = state?.paused === true && isAiCreditPause(state.pause_reason);
 
@@ -93,6 +94,21 @@ export const SocialScheduleManagement = () => {
   const update = async (id: string, patch: Record<string, unknown>) => {
     await supabase.from("social_scheduled_posts" as any).update(patch).eq("id", id);
     load();
+  };
+
+  const openStorageVideo = async (post: ScheduledPost) => {
+    if (!post.image_url?.startsWith("storage://")) return;
+    setOpeningVideo(post.id);
+    try {
+      const [bucket, ...rest] = post.image_url.slice("storage://".length).split("/");
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(rest.join("/"), 60 * 60);
+      if (error || !data?.signedUrl) throw error ?? new Error("No signed URL");
+      window.open(data.signedUrl, "_blank", "noreferrer");
+    } catch {
+      toast({ title: "Could not open video", description: "Failed to create a temporary video link.", variant: "destructive" });
+    } finally {
+      setOpeningVideo(null);
+    }
   };
 
   const publishNow = async (id: string) => {
@@ -200,7 +216,12 @@ export const SocialScheduleManagement = () => {
                         </a>
                       </>
                     )}
-                    {p.image_url && p.slot_type === "feed" && p.status !== "published" && p.status !== "cancelled" && (
+                    {p.image_url?.startsWith("storage://") && (
+                      <Button size="sm" variant="outline" disabled={openingVideo === p.id} onClick={() => openStorageVideo(p)}>
+                        {openingVideo === p.id ? "Opening…" : "Open video"}
+                      </Button>
+                    )}
+                    {p.image_url && p.slot_type !== "story" && p.status !== "published" && p.status !== "cancelled" && (
                       <Button size="sm" disabled={publishing === p.id} onClick={() => publishNow(p.id)}>
                         {publishing === p.id ? "Publishing…" : "Publish now"}
                       </Button>
