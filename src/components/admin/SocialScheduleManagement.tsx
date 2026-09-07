@@ -96,6 +96,21 @@ export const SocialScheduleManagement = () => {
     load();
   };
 
+  const openStorageVideo = async (post: ScheduledPost) => {
+    if (!post.image_url?.startsWith("storage://")) return;
+    setOpeningVideo(post.id);
+    try {
+      const [bucket, ...rest] = post.image_url.slice("storage://".length).split("/");
+      const { data, error } = await supabase.storage.from(bucket).createSignedUrl(rest.join("/"), 60 * 60);
+      if (error || !data?.signedUrl) throw error ?? new Error("No signed URL");
+      window.open(data.signedUrl, "_blank", "noreferrer");
+    } catch {
+      toast({ title: "Could not open video", description: "Failed to create a temporary video link.", variant: "destructive" });
+    } finally {
+      setOpeningVideo(null);
+    }
+  };
+
   const publishNow = async (id: string) => {
     setPublishing(id);
     const { data, error } = await supabase.functions.invoke("social-scheduler", {
