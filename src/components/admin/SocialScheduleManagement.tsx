@@ -216,7 +216,12 @@ export const SocialScheduleManagement = () => {
                         </a>
                       </>
                     )}
-                    {p.image_url && p.slot_type === "feed" && p.status !== "published" && p.status !== "cancelled" && (
+                    {p.image_url?.startsWith("storage://") && (
+                      <Button size="sm" variant="outline" disabled={openingVideo === p.id} onClick={() => openStorageVideo(p)}>
+                        {openingVideo === p.id ? "Opening…" : "Open video"}
+                      </Button>
+                    )}
+                    {p.image_url && p.slot_type !== "story" && p.status !== "published" && p.status !== "cancelled" && (
                       <Button size="sm" disabled={publishing === p.id} onClick={() => publishNow(p.id)}>
                         {publishing === p.id ? "Publishing…" : "Publish now"}
                       </Button>
