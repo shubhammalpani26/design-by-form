@@ -273,10 +273,12 @@ async function letteringCheck(imageUrl: string): Promise<{ raised: boolean; note
               {
                 type: "text",
                 text:
-                  "Look at the lettering on the base of this object. Is the text RAISED (standing out from the " +
-                  "surface, catching light on its top faces, casting shadows onto the base) or RECESSED (cut, " +
-                  "carved or stamped into the surface, sitting below it, shadow inside the letter strokes)? " +
-                  'Answer with JSON only: {"lettering":"raised"|"recessed"|"none"|"unclear"}.',
+                  "Look at the lettering on this object. (1) Is the text on the FRONT FACE of the base RAISED " +
+                  "(standing out from the surface, catching light on its top faces, casting shadows onto the base) " +
+                  "or RECESSED (cut, carved or stamped into the surface, shadow inside the letter strokes)? " +
+                  "(2) Count how many separate places on the object carry any text at all (nameplate, top of the " +
+                  "base, sides, sculpture, background). Correct is exactly one. " +
+                  'Answer with JSON only: {"lettering":"raised"|"recessed"|"none"|"unclear","textPlaces":<number>}.',
               },
               { type: "image_url", image_url: { url: imageUrl } },
             ],
@@ -288,6 +290,7 @@ async function letteringCheck(imageUrl: string): Promise<{ raised: boolean; note
     const data = await res.json();
     const text: string = data.choices?.[0]?.message?.content ?? "";
     const verdict = /"lettering"\s*:\s*"(\w+)"/.exec(text)?.[1]?.toLowerCase() ?? "unclear";
+    const places = Number(/"textPlaces"\s*:\s*(\d+)/.exec(text)?.[1] ?? "1");
     if (verdict === "recessed" || verdict === "none") {
       return {
         raised: false,
@@ -295,6 +298,17 @@ async function letteringCheck(imageUrl: string): Promise<{ raised: boolean; note
           "Correction: the name on the base must be built UP out of the surface — solid letters standing about " +
           "1.2 mm out toward the viewer with lit top faces, visible side walls and shadows cast down onto the plinth, " +
           "like a relief plaque. Do not cut, stamp or sink the text into the plinth.",
+      };
+    }
+    // A second set of letters (typically engraved into the top of the plinth) is
+    // just as unusable as sunken lettering — the piece only ever carries one name.
+    if (Number.isFinite(places) && places > 1) {
+      return {
+        raised: false,
+        note:
+          "Correction: the piece must carry the name in exactly ONE place — the raised nameplate on the front face " +
+          "of the plinth. Remove every other piece of text: the top of the plinth is bare and unmarked, and no " +
+          "engraved or duplicate name, date, initials or signature appears anywhere else.",
       };
     }
     return { raised: true };
