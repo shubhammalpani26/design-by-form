@@ -125,6 +125,10 @@ const engravingClause = (e: { name: string; sub: string }) =>
   `filament colour as the whole piece and carry the same fine layer lines. Text: the name "${e.name}" in a small clean ` +
   `uppercase sans-serif and beneath it a smaller line reading "${e.sub}", clearly legible and correctly spelled. ` +
   "Light rakes across the nameplate so the raised height of every letter is obvious. " +
+  "There is exactly ONE nameplate on the whole piece: this raised one on the front face of the plinth. " +
+  "The top surface of the plinth is completely bare and unmarked, and no text, initials, date, signature, " +
+  "logo, watermark or duplicate of the name appears anywhere else on the sculpture, the plinth top, its sides " +
+  "or the background. " +
   "Frame the shot so the lettered base is fully visible in the lower third and never cropped.";
 
 
