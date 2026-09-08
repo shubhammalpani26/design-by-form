@@ -423,7 +423,7 @@ async function renderDue() {
     .from("social_scheduled_posts")
     .update({ status: "scheduled", image_url: null, last_error: null })
     .eq("status", "needs_review")
-    .like("last_error", "Lettering rendered sunken%")
+    .like("last_error", "Lettering render rejected%")
     .lt("attempts", MAX_ATTEMPTS)
     .lte("scheduled_at", now);
 
@@ -518,7 +518,7 @@ async function renderDue() {
         status,
         attempts: post.attempts + 1,
         last_error: !letteringOk
-          ? "Lettering rendered sunken into the plinth instead of raised on top"
+          ? "Lettering render rejected: sunken text, or a second name elsewhere on the piece"
           : null,
       })
       .eq("id", post.id);
