@@ -553,110 +553,42 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Designer Testimonials Carousel */}
+        {/* What creators get — honest, early-stage framing */}
         <section className="py-10 md:py-16">
           <div className="container">
             <ScrollReveal animation="fade-up">
-               <div className="text-center mb-8">
+              <div className="text-center mb-8">
                 <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
-                  Real Creators, Real Success
+                  What you get as an early creator
                 </h2>
-                <p className="text-muted-foreground max-w-2xl mx-auto mb-2">
-                  Join thousands of creators earning from physical product sales
-                </p>
-                <p className="text-xs text-muted-foreground/70 italic">
-                  *Testimonials represent illustrative success scenarios
+                <p className="text-muted-foreground max-w-2xl mx-auto">
+                  We're at the beginning. Here's exactly what we offer today — no inflated numbers, no invented success stories.
                 </p>
               </div>
             </ScrollReveal>
-            
-            <ScrollReveal animation="zoom-in" delay={100}>
-              <div className="max-w-4xl mx-auto">
-                <div className="bg-background rounded-3xl p-8 md:p-12 shadow-medium border border-border/50 relative overflow-hidden hover-lift">
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-32 translate-x-32"></div>
-                  
-                  <div className="relative">
-                    <div className="flex flex-col md:flex-row items-center gap-8">
-                      <img
-                        src={testimonials[currentTestimonial].image}
-                        alt={testimonials[currentTestimonial].name}
-                        className="w-24 h-24 md:w-32 md:h-32 rounded-full object-cover border-4 border-primary/20 shadow-soft transition-all duration-500"
-                        key={currentTestimonial}
-                      />
-                      
-                      <div className="flex-1 text-center md:text-left space-y-4">
-                        <div className="text-5xl text-primary/20 font-serif">"</div>
-                        <p 
-                          className="text-lg md:text-xl text-foreground leading-relaxed -mt-8 transition-opacity duration-500"
-                          key={`quote-${currentTestimonial}`}
-                        >
-                          {testimonials[currentTestimonial].quote}
-                        </p>
-                        
-                        <div className="pt-4">
-                          <div className="font-semibold text-foreground text-lg">
-                            {testimonials[currentTestimonial].name}
-                          </div>
-                          <div className="text-muted-foreground text-sm">
-                            {testimonials[currentTestimonial].role}
-                          </div>
-                          <div className="text-primary font-bold text-lg mt-2 gradient-text">
-                            Earned: {testimonials[currentTestimonial].earnings}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center justify-center gap-4 mt-8">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setCurrentTestimonial((prev) => (prev === 0 ? testimonials.length - 1 : prev - 1))}
-                        className="rounded-full"
-                        aria-label="Previous testimonial"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                      </Button>
-                      
-                      <div className="flex gap-2">
-                        {testimonials.map((_, index) => (
-                          <button
-                            key={index}
-                            onClick={() => setCurrentTestimonial(index)}
-                            className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                              index === currentTestimonial 
-                                ? 'bg-primary w-8' 
-                                : 'bg-muted-foreground/30 hover:bg-muted-foreground/50'
-                            }`}
-                            aria-label={`Go to testimonial ${index + 1}`}
-                          />
-                        ))}
-                      </div>
-                      
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setCurrentTestimonial((prev) => (prev === testimonials.length - 1 ? 0 : prev + 1))}
-                        className="rounded-full"
-                        aria-label="Next testimonial"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </Button>
-                    </div>
-                  </div>
+
+            <StaggerReveal
+              className="grid grid-cols-1 md:grid-cols-3 gap-px bg-border border border-border max-w-5xl mx-auto"
+              staggerDelay={120}
+              animation="fade-up"
+            >
+              {creatorPromises.map((item) => (
+                <div key={item.title} className="bg-background p-6 md:p-8">
+                  <h3 className="text-lg md:text-xl font-semibold tracking-tight mb-3 text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="text-muted-foreground leading-relaxed text-sm md:text-base">
+                    {item.body}
+                  </p>
                 </div>
-              </div>
-            </ScrollReveal>
-            
+              ))}
+            </StaggerReveal>
+
             <ScrollReveal animation="fade-up" delay={200}>
               <div className="text-center mt-8">
                 <Link to="/designer-signup">
                   <Button variant="hero" size="lg" className="group">
-                    Start Earning as a Creator
+                    Become an Early Creator
                     <span className="ml-2 transition-transform group-hover:translate-x-1">→</span>
                   </Button>
                 </Link>
