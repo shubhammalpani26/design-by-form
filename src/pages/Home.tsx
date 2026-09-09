@@ -137,12 +137,6 @@ const Home = () => {
     fetchHeroProduct();
   }, []);
 
-  useEffect(() => {
-    const testimonialInterval = setInterval(() => {
-      setCurrentTestimonial((prev) => (prev + 1) % testimonials.length);
-    }, 10000);
-    return () => clearInterval(testimonialInterval);
-  }, []);
 
   const fetchCreatorStats = async () => {
     try {
