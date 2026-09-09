@@ -19,10 +19,13 @@ declare global {
   }
 }
 
+import { isTrackingAllowed } from "./consent";
+
 let loaded = false;
 
 /** Injects the pixel base code once and fires PageView. No-op without a pixel id. */
 export function initMetaPixel() {
+  if (!isTrackingAllowed()) return;
   if (loaded || !PIXEL_ID || typeof document === "undefined") return;
   loaded = true;
 
