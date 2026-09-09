@@ -11,33 +11,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { designerSignupSchema } from "@/lib/validations";
 import { EarningsProjector } from "@/components/EarningsProjector";
-import { ArrowRight, Star } from "lucide-react";
-import testimonialPriya from "@/assets/testimonial-priya.jpg";
-import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
-import testimonialArjun from "@/assets/testimonial-arjun.jpg";
+import { ArrowRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 
-const creatorTestimonials = [
+const creatorPromises = [
   {
-    name: "Priya Sharma",
-    role: "Furniture Creator",
-    image: testimonialPriya,
-    quote: "My virtual designs became real furniture in customers' homes. Earned ₹2.5L in 6 months — without touching inventory.",
-    earnings: "₹2,50,000",
+    title: "Keep 100% of your markup",
+    body: "You set the selling price above the manufacturing base price. Everything above it is yours — we don't take a cut of your markup.",
   },
   {
-    name: "Ananya Desai",
-    role: "Product Creator",
-    image: testimonialAnanya,
-    quote: "From digital concept to physical furniture — the platform handles manufacturing and shipping. It's like having my own factory.",
-    earnings: "₹3,20,000",
+    title: "Nothing made until it sells",
+    body: "No inventory, no upfront production cost. Each piece is manufactured and shipped to order by a verified maker.",
   },
   {
-    name: "Arjun Mehta",
-    role: "Interior Creator",
-    image: testimonialArjun,
-    quote: "Every table I design gets manufactured and delivered. I earn royalties on every piece — no headaches.",
-    earnings: "₹4,10,000",
+    title: "Listing fees waived right now",
+    body: "We're early and building alongside our first creators. Listing is free while we grow, and you get direct access to the team.",
   },
 ];
 
@@ -180,7 +168,7 @@ const DesignerSignup = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={"Become a Creator on Nyzora — Earn 70% Royalties"} description={"Join Nyzora as a creator. Design with AI, list for free, and earn 70% of your markup on every sale, forever."} />
+      <SEOHead title={"Become a Creator on Nyzora — Keep 100% of Your Markup"} description={"Join Nyzora as a creator. Design with AI, list for free, and keep 100% of the markup you set on every sale."} />
       <Header />
       
       <main className="flex-1">
@@ -271,48 +259,29 @@ const DesignerSignup = () => {
             <EarningsProjector />
           </div>
 
-          {/* Creator testimonials */}
+          {/* What early creators get */}
           <div className="max-w-5xl mx-auto mb-10 md:mb-16">
             <div className="text-center mb-6 md:mb-8">
               <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-medium mb-2">
-                Creators on Nyzora
+                Creating on Nyzora
               </p>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Brands launched. Royalties earned.
+                What you get as an early creator
               </h2>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xl mx-auto">
+                We're at the beginning — so here's exactly what we offer today, with no invented success stories.
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {creatorTestimonials.map((t) => (
-                <Card key={t.name} className="border-border">
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={t.image}
-                        alt={t.name}
-                        className="w-12 h-12 rounded-full object-cover border border-border"
-                      />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{t.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{t.role}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground leading-relaxed">"{t.quote}"</p>
-                    <div className="pt-3 border-t border-border flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">Earned to date</span>
-                      <span className="text-base font-bold text-primary">{t.earnings}</span>
-                    </div>
+              {creatorPromises.map((item) => (
+                <Card key={item.title} className="border-border">
+                  <CardContent className="p-5 space-y-3">
+                    <p className="font-semibold text-base text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <p className="text-[11px] text-center text-muted-foreground/70 mt-4">
-              * Illustrative success scenarios demonstrating platform potential
-            </p>
           </div>
 
           {/* Application Form */}

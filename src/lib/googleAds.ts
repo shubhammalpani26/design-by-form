@@ -21,10 +21,13 @@ declare global {
   }
 }
 
+import { isTrackingAllowed } from "./consent";
+
 let loaded = false;
 
 /** Injects gtag.js once. No-op when no Ads id is configured. */
 export function initGoogleAds() {
+  if (!isTrackingAllowed()) return;
   if (loaded || !ADS_ID || typeof document === "undefined") return;
   loaded = true;
 
