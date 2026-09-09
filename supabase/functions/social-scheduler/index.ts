@@ -323,10 +323,8 @@ const ENGINEERING_RETRIES = 3;
 
 /* ------------------------------ queue refill ------------------------------ */
 
-/** Three daily posting slots in UTC — 09:00 ET (morning scroll), 12:00 ET (midday) and
- *  17:00 ET (evening unwind). Steady-state cadence: up to 3 posts/day while we build the
- *  raised-lettering content base ahead of the ad launch. */
-const SLOT_HOURS_UTC = [13, 16, 21];
+/** One daily posting slot — 12:00 ET (midday scroll). Steady-state cadence: 1 post/day. */
+const SLOT_HOURS_UTC = [16];
 /** Always keep this many days of slots queued ahead so the feed never runs dry. */
 const QUEUE_AHEAD_DAYS = 3;
 
