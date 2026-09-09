@@ -133,6 +133,7 @@ const App = () => (
               <ReferralCapture />
               <CanonicalRouteSync />
               <ComparisonBar />
+              <ConsentBanner />
               <Suspense fallback={<PageLoader />}>
               <Routes>
               <Route path="/" element={<OriginalsHome />} />
