@@ -168,7 +168,7 @@ const DesignerSignup = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <SEOHead title={"Become a Creator on Nyzora — Earn 70% Royalties"} description={"Join Nyzora as a creator. Design with AI, list for free, and earn 70% of your markup on every sale, forever."} />
+      <SEOHead title={"Become a Creator on Nyzora — Keep 100% of Your Markup"} description={"Join Nyzora as a creator. Design with AI, list for free, and keep 100% of the markup you set on every sale."} />
       <Header />
       
       <main className="flex-1">
