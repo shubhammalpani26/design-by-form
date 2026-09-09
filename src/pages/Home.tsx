@@ -22,63 +22,25 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import testimonialPriya from "@/assets/testimonial-priya.jpg";
-import testimonialRajesh from "@/assets/testimonial-rajesh.jpg";
-import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
-import testimonialArjun from "@/assets/testimonial-arjun.jpg";
 import CuratedShowcase from "@/components/CuratedShowcase";
-import testimonialMeera from "@/assets/testimonial-meera.jpg";
-import testimonialKaran from "@/assets/testimonial-karan.jpg";
 import { ScrollReveal, StaggerReveal, useCountUp } from "@/hooks/useScrollReveal";
 import { JsonLd } from "@/components/JsonLd";
 import { SEOHead } from "@/components/SEOHead";
 
-const testimonials = [
+const creatorPromises = [
   {
-    name: "Priya Sharma",
-    role: "Furniture Creator",
-    image: testimonialPriya,
-    quote: "My virtual designs became real furniture in customers' homes! The perpetual commission from each physical sale is amazing. I earned ₹2.5 lakhs in my first 6 months.",
-    earnings: "₹2,50,000"
+    title: "You keep 100% of your markup",
+    body: "Set your own selling price above the manufacturing base price. Every rupee above it is yours — we take no cut of your markup.",
   },
   {
-    name: "Rajesh Kumar",
-    role: "Architecture Student",
-    image: testimonialRajesh,
-    quote: "I design, Nyzora manufactures and ships actual products. Seeing my chair design manufactured and sold to 47 customers is incredible!",
-    earnings: "₹1,85,000"
+    title: "No inventory, no upfront cost",
+    body: "Nothing is made until someone buys. We manufacture, pack and ship each piece to order, so you never hold stock or pay for a run.",
   },
   {
-    name: "Ananya Desai",
-    role: "Product Creator",
-    image: testimonialAnanya,
-    quote: "From digital concept to physical furniture - the platform handles manufacturing and shipping while I keep earning from every piece sold. It's like having my own furniture factory!",
-    earnings: "₹3,20,000"
+    title: "Listing fees waived right now",
+    body: "We're early and building with our first creators. Listing is free while we grow, and you get direct access to us as we shape the platform.",
   },
-  {
-    name: "Arjun Mehta",
-    role: "Interior Creator",
-    image: testimonialArjun,
-    quote: "Every table I design gets manufactured and delivered to actual customers. I earn royalties on every physical piece sold. No inventory, no manufacturing headaches!",
-    earnings: "₹4,10,000"
-  },
-  {
-    name: "Meera Patel",
-    role: "3D Artist",
-    image: testimonialMeera,
-    quote: "Watching my designs transform into real products that people use in their homes is surreal. The manufacturing quality is excellent and I earn from every sale!",
-    earnings: "₹2,95,000"
-  },
-  {
-    name: "Karan Singh",
-    role: "Industrial Creator",
-    image: testimonialKaran,
-    quote: "I focus on creating innovative designs while Nyzora handles production and logistics. My bench design has been manufactured 63 times - earning me commission on each!",
-    earnings: "₹3,75,000"
-  }
 ];
-
-// Note: Testimonials represent illustrative success scenarios to demonstrate platform potential
 
 interface Product {
   id: string;
