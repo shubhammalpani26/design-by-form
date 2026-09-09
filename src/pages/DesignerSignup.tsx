@@ -11,33 +11,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { designerSignupSchema } from "@/lib/validations";
 import { EarningsProjector } from "@/components/EarningsProjector";
-import { ArrowRight, Star } from "lucide-react";
-import testimonialPriya from "@/assets/testimonial-priya.jpg";
-import testimonialAnanya from "@/assets/testimonial-ananya.jpg";
-import testimonialArjun from "@/assets/testimonial-arjun.jpg";
+import { ArrowRight } from "lucide-react";
 import { SEOHead } from "@/components/SEOHead";
 
-const creatorTestimonials = [
+const creatorPromises = [
   {
-    name: "Priya Sharma",
-    role: "Furniture Creator",
-    image: testimonialPriya,
-    quote: "My virtual designs became real furniture in customers' homes. Earned ₹2.5L in 6 months — without touching inventory.",
-    earnings: "₹2,50,000",
+    title: "Keep 100% of your markup",
+    body: "You set the selling price above the manufacturing base price. Everything above it is yours — we don't take a cut of your markup.",
   },
   {
-    name: "Ananya Desai",
-    role: "Product Creator",
-    image: testimonialAnanya,
-    quote: "From digital concept to physical furniture — the platform handles manufacturing and shipping. It's like having my own factory.",
-    earnings: "₹3,20,000",
+    title: "Nothing made until it sells",
+    body: "No inventory, no upfront production cost. Each piece is manufactured and shipped to order by a verified maker.",
   },
   {
-    name: "Arjun Mehta",
-    role: "Interior Creator",
-    image: testimonialArjun,
-    quote: "Every table I design gets manufactured and delivered. I earn royalties on every piece — no headaches.",
-    earnings: "₹4,10,000",
+    title: "Listing fees waived right now",
+    body: "We're early and building alongside our first creators. Listing is free while we grow, and you get direct access to the team.",
   },
 ];
 
