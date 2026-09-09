@@ -7,6 +7,7 @@ import { CartProvider } from "@/contexts/CartContext";
 import { ComparisonProvider } from "@/contexts/ComparisonContext";
 import { CurrencyProvider } from "@/contexts/CurrencyContext";
 import { ComparisonBar } from "@/components/ComparisonBar";
+import { ConsentBanner } from "@/components/ConsentBanner";
 import { Suspense, useEffect } from "react";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { Skeleton } from "@/components/ui/skeleton";
