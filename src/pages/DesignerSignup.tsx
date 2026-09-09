@@ -259,48 +259,29 @@ const DesignerSignup = () => {
             <EarningsProjector />
           </div>
 
-          {/* Creator testimonials */}
+          {/* What early creators get */}
           <div className="max-w-5xl mx-auto mb-10 md:mb-16">
             <div className="text-center mb-6 md:mb-8">
               <p className="text-[11px] uppercase tracking-[0.2em] text-primary font-medium mb-2">
-                Creators on Nyzora
+                Creating on Nyzora
               </p>
               <h2 className="text-2xl md:text-3xl font-bold text-foreground">
-                Brands launched. Royalties earned.
+                What you get as an early creator
               </h2>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xl mx-auto">
+                We're at the beginning — so here's exactly what we offer today, with no invented success stories.
+              </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {creatorTestimonials.map((t) => (
-                <Card key={t.name} className="border-border">
-                  <CardContent className="p-5 space-y-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={t.image}
-                        alt={t.name}
-                        className="w-12 h-12 rounded-full object-cover border border-border"
-                      />
-                      <div className="min-w-0">
-                        <p className="font-semibold text-sm text-foreground truncate">{t.name}</p>
-                        <p className="text-xs text-muted-foreground truncate">{t.role}</p>
-                      </div>
-                    </div>
-                    <div className="flex gap-0.5">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="h-3.5 w-3.5 fill-primary text-primary" />
-                      ))}
-                    </div>
-                    <p className="text-sm text-foreground leading-relaxed">"{t.quote}"</p>
-                    <div className="pt-3 border-t border-border flex items-baseline justify-between">
-                      <span className="text-xs text-muted-foreground">Earned to date</span>
-                      <span className="text-base font-bold text-primary">{t.earnings}</span>
-                    </div>
+              {creatorPromises.map((item) => (
+                <Card key={item.title} className="border-border">
+                  <CardContent className="p-5 space-y-3">
+                    <p className="font-semibold text-base text-foreground">{item.title}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{item.body}</p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-            <p className="text-[11px] text-center text-muted-foreground/70 mt-4">
-              * Illustrative success scenarios demonstrating platform potential
-            </p>
           </div>
 
           {/* Application Form */}
