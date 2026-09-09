@@ -118,7 +118,7 @@ const Home = () => {
   const [creatorStats, setCreatorStats] = useState({
     activeCreators: 0,
   });
-  const [currentTestimonial, setCurrentTestimonial] = useState(0);
+  
   const [heroProduct, setHeroProduct] = useState<HeroProduct | null>(null);
   const [heroPrompt, setHeroPrompt] = useState("");
   
