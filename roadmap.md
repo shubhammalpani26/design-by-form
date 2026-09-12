@@ -8,6 +8,6 @@
 - [x] Verified both pages render (h1, title, JSON-LD present)
 - [ ] Publish to push live to nyzora.ai
 - [ ] (Waiting on user) Real product photos tomorrow → swap into paused Meta campaign, then approve launch
-- [ ] Fix the Y-up/Z-up 3D orientation bug that placed lettering under the base
-- [ ] Add hard render-to-model and visible-front lettering checks before manufacturing
+- [x] Fix the Y-up/Z-up 3D orientation bug that placed lettering under the base
+- [x] Add hard render-to-model and visible-front lettering checks before manufacturing
 - [ ] Validate one replacement piece end-to-end, show proof, then place only that test order
