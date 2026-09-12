@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     q: "How much does a custom pet sculpture cost?",
-    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, shipping in 4–5 business days.",
+    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, ships in 4–5 business days.",
   },
 ];
 
@@ -198,7 +198,7 @@ const CustomPetSculpture = () => {
                 "A warm, happy expression as the default: perked ears, lifted cheeks, a gentle smile.",
                 "Engineering-checked for wall thickness, stability and print feasibility before anything is made.",
                 "Plant-based PLA in six curated colours, printed as one solid part in the USA.",
-                "Free US shipping on every size, shipping in 4–5 business days.",
+                "Free US shipping on every size, ships in 4–5 business days.",
               ].map((point) => (
                 <div key={point} className="flex gap-3">
                   <Check className="w-5 h-5 shrink-0 mt-0.5 text-secondary" />
