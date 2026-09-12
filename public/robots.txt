@@ -83,6 +83,9 @@ Disallow: /cart
 Disallow: /auth
 
 Sitemap: https://nyzora.ai/sitemap.xml
+
+# Machine-readable site summary for LLM assistants (ChatGPT, Claude, Perplexity, Grok)
+# https://nyzora.ai/llms.txt
 # Note: nyzora.ai is the canonical custom domain (also served at www.nyzora.ai).
 
 # Machine-readable product feed for AI shopping agents
