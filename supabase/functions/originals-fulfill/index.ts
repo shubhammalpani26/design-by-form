@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     const base = admin
       .from("originals_orders")
       .select(
-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text",
+        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta",
       );
     const { data: rows, error } = groupId
       ? await base.eq("group_id", groupId)
@@ -215,7 +215,12 @@ Deno.serve(async (req) => {
       // smoothed away by the mesh generator, which is how a blank plinth can
       // reach production. No engraving record => nothing ships.
       const wanted = engravingLabel(row.personalization as Record<string, unknown> | null);
-      if (wanted && !files[row.id] && row.engraved_text !== wanted) {
+      const engravingMeta = (row.engraving_meta ?? {}) as Record<string, unknown>;
+      const placementIsVerified =
+        engravingMeta.placementVersion === 2 &&
+        engravingMeta.placementVerified === true &&
+        engravingMeta.face === "-y";
+      if (wanted && !files[row.id] && (row.engraved_text !== wanted || !placementIsVerified)) {
         const reason = `Personalisation "${wanted}" is not raised/embossed on this print file yet`;
         await admin
           .from("originals_orders")

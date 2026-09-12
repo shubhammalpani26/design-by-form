@@ -119,6 +119,7 @@ interface OrderRow {
   status: string;
   personalization: Record<string, unknown> | null;
   engraved_text: string | null;
+  engraving_meta?: Record<string, unknown> | null;
 }
 
 /** The personalisation lines a buyer expects to see physically on the piece. */
@@ -138,7 +139,12 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
 async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   const { heading, footnote, label } = engravingLines(row.personalization);
   if (!label) return url;
-  if (row.engraved_text === label) return url;
+  // Never trust a legacy text-only record. Placement v2 proves the lettering
+  // is on the visible front rather than merely somewhere in the STL.
+  const existingMeta = (row as OrderRow & { engraving_meta?: Record<string, unknown> | null }).engraving_meta;
+  if (row.engraved_text === label && existingMeta?.placementVersion === 2 && existingMeta?.placementVerified === true) {
+    return url;
+  }
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
@@ -159,6 +165,10 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         triangleDelta: result.triangleDelta ?? 0,
         reliefMm: result.reliefMm,
         strokeMm: result.strokeMm,
+        placementVersion: 2,
+        placementVerified: result.placementVerified === true,
+        orientationNormalized: result.orientationNormalized ?? false,
+        letteringBounds: result.letteringBounds,
       },
 
     })
@@ -264,7 +274,7 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   let query = admin
     .from("originals_orders")
     .select(
-      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text",
+      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text, engraving_meta",
     )
     .eq("status", "paid")
     .is("partner_order_id", null)
