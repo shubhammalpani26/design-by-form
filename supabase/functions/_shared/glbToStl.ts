@@ -187,7 +187,18 @@ export function glbToStl(bytes: Uint8Array, targetMaxMm?: number): StlResult {
   for (const root of roots) visit(root, identity());
   if (triangles.length === 0) throw new Error("No triangle geometry found in the model");
 
-  // Bounding box
+  // glTF is Y-up. STL slicers and every downstream manufacturing check in
+  // Nyzora are Z-up. Normalize that coordinate system here, once, before
+  // measuring, scaling, engraving or quoting. The source image faces +Z in
+  // Meshy's output, so +Z becomes -Y (the front face used by engraving).
+  for (const tri of triangles) {
+    for (let i = 0; i < tri.length; i++) {
+      const [x, y, z] = tri[i];
+      tri[i] = [x, -z, y];
+    }
+  }
+
+  // Bounding box in manufacturing coordinates (Z-up, front at -Y).
   let minX = Infinity, minY = Infinity, minZ = Infinity;
   let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
   for (const tri of triangles) {

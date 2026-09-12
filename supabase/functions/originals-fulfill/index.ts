@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     const base = admin
       .from("originals_orders")
       .select(
-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text",
+        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta",
       );
     const { data: rows, error } = groupId
       ? await base.eq("group_id", groupId)
@@ -187,7 +187,6 @@ Deno.serve(async (req) => {
       // generic bust with none of their personalisation.
       if (
         PHOTO_PERSONALIZED_SKUS.has(row.sku_slug) &&
-        !files[row.id] &&
         (await isMasterPrintFile(admin, url!))
       ) {
         const reason =
@@ -215,7 +214,14 @@ Deno.serve(async (req) => {
       // smoothed away by the mesh generator, which is how a blank plinth can
       // reach production. No engraving record => nothing ships.
       const wanted = engravingLabel(row.personalization as Record<string, unknown> | null);
-      if (wanted && !files[row.id] && row.engraved_text !== wanted) {
+      const engravingMeta = (row.engraving_meta ?? {}) as Record<string, unknown>;
+      const placementIsVerified =
+        engravingMeta.placementVersion === 2 &&
+        engravingMeta.placementVerified === true &&
+        engravingMeta.face === "-y";
+      // Manual URL overrides are intentionally not exempt: no operator action
+      // may bypass the same physical-placement proof required by automation.
+      if (wanted && (row.engraved_text !== wanted || !placementIsVerified)) {
         const reason = `Personalisation "${wanted}" is not raised/embossed on this print file yet`;
         await admin
           .from("originals_orders")
@@ -234,6 +240,22 @@ Deno.serve(async (req) => {
           error: reason,
         });
         return json({ error: reason, needsFile: row.id }, 400);
+      }
+      if (wanted) {
+        const expectedHash = typeof engravingMeta.fileSha256 === "string" ? engravingMeta.fileSha256 : "";
+        const fileResponse = await fetch(url!);
+        if (!fileResponse.ok) return json({ error: `Could not verify piece ${row.id.slice(0, 8)} print file` }, 400);
+        const digest = await crypto.subtle.digest("SHA-256", await fileResponse.arrayBuffer());
+        const actualHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        if (!expectedHash || actualHash !== expectedHash) {
+          const reason = "Print file changed after visible-front lettering verification";
+          await admin.from("originals_orders").update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          return json({ error: reason, needsFile: row.id }, 400);
+        }
       }
       const uploaded = await uploadPrintFile(url!, {
         name: `${row.sku_slug}-${row.id.slice(0, 8)}.stl`,

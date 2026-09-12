@@ -36,6 +36,12 @@ export interface EngraveResult {
   reliefMm?: number;
   /** Printed stroke thickness of the lettering (mm). */
   strokeMm?: number;
+  /** True only when the lettering is proven above the floor on the visible front. */
+  placementVerified?: boolean;
+  /** Coordinate-system correction applied to an older cached print file. */
+  orientationNormalized?: boolean;
+  /** Bounds of lettering geometry in manufacturing coordinates. */
+  letteringBounds?: { min: V3; max: V3 };
 }
 
 
@@ -202,8 +208,61 @@ function strokePrism(
 }
 
 type Attempt =
-  | { ok: true; tris: Tri[]; face: "+x" | "-x" | "+y" | "-y"; cap: number }
+  | {
+      ok: true;
+      tris: Tri[];
+      face: "+x" | "-x" | "+y" | "-y";
+      cap: number;
+      letteringBounds: { min: V3; max: V3 };
+      floorZ: number;
+    }
   | { ok: false; reason: string };
+
+function boundsOf(tris: Tri[]): { min: V3; max: V3 } {
+  const min: V3 = [Infinity, Infinity, Infinity];
+  const max: V3 = [-Infinity, -Infinity, -Infinity];
+  for (const tri of tris) {
+    for (const point of tri) {
+      for (let axis = 0; axis < 3; axis++) {
+        min[axis] = Math.min(min[axis], point[axis]);
+        max[axis] = Math.max(max[axis], point[axis]);
+      }
+    }
+  }
+  return { min, max };
+}
+
+/** Area of triangles lying on one extreme plane of a mesh. */
+function extremeArea(tris: Tri[], axis: 0 | 1 | 2, outward: -1 | 1, extreme: number, tolerance: number) {
+  let area = 0;
+  for (const tri of tris) {
+    if (!tri.every((point) => Math.abs(point[axis] - extreme) <= tolerance)) continue;
+    if (triNormal(tri)[axis] * outward > 0.82) area += triArea(tri);
+  }
+  return area;
+}
+
+/**
+ * Older cached Meshy files were stored Y-up. Detect their broad -Y floor and
+ * rotate them into the Z-up manufacturing convention before placing text.
+ */
+function normalizeManufacturingAxes(tris: Tri[]): { tris: Tri[]; normalized: boolean } {
+  const bounds = boundsOf(tris);
+  const span = bounds.max.map((value, axis) => value - bounds.min[axis]) as V3;
+  const yFloor = extremeArea(tris, 1, -1, bounds.min[1], Math.max(0.5, span[1] * 0.01));
+  const zFloor = extremeArea(tris, 2, -1, bounds.min[2], Math.max(0.5, span[2] * 0.01));
+  if (!(yFloor > zFloor * 1.35 && yFloor > 25)) return { tris, normalized: false };
+
+  const rotated = tris.map((tri) => tri.map(([x, y, z]) => [x, -z, y] as V3) as Tri);
+  const next = boundsOf(rotated);
+  const cx = (next.min[0] + next.max[0]) / 2;
+  const cy = (next.min[1] + next.max[1]) / 2;
+  const floor = next.min[2];
+  return {
+    tris: rotated.map((tri) => tri.map(([x, y, z]) => [x - cx, y - cy, z - floor] as V3) as Tri),
+    normalized: true,
+  };
+}
 
 /**
  * Engraves heading/footnote onto the flattest vertical face of the plinth of
@@ -233,9 +292,11 @@ function engraveTris(
   if (!band.length) return { ok: false, reason: "no_plinth" };
 
 
-  // Pick the face with the most near-vertical, outward-facing area.
+  // The source image faces +Z in Meshy's Y-up coordinates. Conversion maps
+  // that known buyer-visible side to -Y. Never choose a larger side/back wall:
+  // that is how correctly spelled lettering can still be hidden from view.
   let best: { key: "+x" | "-x" | "+y" | "-y"; axis: "x" | "y"; outward: number; area: number } | null = null;
-  for (const face of FACES) {
+  for (const face of FACES.filter((candidate) => candidate.key === "-y")) {
     let area = 0;
     for (const t of band) {
       const n = triNormal(t);
@@ -329,6 +390,7 @@ function engraveTris(
   const flip = axis === "y" ? outward > 0 : outward < 0;
 
   const out: Tri[] = tris.slice();
+  const letteringStart = out.length;
   for (const line of lines) {
     const baseline = cursorTop - line.cap;
     const width = textWidth(line.text) * line.cap;
@@ -369,7 +431,16 @@ function engraveTris(
   }
 
 
-  return { ok: true, tris: out, face: best.key, cap: Number(primaryCap.toFixed(2)) };
+  const lettering = out.slice(letteringStart);
+  if (!lettering.length) return { ok: false, reason: "no_geometry_added" };
+  return {
+    ok: true,
+    tris: out,
+    face: best.key,
+    cap: Number(primaryCap.toFixed(2)),
+    letteringBounds: boundsOf(lettering),
+    floorZ: minZ,
+  };
 }
 
 /** Failures that a purpose-built nameplate base can rescue. */
@@ -447,7 +518,11 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     return { stl: bytes, applied: false, text: "", reason: "no_text" };
   }
 
-  const tris = parseStl(bytes);
+  const parsed = parseStl(bytes);
+  const oriented = normalizeManufacturingAxes(parsed);
+  const tris = oriented.tris;
+  // Meshy faces +Z before conversion; our manufacturing normalization maps
+  // that visible front to -Y. Do not silently accept another face.
   let attempt = engraveTris(tris, heading, footnote);
   let addedPlinth = false;
   let baseCount = tris.length;
@@ -475,6 +550,21 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     return { stl: bytes, applied: false, text: label, reason: "no_geometry_added" };
   }
 
+  const placementVerified =
+    attempt.face === "-y" &&
+    attempt.letteringBounds.min[2] >= attempt.floorZ + 0.5 &&
+    attempt.letteringBounds.max[2] > attempt.letteringBounds.min[2];
+  if (!placementVerified) {
+    return {
+      stl: bytes,
+      applied: false,
+      text: label,
+      face: attempt.face,
+      letteringBounds: attempt.letteringBounds,
+      reason: "visible_front_placement_not_verified",
+    };
+  }
+
   return {
     stl: writeStl(attempt.tris),
     applied: true,
@@ -485,6 +575,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     triangleDelta,
     reliefMm: PROUD_MM,
     strokeMm: Number(strokeFor(attempt.cap).toFixed(2)),
+    placementVerified,
+    orientationNormalized: oriented.normalized,
+    letteringBounds: attempt.letteringBounds,
   };
 }
 
