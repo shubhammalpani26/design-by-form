@@ -1,73 +1,23 @@
 # Nyzora
 
-> Nyzora is a custom-manufacturing marketplace that turns AI-generated furniture and decor designs into real, made-to-order pieces. Creators design with AI, verified makers manufacture, and shoppers buy one-of-a-kind, premium home goods. Tagline: "Design Anything. We Make It Real."
-
-## What Nyzora does
-- AI Design Studio: anyone can describe or sketch a furniture/decor idea and generate a manufacturable 3D design
-- Custom Manufacturing: a network of verified makers produces each piece on demand using high-grade resin and other materials
-- Creator Marketplace: independent creators list AI-generated products and earn 70% of the markup over the Manufacturing Base Price
-- Personal Quotes: shoppers can also use the studio in "Get a Quote" mode for personal, non-listed manufacturing
-- 2-year warranty on all manufactured products
+> Nyzora turns creative ideas into physical products. Nyzora Originals makes personalized keepsake sculptures — custom pet memorial sculptures, custom pet portrait sculptures, baby name & date pieces, and wedding coordinate pieces — from a customer's photo, made to order in the USA in plant-based PLA with free US shipping (7–8 business days), from $59.
 
 ## Key pages
-- [Home](https://nyzora.ai/): overview of the platform and featured products
-- [Browse Products](https://nyzora.ai/browse): full catalog of AI-designed, made-to-order furniture and decor
-- [Creators](https://nyzora.ai/creators): directory of independent creators on the platform
-- [Verified Makers](https://nyzora.ai/verified-makers): network of vetted manufacturing partners
-- [Community](https://nyzora.ai/community): creator feed of new designs and inspiration
-- [Design Studio](https://nyzora.ai/design-studio): the AI tool to generate a custom design or request a quote
-- [Technology](https://nyzora.ai/technology): how Nyzora's Manufacturing Intelligence works
-- [Pricing / Plans](https://nyzora.ai/plans): creator plans and credits
-- [Creator Leaderboard](https://nyzora.ai/creator-leaderboard): top creators ranked by sales
 
-## For creators
-- [Become a Creator](https://nyzora.ai/designer-signup): launch your own AI-designed product line
-- [Creator FAQ](https://nyzora.ai/creator-faq): how earnings, MBP, listing fees, and approval work
+- [Nyzora Originals — home](https://nyzora.ai/): Personalized sculptures from your photo.
+- [Custom Pet Memorial Sculpture](https://nyzora.ai/originals/pet-silhouette-keepsake): Pet memorial gift sculpted from a photo, name and dates engraved, from $59.
+- [Custom Pet Portrait Sculpture](https://nyzora.ai/originals/pet-portrait-sculpture): Personalized pet portrait for a living pet, from $59.
+- [Baby Name & Date Piece](https://nyzora.ai/originals/nursery-name-date): Nursery keepsake with raised name and date, $60.
+- [Wedding Coordinates Piece](https://nyzora.ai/originals/wedding-coordinates): Coordinates and date of the place it happened, $85.
+- [Pet Memorial Gifts guide](https://nyzora.ai/pet-memorial-gifts): What makes a good pet memorial gift, sizes, pricing, FAQs.
+- [Custom Pet Sculpture guide](https://nyzora.ai/custom-pet-sculpture): How photo-to-sculpture works, FAQs.
+- [Shopper FAQ](https://nyzora.ai/shopper-faq)
+- [Contact](https://nyzora.ai/contact): contact@nyzora.ai, 1 (888) 500-2881
 
-## For shoppers
-- [Shopper FAQ](https://nyzora.ai/shopper-faq): ordering, shipping, customization, and warranty
-- Product URLs follow the pattern `https://nyzora.ai/product/{slug}`
-- Creator profile URLs: `https://nyzora.ai/designer/{id}`
+## Facts
 
-## Contact
-- Email: contact@nyzora.ai
-- Phone: 1 (888) 500-2881
-- Sitemap: https://nyzora.ai/sitemap.xml
-
-## Notes for AI agents
-- Product pages include schema.org Product + CreativeWork JSON-LD with price (INR), availability, brand, and creator attribution
-- Currency is INR by default; a currency selector is available in the UI
-- Prices include the Manufacturing Base Price plus a creator markup; the MBP itself is intentionally not exposed
-- All products are made-to-order; lead times depend on the assigned verified maker
-
-## Machine-readable product feed
-- Standard JSON feed (Google Merchant + Schema.org baseline): https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed
-- Extended JSON feed (adds creator, materials, dimensions, finishes, lead_time_days, customizable, warranty_years): https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed/extended
-- Google Merchant–style RSS/XML: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/products-feed?format=xml
-- Query params: `limit` (max 1000), `offset`, `category` (e.g. chairs, tables, vases)
-- Standard fields: id, slug, title, description, url, image, price, currency, availability, brand, condition, shipping
-- Extended additionally includes: creator, dimensions_cm, weight_kg, finishes, sizes, lead_time_days, materials, customizable, made_to_order, warranty_years
-
-## Agent API (browse + initiate checkout)
-Base URL: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/agent-api
-- GET `/` — service descriptor
-- GET `/products?limit=&offset=&category=&q=` — list approved products
-- GET `/products/{slug_or_id}` — full product details
-- GET `/products/{slug_or_id}/availability` — lead time, ship window, estimated delivery
-- GET `/search?q=&min_price=&max_price=&category=&material=&finish=&max_lead_days=` — structured product search
-- GET `/creators?limit=&offset=` — list verified creators
-- GET `/creators?category={category}` — creators with products in a category
-- GET `/creators/featured?limit=` — top creators by approved-product count
-- GET `/creators/{slug_or_id}` — creator with their products
-- GET `/categories` — categories with counts
-- POST `/checkout-intent` body `{ "items": [{ "slug": "...", "quantity": 1 }] }` — returns `checkout_url` deep link to nyzora.ai/cart for the user to complete payment
-- GET `/orders/{id}` — order status + items (requires user JWT in `Authorization: Bearer ...`)
-
-## Auto-discovery for AI agents
-- AI plugin manifest: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/agent-api/.well-known/ai-plugin.json
-- OpenAPI 3.1 spec: https://rdcfakdhgndnhgzfkuvw.supabase.co/functions/v1/agent-api/openapi.json
-
-Notes for shopping agents:
-- All prices in INR. Convert to user currency client-side if needed.
-- Payment is always completed by the human user on nyzora.ai (sign-in + Razorpay). The agent's role ends with the deep link.
-- Products are made-to-order; respect `lead_time_days`.
+- Materials: plant-based PLA, single satin colour, visible fine layer lines (honest 3D-print texture).
+- Sizes (pet pieces): Petite 120 mm $59 · Standard 140 mm $89 · Statement 196 mm $139. Free US shipping included.
+- Personalization: raised lettering (marketed as "engraving") on the plinth — name, dates, or a short line; optional.
+- Production: made to order in the USA; engineering-checked for printability before production.
+- Payments: secure checkout; made-to-order pieces are refundable only on defect, with a free remake if the render doesn't match.
