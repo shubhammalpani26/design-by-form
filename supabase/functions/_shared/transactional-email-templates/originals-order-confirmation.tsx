@@ -193,7 +193,7 @@ const Email = (props: Props) => {
           <Section>
             <Text style={body}>
               We're making {multi ? 'them' : 'it'} now in our US workshop.{' '}
-              {multi ? 'They ship' : 'It ships'} in 7–8 business days and you'll get
+              {multi ? 'They ship' : 'It ships'} in 4–5 business days and you'll get
               tracking by email. Your render is a design preview — the finished print is a solid
               single-colour piece, so texture and tone will differ slightly. If {multi ? 'anything arrives' : 'it arrives'}{' '}
               damaged or defective, we remake and reship it free. Because {multi ? 'these are' : 'this is'}{' '}

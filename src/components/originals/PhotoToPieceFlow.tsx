@@ -937,8 +937,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 </button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
                   {basketCount > 1
-                    ? "One payment, one shipment · Free US shipping · Ships in 7–8 business days"
-                    : "Free US shipping · Made to order in the USA · Ships in 7–8 business days"}
+                    ? "One payment, one shipment · Free US shipping · Ships in 4–5 business days"
+                    : "Free US shipping · Made to order in the USA · Ships in 4–5 business days"}
                 </p>
               </>
             )}

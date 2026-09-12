@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: "How long does it take to arrive?",
-    a: "Each piece is made to order and shipped free anywhere in the US, arriving in 7–8 business days from order.",
+    a: "Each piece is made to order and shipped free anywhere in the US, shipping in 4–5 business days from order.",
   },
   {
     q: "Is this an alternative to a pet urn?",
@@ -100,7 +100,7 @@ const PetMemorialGifts = () => {
                 <p className="text-primary-foreground/60 text-base md:text-lg max-w-2xl leading-relaxed mb-10">
                   Most pet memorial gifts are generic — a paw print, a frame, a stone. Ours is sculpted from a photo of
                   your dog or cat: their face, their ears, their expression, with their name and dates engraved on the
-                  plinth. Made to order in the USA, shipped free in 7–8 business days.
+                  plinth. Made to order in the USA, shipped free in 4–5 business days.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link
@@ -151,7 +151,7 @@ const PetMemorialGifts = () => {
                     "A warm, happy expression: perked ears, lifted cheeks, a gentle smile. A celebration of them, not a sombre object.",
                     "One solid piece in plant-based PLA, with the fine layer lines that are the honest signature of precision 3D printing.",
                     "Checked by our engineering system for strength and print feasibility before it's made.",
-                    "Made in the USA. Free shipping, arrives in 7–8 business days.",
+                    "Made in the USA. Free shipping, ships in 4–5 business days.",
                   ].map((point) => (
                     <div key={point} className="flex gap-3">
                       <Check className="w-5 h-5 shrink-0 mt-0.5 text-secondary" />

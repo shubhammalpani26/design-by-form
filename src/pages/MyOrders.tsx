@@ -242,7 +242,7 @@ export default function MyOrders() {
                 <p className="text-muted-foreground">
                   {idx >= 1
                     ? "In production now — your tracking number appears here the moment it ships."
-                    : "Confirmed. Production starts within a day, then 7–8 business days to your door."}
+                    : "Confirmed. Production starts within a day, then 4–5 business days to your door."}
                 </p>
               )}
             </div>
