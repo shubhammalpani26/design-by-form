@@ -127,6 +127,10 @@ export const Footer = () => {
               <button onClick={() => handleNavigation("/luxury-furniture-india")} className="hover:text-primary transition-colors">Luxury Furniture India</button>
               <span className="text-muted-foreground/30">·</span>
               <button onClick={() => handleNavigation("/ai-designed-furniture")} className="hover:text-primary transition-colors">AI Designed Furniture</button>
+              <span className="text-muted-foreground/30">·</span>
+              <button onClick={() => handleNavigation("/pet-memorial-gifts")} className="hover:text-primary transition-colors">Pet Memorial Gifts</button>
+              <span className="text-muted-foreground/30">·</span>
+              <button onClick={() => handleNavigation("/custom-pet-sculpture")} className="hover:text-primary transition-colors">Custom Pet Sculpture</button>
             </div>
             <div className="flex justify-center gap-6 mb-4">
               <button onClick={() => handleNavigation("/terms")} className="hover:text-primary transition-colors">Terms & Conditions</button>

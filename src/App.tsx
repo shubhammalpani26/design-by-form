@@ -75,6 +75,8 @@ const MakerFAQ = lazyWithRetry(() => import("./pages/MakerFAQ"));
 const Technology = lazyWithRetry(() => import("./pages/Technology"));
 const LuxuryFurnitureIndia = lazyWithRetry(() => import("./pages/LuxuryFurnitureIndia"));
 const AIDesignedFurniture = lazyWithRetry(() => import("./pages/AIDesignedFurniture"));
+const PetMemorialGifts = lazyWithRetry(() => import("./pages/PetMemorialGifts"));
+const CustomPetSculpture = lazyWithRetry(() => import("./pages/CustomPetSculpture"));
 
 // Lazy load layout
 const CreatorLayout = lazyWithRetry(() => import("./layouts/CreatorLayout").then(m => ({ default: m.CreatorLayout })));
@@ -204,6 +206,8 @@ const App = () => (
               <Route path="/technology" element={<Technology />} />
               <Route path="/luxury-furniture-india" element={<LuxuryFurnitureIndia />} />
               <Route path="/ai-designed-furniture" element={<AIDesignedFurniture />} />
+              <Route path="/pet-memorial-gifts" element={<PetMemorialGifts />} />
+              <Route path="/custom-pet-sculpture" element={<CustomPetSculpture />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/billing/return" element={<BillingReturn />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
