@@ -292,9 +292,11 @@ function engraveTris(
   if (!band.length) return { ok: false, reason: "no_plinth" };
 
 
-  // Pick the face with the most near-vertical, outward-facing area.
+  // The source image faces +Z in Meshy's Y-up coordinates. Conversion maps
+  // that known buyer-visible side to -Y. Never choose a larger side/back wall:
+  // that is how correctly spelled lettering can still be hidden from view.
   let best: { key: "+x" | "-x" | "+y" | "-y"; axis: "x" | "y"; outward: number; area: number } | null = null;
-  for (const face of FACES) {
+  for (const face of FACES.filter((candidate) => candidate.key === "-y")) {
     let area = 0;
     for (const t of band) {
       const n = triNormal(t);
