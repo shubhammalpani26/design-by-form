@@ -153,6 +153,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
   const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, result.stl);
+  const digest = await crypto.subtle.digest("SHA-256", result.stl);
+  const fileSha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   await admin
     .from("originals_orders")
     .update({
@@ -169,6 +171,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,
+        fileSha256,
       },
 
     })

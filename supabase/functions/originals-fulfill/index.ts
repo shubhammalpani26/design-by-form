@@ -241,6 +241,22 @@ Deno.serve(async (req) => {
         });
         return json({ error: reason, needsFile: row.id }, 400);
       }
+      if (wanted) {
+        const expectedHash = typeof engravingMeta.fileSha256 === "string" ? engravingMeta.fileSha256 : "";
+        const fileResponse = await fetch(url!);
+        if (!fileResponse.ok) return json({ error: `Could not verify piece ${row.id.slice(0, 8)} print file` }, 400);
+        const digest = await crypto.subtle.digest("SHA-256", await fileResponse.arrayBuffer());
+        const actualHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+        if (!expectedHash || actualHash !== expectedHash) {
+          const reason = "Print file changed after visible-front lettering verification";
+          await admin.from("originals_orders").update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          return json({ error: reason, needsFile: row.id }, 400);
+        }
+      }
       const uploaded = await uploadPrintFile(url!, {
         name: `${row.sku_slug}-${row.id.slice(0, 8)}.stl`,
         ownerId: "nyzora-originals",

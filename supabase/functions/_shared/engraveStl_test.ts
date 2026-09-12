@@ -39,3 +39,14 @@ Deno.test("keeps an already Z-up model upright and verifies front placement", ()
   assertEquals(result.placementVerified, true);
   assert(parseStl(result.stl).length > tris.length);
 });
+
+Deno.test("never approves lettering on the floor or a side face", () => {
+  const tris: Tri[] = [];
+  box(tris, [-40, -30, 0], [40, 30, 20]);
+  const result = engraveStl(writeStl(tris), { heading: "TOBY" });
+  assert(result.applied);
+  assertEquals(result.face, "-y");
+  assertEquals(result.placementVerified, true);
+  assert((result.letteringBounds?.min[2] ?? 0) >= 0.5);
+  assert((result.letteringBounds?.min[1] ?? 0) < -30);
+});
