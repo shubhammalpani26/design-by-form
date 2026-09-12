@@ -187,7 +187,6 @@ Deno.serve(async (req) => {
       // generic bust with none of their personalisation.
       if (
         PHOTO_PERSONALIZED_SKUS.has(row.sku_slug) &&
-        !files[row.id] &&
         (await isMasterPrintFile(admin, url!))
       ) {
         const reason =
@@ -220,7 +219,9 @@ Deno.serve(async (req) => {
         engravingMeta.placementVersion === 2 &&
         engravingMeta.placementVerified === true &&
         engravingMeta.face === "-y";
-      if (wanted && !files[row.id] && (row.engraved_text !== wanted || !placementIsVerified)) {
+      // Manual URL overrides are intentionally not exempt: no operator action
+      // may bypass the same physical-placement proof required by automation.
+      if (wanted && (row.engraved_text !== wanted || !placementIsVerified)) {
         const reason = `Personalisation "${wanted}" is not raised/embossed on this print file yet`;
         await admin
           .from("originals_orders")
