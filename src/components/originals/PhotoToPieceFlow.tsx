@@ -371,7 +371,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const addAnother = () => {
     if (!requireSize()) return;
     cart.add(currentLine());
-    toast({ title: "Saved to your order", description: "Make another piece — you'll pay for everything at once." });
+    toast({ title: "Saved to your order", description: "It's in the order bar at the bottom of the screen — make another piece and pay for everything at once." });
     trackExperiment("reveal_screen", revealVariant, "add_to_cart", { skuSlug: sku.slug });
     resetForAnother();
   };
