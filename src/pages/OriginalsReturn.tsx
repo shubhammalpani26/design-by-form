@@ -192,15 +192,14 @@ export default function OriginalsReturn() {
 
           <div className="mt-8 grid grid-cols-1 gap-3 border-t border-foreground/10 pt-6 text-sm text-muted-foreground sm:grid-cols-3">
             <div className="flex items-center gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> Ships in 4–5 business days</div>
+            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> {internalTest ? "Manufacturing paused" : "Ships in 4–5 business days"}</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 
           <div className="mt-6 border-t border-foreground/10 pt-6 text-xs leading-relaxed text-muted-foreground">
-            Your piece is made to order and is already heading into production, so it can't be cancelled or
-            returned for a change of mind. Your render is a design preview — the finished print is a solid
-            single-colour piece, so texture and tone will differ slightly. If it arrives damaged or
-            defective, we remake and reship it free.
+            {internalTest
+              ? "Your STL is being prepared for inspection. Nothing has been charged and nothing will be sent to manufacturing until you approve it in Originals Ops."
+              : "Your piece is made to order and is already heading into production, so it can't be cancelled or returned for a change of mind. Your render is a design preview — the finished print is a solid single-colour piece, so texture and tone will differ slightly. If it arrives damaged or defective, we remake and reship it free."}
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-5 text-sm">
