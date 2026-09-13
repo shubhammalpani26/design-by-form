@@ -140,10 +140,15 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
 async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   const { heading, footnote, label } = engravingLines(row.personalization);
   if (!label) return url;
-  // Never trust a legacy text-only record. Placement v2 proves the lettering
+  // Never trust a legacy text-only record. Placement v3 proves the lettering
   // is on the visible front rather than merely somewhere in the STL.
   const existingMeta = (row as OrderRow & { engraving_meta?: Record<string, unknown> | null }).engraving_meta;
-  if (row.engraved_text === label && existingMeta?.placementVersion === 2 && existingMeta?.placementVerified === true) {
+  if (
+    row.engraved_text === label &&
+    existingMeta?.placementVersion === 3 &&
+    existingMeta?.heftVersion === 1 &&
+    existingMeta?.placementVerified === true
+  ) {
     return url;
   }
 
@@ -168,7 +173,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         triangleDelta: result.triangleDelta ?? 0,
         reliefMm: result.reliefMm,
         strokeMm: result.strokeMm,
-        placementVersion: 2,
+        placementVersion: 3,
+        heftVersion: 1,
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,

@@ -12,12 +12,15 @@ export interface EngravingState {
  */
 export function reusableOrderPrintFile(row: EngravingState, expectedLabel: string): string | null {
   if (!row.print_file_url) return null;
-  if (!row.engraved_text) return row.print_file_url;
-
   const meta = row.engraving_meta;
+  // Reinforced-base v1 is part of the production specification. Older source
+  // and engraved files must be rebuilt instead of bypassing the heavier base.
+  if (!row.engraved_text) return meta?.heftVersion === 1 ? row.print_file_url : null;
+
   const verifiedCurrent =
     row.engraved_text === expectedLabel &&
-    meta?.placementVersion === 2 &&
+    meta?.placementVersion === 3 &&
+    meta?.heftVersion === 1 &&
     meta?.placementVerified === true;
 
   return verifiedCurrent ? row.print_file_url : null;

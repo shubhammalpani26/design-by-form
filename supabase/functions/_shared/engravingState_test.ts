@@ -10,18 +10,22 @@ Deno.test("legacy engraved files are never reused as engraving sources", () => {
   assertEquals(reusableOrderPrintFile(row, "MILO"), null);
 });
 
-Deno.test("only an exact verified v2 engraving is reused", () => {
+Deno.test("only an exact verified v3 reinforced engraving is reused", () => {
   const row = {
     print_file_url: "https://example.test/piece-engraved-v2.stl",
     engraved_text: "MILO",
-    engraving_meta: { placementVersion: 2, placementVerified: true },
+    engraving_meta: { placementVersion: 3, heftVersion: 1, placementVerified: true },
   };
   assertEquals(reusableOrderPrintFile(row, "MILO"), row.print_file_url);
   assertEquals(reusableOrderPrintFile(row, "TOBY"), null);
 });
 
-Deno.test("unlettered files and preserved sources remain available", () => {
-  const plain = { print_file_url: "https://example.test/source.stl", engraved_text: null };
+Deno.test("reinforced unlettered files and preserved sources remain available", () => {
+  const plain = {
+    print_file_url: "https://example.test/source.stl",
+    engraved_text: null,
+    engraving_meta: { heftVersion: 1 },
+  };
   assertEquals(reusableOrderPrintFile(plain, "MILO"), plain.print_file_url);
 
   const engraved = {
@@ -30,4 +34,15 @@ Deno.test("unlettered files and preserved sources remain available", () => {
     engraving_meta: { sourcePrintFileUrl: plain.print_file_url },
   };
   assertEquals(preservedSourcePrintFile(engraved), plain.print_file_url);
+});
+
+Deno.test("legacy unreinforced files are rebuilt", () => {
+  const plain = { print_file_url: "https://example.test/source.stl", engraved_text: null };
+  assertEquals(reusableOrderPrintFile(plain, "MILO"), null);
+  const legacy = {
+    print_file_url: "https://example.test/piece-engraved-v2.stl",
+    engraved_text: "MILO",
+    engraving_meta: { placementVersion: 2, placementVerified: true },
+  };
+  assertEquals(reusableOrderPrintFile(legacy, "MILO"), null);
 });
