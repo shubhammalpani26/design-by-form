@@ -1059,12 +1059,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 {item.previewUrl && (
                   <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain sm:h-14 sm:w-14" />
                 )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm">
-                    {item.productName}
-                    {item.personName ? ` · ${item.personName}` : ""}
+                <div className="min-w-0 pr-6 sm:pr-0">
+                  <p className="text-sm leading-snug line-clamp-2">
+                    {item.personName || item.productName}
                   </p>
-                  <p className="text-xs text-muted-foreground">{item.sizeLabel} · ${item.price}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {item.personName ? `${item.productName} · ` : ""}{item.sizeLabel} · ${item.price}
+                  </p>
                 </div>
                 <div className="col-start-2 flex items-center gap-1 sm:col-start-auto">
                   <button
