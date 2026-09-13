@@ -184,6 +184,7 @@ async function priceSizes(
         landed_usd: landed.landedUsd,
         mbp_usd: mbpUsd,
         retail_usd: retail,
+        grams: landed.metrics?.weight ?? null,
         feasible: true,
         source: "live",
       });

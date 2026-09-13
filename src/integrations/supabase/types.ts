@@ -1507,6 +1507,7 @@ export type Database = {
           tracking_numbers: string[]
           updated_at: string
           user_id: string | null
+          weight_grams: number | null
         }
         Insert: {
           amount_usd: number
@@ -1548,6 +1549,7 @@ export type Database = {
           tracking_numbers?: string[]
           updated_at?: string
           user_id?: string | null
+          weight_grams?: number | null
         }
         Update: {
           amount_usd?: number
@@ -1589,6 +1591,7 @@ export type Database = {
           tracking_numbers?: string[]
           updated_at?: string
           user_id?: string | null
+          weight_grams?: number | null
         }
         Relationships: [
           {
@@ -1746,6 +1749,7 @@ export type Database = {
           created_at: string
           error: string | null
           feasible: boolean
+          grams: number | null
           id: string
           landed_usd: number | null
           mbp_usd: number | null
@@ -1761,6 +1765,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           feasible?: boolean
+          grams?: number | null
           id?: string
           landed_usd?: number | null
           mbp_usd?: number | null
@@ -1776,6 +1781,7 @@ export type Database = {
           created_at?: string
           error?: string | null
           feasible?: boolean
+          grams?: number | null
           id?: string
           landed_usd?: number | null
           mbp_usd?: number | null

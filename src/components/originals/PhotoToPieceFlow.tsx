@@ -23,7 +23,7 @@ import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
-import { sizeWeightLabel } from "@/lib/originalsWeight";
+import { actualWeightLabel } from "@/lib/originalsWeight";
 
 
 
@@ -219,7 +219,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   // Mid size is our silent head start — checked the moment the render lands.
   const defaultSizeKey = (sku.sizes[1] ?? sku.sizes[0])?.key ?? null;
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, unprintable, checkFor, renderRejected } = useOriginalsQuotes(
+  const { priceFor, gramsFor, unprintable, checkFor, renderRejected } = useOriginalsQuotes(
     sku.slug,
     preview?.id ?? null,
     sizeKey,
@@ -795,8 +795,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
-                    {sizeWeightLabel(sku.slug, s.key) && (
-                      <span className="block text-[11px] text-muted-foreground/80">{sizeWeightLabel(sku.slug, s.key)}</span>
+                    {actualWeightLabel(gramsFor(s.key), sku.slug, s.key) && (
+                      <span className="block text-[11px] text-muted-foreground/80">
+                        {actualWeightLabel(gramsFor(s.key), sku.slug, s.key)}
+                      </span>
                     )}
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
 

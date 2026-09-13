@@ -8,6 +8,13 @@
       "when": 1789282055090,
       "tag": "0000_admin_only_promo_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789312883240,
+      "tag": "0001_add_slicer_weight_grams",
+      "breakpoints": true
     }
   ]
 }

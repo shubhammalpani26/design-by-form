@@ -32,6 +32,8 @@ export interface OriginalsQuote {
   listUsd: number;
   source: "live" | "list" | "cache";
   feasible: boolean;
+  /** Finished weight from the partner's slicer, when the real file was priced. */
+  grams?: number | null;
 }
 
 /** How long we keep nudging the pre-purchase feasibility check along. */
@@ -181,6 +183,11 @@ export function useOriginalsQuotes(
     runCheck(sizeKey);
   }, [previewId, sizeKey, runCheck]);
 
+  const gramsFor = useCallback(
+    (key: string) => quotes[key]?.grams ?? null,
+    [quotes],
+  );
+
   const priceFor = useCallback(
     (key: string, fallback: number) => quotes[key]?.unitUsd ?? fallback,
     [quotes],
@@ -211,6 +218,7 @@ export function useOriginalsQuotes(
   return {
     quotes,
     priceFor,
+    gramsFor,
     loading,
     checks,
     checkFor,
