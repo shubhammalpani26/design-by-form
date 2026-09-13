@@ -83,7 +83,7 @@ const ShopperFAQ = () => {
                 What is the typical lead time for orders?
               </AccordionTrigger>
               <AccordionContent className="text-muted-foreground">
-                Nyzora Originals — our personalised keepsake pieces — ship in 4–5 business days, followed by normal delivery transit in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized or specially finished pieces may take 28-35 days. We confirm an accurate timeline when you place your order.
+                Nyzora Originals — our personalised keepsake pieces — ship in 4–5 business days in the US. Larger marketplace furniture is manufactured on-demand with a typical lead time of 21 days; custom-sized or specially finished pieces may take 28-35 days. We confirm an accurate timeline when you place your order.
               </AccordionContent>
             </AccordionItem>
 
