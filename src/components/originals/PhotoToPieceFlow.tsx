@@ -1056,8 +1056,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="divide-y divide-border border border-border">
             {cart.items.map((item) => (
               <div key={item.id} className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3 gap-y-2 px-3 py-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] sm:items-center sm:py-2">
-                {item.previewUrl && (
+                {item.previewUrl ? (
                   <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain sm:h-14 sm:w-14" />
+                ) : (
+                  <div className="h-12 w-12 border border-border bg-muted sm:h-14 sm:w-14" aria-hidden />
                 )}
                 <div className="min-w-0 pr-6 sm:pr-0">
                   <p className="text-sm leading-snug line-clamp-2">
