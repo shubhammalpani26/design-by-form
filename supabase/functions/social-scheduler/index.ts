@@ -561,8 +561,9 @@ async function metaCreds() {
     const userToken = (d.meta_token as { access_token?: string } | undefined)?.access_token;
     if (userToken) {
       const res = await fetch(`${FB_API}/${pageId}?fields=access_token&access_token=${encodeURIComponent(userToken)}`);
-      const j = (await res.json()) as { access_token?: string };
+      const j = (await res.json()) as { access_token?: string; error?: { message?: string } };
       if (j.access_token) return { pageToken: j.access_token, igUserId };
+      console.error("page token fetch failed:", res.status, j.error?.message ?? "no access_token");
     }
   }
   throw new Error("No Meta page token available — connect Instagram via meta_me first.");
