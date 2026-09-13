@@ -92,7 +92,7 @@ Deno.serve(async (req) => {
     const base = admin
       .from("originals_orders")
       .select(
-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta",
+        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta, payment_provider, production_status",
       );
     const { data: rows, error } = groupId
       ? await base.eq("group_id", groupId)
@@ -102,6 +102,14 @@ Deno.serve(async (req) => {
 
     const paid = rows.filter((r) => r.status === "paid" || r.status === "fulfilled");
     if (!paid.length) return json({ error: "Order is not paid yet" }, 400);
+
+    const internalTest = paid.some((r) => r.payment_provider === "internal_test");
+    if (internalTest && body?.release !== true) {
+      return json({ error: "Internal test order requires explicit admin approval" }, 409);
+    }
+    if (internalTest && paid.some((r) => r.production_status !== "awaiting_admin_approval")) {
+      return json({ error: "Internal test files are not ready for approval" }, 409);
+    }
 
     // Operator escape hatch: pull a mis-sent partner order back so it can be
     // re-placed (e.g. wrong filament). Only valid before the partner ships.

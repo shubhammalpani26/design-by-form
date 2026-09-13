@@ -46,8 +46,6 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
-    if (!razorpayConfigured()) return json({ error: "Payments are not available yet." }, 503);
-
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const admin = createClient(SUPABASE_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 
@@ -163,6 +161,7 @@ Deno.serve(async (req) => {
     if (isPromoError(promo)) return json({ error: promo.error }, 400);
     const discountUsd = promo?.discountUsd ?? 0;
     const totalUsd = Math.round((subtotalUsd - discountUsd) * 100) / 100;
+    const internalTest = promo?.internalTest === true;
 
     // Spread any discount across the lines so the ledger still adds up.
     const discountRatio = subtotalUsd > 0 ? totalUsd / subtotalUsd : 1;
@@ -185,8 +184,9 @@ Deno.serve(async (req) => {
         print_file_url: l.printFileUrl,
         personalization: matched?.personalization ?? {},
         preview_image_url: matched?.url ?? null,
-        status: "pending",
-        payment_provider: "razorpay",
+        status: internalTest ? "paid" : "pending",
+        payment_provider: internalTest ? "internal_test" : "razorpay",
+        production_status: internalTest ? "awaiting_model" : "queued",
         customer_email: customer.email,
         shipping_address: shipping,
         promo_code: promo?.code ?? null,
@@ -202,6 +202,31 @@ Deno.serve(async (req) => {
       console.error("order insert failed", orderErr);
       return json({ error: "We couldn't start your order. Please try again." }, 500);
     }
+
+    if (internalTest) {
+      const providerOrderId = `internal_${groupId}`;
+      await admin
+        .from("originals_orders")
+        .update({ provider_order_id: providerOrderId, updated_at: new Date().toISOString() })
+        .eq("group_id", groupId);
+      const { error: modelError } = await admin.functions.invoke("originals-model", {
+        body: { order_id: orders[0].id },
+      });
+      if (modelError) console.error("internal test model kickoff failed", modelError);
+      return json({
+        internalTest: true,
+        providerOrderId,
+        orderId: orders[0].id,
+        groupId,
+        amount: 0,
+        amountUsd: 0,
+        subtotalUsd,
+        discountUsd,
+        promoCode: promo?.code ?? null,
+      });
+    }
+
+    if (!razorpayConfigured()) return json({ error: "Payments are not available yet." }, 503);
 
     const note = totalPieces === 1
       ? `${NAMES[lines[0].skuSlug] ?? "Nyzora Original"} — ${lines[0].size!.label}`

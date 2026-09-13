@@ -47,6 +47,7 @@ Deno.serve(async (req) => {
       description: promo.description,
       discountUsd: promo.discountUsd,
       totalUsd: Math.round((subtotal - promo.discountUsd) * 100) / 100,
+      internalTest: promo.internalTest,
     });
   } catch (e) {
     console.error("originals-promo error", e);

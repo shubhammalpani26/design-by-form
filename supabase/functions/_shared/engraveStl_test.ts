@@ -90,3 +90,14 @@ Deno.test("uses the reinforced front face for long two-line lettering", () => {
   assertEquals(result.face, "-y");
   assertEquals(result.placementVerified, true);
 });
+
+Deno.test("an engraved final file retains the reinforced-base marker", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 14]);
+  box(tris, [-18, -12, 14], [18, 12, 90]);
+  const engraved = engraveStl(writeStl(tris), { heading: "MILO" });
+  assert(engraved.applied);
+  const reinforcedAgain = reinforceKeepsakeStl(engraved.stl);
+  assertEquals(reinforcedAgain.applied, false);
+  assertEquals(reinforcedAgain.reason, "already_reinforced");
+});
