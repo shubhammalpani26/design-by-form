@@ -219,7 +219,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   // Mid size is our silent head start — checked the moment the render lands.
   const defaultSizeKey = (sku.sizes[1] ?? sku.sizes[0])?.key ?? null;
   // Prices are confirmed against a real manufacturing quote for the chosen size.
-  const { priceFor, unprintable, checkFor, renderRejected } = useOriginalsQuotes(
+  const { priceFor, gramsFor, unprintable, checkFor, renderRejected } = useOriginalsQuotes(
     sku.slug,
     preview?.id ?? null,
     sizeKey,
