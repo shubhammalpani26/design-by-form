@@ -47,6 +47,8 @@ Deno.test("never approves lettering on the floor or a side face", () => {
   assert(result.applied);
   assertEquals(result.face, "-y");
   assertEquals(result.placementVerified, true);
-  assert((result.letteringBounds?.min[2] ?? 0) >= 0.5);
+  const output = parseStl(result.stl);
+  const floorZ = Math.min(...output.flatMap((tri) => tri.map((point) => point[2])));
+  assert((result.letteringBounds?.min[2] ?? floorZ) >= floorZ + 0.5);
   assert((result.letteringBounds?.min[1] ?? 0) < -30);
 });
