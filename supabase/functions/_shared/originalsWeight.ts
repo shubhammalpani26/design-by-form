@@ -5,13 +5,13 @@
  * table is keyed per SKU — never one shared bust weight for everything.
  */
 const BUST_GRAMS: Record<string, number> = {
-  petite: 155,
-  standard: 250,
-  statement: 475,
+  petite: 90,
+  standard: 125,
+  statement: 290,
 };
 
 const PLAQUE_GRAMS: Record<string, number> = {
-  standard: 160,
+  standard: 110,
 };
 
 export const SKU_SIZE_GRAMS: Record<string, Record<string, number>> = {
