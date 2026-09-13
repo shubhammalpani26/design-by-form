@@ -87,7 +87,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   const [busy, setBusy] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
   const [promoInput, setPromoInput] = useState("");
-  const [promo, setPromo] = useState<{ code: string; discountUsd: number } | null>(null);
+  const [promo, setPromo] = useState<{ code: string; discountUsd: number; internalTest: boolean } | null>(null);
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
 
@@ -135,8 +135,17 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         body: { code, subtotalUsd: totalUsd },
       });
       if (error || data?.error) throw new Error(data?.error || "That code isn't valid.");
-      setPromo({ code: data.code, discountUsd: Number(data.discountUsd) || 0 });
-      toast({ title: "Promo applied", description: `You saved $${Number(data.discountUsd).toFixed(2)}.` });
+      setPromo({
+        code: data.code,
+        discountUsd: Number(data.discountUsd) || 0,
+        internalTest: data.internalTest === true,
+      });
+      toast({
+        title: data.internalTest ? "Internal test mode" : "Promo applied",
+        description: data.internalTest
+          ? "No payment will be taken. Manufacturing will wait for your approval."
+          : `You saved $${Number(data.discountUsd).toFixed(2)}.`,
+      });
     } catch (e) {
       setPromo(null);
       setPromoError((e as Error).message);
@@ -180,6 +189,16 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
 
     setBusy(true);
     try {
+      if (promo?.internalTest) {
+        const order = await createOrder();
+        if (!order) {
+          setBusy(false);
+          return;
+        }
+        onPaying?.();
+        window.location.href = `${returnUrl}${returnUrl.includes("?") ? "&" : "?"}group=${order.groupId}&order=${order.orderId}&provider=internal_test`;
+        return;
+      }
       const [Razorpay, checkout] = await Promise.all([
         loadRazorpay(),
         supabase.functions.invoke("razorpay-checkout", {
@@ -360,25 +379,29 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         are in US dollars (USD).
       </p>
 
-      <ApplePayButton
-        createOrder={createOrder}
-        buildReturnUrl={buildReturnUrl}
-        onPaying={onPaying}
-        onError={(description) =>
-          toast({ title: "Apple Pay failed", description, variant: "destructive" })
-        }
-        disabled={busy}
-      />
+      {!promo?.internalTest && (
+        <ApplePayButton
+          createOrder={createOrder}
+          buildReturnUrl={buildReturnUrl}
+          onPaying={onPaying}
+          onError={(description) =>
+            toast({ title: "Apple Pay failed", description, variant: "destructive" })
+          }
+          disabled={busy}
+        />
+      )}
 
       <Button type="button" size="lg" className="w-full rounded-none h-12" disabled={busy} onClick={() => void pay()}>
         {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-        Pay ${payableUsd.toFixed(2)} USD
+        {promo?.internalTest ? "Create inspection order — $0" : `Pay $${payableUsd.toFixed(2)} USD`}
       </Button>
 
 
       <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <ShieldCheck className="h-3.5 w-3.5" /> Card details are entered in the secure payment window.
-        Visa, Mastercard and Amex accepted.
+        <ShieldCheck className="h-3.5 w-3.5" />
+        {promo?.internalTest
+          ? "Admin test: no charge and no manufacturing until manual approval."
+          : "Card details are entered in the secure payment window. Visa, Mastercard and Amex accepted."}
       </p>
     </div>
   );

@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, RefreshCw, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Loader2, RefreshCw, Trash2, ChevronDown, ChevronRight, Download, ExternalLink, Send } from "lucide-react";
 
 interface OriginalsOrder {
   id: string;
@@ -25,6 +25,9 @@ interface OriginalsOrder {
   engraved_text: string | null;
   engraved_at: string | null;
   engraving_meta: unknown;
+  payment_provider: string;
+  print_file_url: string | null;
+  preview_image_url: string | null;
 }
 
 /** Physical proof the lettering is geometry, not a render — shown inline. */
@@ -133,7 +136,7 @@ export function OriginalsFulfillmentManagement() {
       supabase
         .from("originals_orders")
         .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta",
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta, payment_provider, print_file_url, preview_image_url",
         )
         .order("created_at", { ascending: false })
         .limit(100),
@@ -261,6 +264,23 @@ export function OriginalsFulfillmentManagement() {
     load();
   };
 
+  const releaseToManufacturing = async (order: OriginalsOrder) => {
+    if (!window.confirm("Send this inspected file to manufacturing now? This will charge the partner card.")) return;
+    setBusy(order.id);
+    const { data, error } = await supabase.functions.invoke("originals-fulfill", {
+      body: order.group_id
+        ? { group_id: order.group_id, release: true }
+        : { order_id: order.id, release: true },
+    });
+    setBusy(null);
+    if (error || data?.error) {
+      toast({ title: "Not sent", description: data?.error ?? error?.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Sent to manufacturing", description: `Partner order ${data.partnerOrderId} was created.` });
+    load();
+  };
+
   if (loading) return <div className="py-8 text-center text-muted-foreground">Loading orders…</div>;
 
   return (
@@ -361,6 +381,38 @@ export function OriginalsFulfillmentManagement() {
               {order.fulfillment_error && (
                 <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-destructive">
                   {order.fulfillment_error}
+                </div>
+              )}
+
+              {order.payment_provider === "internal_test" && (
+                <div className="flex flex-wrap items-center gap-2 border border-border p-3">
+                  <Badge variant="outline">Internal inspection</Badge>
+                  {order.preview_image_url && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={order.preview_image_url} target="_blank" rel="noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" /> Open render
+                      </a>
+                    </Button>
+                  )}
+                  {order.print_file_url && (
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={order.print_file_url} target="_blank" rel="noreferrer" download>
+                        <Download className="mr-2 h-4 w-4" /> Download STL
+                      </a>
+                    </Button>
+                  )}
+                  {order.production_status === "awaiting_admin_approval" && order.print_file_url && (
+                    <Button
+                      size="sm"
+                      disabled={busy !== null}
+                      onClick={() => void releaseToManufacturing(order)}
+                    >
+                      {busy === order.id
+                        ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        : <Send className="mr-2 h-4 w-4" />}
+                      Approve and send to manufacturing
+                    </Button>
+                  )}
                 </div>
               )}
 

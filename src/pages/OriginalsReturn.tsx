@@ -39,6 +39,7 @@ export default function OriginalsReturn() {
   const orderId = params.get("order");
   const groupId = params.get("group");
   const provider = params.get("provider");
+  const internalTest = provider === "internal_test";
   const [order, setOrder] = useState<OrderView | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function OriginalsReturn() {
 
   // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {
-    if (!paid || !order) return;
+    if (!paid || !order || internalTest) return;
     const key = `nyzora_ads_conv_${order.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
@@ -107,7 +108,7 @@ export default function OriginalsReturn() {
       : order.amountUsd;
     trackPurchaseConversion(order.id, total);
     trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : ["originals"]);
-  }, [paid, order, items]);
+  }, [paid, order, items, internalTest]);
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
@@ -138,11 +139,13 @@ export default function OriginalsReturn() {
         <>
           <h1 className="mt-3 flex items-center gap-2 text-2xl font-light tracking-tight">
             {paid ? <CheckCircle2 className="h-6 w-6" /> : <Clock className="h-5 w-5 animate-pulse" />}
-            {paid
+            {paid && internalTest
+              ? "Inspection order created"
+              : paid
               ? pieceCount > 1
                 ? `Your ${pieceCount} pieces are confirmed`
                 : "Your piece is confirmed"
-              : "Finishing up your payment…"}
+               : "Finishing up your payment…"}
           </h1>
 
           {items.length <= 1 && order.previewImageUrl && (
