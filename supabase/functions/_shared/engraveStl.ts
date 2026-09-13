@@ -42,7 +42,7 @@ export interface EngraveResult {
   orientationNormalized?: boolean;
   /** Bounds of lettering geometry in manufacturing coordinates. */
   letteringBounds?: { min: V3; max: V3 };
-  /** True when the heavier, taller keepsake plinth was added. */
+  /** True when the keepsake's original plinth was enlarged. */
   heftBaseApplied?: boolean;
   /** Added plinth height available for front-face lettering. */
   heftBaseHeightMm?: number;
@@ -56,14 +56,14 @@ type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
 
 /** FDM-safe engraving parameters (mm). */
-const PROUD_MM = 1.2; // how far letters stand off the face
-const EMBED_MM = 0.6; // how far the prism sinks into the face so it fuses
+const PROUD_MM = 0.8; // subtle raised finish, matching the customer render
+const EMBED_MM = 1.0; // deep overlap proves every stroke is fused into the face
 const STROKE_MIN_MM = 0.9; // >= 2 x nozzle width — the thinnest wall we trust
 const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora reinforced base v1";
+const HEFT_HEADER = "Nyzora enlarged plinth v2";
 const HEFT_TARGET_INCREASE = 0.4;
 const HEFT_MIN_HEIGHT_MM = 16;
 const HEFT_MAX_HEIGHT_MM = 24;
@@ -268,7 +268,7 @@ export interface HeftBaseResult {
   baseHeightMm: number;
   volumeAddedCm3: number;
   size: { x: number; y: number; z: number };
-  reason?: "already_reinforced" | "degenerate_mesh";
+  reason?: "already_reinforced" | "degenerate_mesh" | "no_existing_plinth";
 }
 
 interface ReinforcedTris {
@@ -280,10 +280,39 @@ interface ReinforcedTris {
 }
 
 /**
- * Adds a substantial closed plinth beneath the model. Its height is calculated
- * toward a 40% geometric-volume increase, with a 16 mm floor so even petite
- * pieces have a readable front face. The source overlaps the plinth so common
- * FDM slicers merge both closed shells into one printable body.
+ * Finds the broad horizontal shoulder where the generated plinth meets the
+ * sculpture. We enlarge only the geometry below this plane, preserving the
+ * original rounded/tapered plinth instead of attaching another slab.
+ */
+function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | null {
+  const height = bounds.max[2] - bounds.min[2];
+  const footprint = (bounds.max[0] - bounds.min[0]) * (bounds.max[1] - bounds.min[1]);
+  if (!(height > 0) || !(footprint > 0)) return null;
+
+  const candidates = new Map<number, number>();
+  const minCandidate = bounds.min[2] + Math.max(3, height * 0.025);
+  const maxCandidate = bounds.min[2] + height * 0.38;
+  for (const tri of tris) {
+    const normal = triNormal(tri);
+    if (Math.abs(normal[2]) < 0.9) continue;
+    const z = (tri[0][2] + tri[1][2] + tri[2][2]) / 3;
+    if (z < minCandidate || z > maxCandidate) continue;
+    const key = Math.round(z * 2) / 2;
+    candidates.set(key, (candidates.get(key) ?? 0) + triArea(tri));
+  }
+
+  let best: { z: number; area: number } | null = null;
+  for (const [z, area] of candidates) {
+    if (area < footprint * 0.12) continue;
+    if (!best || area > best.area || (area === best.area && z > best.z)) best = { z, area };
+  }
+  return best?.z ?? null;
+}
+
+/**
+ * Enlarges the generated piece's own plinth toward a 40% geometric-volume
+ * increase. Vertices in the plinth are stretched vertically and the sculpture
+ * above it is translated by the same amount. No second slab or shell is added.
  */
 function reinforceTris(tris: Tri[]): ReinforcedTris {
   const bounds = boundsOf(tris);
@@ -294,29 +323,29 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
   }
 
-  const plateWidth = Math.min(210, width * 1.04);
-  const plateDepth = Math.min(210, depth * 1.04);
+  const plinthTop = existingPlinthTop(tris, bounds);
+  if (plinthTop === null || plinthTop <= bounds.min[2]) {
+    return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
+  }
+  const plinthHeight = plinthTop - bounds.min[2];
   const currentVolume = signedVolumeMm3(tris);
   const targetExtra = currentVolume * HEFT_TARGET_INCREASE;
-  const targetHeight = targetExtra > 0 ? targetExtra / (plateWidth * plateDepth) + HEFT_OVERLAP_MM : 0;
-  const baseHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
-  const cx = (bounds.min[0] + bounds.max[0]) / 2;
-  const cy = (bounds.min[1] + bounds.max[1]) / 2;
-  const shiftZ = baseHeight - HEFT_OVERLAP_MM - bounds.min[2];
-  const shifted = tris.map((tri) => tri.map(([x, y, z]) => [x, y, z + shiftZ] as V3) as Tri);
-  const out = shifted.slice();
-  box(
-    out,
-    [cx - plateWidth / 2, cy - plateDepth / 2, 0],
-    [cx + plateWidth / 2, cy + plateDepth / 2, baseHeight],
-  );
+  const targetHeight = targetExtra > 0 ? targetExtra / (width * depth) : 0;
+  const addedHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
+  const scale = (plinthHeight + addedHeight) / plinthHeight;
+  const out = tris.map((tri) => tri.map(([x, y, z]) => {
+    const localZ = z - bounds.min[2];
+    const nextZ = localZ <= plinthHeight
+      ? localZ * scale
+      : localZ + addedHeight;
+    return [x, y, nextZ] as V3;
+  }) as Tri);
   const next = boundsOf(out);
-  const plateVolume = plateWidth * plateDepth * baseHeight;
   return {
     tris: out,
     applied: true,
-    baseHeightMm: Number(baseHeight.toFixed(2)),
-    volumeAddedCm3: Number((plateVolume / 1000).toFixed(2)),
+    baseHeightMm: Number((plinthHeight + addedHeight).toFixed(2)),
+    volumeAddedCm3: Number((targetExtra / 1000).toFixed(2)),
     size: {
       x: Number((next.max[0] - next.min[0]).toFixed(2)),
       y: Number((next.max[1] - next.min[1]).toFixed(2)),
@@ -346,7 +375,7 @@ export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number)
   }
   let reinforced = reinforceTris(tris);
   if (!reinforced.applied) {
-    return { stl: bytes, ...reinforced, reason: "degenerate_mesh" };
+    return { stl: bytes, ...reinforced, reason: "no_existing_plinth" };
   }
   const longest = Math.max(reinforced.size.x, reinforced.size.y, reinforced.size.z);
   if (maxDimensionMm && longest > maxDimensionMm) {
@@ -581,72 +610,10 @@ function engraveTris(
   };
 }
 
-/** Failures that a purpose-built nameplate base can rescue. */
-const RESCUABLE = new Set([
-  "no_plinth",
-  "no_flat_face",
-  "face_too_small",
-  "plinth_too_small_for_readable_text",
-]);
-
 /**
- * Builds a nameplate base under the piece so there is always a flat, readable
- * face for the buyer's lettering. Used only when the generated mesh has no
- * usable plinth of its own — a paid keepsake must never stall for want of a
- * surface to engrave.
- */
-function addNameplate(tris: Tri[], heading: string, footnote: string): { tris: Tri[]; bandTopZ: number } | null {
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity;
-  for (const t of tris) {
-    for (const [x, y, z] of t) {
-      if (x < minX) minX = x; if (x > maxX) maxX = x;
-      if (y < minY) minY = y; if (y > maxY) maxY = y;
-      if (z < minZ) minZ = z;
-    }
-  }
-  const footW = maxX - minX;
-  const footD = maxY - minY;
-  if (!(footW > 0) || !(footD > 0)) return null;
-
-  // Width the target cap height needs, allowing the engraver's own wrapping.
-  const capTarget = MIN_CAP_MM * 1.25;
-  const words = heading.split(" ").filter(Boolean);
-  let headingUnits = textWidth(heading);
-  if (words.length > 1) {
-    for (let i = 1; i < words.length; i++) {
-      headingUnits = Math.min(
-        headingUnits,
-        Math.max(textWidth(words.slice(0, i).join(" ")), textWidth(words.slice(i).join(" "))),
-      );
-    }
-  }
-  const unitsNeeded = Math.max(headingUnits, textWidth(footnote) * 0.6, 0.001);
-  const neededW = (unitsNeeded * capTarget) / 0.78;
-
-  // Keep the base inside the printer envelope even for very long names.
-  const MAX_PLATE_MM = 200;
-  const plateW = Math.min(MAX_PLATE_MM, Math.max(footW * 1.08, neededW + 8));
-  const plateD = Math.min(MAX_PLATE_MM, Math.max(footD * 1.08, 20));
-  const plateH = Math.max(16, capTarget / 0.4 + 5);
-
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  const out = tris.slice();
-  box(
-    out,
-    [cx - plateW / 2, cy - plateD / 2, minZ - plateH],
-    [cx + plateW / 2, cy + plateD / 2, minZ + 0.2],
-  );
-  // Only the new plate counts as the plinth band.
-  return { tris: out, bandTopZ: minZ + 0.25 };
-}
-
-/**
- * Engraves heading/footnote onto the piece. Falls back to adding a nameplate
- * base when the mesh has no engravable plinth, so personalised orders cannot
- * get permanently stuck before printing. Returns `applied: false` only when
- * there is no text or the mesh is unusable.
+ * Engraves heading/footnote onto the piece's existing enlarged plinth. If that
+ * plinth cannot carry readable lettering, the order stops for review; adding
+ * a second base or a detached nameplate is never an acceptable fallback.
  */
 export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResult {
   const heading = normalizeEngravingText(opts.heading ?? "");
@@ -671,21 +638,13 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   const tris = heft.tris;
   // Meshy faces +Z before conversion; our manufacturing normalization maps
   // that visible front to -Y. Do not silently accept another face.
-  let attempt = engraveTris(tris, heading, footnote);
-  let addedPlinth = false;
-  let baseCount = tris.length;
-
-  if (!attempt.ok && RESCUABLE.has(attempt.reason)) {
-    const plated = addNameplate(tris, heading, footnote);
-    if (plated) {
-      const retry = engraveTris(plated.tris, heading, footnote, plated.bandTopZ);
-      if (retry.ok) {
-        attempt = retry;
-        addedPlinth = true;
-        baseCount = plated.tris.length;
-      }
-    }
-  }
+  const reinforcedBounds = boundsOf(tris);
+  const plinthTop = heft.applied
+    ? heft.baseHeightMm
+    : (existingPlinthTop(tris, reinforcedBounds) ?? undefined);
+  const attempt = engraveTris(tris, heading, footnote, plinthTop);
+  const addedPlinth = false;
+  const baseCount = tris.length;
 
   if (!attempt.ok) {
     return { stl: bytes, applied: false, text: label, reason: attempt.reason };
