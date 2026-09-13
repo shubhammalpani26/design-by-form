@@ -1,4 +1,4 @@
-import petImg from "@/assets/originals-pet-silhouette.jpg";
+import petImg from "@/assets/originals-pet-silhouette-memorial.jpg";
 import petPortraitImg from "@/assets/originals-pet-portrait.jpg";
 import nurseryImg from "@/assets/originals-nursery-name.jpg";
 import weddingImg from "@/assets/originals-wedding-coordinates.jpg";
