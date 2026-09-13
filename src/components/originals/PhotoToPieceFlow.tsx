@@ -123,7 +123,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
-  const [showOptions, setShowOptions] = useState(false);
+  const [showOptions, setShowOptions] = useState(true);
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
@@ -492,17 +492,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </>
           )}
 
-          {mode === "photo" && !showOptions && (
-            <button
-              type="button"
-              onClick={() => setShowOptions(true)}
-              className="mt-4 w-full border border-foreground/15 bg-background px-3 py-2.5 text-left text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-            >
-              + Add a name, a date or a colour (optional)
-            </button>
-          )}
-
-          {mode === "photo" && showOptions ? (
+          {mode === "photo" && showOptions && (
           <div className="mt-4 grid grid-cols-2 gap-3">
 
             <div>
@@ -526,7 +516,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </p>
             </div>
           </div>
-          ) : null}
+          )}
 
           {mode !== "photo" && (
           <div className="mt-4 space-y-3">
