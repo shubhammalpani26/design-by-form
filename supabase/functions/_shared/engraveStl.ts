@@ -470,8 +470,10 @@ function engraveTris(
   const height = maxZ - minZ;
   if (!(height > 0)) return { ok: false, reason: "degenerate_mesh" };
 
-  // The plinth is the bottom slab of the piece.
-  const bandTop = bandTopZ ?? (minZ + height * 0.3);
+  // The plinth is the bottom slab of the piece. The supplied plinth top is a
+  // rounded measurement, so allow a hair of slack — otherwise the plinth's own
+  // front wall falls outside the band and the piece ships unlettered.
+  const bandTop = (bandTopZ ?? (minZ + height * 0.3)) + 0.05;
   const band = tris.filter((t) => t.every(([, , z]) => z <= bandTop));
   if (!band.length) return { ok: false, reason: "no_plinth" };
 
