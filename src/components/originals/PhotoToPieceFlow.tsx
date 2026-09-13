@@ -23,7 +23,7 @@ import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
-import { sizeWeightLabel } from "@/lib/originalsWeight";
+import { actualWeightLabel } from "@/lib/originalsWeight";
 
 
 
@@ -795,8 +795,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   >
                     <span className="block text-sm">{s.label}</span>
                     <span className="block text-xs text-muted-foreground">{s.size}</span>
-                    {sizeWeightLabel(sku.slug, s.key) && (
-                      <span className="block text-[11px] text-muted-foreground/80">{sizeWeightLabel(sku.slug, s.key)}</span>
+                    {actualWeightLabel(gramsFor(s.key), sku.slug, s.key) && (
+                      <span className="block text-[11px] text-muted-foreground/80">
+                        {actualWeightLabel(gramsFor(s.key), sku.slug, s.key)}
+                      </span>
                     )}
                     <span className="mt-1 block text-sm tabular-nums">${priceFor(s.key, s.price)}</span>
 
