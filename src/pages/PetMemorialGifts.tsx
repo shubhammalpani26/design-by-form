@@ -131,7 +131,7 @@ const PetMemorialGifts = () => {
                   <div className="aspect-square overflow-hidden bg-card">
                     <img
                       src={sku.image}
-                      alt="Custom pet memorial sculpture of a dog, sculpted from a photo with the name engraved on the plinth"
+                      alt={sku.imageAlt ?? "Custom pet memorial sculpture with the pet's name and years on the plinth"}
                       className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500"
                       loading="lazy"
                     />
