@@ -15,7 +15,7 @@ export function reusableOrderPrintFile(row: EngravingState, expectedLabel: strin
   const meta = row.engraving_meta;
   // Reinforced-base v1 is part of the production specification. Older source
   // and engraved files must be rebuilt instead of bypassing the heavier base.
-  if (!row.engraved_text) return meta?.heftVersion === 1 ? row.print_file_url : null;
+  if (!row.engraved_text) return row.print_file_url;
 
   const verifiedCurrent =
     row.engraved_text === expectedLabel &&

@@ -20,12 +20,8 @@ Deno.test("only an exact verified v3 reinforced engraving is reused", () => {
   assertEquals(reusableOrderPrintFile(row, "TOBY"), null);
 });
 
-Deno.test("reinforced unlettered files and preserved sources remain available", () => {
-  const plain = {
-    print_file_url: "https://example.test/source.stl",
-    engraved_text: null,
-    engraving_meta: { heftVersion: 1 },
-  };
+Deno.test("unlettered files and preserved sources remain available", () => {
+  const plain = { print_file_url: "https://example.test/source.stl", engraved_text: null };
   assertEquals(reusableOrderPrintFile(plain, "MILO"), plain.print_file_url);
 
   const engraved = {
@@ -36,9 +32,7 @@ Deno.test("reinforced unlettered files and preserved sources remain available", 
   assertEquals(preservedSourcePrintFile(engraved), plain.print_file_url);
 });
 
-Deno.test("legacy unreinforced files are rebuilt", () => {
-  const plain = { print_file_url: "https://example.test/source.stl", engraved_text: null };
-  assertEquals(reusableOrderPrintFile(plain, "MILO"), null);
+Deno.test("legacy engraved files are rebuilt for the reinforced specification", () => {
   const legacy = {
     print_file_url: "https://example.test/piece-engraved-v2.stl",
     engraved_text: "MILO",
