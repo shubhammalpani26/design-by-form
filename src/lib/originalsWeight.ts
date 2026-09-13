@@ -6,10 +6,11 @@
  * Sculpted busts and flat plaques are very different forms — a 155 mm wide
  * plaque is nowhere near a 140 mm bust — so weights are keyed per SKU.
  */
+/** Measured on the print partner's slicer for the current enlarged-plinth files. */
 const BUST_GRAMS: Record<string, number> = {
-  petite: 155,
+  petite: 150,
   standard: 250,
-  statement: 475,
+  statement: 740,
 };
 
 const PLAQUE_GRAMS: Record<string, number> = {

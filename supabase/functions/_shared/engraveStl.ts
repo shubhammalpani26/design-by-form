@@ -69,13 +69,13 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora enlarged plinth v3";
+const HEFT_HEADER = "Nyzora enlarged plinth v4";
 const HEFT_TARGET_INCREASE = 0.6;
 const HEFT_MIN_HEIGHT_MM = 22;
 const HEFT_MAX_HEIGHT_MM = 32;
 const HEFT_OVERLAP_MM = 1.2;
 /** How much wider the plinth footprint grows — adds mass and lettering space. */
-const HEFT_FOOTPRINT_SCALE = 1.12;
+const HEFT_FOOTPRINT_SCALE = 1.25;
 /** Space reserved before reinforcement so the final piece keeps its sold size. */
 export const HEFT_SIZE_RESERVE_MM = HEFT_MAX_HEIGHT_MM - HEFT_OVERLAP_MM;
 
