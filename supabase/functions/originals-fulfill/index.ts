@@ -225,7 +225,7 @@ Deno.serve(async (req) => {
       const engravingMeta = (row.engraving_meta ?? {}) as Record<string, unknown>;
       const placementIsVerified =
         engravingMeta.placementVersion === 4 &&
-        engravingMeta.heftVersion === 4 &&
+        engravingMeta.heftVersion === 5 &&
         engravingMeta.placementVerified === true &&
         engravingMeta.face === "-y";
       // Manual URL overrides are intentionally not exempt: no operator action
