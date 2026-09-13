@@ -492,17 +492,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </>
           )}
 
-          {mode === "photo" && !showOptions && (
-            <button
-              type="button"
-              onClick={() => setShowOptions(true)}
-              className="mt-4 w-full border border-foreground/15 bg-background px-3 py-2.5 text-left text-xs text-muted-foreground hover:border-foreground/40 hover:text-foreground"
-            >
-              + Add a name, a date or a colour (optional)
-            </button>
-          )}
-
-          {mode === "photo" && showOptions ? (
+          {mode === "photo" && showOptions && (
           <div className="mt-4 grid grid-cols-2 gap-3">
 
             <div>
