@@ -63,11 +63,13 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora enlarged plinth v2";
-const HEFT_TARGET_INCREASE = 0.4;
-const HEFT_MIN_HEIGHT_MM = 16;
-const HEFT_MAX_HEIGHT_MM = 24;
+const HEFT_HEADER = "Nyzora enlarged plinth v3";
+const HEFT_TARGET_INCREASE = 0.6;
+const HEFT_MIN_HEIGHT_MM = 22;
+const HEFT_MAX_HEIGHT_MM = 32;
 const HEFT_OVERLAP_MM = 1.2;
+/** How much wider the plinth footprint grows — adds mass and lettering space. */
+const HEFT_FOOTPRINT_SCALE = 1.12;
 /** Space reserved before reinforcement so the final piece keeps its sold size. */
 export const HEFT_SIZE_RESERVE_MM = HEFT_MAX_HEIGHT_MM - HEFT_OVERLAP_MM;
 
@@ -310,9 +312,11 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
 }
 
 /**
- * Enlarges the generated piece's own plinth toward a 40% geometric-volume
- * increase. Vertices in the plinth are stretched vertically and the sculpture
- * above it is translated by the same amount. No second slab or shell is added.
+ * Enlarges the generated piece's own plinth toward a 60% geometric-volume
+ * increase. Plinth vertices are stretched vertically AND widened outward from
+ * the footprint centre, so the base is both taller and broader — more mass and
+ * a larger front face for lettering. The sculpture above is only translated.
+ * No second slab or shell is added.
  */
 function reinforceTris(tris: Tri[]): ReinforcedTris {
   const bounds = boundsOf(tris);
@@ -333,12 +337,19 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   const targetHeight = targetExtra > 0 ? targetExtra / (width * depth) : 0;
   const addedHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
   const scale = (plinthHeight + addedHeight) / plinthHeight;
+  const cx = (bounds.max[0] + bounds.min[0]) / 2;
+  const cy = (bounds.max[1] + bounds.min[1]) / 2;
   const out = tris.map((tri) => tri.map(([x, y, z]) => {
     const localZ = z - bounds.min[2];
-    const nextZ = localZ <= plinthHeight
-      ? localZ * scale
-      : localZ + addedHeight;
-    return [x, y, nextZ] as V3;
+    if (localZ <= plinthHeight) {
+      // Plinth region: stretch height and widen footprint outward from centre.
+      const nextZ = localZ * scale;
+      const nextX = cx + (x - cx) * HEFT_FOOTPRINT_SCALE;
+      const nextY = cy + (y - cy) * HEFT_FOOTPRINT_SCALE;
+      return [nextX, nextY, nextZ] as V3;
+    }
+    // Sculpture above: translate up by the same added height, keep its shape.
+    return [x, y, localZ + addedHeight] as V3;
   }) as Tri);
   const next = boundsOf(out);
   return {
