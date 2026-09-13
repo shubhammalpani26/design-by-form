@@ -29,3 +29,17 @@ export function sizeWeightLabel(skuSlug?: string | null, sizeKey?: string | null
   if (!g) return null;
   return `approx. ${g} g (${oz(g)} oz)`;
 }
+
+/**
+ * Label from the partner slicer's own figure when we have it, else the table.
+ * Rounded down to 5 g so the piece never weighs less than promised.
+ */
+export function actualWeightLabel(
+  grams?: number | null,
+  skuSlug?: string | null,
+  sizeKey?: string | null,
+): string | null {
+  const g = typeof grams === "number" && grams > 0 ? Math.floor(grams / 5) * 5 : 0;
+  if (g > 0) return `approx. ${g} g (${oz(g)} oz)`;
+  return sizeWeightLabel(skuSlug, sizeKey);
+}
