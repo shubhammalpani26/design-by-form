@@ -146,8 +146,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   const existingMeta = (row as OrderRow & { engraving_meta?: Record<string, unknown> | null }).engraving_meta;
   if (
     row.engraved_text === label &&
-    existingMeta?.placementVersion === 3 &&
-    existingMeta?.heftVersion === 1 &&
+    existingMeta?.placementVersion === 4 &&
+    existingMeta?.heftVersion === 2 &&
     existingMeta?.placementVerified === true
   ) {
     return url;
@@ -174,8 +174,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         triangleDelta: result.triangleDelta ?? 0,
         reliefMm: result.reliefMm,
         strokeMm: result.strokeMm,
-        placementVersion: 3,
-        heftVersion: 1,
+        placementVersion: 4,
+        heftVersion: 2,
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,

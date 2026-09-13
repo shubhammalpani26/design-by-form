@@ -53,7 +53,7 @@ Deno.test("never approves lettering on the floor or a side face", () => {
   assert((result.letteringBounds?.min[1] ?? 0) < -30);
 });
 
-Deno.test("adds a taller solid base before quoting and does not add it twice", () => {
+Deno.test("enlarges the original plinth before quoting without adding a second shell", () => {
   const tris: Tri[] = [];
   box(tris, [-30, -24, 0], [30, 24, 14]);
   box(tris, [-18, -12, 14], [18, 12, 100]);
@@ -62,6 +62,7 @@ Deno.test("adds a taller solid base before quoting and does not add it twice", (
   assert(first.baseHeightMm >= 16);
   assert(first.volumeAddedCm3 > 0);
   assert(first.size.z > 100);
+  assertEquals(parseStl(first.stl).length, tris.length);
 
   const second = reinforceKeepsakeStl(first.stl);
   assertEquals(second.applied, false);
@@ -89,6 +90,7 @@ Deno.test("uses the reinforced front face for long two-line lettering", () => {
   assert((result.heftBaseHeightMm ?? 0) >= 16);
   assertEquals(result.face, "-y");
   assertEquals(result.placementVerified, true);
+  assertEquals(result.addedPlinth, false);
 });
 
 Deno.test("an engraved final file retains the reinforced-base marker", () => {
