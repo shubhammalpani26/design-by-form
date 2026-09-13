@@ -30,7 +30,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
     );
 
-    const promo = await resolvePromo(admin, body.code, subtotal);
+    // Admin-only codes only resolve for a signed-in admin.
+    let userId: string | null = null;
+    const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+    if (token) {
+      const { data } = await admin.auth.getUser(token);
+      userId = data?.user?.id ?? null;
+    }
+
+    const promo = await resolvePromo(admin, body.code, subtotal, userId);
     if (!promo) return json({ error: "Enter a promo code." }, 400);
     if (isPromoError(promo)) return json({ error: promo.error }, 400);
 
