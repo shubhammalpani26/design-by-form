@@ -121,6 +121,7 @@ interface OrderRow {
   personalization: Record<string, unknown> | null;
   engraved_text: string | null;
   engraving_meta?: Record<string, unknown> | null;
+  payment_provider?: string | null;
 }
 
 /** The personalisation lines a buyer expects to see physically on the piece. */
@@ -304,7 +305,7 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   let query = admin
     .from("originals_orders")
     .select(
-      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text, engraving_meta",
+      "id, group_id, preview_id, sku_slug, size_key, print_file_url, model_task_id, status, customer_email, amount_usd, personalization, engraved_text, engraving_meta, payment_provider",
     )
     .eq("status", "paid")
     .is("partner_order_id", null)
@@ -367,6 +368,18 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   // A group only goes to the partner once every piece in it has a file.
   const sent: string[] = [];
   for (const key of groups) {
+    const groupRows = (rows as OrderRow[]).filter((row) => (row.group_id ?? row.id) === key);
+    if (groupRows.some((row) => row.payment_provider === "internal_test")) {
+      await admin
+        .from("originals_orders")
+        .update({
+          production_status: "awaiting_admin_approval",
+          fulfillment_error: null,
+          updated_at: new Date().toISOString(),
+        })
+        .in("id", groupRows.map((row) => row.id));
+      continue;
+    }
     const { data: pending } = await admin
       .from("originals_orders")
       .select("id")

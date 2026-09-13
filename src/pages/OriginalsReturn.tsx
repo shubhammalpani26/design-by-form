@@ -39,6 +39,7 @@ export default function OriginalsReturn() {
   const orderId = params.get("order");
   const groupId = params.get("group");
   const provider = params.get("provider");
+  const internalTest = provider === "internal_test";
   const [order, setOrder] = useState<OrderView | null>(null);
   const [items, setItems] = useState<OrderItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -98,7 +99,7 @@ export default function OriginalsReturn() {
 
   // Report the sale to Google Ads and Meta exactly once per confirmed order.
   useEffect(() => {
-    if (!paid || !order) return;
+    if (!paid || !order || internalTest) return;
     const key = `nyzora_ads_conv_${order.id}`;
     if (sessionStorage.getItem(key)) return;
     sessionStorage.setItem(key, "1");
@@ -107,7 +108,7 @@ export default function OriginalsReturn() {
       : order.amountUsd;
     trackPurchaseConversion(order.id, total);
     trackPurchase(order.id, total, items.length ? items.map((i) => i.skuSlug) : ["originals"]);
-  }, [paid, order, items]);
+  }, [paid, order, items, internalTest]);
 
   return (
     <main className="mx-auto max-w-xl px-5 py-16">
@@ -138,11 +139,13 @@ export default function OriginalsReturn() {
         <>
           <h1 className="mt-3 flex items-center gap-2 text-2xl font-light tracking-tight">
             {paid ? <CheckCircle2 className="h-6 w-6" /> : <Clock className="h-5 w-5 animate-pulse" />}
-            {paid
+            {paid && internalTest
+              ? "Inspection order created"
+              : paid
               ? pieceCount > 1
                 ? `Your ${pieceCount} pieces are confirmed`
                 : "Your piece is confirmed"
-              : "Finishing up your payment…"}
+               : "Finishing up your payment…"}
           </h1>
 
           {items.length <= 1 && order.previewImageUrl && (
@@ -189,15 +192,14 @@ export default function OriginalsReturn() {
 
           <div className="mt-8 grid grid-cols-1 gap-3 border-t border-foreground/10 pt-6 text-sm text-muted-foreground sm:grid-cols-3">
             <div className="flex items-center gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> Ships in 4–5 business days</div>
+            <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> {internalTest ? "Manufacturing paused" : "Ships in 4–5 business days"}</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 
           <div className="mt-6 border-t border-foreground/10 pt-6 text-xs leading-relaxed text-muted-foreground">
-            Your piece is made to order and is already heading into production, so it can't be cancelled or
-            returned for a change of mind. Your render is a design preview — the finished print is a solid
-            single-colour piece, so texture and tone will differ slightly. If it arrives damaged or
-            defective, we remake and reship it free.
+            {internalTest
+              ? "Your STL is being prepared for inspection. Nothing has been charged and nothing will be sent to manufacturing until you approve it in Originals Ops."
+              : "Your piece is made to order and is already heading into production, so it can't be cancelled or returned for a change of mind. Your render is a design preview — the finished print is a solid single-colour piece, so texture and tone will differ slightly. If it arrives damaged or defective, we remake and reship it free."}
           </div>
 
           <div className="mt-8 flex flex-wrap items-center gap-5 text-sm">

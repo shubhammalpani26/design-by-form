@@ -8,6 +8,7 @@ export interface PromoResult {
   code: string;
   description: string | null;
   discountUsd: number;
+  internalTest: boolean;
 }
 
 export interface PromoError {
@@ -68,11 +69,18 @@ export async function resolvePromo(
   let discount = 0;
   if (promo.percent_off) discount += (subtotalUsd * Number(promo.percent_off)) / 100;
   if (promo.amount_off_usd) discount += Number(promo.amount_off_usd);
-  // Never let a discount take the order below a chargeable amount.
-  discount = Math.min(round2(discount), round2(subtotalUsd - 1));
+  const internalTest = promo.admin_only === true && String(promo.code).toUpperCase() === "NYZORA-INTERNAL";
+  // The reserved admin test code skips payment entirely. Every other code
+  // keeps a chargeable minimum so it can only finish through the payment rail.
+  discount = Math.min(round2(discount), round2(subtotalUsd - (internalTest ? 0 : 1)));
   if (discount <= 0) return { error: "That code doesn't apply to this order." };
 
-  return { code: String(promo.code).toUpperCase(), description: promo.description ?? null, discountUsd: discount };
+  return {
+    code: String(promo.code).toUpperCase(),
+    description: promo.description ?? null,
+    discountUsd: discount,
+    internalTest,
+  };
 }
 
 export const isPromoError = (v: unknown): v is PromoError =>
