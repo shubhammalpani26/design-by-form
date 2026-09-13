@@ -268,7 +268,7 @@ export interface HeftBaseResult {
   baseHeightMm: number;
   volumeAddedCm3: number;
   size: { x: number; y: number; z: number };
-  reason?: "already_reinforced" | "degenerate_mesh";
+  reason?: "already_reinforced" | "degenerate_mesh" | "no_existing_plinth";
 }
 
 interface ReinforcedTris {
