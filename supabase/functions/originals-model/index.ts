@@ -289,11 +289,11 @@ async function fulfilGroup(groupId: string | null, orderId: string) {
 }
 
 /** Advances every paid piece in scope one step. */
-async function run(scope: { orderId?: string | null; groupId?: string | null; sweep?: boolean }) {
+async function run(scope: { orderId?: string | null; groupId?: string | null; sweep?: boolean; singleOrder?: boolean }) {
   // A single order id may belong to a multi-piece checkout — widen to the group
   // so the whole shipment moves together.
   let groupId = scope.groupId ?? null;
-  if (!groupId && scope.orderId) {
+  if (!groupId && scope.orderId && !scope.singleOrder) {
     const { data } = await admin
       .from("originals_orders")
       .select("group_id")
@@ -312,7 +312,8 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     .order("created_at", { ascending: true })
     .limit(scope.sweep ? 25 : 12);
 
-  if (groupId) query = query.eq("group_id", groupId);
+  if (scope.singleOrder && scope.orderId) query = query.eq("id", scope.orderId);
+  else if (groupId) query = query.eq("group_id", groupId);
   else if (scope.orderId) query = query.eq("id", scope.orderId);
 
   const { data: rows, error } = await query;
@@ -421,6 +422,7 @@ Deno.serve(async (req) => {
       orderId: typeof body?.order_id === "string" ? body.order_id : null,
       groupId: typeof body?.group_id === "string" ? body.group_id : null,
       sweep: body?.sweep === true,
+      singleOrder: body?.single_order === true,
     });
     return json(out);
   } catch (e) {
