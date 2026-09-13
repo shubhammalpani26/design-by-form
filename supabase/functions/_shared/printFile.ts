@@ -1,4 +1,5 @@
 import { glbToStl } from "./glbToStl.ts";
+import { HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
 
 /**
  * Default longest-edge size (mm) used when a design has no verified
@@ -16,6 +17,9 @@ export interface PreparedPrintFile {
   converted: boolean;
   /** Binary STL bytes when we generated the file (used for the geometry gate). */
   stl?: Uint8Array;
+  heftBaseApplied?: boolean;
+  heftBaseHeightMm?: number;
+  heftVolumeAddedCm3?: number;
 }
 
 function isPrintable(url: string): boolean {
@@ -46,7 +50,7 @@ export async function uploadStl(
  */
 export async function ensurePrintFile(
   admin: any,
-  opts: { modelUrl: string; key: string; targetMaxMm?: number },
+  opts: { modelUrl: string; key: string; targetMaxMm?: number; reinforceBase?: boolean },
 ): Promise<PreparedPrintFile> {
   const { modelUrl, key } = opts;
   if (isPrintable(modelUrl)) {
@@ -67,7 +71,14 @@ export async function ensurePrintFile(
   const bytes = new Uint8Array(await res.arrayBuffer());
 
   const target = Math.min(opts.targetMaxMm || DEFAULT_PRINT_MAX_MM, US_MAX_MM);
-  const { stl, triangleCount, size } = glbToStl(bytes, target);
+  const conversionTarget = opts.reinforceBase
+    ? Math.max(1, target - HEFT_SIZE_RESERVE_MM)
+    : target;
+  const converted = glbToStl(bytes, conversionTarget);
+  const reinforced = opts.reinforceBase ? reinforceKeepsakeStl(converted.stl, target) : null;
+  const stl = reinforced?.stl ?? converted.stl;
+  const size = reinforced?.size ?? converted.size;
+  const triangleCount = new DataView(stl.buffer, stl.byteOffset, stl.byteLength).getUint32(80, true);
 
   const path = `print-files/${key}.stl`;
   const { error } = await admin.storage.from("3d-models").upload(path, stl, {
@@ -77,5 +88,15 @@ export async function ensurePrintFile(
   if (error) throw new Error(`Could not store the print file: ${error.message}`);
 
   const { data } = admin.storage.from("3d-models").getPublicUrl(path);
-  return { url: data.publicUrl, path, triangleCount, size, converted: true, stl };
+  return {
+    url: data.publicUrl,
+    path,
+    triangleCount,
+    size,
+    converted: true,
+    stl,
+    heftBaseApplied: reinforced?.applied ?? false,
+    heftBaseHeightMm: reinforced?.baseHeightMm,
+    heftVolumeAddedCm3: reinforced?.volumeAddedCm3,
+  };
 }

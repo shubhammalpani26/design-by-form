@@ -19,3 +19,5 @@ Live partner slice data (pet-silhouette-keepsake, Sep 2026, from `originals_quot
 **Layering:** MBP = partner landed × 2.0 (`US_PARTNER_MARKUP`). Retail floor = landed × 3.5 (`RETAIL_MULTIPLE`), floored by PRICE_BOOK. So retail ≈ 1.75× MBP; gross margin over true landed cost is 68–74%, not ~50%.
 
 Heavier pieces: every +10 g adds ~$0.65 landed (~0.7% margin at Standard). Making a piece 40% heavier (+70 g at Standard) costs ~$4.55 → margin 72% → ~67%.
+
+**Production specification (Sep 2026):** photo-to-piece STLs receive a reinforced solid plinth/lower core before printability validation and partner quoting. The geometry targets roughly +40% volume where the build envelope allows, with a 16–24 mm base height. This both increases perceived heft and guarantees a taller visible front face for raised personalization. Real partner slices remain the authority for final weight and cost; do not replace them with a fixed estimate.
