@@ -19,3 +19,7 @@ Raised (not recessed) lettering is deliberate — additive prisms need no boolea
 - Readable floor lowered to 3.5 mm cap; long headings wrap onto two lines at the best word break.
 - Result: plinths from ~55 mm wide engrave successfully (was ~90 mm). Below that the fulfillment gate still blocks the order for admin review.
 - Supported glyphs: A-Z 0-9 and `.,'&-/!:+` — admin dashboard normalisation mirrors this exactly, including accent stripping.
+
+## No second lettering pass (2026-09-13)
+Delivered MILO showed the name under the base *and* a garbled mirrored copy on the front: the file was lettered twice.
+Final engraved files now carry the STL header `Nyzora enlarged plinth v5 | lettered v4`; `engraveStl()` refuses any file with that header (`reason: "already_lettered"`), so a retry can never add a second set of glyphs. Reuse checks in `engravingState.ts` expect `heftVersion === 5`.
