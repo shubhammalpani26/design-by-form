@@ -14,6 +14,8 @@ Live partner slice data (pet-silhouette-keepsake, Sep 2026, from `originals_quot
 | Standard (180 g) | $17.26 | $7.60 | $24.86 | $89–90 | $64–65 | 72% |
 | Statement (340 g) | $27.59 | $8.07 | $35.66 | $139 | $103 | 74% |
 
+**Displayed weights updated Sep 13:** with the reinforced +40% solid base, customer-facing approx. weights are now busts 155/250/475 g (petite/standard/statement) and plaques 160 g. Recalibrate against the first weighed reinforced piece.
+
 **Cost slope:** print cost ≈ $5.4 + $0.065 per finished gram (~$65/kg effective). Use this to price any geometry/weight change.
 
 **Layering:** MBP = partner landed × 2.0 (`US_PARTNER_MARKUP`). Retail floor = landed × 3.5 (`RETAIL_MULTIPLE`), floored by PRICE_BOOK. So retail ≈ 1.75× MBP; gross margin over true landed cost is 68–74%, not ~50%.
