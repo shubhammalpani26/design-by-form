@@ -15,6 +15,7 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { engraveStl } from "../_shared/engraveStl.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
+import { preservedSourcePrintFile, reusableOrderPrintFile } from "../_shared/engravingState.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -171,6 +172,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,
+        sourcePrintFileUrl: url,
         fileSha256,
       },
 
@@ -186,7 +188,14 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
  * or null while the mesh is still being generated.
  */
 async function resolveFile(row: OrderRow): Promise<{ url: string | null; status: string; error?: string }> {
-  if (row.print_file_url) return { url: row.print_file_url, status: "ready" };
+  const expectedLabel = engravingLines(row.personalization).label;
+  const reusable = reusableOrderPrintFile(row, expectedLabel);
+  if (reusable) return { url: reusable, status: "ready" };
+
+  // Never append new geometry to an older engraved file. New v2 files retain
+  // their clean source explicitly; legacy rows are rebuilt from the preview.
+  const preservedSource = preservedSourcePrintFile(row);
+  if (preservedSource) return { url: preservedSource, status: "ready_source" };
 
   // Personalised piece: the buyer's render becomes their own mesh.
   if (row.preview_id) {
@@ -199,8 +208,12 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // A pre-purchase feasibility check usually already built (and sliced) a
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
-    if (perSize[row.size_key]) return { url: perSize[row.size_key], status: "ready" };
-    if (preview?.print_file_url) return { url: preview.print_file_url as string, status: "ready" };
+    if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
+      return { url: perSize[row.size_key], status: "ready" };
+    }
+    if (preview?.print_file_url && preview.print_file_url !== row.print_file_url) {
+      return { url: preview.print_file_url as string, status: "ready" };
+    }
 
 
     const imageUrl = preview?.preview_image_url as string | undefined;
@@ -241,6 +254,10 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
       }
       return { url: null, status: "generating" };
     }
+  }
+
+  if (row.engraved_text) {
+    throw new Error("Original unlettered print file is unavailable; refusing to engrave an already-lettered file");
   }
 
   const master = await masterFile(row.sku_slug, row.size_key);
