@@ -908,6 +908,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   </div>
                 )}
 
+                {cart.items.length > 0 && (
+                  <p className="mt-5 border border-border bg-secondary/40 px-3 py-2 text-center text-xs tracking-[0.1em] uppercase text-muted-foreground">
+                    {cart.count} {cart.count === 1 ? "piece" : "pieces"} saved · ${cart.total} so far — pay once at checkout
+                  </p>
+                )}
+
                 <Button
                   type="button"
                   size="lg"
@@ -928,17 +934,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                         : reveal.cta(selectedPrice)}
                 </Button>
 
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="lg"
                   onClick={addAnother}
-                  className="mt-3 w-full text-xs tracking-[0.15em] uppercase text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                  disabled={!sizeKey || !!unprintable}
+                  className="mt-3 w-full rounded-none h-12"
                 >
-                  Save this and make another piece
-                </button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add this piece & make another
+                </Button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
-                  {basketCount > 1
-                    ? "One payment, one shipment · Free US shipping · Ships in 4–5 business days"
-                    : "Free US shipping · Made to order in the USA · Ships in 4–5 business days"}
+                  Want a dog <em>and</em> a cat? Add each piece to your order — one payment, one shipment.
                 </p>
               </>
             )}
