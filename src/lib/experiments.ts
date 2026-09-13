@@ -19,7 +19,7 @@ export const EXPERIMENTS = {
     },
     b: {
       headline: ["They don't have to", "be just a photo."],
-      sub: "Send us one picture of your dog or cat and we turn them into a solid piece in one matte colour with the honest texture of a 3D print, their name on the base. See yours free before you decide. Made in the USA; ships in 4–5 business days, followed by normal delivery transit.",
+      sub: "Send us one picture of your dog or cat and we turn them into a solid piece in one matte colour with the honest texture of a 3D print, their name on the base. See yours free before you decide. Made in the USA; ships in 4–5 business days.",
       cta: "See your pet sculpted — free",
     },
   },
