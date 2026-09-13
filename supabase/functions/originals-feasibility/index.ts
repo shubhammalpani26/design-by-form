@@ -36,6 +36,7 @@ const admin = createClient(
 
 const MESHY = "https://api.meshy.ai/openapi/v1/image-to-3d";
 const roundUpTo5 = (n: number) => Math.ceil(n / 5) * 5;
+const GEOMETRY_VERSION = "reinforced-base-v1";
 
 /**
  * Mass we expect a piece to carry so it feels worth its price in hand.
@@ -287,7 +288,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (!preview) return json({ error: "Preview not found." }, 404);
 
-    const files = (preview.print_files ?? {}) as Record<string, string>;
+    const files = { ...((preview.print_files ?? {}) as Record<string, string>) };
     const allSizeKeys = Object.keys(PRICE_BOOK[preview.sku_slug] ?? {});
     if (!allSizeKeys.length) return json({ status: "skipped" });
 
@@ -297,7 +298,11 @@ Deno.serve(async (req) => {
     const sizeKeys = [sizeKey];
 
     const existing = (preview.feasibility ?? null) as Record<string, unknown> | null;
-    const checked = Array.isArray(existing?.sizes) ? (existing!.sizes as SizeOutcome[]) : [];
+    const currentGeometry = existing?.geometryVersion === GEOMETRY_VERSION;
+    const checked = currentGeometry && Array.isArray(existing?.sizes)
+      ? (existing!.sizes as SizeOutcome[])
+      : [];
+    if (!currentGeometry) delete files[sizeKey];
     // This size has already been proven and priced.
     if (checked.some((s) => s.sizeKey === sizeKey)) {
       return json({ status: "ready", sizes: publicShape(existing) });
@@ -463,6 +468,7 @@ Deno.serve(async (req) => {
               checkedAt: new Date().toISOString(),
               sizes: checked,
               geometry,
+              geometryVersion: GEOMETRY_VERSION,
               geometryBlocked: true,
             },
           }).eq("id", previewId);
@@ -490,6 +496,7 @@ Deno.serve(async (req) => {
       checkedAt: new Date().toISOString(),
       sizes,
       geometry,
+      geometryVersion: GEOMETRY_VERSION,
       allPriced: sizes.every((s) => s.landedUsd !== null),
       marginBreaches: worst.map((s) => s.sizeKey),
     };

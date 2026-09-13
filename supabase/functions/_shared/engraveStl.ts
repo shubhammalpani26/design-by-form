@@ -68,6 +68,8 @@ const HEFT_TARGET_INCREASE = 0.4;
 const HEFT_MIN_HEIGHT_MM = 16;
 const HEFT_MAX_HEIGHT_MM = 24;
 const HEFT_OVERLAP_MM = 1.2;
+/** Space reserved before reinforcement so the final piece keeps its sold size. */
+export const HEFT_SIZE_RESERVE_MM = HEFT_MAX_HEIGHT_MM - HEFT_OVERLAP_MM;
 
 const strokeFor = (cap: number) =>
   Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
@@ -324,7 +326,7 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
 }
 
 /** Applies the heavier Originals base before validation and partner quoting. */
-export function reinforceKeepsakeStl(bytes: Uint8Array): HeftBaseResult {
+export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number): HeftBaseResult {
   const tris = parseStl(bytes);
   const existingBounds = boundsOf(tris);
   const existingSize = {
@@ -342,9 +344,28 @@ export function reinforceKeepsakeStl(bytes: Uint8Array): HeftBaseResult {
       reason: "already_reinforced",
     };
   }
-  const reinforced = reinforceTris(tris);
+  let reinforced = reinforceTris(tris);
   if (!reinforced.applied) {
     return { stl: bytes, ...reinforced, reason: "degenerate_mesh" };
+  }
+  const longest = Math.max(reinforced.size.x, reinforced.size.y, reinforced.size.z);
+  if (maxDimensionMm && longest > maxDimensionMm) {
+    const scale = maxDimensionMm / longest;
+    const scaled = reinforced.tris.map((tri) =>
+      tri.map(([x, y, z]) => [x * scale, y * scale, z * scale] as V3) as Tri
+    );
+    const scaledBounds = boundsOf(scaled);
+    reinforced = {
+      ...reinforced,
+      tris: scaled,
+      baseHeightMm: Number((reinforced.baseHeightMm * scale).toFixed(2)),
+      volumeAddedCm3: Number((reinforced.volumeAddedCm3 * scale ** 3).toFixed(2)),
+      size: {
+        x: Number((scaledBounds.max[0] - scaledBounds.min[0]).toFixed(2)),
+        y: Number((scaledBounds.max[1] - scaledBounds.min[1]).toFixed(2)),
+        z: Number((scaledBounds.max[2] - scaledBounds.min[2]).toFixed(2)),
+      },
+    };
   }
   return { stl: writeStl(reinforced.tris, HEFT_HEADER), ...reinforced };
 }

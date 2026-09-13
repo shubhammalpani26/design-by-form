@@ -1,5 +1,5 @@
 import { glbToStl } from "./glbToStl.ts";
-import { reinforceKeepsakeStl } from "./engraveStl.ts";
+import { HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
 
 /**
  * Default longest-edge size (mm) used when a design has no verified
@@ -71,8 +71,11 @@ export async function ensurePrintFile(
   const bytes = new Uint8Array(await res.arrayBuffer());
 
   const target = Math.min(opts.targetMaxMm || DEFAULT_PRINT_MAX_MM, US_MAX_MM);
-  const converted = glbToStl(bytes, target);
-  const reinforced = opts.reinforceBase ? reinforceKeepsakeStl(converted.stl) : null;
+  const conversionTarget = opts.reinforceBase
+    ? Math.max(1, target - HEFT_SIZE_RESERVE_MM)
+    : target;
+  const converted = glbToStl(bytes, conversionTarget);
+  const reinforced = opts.reinforceBase ? reinforceKeepsakeStl(converted.stl, target) : null;
   const stl = reinforced?.stl ?? converted.stl;
   const size = reinforced?.size ?? converted.size;
   const triangleCount = new DataView(stl.buffer, stl.byteOffset, stl.byteLength).getUint32(80, true);

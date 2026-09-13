@@ -69,6 +69,14 @@ Deno.test("adds a taller solid base before quoting and does not add it twice", (
   assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
 });
 
+Deno.test("reinforced base keeps the final piece inside its sold size", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 120]);
+  const result = reinforceKeepsakeStl(writeStl(tris), 120);
+  assert(result.applied);
+  assert(Math.max(result.size.x, result.size.y, result.size.z) <= 120);
+});
+
 Deno.test("uses the reinforced front face for long two-line lettering", () => {
   const tris: Tri[] = [];
   box(tris, [-24, -18, 0], [24, 18, 70]);
