@@ -725,7 +725,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   return {
     // Preserve the reinforcement marker after lettering so retries cannot add
     // a second base to an already reinforced final file.
-    stl: writeStl(attempt.tris, HEFT_HEADER),
+    stl: writeStl(attempt.tris, LETTERED_HEADER),
     applied: true,
     text: label,
     face: attempt.face,
