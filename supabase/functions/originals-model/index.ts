@@ -221,9 +221,9 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
       return { url: perSize[row.size_key], status: "ready" };
     }
-    if (preview?.print_file_url && preview.print_file_url !== row.print_file_url) {
-      return { url: preview.print_file_url as string, status: "ready" };
-    }
+    // A generic preview file has no guaranteed size identity. Never reuse it
+    // for another selected tier (for example Standard after switching to
+    // Statement); rebuild the sold size from the preserved generator task.
 
 
     const imageUrl = preview?.preview_image_url as string | undefined;
@@ -289,11 +289,11 @@ async function fulfilGroup(groupId: string | null, orderId: string) {
 }
 
 /** Advances every paid piece in scope one step. */
-async function run(scope: { orderId?: string | null; groupId?: string | null; sweep?: boolean }) {
+async function run(scope: { orderId?: string | null; groupId?: string | null; sweep?: boolean; singleOrder?: boolean }) {
   // A single order id may belong to a multi-piece checkout — widen to the group
   // so the whole shipment moves together.
   let groupId = scope.groupId ?? null;
-  if (!groupId && scope.orderId) {
+  if (!groupId && scope.orderId && !scope.singleOrder) {
     const { data } = await admin
       .from("originals_orders")
       .select("group_id")
@@ -312,7 +312,8 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     .order("created_at", { ascending: true })
     .limit(scope.sweep ? 25 : 12);
 
-  if (groupId) query = query.eq("group_id", groupId);
+  if (scope.singleOrder && scope.orderId) query = query.eq("id", scope.orderId);
+  else if (groupId) query = query.eq("group_id", groupId);
   else if (scope.orderId) query = query.eq("id", scope.orderId);
 
   const { data: rows, error } = await query;
@@ -421,6 +422,7 @@ Deno.serve(async (req) => {
       orderId: typeof body?.order_id === "string" ? body.order_id : null,
       groupId: typeof body?.group_id === "string" ? body.group_id : null,
       sweep: body?.sweep === true,
+      singleOrder: body?.single_order === true,
     });
     return json(out);
   } catch (e) {
