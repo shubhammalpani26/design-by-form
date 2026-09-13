@@ -163,7 +163,7 @@ const CustomPetSculpture = () => {
                     <div className="aspect-square overflow-hidden bg-card">
                       <img
                         src={sku.image}
-                        alt={`${sku.name} — custom pet sculpture made from a photo`}
+                         alt={sku.imageAlt ?? `${sku.name} — custom pet sculpture made from a photo`}
                         className="w-full h-full object-contain group-hover:scale-[1.02] transition-transform duration-500"
                         loading="lazy"
                       />

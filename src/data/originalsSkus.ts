@@ -1,4 +1,4 @@
-import petImg from "@/assets/originals-pet-silhouette.jpg";
+import petImg from "@/assets/originals-pet-silhouette-memorial.jpg";
 import petPortraitImg from "@/assets/originals-pet-portrait.jpg";
 import nurseryImg from "@/assets/originals-nursery-name.jpg";
 import weddingImg from "@/assets/originals-wedding-coordinates.jpg";
@@ -10,6 +10,7 @@ export interface OriginalSku {
   description: string;
   price: number; // USD
   image: string;
+  imageAlt?: string;
   dimensions: string;
   /** Search-facing metadata. Falls back to name/tagline when absent. */
   seo?: { title: string; description: string; keywords: string[] };
@@ -81,6 +82,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
       "A personalized pet memorial made from a photo of your dog or cat: their head and shoulders modelled in full three dimensions on a weighted plinth, with their name and dates engraved into the front face — a nickname, a date, a line only the two of you understand. A dignified alternative to a pet urn or an engraved plaque, and a pet loss gift you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 59,
     image: petImg,
+    imageAlt: "Custom dog memorial sculpture with MILO and the memorial years 2012–2024 raised on the visible front of the plinth",
     dimensions: "196 × 150 × 120 mm",
     seo: {
       title: "Custom Pet Memorial Sculpture from a Photo — Dog & Cat Memorial Gift",
