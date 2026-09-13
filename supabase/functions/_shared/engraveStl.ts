@@ -18,6 +18,12 @@ export interface EngraveOptions {
   heading?: string | null;
   /** Small second line, e.g. dates. */
   footnote?: string | null;
+  /**
+   * Longest edge the buyer paid for (mm). The enlarged plinth grows both
+   * upward and outward, so an unreinforced source file must be clamped back
+   * to the sold size before lettering is measured against the front face.
+   */
+  maxDimensionMm?: number;
 }
 
 export interface EngraveResult {
