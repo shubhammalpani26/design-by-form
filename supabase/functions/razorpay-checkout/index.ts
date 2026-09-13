@@ -110,6 +110,7 @@ Deno.serve(async (req) => {
       quoteSource: quotes[i]?.source ?? "list",
       partnerCostUsd: quotes[i]?.partnerCostUsd ?? null,
       printFileUrl: quotes[i]?.printFileUrl ?? null,
+      grams: quotes[i]?.grams ?? null,
     }));
 
     let userId: string | null = null;
@@ -182,6 +183,7 @@ Deno.serve(async (req) => {
         quote_source: l.quoteSource,
         partner_cost_usd: l.partnerCostUsd,
         print_file_url: l.printFileUrl,
+        weight_grams: l.grams,
         personalization: matched?.personalization ?? {},
         preview_image_url: matched?.url ?? null,
         status: internalTest ? "paid" : "pending",

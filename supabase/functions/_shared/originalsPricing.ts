@@ -93,6 +93,8 @@ export interface QuoteResult {
   feasible: boolean;
   partnerCostUsd: number | null;
   printFileUrl: string | null;
+  /** Finished weight in grams as reported by the partner's slicer, when known. */
+  grams: number | null;
   /** Internal only — never surface to the buyer. */
   reason?: string;
 }
@@ -152,6 +154,7 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
     feasible: true,
     partnerCostUsd: null,
     printFileUrl: null,
+    grams: null,
   };
 
   let file: { url: string | null; filament: string | null };
@@ -168,7 +171,7 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
     const since = new Date(Date.now() - CACHE_MS).toISOString();
     const { data: cached } = await admin
       .from("originals_quotes")
-      .select("landed_usd, retail_usd, feasible, error")
+      .select("landed_usd, retail_usd, feasible, error, grams")
       .eq("print_file_url", file.url)
       .eq("size_key", input.sizeKey)
       .gte("created_at", since)
@@ -181,6 +184,7 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
         unitUsd: Number(cached.retail_usd),
         source: "cache",
         partnerCostUsd: Number(cached.landed_usd),
+        grams: Number(cached.grams) > 0 ? Number(cached.grams) : null,
         feasible: true,
       };
     }
@@ -206,6 +210,7 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
       landed_usd: landed.landedUsd,
       mbp_usd: mbpUsd,
       retail_usd: retail,
+      grams: landed.metrics?.weight ?? null,
       feasible: true,
       source: "live",
     });
@@ -216,6 +221,9 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
       source: "live",
       feasible: true,
       partnerCostUsd: landed.landedUsd,
+      grams: typeof landed.metrics?.weight === "number" && landed.metrics.weight > 0
+        ? landed.metrics.weight
+        : null,
     };
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
