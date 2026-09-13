@@ -850,6 +850,41 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     Change
                   </button>
                 </div>
+
+                {cart.items.length > 0 && (
+                  <div className="mt-4 border border-border">
+                    <p className="border-b border-border px-3 py-2 text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                      Also in this order
+                    </p>
+                    {cart.items.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3 border-b border-border/60 px-3 py-2 last:border-b-0">
+                        {item.previewUrl && (
+                          <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain" />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm">
+                            {item.productName}
+                            {item.personName ? ` · ${item.personName}` : ""}
+                          </p>
+                          <p className="text-xs text-muted-foreground">{item.sizeLabel} × {item.quantity}</p>
+                        </div>
+                        <span className="text-sm tabular-nums">${item.price * item.quantity}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="lg"
+                  className="mt-4 w-full rounded-none h-12"
+                  onClick={addAnother}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add this piece & make another before paying
+                </Button>
+
                 <div className="mt-4">
                   {clientSecret ? (
                     <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
