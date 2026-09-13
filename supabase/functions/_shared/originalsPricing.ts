@@ -113,7 +113,13 @@ async function resolvePrintFile(
       const perSize = (data.print_files ?? {}) as Record<string, string>;
       const sized = perSize[input.sizeKey];
       if (sized) return { url: sized, filament: null };
-      if (data.print_file_url) return { url: data.print_file_url as string, filament: null };
+      // Only fall back to the preview's main file when it is unambiguous:
+      // if other per-size files exist but not this size, that main file is a
+      // different size and slicing it would price the wrong geometry.
+      if (data.print_file_url && Object.keys(perSize).length === 0) {
+        return { url: data.print_file_url as string, filament: null };
+      }
+      return { url: null, filament: null };
     }
   }
 
