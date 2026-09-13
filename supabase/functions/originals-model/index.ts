@@ -221,9 +221,9 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
       return { url: perSize[row.size_key], status: "ready" };
     }
-    if (preview?.print_file_url && preview.print_file_url !== row.print_file_url) {
-      return { url: preview.print_file_url as string, status: "ready" };
-    }
+    // A generic preview file has no guaranteed size identity. Never reuse it
+    // for another selected tier (for example Standard after switching to
+    // Statement); rebuild the sold size from the preserved generator task.
 
 
     const imageUrl = preview?.preview_image_url as string | undefined;
