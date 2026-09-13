@@ -147,7 +147,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (
     row.engraved_text === label &&
     existingMeta?.placementVersion === 4 &&
-    existingMeta?.heftVersion === 2 &&
+    existingMeta?.heftVersion === 3 &&
     existingMeta?.placementVerified === true
   ) {
     return url;
@@ -155,7 +155,11 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), { heading, footnote });
+  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), {
+    heading,
+    footnote,
+    maxDimensionMm: SIZE_MAX_MM[row.size_key] ?? 180,
+  });
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
@@ -175,7 +179,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         reliefMm: result.reliefMm,
         strokeMm: result.strokeMm,
         placementVersion: 4,
-        heftVersion: 2,
+        heftVersion: 3,
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,

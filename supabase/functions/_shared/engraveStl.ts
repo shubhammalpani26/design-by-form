@@ -18,6 +18,12 @@ export interface EngraveOptions {
   heading?: string | null;
   /** Small second line, e.g. dates. */
   footnote?: string | null;
+  /**
+   * Longest edge the buyer paid for (mm). The enlarged plinth grows both
+   * upward and outward, so an unreinforced source file must be clamped back
+   * to the sold size before lettering is measured against the front face.
+   */
+  maxDimensionMm?: number;
 }
 
 export interface EngraveResult {
@@ -464,8 +470,10 @@ function engraveTris(
   const height = maxZ - minZ;
   if (!(height > 0)) return { ok: false, reason: "degenerate_mesh" };
 
-  // The plinth is the bottom slab of the piece.
-  const bandTop = bandTopZ ?? (minZ + height * 0.3);
+  // The plinth is the bottom slab of the piece. The supplied plinth top is a
+  // rounded measurement, so allow a hair of slack — otherwise the plinth's own
+  // front wall falls outside the band and the piece ships unlettered.
+  const bandTop = (bandTopZ ?? (minZ + height * 0.3)) + 0.05;
   const band = tris.filter((t) => t.every(([, , z]) => z <= bandTop));
   if (!band.length) return { ok: false, reason: "no_plinth" };
 
@@ -646,7 +654,20 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
         size: { x: 0, y: 0, z: 0 },
       }
     : reinforceTris(oriented.tris);
-  const tris = heft.tris;
+  // The enlarged plinth grows upward and outward, so a source file that was
+  // not already clamped can exceed the size the buyer paid for. Scale the
+  // whole piece back before the lettering is sized to the front face.
+  let tris = heft.tris;
+  if (heft.applied && opts.maxDimensionMm) {
+    const b = boundsOf(tris);
+    const longest = Math.max(b.max[0] - b.min[0], b.max[1] - b.min[1], b.max[2] - b.min[2]);
+    if (longest > opts.maxDimensionMm) {
+      const k = opts.maxDimensionMm / longest;
+      tris = tris.map((tri) => tri.map(([x, y, z]) => [x * k, y * k, z * k] as V3) as Tri);
+      heft.baseHeightMm = Number((heft.baseHeightMm * k).toFixed(2));
+      heft.volumeAddedCm3 = Number((heft.volumeAddedCm3 * k ** 3).toFixed(2));
+    }
+  }
   // Meshy faces +Z before conversion; our manufacturing normalization maps
   // that visible front to -Y. Do not silently accept another face.
   const reinforcedBounds = boundsOf(tris);
@@ -668,10 +689,16 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     return { stl: bytes, applied: false, text: label, reason: "no_geometry_added" };
   }
 
+  // Lettering must sit on the plinth's front face — never drift up onto the
+  // sculpture, which is how text ends up looking like it floats.
+  const withinPlinth =
+    plinthTop === undefined ||
+    attempt.letteringBounds.max[2] <= attempt.floorZ + (plinthTop - attempt.floorZ) + 1.5;
   const placementVerified =
     attempt.face === "-y" &&
     attempt.letteringBounds.min[2] >= attempt.floorZ + 0.5 &&
-    attempt.letteringBounds.max[2] > attempt.letteringBounds.min[2];
+    attempt.letteringBounds.max[2] > attempt.letteringBounds.min[2] &&
+    withinPlinth;
   if (!placementVerified) {
     return {
       stl: bytes,

@@ -106,3 +106,34 @@ Deno.test("an engraved final file retains the reinforced-base marker", () => {
   assertEquals(reinforcedAgain.applied, false);
   assertEquals(reinforcedAgain.reason, "already_reinforced");
 });
+
+Deno.test("engraving an unreinforced file keeps the piece inside its sold size", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 16]);
+  box(tris, [-18, -12, 16], [18, 12, 130]);
+  const result = engraveStl(writeStl(tris), { heading: "NYRA", maxDimensionMm: 140 });
+  assert(result.applied);
+  assertEquals(result.placementVerified, true);
+  const out = parseStl(result.stl);
+  const zs = out.flatMap((tri) => tri.map((p) => p[2]));
+  const xs = out.flatMap((tri) => tri.map((p) => p[0]));
+  const ys = out.flatMap((tri) => tri.map((p) => p[1]));
+  const longest = Math.max(
+    Math.max(...zs) - Math.min(...zs),
+    Math.max(...xs) - Math.min(...xs),
+    Math.max(...ys) - Math.min(...ys),
+  );
+  assert(longest <= 141, `longest edge ${longest}`);
+});
+
+Deno.test("lettering stays on the enlarged plinth, not on the sculpture", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 14]);
+  box(tris, [-18, -12, 14], [18, 12, 110]);
+  const result = engraveStl(writeStl(tris), { heading: "MILO", footnote: "2012 - 2024" });
+  assert(result.applied);
+  const plinthTop = result.heftBaseHeightMm ?? 0;
+  assert(plinthTop >= 22, `plinth ${plinthTop}`);
+  assert((result.letteringBounds?.max[2] ?? 0) <= plinthTop + 1.5);
+  assert((result.letteringBounds?.min[2] ?? 0) >= 0.5);
+});
