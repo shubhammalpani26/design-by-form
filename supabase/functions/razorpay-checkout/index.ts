@@ -159,7 +159,7 @@ Deno.serve(async (req) => {
     const subtotalUsd = Math.round(priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0) * 100) / 100;
 
     // Promo codes are resolved server-side against the real subtotal.
-    const promo = await resolvePromo(admin, body.promoCode, subtotalUsd);
+    const promo = await resolvePromo(admin, body.promoCode, subtotalUsd, userId);
     if (isPromoError(promo)) return json({ error: promo.error }, 400);
     const discountUsd = promo?.discountUsd ?? 0;
     const totalUsd = Math.round((subtotalUsd - discountUsd) * 100) / 100;

@@ -17,9 +17,10 @@ export interface PromoError {
 const round2 = (n: number) => Math.round(n * 100) / 100;
 
 export async function resolvePromo(
-  admin: { from: (t: string) => any },
+  admin: { from: (t: string) => any; rpc?: (fn: string, args: Record<string, unknown>) => any },
   rawCode: unknown,
   subtotalUsd: number,
+  userId?: string | null,
 ): Promise<PromoResult | PromoError | null> {
   const code = String(rawCode ?? "").trim().toUpperCase().slice(0, 32);
   if (!code) return null;
@@ -27,12 +28,22 @@ export async function resolvePromo(
   const { data: promo, error } = await admin
     .from("originals_promo_codes")
     .select(
-      "code, description, percent_off, amount_off_usd, min_subtotal_usd, active, starts_at, expires_at, max_redemptions, times_redeemed",
+      "code, description, percent_off, amount_off_usd, min_subtotal_usd, active, starts_at, expires_at, max_redemptions, times_redeemed, admin_only",
     )
     .ilike("code", code)
     .maybeSingle();
 
   if (error || !promo) return { error: "That code isn't valid." };
+
+  // Admin-only codes (internal test orders) must never work for the public —
+  // pretend they don't exist rather than hinting at the restriction.
+  if (promo.admin_only) {
+    const isAdmin = userId
+      ? Boolean((await admin.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle()).data)
+      : false;
+    if (!isAdmin) return { error: "That code isn't valid." };
+  }
+
   if (!promo.active) return { error: "That code is no longer active." };
 
   const now = Date.now();
