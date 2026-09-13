@@ -43,6 +43,7 @@ Deno.test("keeps an already Z-up model upright and verifies front placement", ()
 Deno.test("never approves lettering on the floor or a side face", () => {
   const tris: Tri[] = [];
   box(tris, [-40, -30, 0], [40, 30, 20]);
+  box(tris, [-20, -12, 20], [20, 12, 80]);
   const result = engraveStl(writeStl(tris), { heading: "TOBY" });
   assert(result.applied);
   assertEquals(result.face, "-y");
@@ -72,7 +73,8 @@ Deno.test("enlarges the original plinth before quoting without adding a second s
 
 Deno.test("reinforced base keeps the final piece inside its sold size", () => {
   const tris: Tri[] = [];
-  box(tris, [-30, -24, 0], [30, 24, 120]);
+  box(tris, [-30, -24, 0], [30, 24, 16]);
+  box(tris, [-18, -12, 16], [18, 12, 120]);
   const result = reinforceKeepsakeStl(writeStl(tris), 120);
   assert(result.applied);
   assert(Math.max(result.size.x, result.size.y, result.size.z) <= 120);
@@ -80,7 +82,8 @@ Deno.test("reinforced base keeps the final piece inside its sold size", () => {
 
 Deno.test("uses the reinforced front face for long two-line lettering", () => {
   const tris: Tri[] = [];
-  box(tris, [-24, -18, 0], [24, 18, 70]);
+  box(tris, [-24, -18, 0], [24, 18, 14]);
+  box(tris, [-14, -10, 14], [14, 10, 70]);
   const result = engraveStl(writeStl(tris), {
     heading: "BARTHOLOMEW REX",
     footnote: "2012 - 2026",

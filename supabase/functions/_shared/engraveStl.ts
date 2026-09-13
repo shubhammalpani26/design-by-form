@@ -639,7 +639,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   // Meshy faces +Z before conversion; our manufacturing normalization maps
   // that visible front to -Y. Do not silently accept another face.
   const reinforcedBounds = boundsOf(tris);
-  const plinthTop = existingPlinthTop(tris, reinforcedBounds) ?? undefined;
+  const plinthTop = heft.applied
+    ? heft.baseHeightMm
+    : (existingPlinthTop(tris, reinforcedBounds) ?? undefined);
   const attempt = engraveTris(tris, heading, footnote, plinthTop);
   const addedPlinth = false;
   const baseCount = tris.length;
