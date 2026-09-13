@@ -516,7 +516,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </p>
             </div>
           </div>
-          ) : null}
+          )}
 
           {mode !== "photo" && (
           <div className="mt-4 space-y-3">
