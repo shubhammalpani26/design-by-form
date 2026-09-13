@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import type { OriginalSku } from "@/data/originalsSkus";
 import { FOOTNOTE_MAX, HEADING_MAX } from "@/data/originalsSkus";
-import { Camera, Loader2, Plus, RefreshCw, ShieldCheck, Truck, Factory, ArrowRight, Wand2 } from "lucide-react";
+import { Camera, Loader2, Plus, RefreshCw, ShieldCheck, ShoppingBag, Truck, Factory, ArrowRight, Wand2, X } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
@@ -130,6 +131,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
+  const [basketOpen, setBasketOpen] = useState(false);
   // Bounded iteration: two adjustments max, then the piece is the piece.
   const MAX_TWEAKS = 2;
   const [tweakCount, setTweakCount] = useState(0);
@@ -369,7 +371,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const addAnother = () => {
     if (!requireSize()) return;
     cart.add(currentLine());
-    toast({ title: "Saved to your order", description: "Make another piece — you'll pay for everything at once." });
+    toast({ title: "Saved to your order", description: "It's in the order bar at the bottom of the screen — make another piece and pay for everything at once." });
     trackExperiment("reveal_screen", revealVariant, "add_to_cart", { skuSlug: sku.slug });
     resetForAnother();
   };
@@ -1034,6 +1036,85 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           </p>
         </div>
       )}
+
+      {cart.count > 0 && !basketOpen && (
+        <button
+          type="button"
+          onClick={() => setBasketOpen(true)}
+          className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+        >
+          <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.15em] uppercase">
+            <ShoppingBag className="h-4 w-4" />
+            Your order · {cart.count} {cart.count === 1 ? "piece" : "pieces"} · ${cart.total}
+          </span>
+          <span className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground underline underline-offset-4">
+            Review
+          </span>
+        </button>
+      )}
+
+      <Dialog open={basketOpen} onOpenChange={setBasketOpen}>
+        <DialogContent className="w-[95vw] max-w-md rounded-none">
+          <DialogHeader>
+            <DialogTitle className="text-sm tracking-[0.2em] uppercase font-normal">
+              Your order · {cart.count} {cart.count === 1 ? "piece" : "pieces"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="divide-y divide-border border border-border">
+            {cart.items.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 px-3 py-2">
+                {item.previewUrl && (
+                  <img src={item.previewUrl} alt="" className="h-14 w-14 border border-border object-contain" />
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm">
+                    {item.productName}
+                    {item.personName ? ` · ${item.personName}` : ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground">{item.sizeLabel} · ${item.price}</p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="Decrease quantity"
+                    className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                    onClick={() => cart.setQuantity(item.id, item.quantity - 1)}
+                  >
+                    −
+                  </button>
+                  <span className="w-6 text-center text-sm tabular-nums">{item.quantity}</span>
+                  <button
+                    type="button"
+                    aria-label="Increase quantity"
+                    className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                    onClick={() => cart.setQuantity(item.id, item.quantity + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Remove piece"
+                  className="ml-1 text-muted-foreground hover:text-foreground"
+                  onClick={() => cart.remove(item.id)}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+          <p className="text-xs text-muted-foreground text-center">
+            Total so far ${cart.total} · one payment, one shipment · free US shipping
+          </p>
+          <Button
+            type="button"
+            className="w-full rounded-none h-11"
+            onClick={() => setBasketOpen(false)}
+          >
+            Back to my current piece
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
