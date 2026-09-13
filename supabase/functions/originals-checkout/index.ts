@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
 
     const lineItems = priced.map((l, i) => {
       const row = orders[i];
-      const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}`;
+      const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}${isAdmin ? " (internal test — cost only)" : ""}`;
       const detail = Object.entries((row?.personalization as Record<string, unknown>) ?? {})
         .filter(([, v]) => typeof v === "string" && v)
         .map(([k, v]) => `${k}: ${v}`)
