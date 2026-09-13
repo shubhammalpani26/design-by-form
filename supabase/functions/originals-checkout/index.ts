@@ -87,6 +87,29 @@ Deno.serve(async (req) => {
       userId = data?.user?.id ?? null;
     }
 
+    // Admin test orders: charge production cost only, never the retail price.
+    // Role is resolved server-side from user_roles — a client can never ask for it.
+    let isAdmin = false;
+    if (userId) {
+      const { data: roleRow } = await admin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .eq("role", "admin")
+        .maybeSingle();
+      isAdmin = Boolean(roleRow);
+    }
+
+    if (isAdmin) {
+      for (const l of priced) {
+        const cost = typeof l.partnerCostUsd === "number" && l.partnerCostUsd > 0
+          ? l.partnerCostUsd
+          : 20;
+        l.unitUsd = Math.max(1, Math.round(cost * 100) / 100);
+        l.quoteSource = "admin_test";
+      }
+    }
+
     // Attach each line to its preview (image + personalization) when we have one.
     const previewIds = lines.map((l) => l.previewId).filter((v): v is string => Boolean(v));
     const previewMap = new Map<string, { url: string | null; personalization: Record<string, unknown>; sku: string }>();
@@ -140,7 +163,7 @@ Deno.serve(async (req) => {
 
     const lineItems = priced.map((l, i) => {
       const row = orders[i];
-      const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}`;
+      const describedName = `${NAMES[l.skuSlug] ?? "Nyzora Original"} — ${l.size!.label}${isAdmin ? " (internal test — cost only)" : ""}`;
       const detail = Object.entries((row?.personalization as Record<string, unknown>) ?? {})
         .filter(([, v]) => typeof v === "string" && v)
         .map(([k, v]) => `${k}: ${v}`)
