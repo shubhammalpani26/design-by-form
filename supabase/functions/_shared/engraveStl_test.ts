@@ -137,3 +137,14 @@ Deno.test("lettering stays on the enlarged plinth, not on the sculpture", () => 
   assert((result.letteringBounds?.max[2] ?? 0) <= plinthTop + 1.5);
   assert((result.letteringBounds?.min[2] ?? 0) >= 0.5);
 });
+Deno.test("an already-lettered file is never lettered a second time", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 14]);
+  box(tris, [-18, -12, 14], [18, 12, 110]);
+  const first = engraveStl(writeStl(tris), { heading: "MILO", footnote: "2012 - 2024" });
+  assert(first.applied);
+  const second = engraveStl(first.stl, { heading: "MILO", footnote: "2012 - 2024" });
+  assertEquals(second.applied, false);
+  assertEquals(second.reason, "already_lettered");
+  assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
+});
