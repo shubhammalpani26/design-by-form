@@ -399,6 +399,7 @@ Deno.serve(async (req) => {
         modelUrl: task.glb,
         key: `originals/preview/${previewId}/${key}`,
         targetMaxMm: sizeMm(preview.sku_slug, key),
+        reinforceBase: true,
       });
       nextFiles[key] = prepared.url;
 
@@ -422,6 +423,11 @@ Deno.serve(async (req) => {
           model_task_id: preview.model_task_id ?? null,
           model_url: task.glb ?? null,
           engineering: preview.engineering ?? null,
+          heftBase: {
+            applied: prepared.heftBaseApplied ?? false,
+            heightMm: prepared.heftBaseHeightMm ?? null,
+            volumeAddedCm3: prepared.heftVolumeAddedCm3 ?? null,
+          },
           error: report.printable ? null : report.blockers.join(" ").slice(0, 500),
         });
 

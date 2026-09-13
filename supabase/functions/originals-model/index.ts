@@ -172,6 +172,9 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,
+        heftBaseApplied: result.heftBaseApplied ?? false,
+        heftBaseHeightMm: result.heftBaseHeightMm ?? null,
+        heftVolumeAddedCm3: result.heftVolumeAddedCm3 ?? null,
         sourcePrintFileUrl: url,
         fileSha256,
       },
@@ -236,6 +239,7 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
           modelUrl: task.glb,
           key: `originals/${row.sku_slug}/${row.id}`,
           targetMaxMm: SIZE_MAX_MM[row.size_key] ?? 180,
+            reinforceBase: true,
         });
         await admin.from("originals_previews")
           .update({ print_file_url: prepared.url, model_status: "ready" })

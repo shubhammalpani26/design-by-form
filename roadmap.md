@@ -13,3 +13,4 @@
 - [ ] Validate one replacement piece end-to-end, show proof, then place only that test order
 - [ ] (Waiting on user) User completes the full photo upload → personalization → checkout journey manually; inspect the resulting STL before manufacturing
 - [ ] Prepare product creative concepts and copy now; produce final ads and Instagram assets from the physically verified replacement piece
+- [x] Add a thicker 40%-target keepsake base before validation and partner quoting, with a taller visible face for lettering

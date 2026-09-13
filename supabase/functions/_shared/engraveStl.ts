@@ -42,6 +42,12 @@ export interface EngraveResult {
   orientationNormalized?: boolean;
   /** Bounds of lettering geometry in manufacturing coordinates. */
   letteringBounds?: { min: V3; max: V3 };
+  /** True when the heavier, taller keepsake plinth was added. */
+  heftBaseApplied?: boolean;
+  /** Added plinth height available for front-face lettering. */
+  heftBaseHeightMm?: number;
+  /** Estimated geometric volume added by the heft treatment. */
+  heftVolumeAddedCm3?: number;
 }
 
 
@@ -57,6 +63,11 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
+const HEFT_HEADER = "Nyzora reinforced base v1";
+const HEFT_TARGET_INCREASE = 0.4;
+const HEFT_MIN_HEIGHT_MM = 16;
+const HEFT_MAX_HEIGHT_MM = 24;
+const HEFT_OVERLAP_MM = 1.2;
 
 const strokeFor = (cap: number) =>
   Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
@@ -102,10 +113,10 @@ export function parseStl(bytes: Uint8Array): Tri[] {
 }
 
 
-export function writeStl(tris: Tri[]): Uint8Array {
+export function writeStl(tris: Tri[], headerText = "Nyzora print file"): Uint8Array {
   const buffer = new ArrayBuffer(84 + tris.length * 50);
   const view = new DataView(buffer);
-  new Uint8Array(buffer, 0, 80).set(new TextEncoder().encode("Nyzora print file").subarray(0, 80));
+  new Uint8Array(buffer, 0, 80).set(new TextEncoder().encode(headerText).subarray(0, 80));
   view.setUint32(80, tris.length, true);
   let p = 84;
   for (const [a, b, c] of tris) {
@@ -230,6 +241,112 @@ function boundsOf(tris: Tri[]): { min: V3; max: V3 } {
     }
   }
   return { min, max };
+}
+
+function hasStlHeader(bytes: Uint8Array, expected: string): boolean {
+  if (bytes.byteLength < 80) return false;
+  return new TextDecoder().decode(bytes.subarray(0, 80)).replace(/\0/g, "").trim().startsWith(expected);
+}
+
+function signedVolumeMm3(tris: Tri[]): number {
+  let volume = 0;
+  for (const [a, b, c] of tris) {
+    volume +=
+      (a[0] * (b[1] * c[2] - b[2] * c[1]) -
+        a[1] * (b[0] * c[2] - b[2] * c[0]) +
+        a[2] * (b[0] * c[1] - b[1] * c[0])) /
+      6;
+  }
+  return Math.abs(volume);
+}
+
+export interface HeftBaseResult {
+  stl: Uint8Array;
+  applied: boolean;
+  baseHeightMm: number;
+  volumeAddedCm3: number;
+  size: { x: number; y: number; z: number };
+  reason?: "already_reinforced" | "degenerate_mesh";
+}
+
+interface ReinforcedTris {
+  tris: Tri[];
+  applied: boolean;
+  baseHeightMm: number;
+  volumeAddedCm3: number;
+  size: { x: number; y: number; z: number };
+}
+
+/**
+ * Adds a substantial closed plinth beneath the model. Its height is calculated
+ * toward a 40% geometric-volume increase, with a 16 mm floor so even petite
+ * pieces have a readable front face. The source overlaps the plinth so common
+ * FDM slicers merge both closed shells into one printable body.
+ */
+function reinforceTris(tris: Tri[]): ReinforcedTris {
+  const bounds = boundsOf(tris);
+  const width = bounds.max[0] - bounds.min[0];
+  const depth = bounds.max[1] - bounds.min[1];
+  const height = bounds.max[2] - bounds.min[2];
+  if (!(width > 0) || !(depth > 0) || !(height > 0)) {
+    return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
+  }
+
+  const plateWidth = Math.min(210, width * 1.04);
+  const plateDepth = Math.min(210, depth * 1.04);
+  const currentVolume = signedVolumeMm3(tris);
+  const targetExtra = currentVolume * HEFT_TARGET_INCREASE;
+  const targetHeight = targetExtra > 0 ? targetExtra / (plateWidth * plateDepth) + HEFT_OVERLAP_MM : 0;
+  const baseHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
+  const cx = (bounds.min[0] + bounds.max[0]) / 2;
+  const cy = (bounds.min[1] + bounds.max[1]) / 2;
+  const shiftZ = baseHeight - HEFT_OVERLAP_MM - bounds.min[2];
+  const shifted = tris.map((tri) => tri.map(([x, y, z]) => [x, y, z + shiftZ] as V3) as Tri);
+  const out = shifted.slice();
+  box(
+    out,
+    [cx - plateWidth / 2, cy - plateDepth / 2, 0],
+    [cx + plateWidth / 2, cy + plateDepth / 2, baseHeight],
+  );
+  const next = boundsOf(out);
+  const plateVolume = plateWidth * plateDepth * baseHeight;
+  return {
+    tris: out,
+    applied: true,
+    baseHeightMm: Number(baseHeight.toFixed(2)),
+    volumeAddedCm3: Number((plateVolume / 1000).toFixed(2)),
+    size: {
+      x: Number((next.max[0] - next.min[0]).toFixed(2)),
+      y: Number((next.max[1] - next.min[1]).toFixed(2)),
+      z: Number((next.max[2] - next.min[2]).toFixed(2)),
+    },
+  };
+}
+
+/** Applies the heavier Originals base before validation and partner quoting. */
+export function reinforceKeepsakeStl(bytes: Uint8Array): HeftBaseResult {
+  const tris = parseStl(bytes);
+  const existingBounds = boundsOf(tris);
+  const existingSize = {
+    x: existingBounds.max[0] - existingBounds.min[0],
+    y: existingBounds.max[1] - existingBounds.min[1],
+    z: existingBounds.max[2] - existingBounds.min[2],
+  };
+  if (hasStlHeader(bytes, HEFT_HEADER)) {
+    return {
+      stl: bytes,
+      applied: false,
+      baseHeightMm: 0,
+      volumeAddedCm3: 0,
+      size: existingSize,
+      reason: "already_reinforced",
+    };
+  }
+  const reinforced = reinforceTris(tris);
+  if (!reinforced.applied) {
+    return { stl: bytes, ...reinforced, reason: "degenerate_mesh" };
+  }
+  return { stl: writeStl(reinforced.tris, HEFT_HEADER), ...reinforced };
 }
 
 /** Area of triangles lying on one extreme plane of a mesh. */
@@ -520,7 +637,17 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
 
   const parsed = parseStl(bytes);
   const oriented = normalizeManufacturingAxes(parsed);
-  const tris = oriented.tris;
+  const alreadyReinforced = hasStlHeader(bytes, HEFT_HEADER);
+  const heft = alreadyReinforced
+    ? {
+        tris: oriented.tris,
+        applied: false,
+        baseHeightMm: 0,
+        volumeAddedCm3: 0,
+        size: { x: 0, y: 0, z: 0 },
+      }
+    : reinforceTris(oriented.tris);
+  const tris = heft.tris;
   // Meshy faces +Z before conversion; our manufacturing normalization maps
   // that visible front to -Y. Do not silently accept another face.
   let attempt = engraveTris(tris, heading, footnote);
@@ -578,6 +705,9 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     placementVerified,
     orientationNormalized: oriented.normalized,
     letteringBounds: attempt.letteringBounds,
+    heftBaseApplied: heft.applied,
+    heftBaseHeightMm: heft.baseHeightMm,
+    heftVolumeAddedCm3: heft.volumeAddedCm3,
   };
 }
 

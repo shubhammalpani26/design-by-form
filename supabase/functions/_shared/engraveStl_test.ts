@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { engraveStl, parseStl, writeStl } from "./engraveStl.ts";
+import { engraveStl, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
@@ -51,4 +51,34 @@ Deno.test("never approves lettering on the floor or a side face", () => {
   const floorZ = Math.min(...output.flatMap((tri) => tri.map((point) => point[2])));
   assert((result.letteringBounds?.min[2] ?? floorZ) >= floorZ + 0.5);
   assert((result.letteringBounds?.min[1] ?? 0) < -30);
+});
+
+Deno.test("adds a taller solid base before quoting and does not add it twice", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 14]);
+  box(tris, [-18, -12, 14], [18, 12, 100]);
+  const first = reinforceKeepsakeStl(writeStl(tris));
+  assert(first.applied);
+  assert(first.baseHeightMm >= 16);
+  assert(first.volumeAddedCm3 > 0);
+  assert(first.size.z > 100);
+
+  const second = reinforceKeepsakeStl(first.stl);
+  assertEquals(second.applied, false);
+  assertEquals(second.reason, "already_reinforced");
+  assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
+});
+
+Deno.test("uses the reinforced front face for long two-line lettering", () => {
+  const tris: Tri[] = [];
+  box(tris, [-24, -18, 0], [24, 18, 70]);
+  const result = engraveStl(writeStl(tris), {
+    heading: "BARTHOLOMEW REX",
+    footnote: "2012 - 2026",
+  });
+  assert(result.applied);
+  assertEquals(result.heftBaseApplied, true);
+  assert((result.heftBaseHeightMm ?? 0) >= 16);
+  assertEquals(result.face, "-y");
+  assertEquals(result.placementVerified, true);
 });
