@@ -1031,11 +1031,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         <button
           type="button"
           onClick={() => setBasketOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+          className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
         >
-          <span className="inline-flex items-center gap-2 text-[11px] tracking-[0.15em] uppercase">
-            <ShoppingBag className="h-4 w-4" />
-            Your order · {cart.count} {cart.count === 1 ? "piece" : "pieces"} · ${cart.total}
+          <span className="inline-flex min-w-0 items-center gap-2 text-left text-[10px] tracking-[0.1em] uppercase sm:text-[11px] sm:tracking-[0.15em]">
+            <ShoppingBag className="h-4 w-4 shrink-0" />
+            <span className="truncate">Your order · {cart.count} {cart.count === 1 ? "piece" : "pieces"} · ${cart.total}</span>
           </span>
           <span className="text-[11px] tracking-[0.15em] uppercase text-muted-foreground underline underline-offset-4">
             Review
@@ -1044,26 +1044,26 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       )}
 
       <Dialog open={basketOpen} onOpenChange={setBasketOpen}>
-        <DialogContent className="w-[95vw] max-w-md rounded-none">
+        <DialogContent className="max-h-[85dvh] w-[calc(100vw-24px)] max-w-md overflow-y-auto rounded-none p-4 sm:p-6">
           <DialogHeader>
-            <DialogTitle className="text-sm tracking-[0.2em] uppercase font-normal">
+            <DialogTitle className="pr-7 text-left text-sm tracking-[0.16em] uppercase font-normal sm:text-center sm:tracking-[0.2em]">
               Your order · {cart.count} {cart.count === 1 ? "piece" : "pieces"}
             </DialogTitle>
           </DialogHeader>
           <div className="divide-y divide-border border border-border">
             {cart.items.map((item) => (
-              <div key={item.id} className="flex items-center gap-3 px-3 py-2">
+              <div key={item.id} className="grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3 gap-y-2 px-3 py-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] sm:items-center sm:py-2">
                 {item.previewUrl && (
-                  <img src={item.previewUrl} alt="" className="h-14 w-14 border border-border object-contain" />
+                  <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain sm:h-14 sm:w-14" />
                 )}
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0">
                   <p className="truncate text-sm">
                     {item.productName}
                     {item.personName ? ` · ${item.personName}` : ""}
                   </p>
                   <p className="text-xs text-muted-foreground">{item.sizeLabel} · ${item.price}</p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="col-start-2 flex items-center gap-1 sm:col-start-auto">
                   <button
                     type="button"
                     aria-label="Decrease quantity"
@@ -1085,7 +1085,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 <button
                   type="button"
                   aria-label="Remove piece"
-                  className="ml-1 text-muted-foreground hover:text-foreground"
+                  className="absolute right-3 mt-1 text-muted-foreground hover:text-foreground sm:static sm:ml-1 sm:mt-0"
                   onClick={() => cart.remove(item.id)}
                 >
                   <X className="h-4 w-4" />
@@ -1093,7 +1093,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </div>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground text-center">
+          <p className="px-2 text-center text-xs leading-relaxed text-muted-foreground">
             Total so far ${cart.total} · one payment, one shipment · free US shipping
           </p>
           <Button
