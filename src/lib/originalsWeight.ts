@@ -6,15 +6,20 @@
  * Sculpted busts and flat plaques are very different forms — a 155 mm wide
  * plaque is nowhere near a 140 mm bust — so weights are keyed per SKU.
  */
-/** Measured on the print partner's slicer for the current enlarged-plinth files. */
+/**
+ * Derived from the print partner's live billed price on the current
+ * enlarged-plinth files (price ≈ $5.40 + $0.065 per finished gram), i.e. real
+ * printed weight with normal infill — not solid-plastic volume, which would
+ * overstate the piece roughly 5×.
+ */
 const BUST_GRAMS: Record<string, number> = {
-  petite: 150,
-  standard: 250,
-  statement: 740,
+  petite: 90,
+  standard: 125,
+  statement: 290,
 };
 
 const PLAQUE_GRAMS: Record<string, number> = {
-  standard: 160,
+  standard: 110,
 };
 
 export const SKU_SIZE_GRAMS: Record<string, Record<string, number>> = {
