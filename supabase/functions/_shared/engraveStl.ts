@@ -610,72 +610,10 @@ function engraveTris(
   };
 }
 
-/** Failures that a purpose-built nameplate base can rescue. */
-const RESCUABLE = new Set([
-  "no_plinth",
-  "no_flat_face",
-  "face_too_small",
-  "plinth_too_small_for_readable_text",
-]);
-
 /**
- * Builds a nameplate base under the piece so there is always a flat, readable
- * face for the buyer's lettering. Used only when the generated mesh has no
- * usable plinth of its own — a paid keepsake must never stall for want of a
- * surface to engrave.
- */
-function addNameplate(tris: Tri[], heading: string, footnote: string): { tris: Tri[]; bandTopZ: number } | null {
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity;
-  for (const t of tris) {
-    for (const [x, y, z] of t) {
-      if (x < minX) minX = x; if (x > maxX) maxX = x;
-      if (y < minY) minY = y; if (y > maxY) maxY = y;
-      if (z < minZ) minZ = z;
-    }
-  }
-  const footW = maxX - minX;
-  const footD = maxY - minY;
-  if (!(footW > 0) || !(footD > 0)) return null;
-
-  // Width the target cap height needs, allowing the engraver's own wrapping.
-  const capTarget = MIN_CAP_MM * 1.25;
-  const words = heading.split(" ").filter(Boolean);
-  let headingUnits = textWidth(heading);
-  if (words.length > 1) {
-    for (let i = 1; i < words.length; i++) {
-      headingUnits = Math.min(
-        headingUnits,
-        Math.max(textWidth(words.slice(0, i).join(" ")), textWidth(words.slice(i).join(" "))),
-      );
-    }
-  }
-  const unitsNeeded = Math.max(headingUnits, textWidth(footnote) * 0.6, 0.001);
-  const neededW = (unitsNeeded * capTarget) / 0.78;
-
-  // Keep the base inside the printer envelope even for very long names.
-  const MAX_PLATE_MM = 200;
-  const plateW = Math.min(MAX_PLATE_MM, Math.max(footW * 1.08, neededW + 8));
-  const plateD = Math.min(MAX_PLATE_MM, Math.max(footD * 1.08, 20));
-  const plateH = Math.max(16, capTarget / 0.4 + 5);
-
-  const cx = (minX + maxX) / 2;
-  const cy = (minY + maxY) / 2;
-  const out = tris.slice();
-  box(
-    out,
-    [cx - plateW / 2, cy - plateD / 2, minZ - plateH],
-    [cx + plateW / 2, cy + plateD / 2, minZ + 0.2],
-  );
-  // Only the new plate counts as the plinth band.
-  return { tris: out, bandTopZ: minZ + 0.25 };
-}
-
-/**
- * Engraves heading/footnote onto the piece. Falls back to adding a nameplate
- * base when the mesh has no engravable plinth, so personalised orders cannot
- * get permanently stuck before printing. Returns `applied: false` only when
- * there is no text or the mesh is unusable.
+ * Engraves heading/footnote onto the piece's existing enlarged plinth. If that
+ * plinth cannot carry readable lettering, the order stops for review; adding
+ * a second base or a detached nameplate is never an acceptable fallback.
  */
 export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResult {
   const heading = normalizeEngravingText(opts.heading ?? "");

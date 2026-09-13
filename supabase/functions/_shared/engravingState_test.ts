@@ -10,11 +10,11 @@ Deno.test("legacy engraved files are never reused as engraving sources", () => {
   assertEquals(reusableOrderPrintFile(row, "MILO"), null);
 });
 
-Deno.test("only an exact verified v3 reinforced engraving is reused", () => {
+Deno.test("only an exact verified v4 single-plinth engraving is reused", () => {
   const row = {
     print_file_url: "https://example.test/piece-engraved-v2.stl",
     engraved_text: "MILO",
-    engraving_meta: { placementVersion: 3, heftVersion: 1, placementVerified: true },
+    engraving_meta: { placementVersion: 4, heftVersion: 2, placementVerified: true },
   };
   assertEquals(reusableOrderPrintFile(row, "MILO"), row.print_file_url);
   assertEquals(reusableOrderPrintFile(row, "TOBY"), null);
