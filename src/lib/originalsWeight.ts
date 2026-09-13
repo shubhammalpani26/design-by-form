@@ -7,15 +7,14 @@
  * plaque is nowhere near a 140 mm bust — so weights are keyed per SKU.
  */
 /**
- * Derived from the print partner's live billed price on the current
- * enlarged-plinth files (price ≈ $5.40 + $0.065 per finished gram), i.e. real
- * printed weight with normal infill — not solid-plastic volume, which would
- * overstate the piece roughly 5×.
+ * Taken from the print partner's own slicer metrics on the current
+ * enlarged-plinth files (petite 168 g, standard 268 g, statement 743 g),
+ * rounded down so the piece never weighs less than promised.
  */
 const BUST_GRAMS: Record<string, number> = {
-  petite: 90,
-  standard: 125,
-  statement: 290,
+  petite: 165,
+  standard: 265,
+  statement: 730,
 };
 
 const PLAQUE_GRAMS: Record<string, number> = {

@@ -5,9 +5,9 @@
  * table is keyed per SKU — never one shared bust weight for everything.
  */
 const BUST_GRAMS: Record<string, number> = {
-  petite: 90,
-  standard: 125,
-  statement: 290,
+  petite: 165,
+  standard: 265,
+  statement: 730,
 };
 
 const PLAQUE_GRAMS: Record<string, number> = {
