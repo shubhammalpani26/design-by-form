@@ -1693,6 +1693,7 @@ export type Database = {
       originals_promo_codes: {
         Row: {
           active: boolean
+          admin_only: boolean
           amount_off_usd: number | null
           code: string
           created_at: string
@@ -1708,6 +1709,7 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          admin_only?: boolean
           amount_off_usd?: number | null
           code: string
           created_at?: string
@@ -1723,6 +1725,7 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          admin_only?: boolean
           amount_off_usd?: number | null
           code?: string
           created_at?: string
