@@ -1,19 +1,19 @@
-# Put the name on the visible front of the plinth
+# Admin-only zero-payment inspection orders
 
-## Fix
-- Correct the 3D conversion so standard Y-up models are rotated upright before any print file is created.
-- Normalize older cached print files before lettering, so they cannot carry the old underside-placement mistake into a new order.
-- Place lettering on the known visible front face of the plinth, not whichever flat surface happens to be largest.
-- Record a new placement-verification version and exact lettering bounds with each order.
-- Block fulfilment unless the lettering is verified on a vertical front face above the physical base.
+## What will change
+- When an authenticated admin applies `NYZORA-INTERNAL`, checkout will create a real internal test order without opening a payment window or charging anything.
+- The order will run through the same preview, size-specific 3D generation, reinforced base, orientation normalization, raised front lettering, printability checks, and STL creation used for customers.
+- Internal test orders will stop in an **Awaiting approval** state. Automatic retries and background sweeps must not send them to manufacturing.
+- Originals Ops will show the preview/render, provide a secure STL download, show lettering-placement evidence, and offer an explicit **Approve and send to manufacturing** action.
+- The release action will revalidate the final STL, lettering version/face/hash, address, size, and filament before sending it to the manufacturing partner.
 
-## Proof before another order
-- Add regression tests for both Y-up and Z-up models.
-- Run the six delivered source files through the corrected pipeline and render the final front views.
-- Confirm each name/date is visible on the front plinth before deploying the model and fulfilment functions.
+## Safety and access
+- The no-payment path and release action will verify the admin role on the server; public customers cannot invoke them.
+- Ordinary paid orders keep their existing automatic manufacturing workflow.
+- Test orders remain auditable and retain the real manufacturing quote, while the customer charge is recorded as $0.
 
-## Technical details
-- Rotate Meshy/glTF coordinates from `(x, y, z)` to STL coordinates `(x, -z, y)` at conversion.
-- Detect and normalize legacy Y-up STL files before engraving.
-- Bias the engraver to the normalized `-Y` front face and fail rather than silently choose an underside or horizontal face.
-- Treat legacy engraving records without the new placement proof as unverified, so they cannot be sent automatically.
+## Validation
+- Add automated tests for public rejection, admin zero-payment creation, generation-with-hold, and explicit release.
+- Run existing engraving/base/orientation tests plus payment and fulfillment regression tests.
+- Test dog and cat journeys at mobile size, including personalization persistence, size switching, cart changes, address completion, order creation, render/STL access, and the manufacturing hold.
+- Verify through the live preview that no partner order exists before approval.
