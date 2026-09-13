@@ -1033,7 +1033,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         <button
           type="button"
           onClick={() => setBasketOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+          style={{ bottom: "var(--bottom-banner-h, 0px)" }}
+          className="fixed inset-x-0 z-[101] flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
         >
           <span className="inline-flex min-w-0 items-center gap-2 text-left text-[10px] tracking-[0.1em] uppercase sm:text-[11px] sm:tracking-[0.15em]">
             <ShoppingBag className="h-4 w-4 shrink-0" />
@@ -1055,15 +1056,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="divide-y divide-border border border-border">
             {cart.items.map((item) => (
               <div key={item.id} className="relative grid grid-cols-[3rem_minmax(0,1fr)] gap-x-3 gap-y-2 px-3 py-3 sm:grid-cols-[3.5rem_minmax(0,1fr)_auto_auto] sm:items-center sm:py-2">
-                {item.previewUrl && (
+                {item.previewUrl ? (
                   <img src={item.previewUrl} alt="" className="h-12 w-12 border border-border object-contain sm:h-14 sm:w-14" />
+                ) : (
+                  <div className="h-12 w-12 border border-border bg-muted sm:h-14 sm:w-14" aria-hidden />
                 )}
-                <div className="min-w-0">
-                  <p className="truncate text-sm">
-                    {item.productName}
-                    {item.personName ? ` · ${item.personName}` : ""}
+                <div className="min-w-0 pr-6 sm:pr-0">
+                  <p className="text-sm leading-snug line-clamp-2">
+                    {item.personName || item.productName}
                   </p>
-                  <p className="text-xs text-muted-foreground">{item.sizeLabel} · ${item.price}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2">
+                    {item.personName ? `${item.productName} · ` : ""}{item.sizeLabel} · ${item.price}
+                  </p>
                 </div>
                 <div className="col-start-2 flex items-center gap-1 sm:col-start-auto">
                   <button

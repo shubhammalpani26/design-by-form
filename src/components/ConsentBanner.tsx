@@ -28,6 +28,19 @@ export const ConsentBanner = () => {
     return () => window.removeEventListener("nyzora:open-consent", open);
   }, []);
 
+  // Reserve the banner's height so other fixed bottom bars (e.g. the order
+  // bar) sit above it instead of being covered.
+  useEffect(() => {
+    const root = document.documentElement;
+    if (!visible) {
+      root.style.setProperty("--bottom-banner-h", "0px");
+      return;
+    }
+    const el = document.querySelector<HTMLElement>("[data-consent-banner]");
+    root.style.setProperty("--bottom-banner-h", `${el?.offsetHeight ?? 96}px`);
+    return () => root.style.setProperty("--bottom-banner-h", "0px");
+  }, [visible]);
+
   if (!visible) return null;
 
   const choose = (choice: "granted" | "denied") => {
@@ -38,6 +51,7 @@ export const ConsentBanner = () => {
   return (
     <div
       role="dialog"
+      data-consent-banner
       aria-label="Cookie preferences"
       className="fixed inset-x-0 bottom-0 z-[100] border-t border-border bg-background/95 backdrop-blur px-4 py-4 md:px-6"
     >
