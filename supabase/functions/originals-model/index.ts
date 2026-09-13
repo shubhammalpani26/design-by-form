@@ -155,7 +155,11 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), { heading, footnote });
+  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), {
+    heading,
+    footnote,
+    maxDimensionMm: SIZE_MAX_MM[row.size_key] ?? 180,
+  });
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
