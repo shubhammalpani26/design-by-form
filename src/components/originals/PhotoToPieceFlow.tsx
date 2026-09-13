@@ -1033,7 +1033,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         <button
           type="button"
           onClick={() => setBasketOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-40 flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
+          style={{ bottom: "var(--bottom-banner-h, 0px)" }}
+          className="fixed inset-x-0 z-[101] flex items-center justify-between gap-3 border-t border-border bg-background/95 px-4 py-3 backdrop-blur"
         >
           <span className="inline-flex min-w-0 items-center gap-2 text-left text-[10px] tracking-[0.1em] uppercase sm:text-[11px] sm:tracking-[0.15em]">
             <ShoppingBag className="h-4 w-4 shrink-0" />
