@@ -70,6 +70,12 @@ const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
 const HEFT_HEADER = "Nyzora enlarged plinth v5";
+/**
+ * Marks a file whose lettering is already cut in. Re-lettering such a file is
+ * how a piece ended up with a second, mirrored set of glyphs on another face,
+ * so it is refused outright.
+ */
+const LETTERED_HEADER = `${HEFT_HEADER} | lettered v4`;
 const HEFT_TARGET_INCREASE = 1.0;
 const HEFT_MIN_HEIGHT_MM = 22;
 const HEFT_MAX_HEIGHT_MM = 32;
@@ -642,6 +648,12 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     return { stl: bytes, applied: false, text: "", reason: "no_text" };
   }
 
+  // Never letter a file that already carries lettering — a second pass places
+  // glyphs on a different face and the piece ships with garbled duplicate text.
+  if (hasStlHeader(bytes, LETTERED_HEADER)) {
+    return { stl: bytes, applied: false, text: label, reason: "already_lettered" };
+  }
+
   const parsed = parseStl(bytes);
   const oriented = normalizeManufacturingAxes(parsed);
   const alreadyReinforced = hasStlHeader(bytes, HEFT_HEADER);
@@ -713,7 +725,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   return {
     // Preserve the reinforcement marker after lettering so retries cannot add
     // a second base to an already reinforced final file.
-    stl: writeStl(attempt.tris, HEFT_HEADER),
+    stl: writeStl(attempt.tris, LETTERED_HEADER),
     applied: true,
     text: label,
     face: attempt.face,
