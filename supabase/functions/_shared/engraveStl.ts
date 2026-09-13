@@ -648,6 +648,12 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     return { stl: bytes, applied: false, text: "", reason: "no_text" };
   }
 
+  // Never letter a file that already carries lettering — a second pass places
+  // glyphs on a different face and the piece ships with garbled duplicate text.
+  if (hasStlHeader(bytes, LETTERED_HEADER)) {
+    return { stl: bytes, applied: false, text: label, reason: "already_lettered" };
+  }
+
   const parsed = parseStl(bytes);
   const oriented = normalizeManufacturingAxes(parsed);
   const alreadyReinforced = hasStlHeader(bytes, HEFT_HEADER);
