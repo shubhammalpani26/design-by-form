@@ -265,7 +265,11 @@ async function priceSizes(
         error: message.slice(0, 200),
       });
     }
-  }
+  };
+
+  const wanted = Object.entries(sizes).filter(([sizeKey]) => !only || sizeKey === only);
+  await Promise.all(wanted.map((entry) => priceOne(entry as [string, { usd: number }])));
+  out.sort((a, b) => order.indexOf(a.sizeKey) - order.indexOf(b.sizeKey));
 
   return out;
 }
