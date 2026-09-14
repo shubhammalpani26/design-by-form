@@ -127,11 +127,14 @@ async function priceSizes(
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
+  const order = Object.keys(sizes);
 
-  for (const [sizeKey, entry] of Object.entries(sizes)) {
-    if (only && sizeKey !== only) continue;
+  // Partner slices run side by side so several sizes cannot stack up serially
+  // and push the whole request past the worker's time limit.
+  const priceOne = async ([sizeKey, entry]: [string, { usd: number }]) => {
     const fileUrl = files[sizeKey];
-    if (!fileUrl) continue;
+    if (!fileUrl) return;
+
 
     const slice = async (url: string) =>
       await estimateLandedUnitCost(
