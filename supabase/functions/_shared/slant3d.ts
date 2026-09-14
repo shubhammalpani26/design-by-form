@@ -40,14 +40,22 @@ interface ApiEnvelope<T> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Authorization": `Bearer ${apiKey()}`,
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...init,
+      signal: init.signal ?? AbortSignal.timeout(Math.max(5_000, budgetRemainingMs(30_000))),
+      headers: {
+        "Authorization": `Bearer ${apiKey()}`,
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (e) {
+    const aborted = e instanceof DOMException && e.name === "TimeoutError";
+    if (aborted) throw new PartnerApiError("US manufacturing partner did not respond in time", 504);
+    throw e;
+  }
 
   const text = await res.text();
   let body: unknown = text;
@@ -100,6 +108,29 @@ export interface PartnerFile {
  * happily accepts a second later. Without a retry a good piece silently drops
  * to the fallback list price, so transient server-side failures are re-tried.
  */
+/**
+ * Shared wall-clock budget for one invocation. Retries stop once it is spent,
+ * so a slow partner can never run the whole worker past its limit and get the
+ * request killed with no answer at all.
+ */
+let partnerDeadlineAt: number | null = null;
+
+/** Starts (or resets) the partner time budget for this invocation. */
+export function startPartnerBudget(ms: number) {
+  partnerDeadlineAt = Date.now() + ms;
+}
+
+/** True once the invocation's partner budget is spent. */
+export function partnerBudgetSpent(): boolean {
+  return partnerDeadlineAt !== null && Date.now() >= partnerDeadlineAt;
+}
+
+/** Milliseconds left in the budget (defaults to a safe per-call ceiling). */
+function budgetRemainingMs(fallback = 25_000): number {
+  if (partnerDeadlineAt === null) return fallback;
+  return Math.max(0, partnerDeadlineAt - Date.now());
+}
+
 async function withPartnerRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<T> {
   let lastError: unknown;
   for (let i = 0; i < attempts; i++) {
@@ -108,8 +139,10 @@ async function withPartnerRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<
     } catch (e) {
       lastError = e;
       const transient = e instanceof PartnerApiError && e.status >= 500;
-      if (!transient || i === attempts - 1) throw e;
-      await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+      const backoff = 700 * (i + 1);
+      const outOfTime = budgetRemainingMs() <= backoff + 2_000;
+      if (!transient || i === attempts - 1 || outOfTime) throw e;
+      await new Promise((r) => setTimeout(r, backoff));
     }
   }
   throw lastError;

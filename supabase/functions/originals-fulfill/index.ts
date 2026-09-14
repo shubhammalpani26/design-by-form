@@ -6,6 +6,7 @@ import {
   placeOrder,
   releaseDraftOrder,
   resolveFilamentId,
+  startPartnerBudget,
   uploadPrintFile,
   type PartnerAddress,
   type PartnerPrintItem,
@@ -67,6 +68,8 @@ function addressFrom(shipping: any): { email?: string; address: PartnerAddress }
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
+  startPartnerBudget(120_000);
+
 
   let scopeGroupId: string | null = null;
   let scopeOrderId: string | null = null;

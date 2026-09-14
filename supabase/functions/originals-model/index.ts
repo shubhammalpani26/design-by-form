@@ -314,7 +314,10 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     .eq("status", "paid")
     .is("partner_order_id", null)
     .order("created_at", { ascending: true })
-    .limit(scope.sweep ? 25 : 12);
+    // Each piece parses and rewrites a multi-megabyte mesh, so a run stays
+    // small enough to finish inside the worker's limits; the next pass picks
+    // up whatever is left.
+    .limit(scope.sweep ? 8 : 6);
 
   if (scope.singleOrder && scope.orderId) query = query.eq("id", scope.orderId);
   else if (groupId) query = query.eq("group_id", groupId);

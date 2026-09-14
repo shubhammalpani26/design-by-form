@@ -13,7 +13,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
 import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
-import { estimateLandedUnitCost, partnerCostToMbpUsd } from "../_shared/slant3d.ts";
+import { estimateLandedUnitCost, partnerCostToMbpUsd, startPartnerBudget } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
 
@@ -127,11 +127,14 @@ async function priceSizes(
 ): Promise<SizeOutcome[]> {
   const sizes = PRICE_BOOK[skuSlug] ?? {};
   const out: SizeOutcome[] = [];
+  const order = Object.keys(sizes);
 
-  for (const [sizeKey, entry] of Object.entries(sizes)) {
-    if (only && sizeKey !== only) continue;
+  // Partner slices run side by side so several sizes cannot stack up serially
+  // and push the whole request past the worker's time limit.
+  const priceOne = async ([sizeKey, entry]: [string, { usd: number }]) => {
     const fileUrl = files[sizeKey];
-    if (!fileUrl) continue;
+    if (!fileUrl) return;
+
 
     const slice = async (url: string) =>
       await estimateLandedUnitCost(
@@ -262,7 +265,11 @@ async function priceSizes(
         error: message.slice(0, 200),
       });
     }
-  }
+  };
+
+  const wanted = Object.entries(sizes).filter(([sizeKey]) => !only || sizeKey === only);
+  await Promise.all(wanted.map((entry) => priceOne(entry as [string, { usd: number }])));
+  out.sort((a, b) => order.indexOf(a.sizeKey) - order.indexOf(b.sizeKey));
 
   return out;
 }
@@ -274,6 +281,9 @@ function publicShape(feasibility: Record<string, unknown> | null) {
 }
 
 Deno.serve(async (req) => {
+  // Whole-invocation budget for partner calls; past this we answer with the
+  // published list price instead of being killed mid-request.
+  startPartnerBudget(90_000);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
