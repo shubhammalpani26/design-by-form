@@ -148,3 +148,19 @@ Deno.test("an already-lettered file is never lettered a second time", () => {
   assertEquals(second.reason, "already_lettered");
   assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
 });
+
+Deno.test("fitStlToLongestEdge scales an undersized file back up to the sold size", () => {
+  const tris = keepsakeTris();
+  const shrunk = writeStl(tris.map((t) => t.map(([x, y, z]) => [x * 0.5, y * 0.5, z * 0.5]) as typeof t));
+  const fitted = fitStlToLongestEdge(shrunk, 120);
+  const parsed = parseStl(fitted.stl);
+  const xs = parsed.flat().map((p) => p[0]);
+  const ys = parsed.flat().map((p) => p[1]);
+  const zs = parsed.flat().map((p) => p[2]);
+  const longest = Math.max(
+    Math.max(...xs) - Math.min(...xs),
+    Math.max(...ys) - Math.min(...ys),
+    Math.max(...zs) - Math.min(...zs),
+  );
+  if (Math.abs(longest - 120) > 0.5) throw new Error(`expected 120mm, got ${longest}`);
+});
