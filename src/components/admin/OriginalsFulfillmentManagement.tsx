@@ -413,6 +413,43 @@ export function OriginalsFulfillmentManagement() {
                     : "—"}
                 </div>
               </div>
+              {printability[order.id] && (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge
+                    variant={
+                      printability[order.id].printable === false ? "destructive" : "outline"
+                    }
+                  >
+                    {printability[order.id].printable === true
+                      ? "Printability check: pass"
+                      : printability[order.id].printable === false
+                      ? "Printability check: issues"
+                      : "Printability check: inconclusive"}
+                  </Badge>
+                  <span>
+                    {[
+                      printability[order.id].watertight === null
+                        ? null
+                        : printability[order.id].watertight
+                        ? "watertight"
+                        : "not watertight",
+                      printability[order.id].holes === null
+                        ? null
+                        : `${printability[order.id].holes} holes`,
+                      printability[order.id].nonManifoldEdges === null
+                        ? null
+                        : `${printability[order.id].nonManifoldEdges} non-manifold edges`,
+                      printability[order.id].volumeCm3 === null
+                        ? null
+                        : `${printability[order.id].volumeCm3} cm³`,
+                      printability[order.id].error ?? null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  <span className="opacity-70">advisory only</span>
+                </div>
+              )}
               {order.fulfillment_error && (
                 <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-destructive">
                   {order.fulfillment_error}
