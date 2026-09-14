@@ -174,6 +174,29 @@ export function OriginalsFulfillmentManagement() {
 
     setEvents((eventsRes.data as PartnerEvent[]) ?? []);
     setLoading(false);
+
+    // Advisory printability report from the mesh generator, keyed by order.
+    const previewIds = Array.from(
+      new Set(all.map((o) => o.preview_id).filter(Boolean) as string[]),
+    );
+    if (previewIds.length) {
+      const { data: previews } = await supabase
+        .from("originals_previews")
+        .select("id, engineering")
+        .in("id", previewIds);
+      const byPreview = new Map<string, PrintabilityReport>();
+      for (const p of previews ?? []) {
+        const report = ((p.engineering ?? {}) as Record<string, unknown>)
+          .printability as PrintabilityReport | undefined;
+        if (report) byPreview.set(p.id as string, report);
+      }
+      const byOrder: Record<string, PrintabilityReport> = {};
+      for (const o of all) {
+        const report = o.preview_id ? byPreview.get(o.preview_id) : undefined;
+        if (report) byOrder[o.id] = report;
+      }
+      setPrintability(byOrder);
+    }
   }, []);
 
   useEffect(() => {
