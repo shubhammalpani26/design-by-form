@@ -223,7 +223,7 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   if (row.preview_id) {
     const { data: preview } = await admin
       .from("originals_previews")
-      .select("id, preview_image_url, print_file_url, print_files, model_task_id")
+      .select("id, preview_image_url, print_file_url, print_files, model_task_id, engineering")
       .eq("id", row.preview_id)
       .maybeSingle();
 
