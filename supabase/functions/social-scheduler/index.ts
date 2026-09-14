@@ -585,8 +585,24 @@ async function resolveMediaUrl(raw: string): Promise<string> {
   return data.signedUrl;
 }
 
+/**
+ * Lead with the animal, not the product. Every caption carries the one small habit that
+ * made this pet theirs, so the grid reads as remembrance and affection rather than a
+ * product catalogue. No urgency, no countdowns, no flash-sale language — ever.
+ */
+function composeCaption(post: Post): string {
+  const base = (post.caption ?? "").trim();
+  const story = storyFor(post.id);
+  if (!story || base.includes(story)) return base;
+  const name = engravingFor(post.id).name;
+  const alreadyTold = new RegExp(`${name}\\b[^.]*\\b(always|still|sits|sleeps|naps|waits)`, "i").test(base);
+  if (alreadyTold) return base;
+  return `${story}\n\n${base}`;
+}
+
 async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
   const mediaUrl = await resolveMediaUrl(post.image_url!);
+  const caption = composeCaption(post);
   const isVideo = post.slot_type === "reel" || /\.(mp4|mov)(\?|$)/i.test(mediaUrl.split("?")[0]);
   const params = new URLSearchParams();
   if (isVideo) {
@@ -594,11 +610,12 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
     params.set("media_type", "REELS");
     params.set("video_url", mediaUrl);
     params.set("share_to_feed", "true");
-    params.set("caption", post.caption);
+    params.set("caption", caption);
   } else {
     params.set("image_url", mediaUrl);
     if (post.slot_type === "story") params.set("media_type", "STORIES");
-    else params.set("caption", post.caption);
+    else params.set("caption", caption);
+
   }
 
 
