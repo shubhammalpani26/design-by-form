@@ -12,6 +12,7 @@
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
+import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl } from "../_shared/engraveStl.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
@@ -222,7 +223,7 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   if (row.preview_id) {
     const { data: preview } = await admin
       .from("originals_previews")
-      .select("id, preview_image_url, print_file_url, print_files, model_task_id")
+      .select("id, preview_image_url, print_file_url, print_files, model_task_id, engineering")
       .eq("id", row.preview_id)
       .maybeSingle();
 
@@ -259,8 +260,15 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
           targetMaxMm: SIZE_MAX_MM[row.size_key] ?? 180,
             reinforceBase: true,
         });
+        // Second opinion from the generator's own printability report. It is
+        // advisory only — our geometry gate still decides what ships.
+        const printability = await analyzePrintability(taskId, Deno.env.get("MESHY_API_KEY"));
+        const engineering = {
+          ...((preview?.engineering ?? {}) as Record<string, unknown>),
+          ...(printability ? { printability } : {}),
+        };
         await admin.from("originals_previews")
-          .update({ print_file_url: prepared.url, model_status: "ready" })
+          .update({ print_file_url: prepared.url, model_status: "ready", engineering })
           .eq("id", preview!.id);
         return { url: prepared.url, status: "ready" };
       }

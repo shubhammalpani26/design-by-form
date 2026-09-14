@@ -5,6 +5,7 @@ import { template as originalsReviewRequest } from './originals-review-request.t
 import { template as fulfillmentFailed } from './fulfillment-failed.tsx'
 import { template as contactFormSubmission } from './contact-form-submission.tsx'
 import { template as partnerRefundRequest } from './partner-refund-request.tsx'
+import { template as manufacturingOrderPlaced } from './manufacturing-order-placed.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
@@ -21,4 +22,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'fulfillment-failed': fulfillmentFailed,
   'contact-form-submission': contactFormSubmission,
   'partner-refund-request': partnerRefundRequest,
+  'manufacturing-order-placed': manufacturingOrderPlaced,
 }

@@ -28,6 +28,17 @@ interface OriginalsOrder {
   payment_provider: string;
   print_file_url: string | null;
   preview_image_url: string | null;
+  preview_id: string | null;
+}
+
+/** Generator's own printability report — advisory, beside our geometry gate. */
+interface PrintabilityReport {
+  printable: boolean | null;
+  watertight: boolean | null;
+  holes: number | null;
+  nonManifoldEdges: number | null;
+  volumeCm3: number | null;
+  error?: string;
 }
 
 /** Physical proof the lettering is geometry, not a render — shown inline. */
@@ -129,6 +140,7 @@ export function OriginalsFulfillmentManagement() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [open, setOpen] = useState<Record<string, boolean>>({});
+  const [printability, setPrintability] = useState<Record<string, PrintabilityReport>>({});
   const { toast } = useToast();
 
   const load = useCallback(async () => {
@@ -136,7 +148,7 @@ export function OriginalsFulfillmentManagement() {
       supabase
         .from("originals_orders")
         .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta, payment_provider, print_file_url, preview_image_url",
+          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta, payment_provider, print_file_url, preview_image_url, preview_id",
         )
         .order("created_at", { ascending: false })
         .limit(100),
@@ -162,6 +174,29 @@ export function OriginalsFulfillmentManagement() {
 
     setEvents((eventsRes.data as PartnerEvent[]) ?? []);
     setLoading(false);
+
+    // Advisory printability report from the mesh generator, keyed by order.
+    const previewIds = Array.from(
+      new Set(all.map((o) => o.preview_id).filter(Boolean) as string[]),
+    );
+    if (previewIds.length) {
+      const { data: previews } = await supabase
+        .from("originals_previews")
+        .select("id, engineering")
+        .in("id", previewIds);
+      const byPreview = new Map<string, PrintabilityReport>();
+      for (const p of previews ?? []) {
+        const report = ((p.engineering ?? {}) as Record<string, unknown>)
+          .printability as PrintabilityReport | undefined;
+        if (report) byPreview.set(p.id as string, report);
+      }
+      const byOrder: Record<string, PrintabilityReport> = {};
+      for (const o of all) {
+        const report = o.preview_id ? byPreview.get(o.preview_id) : undefined;
+        if (report) byOrder[o.id] = report;
+      }
+      setPrintability(byOrder);
+    }
   }, []);
 
   useEffect(() => {
@@ -378,6 +413,43 @@ export function OriginalsFulfillmentManagement() {
                     : "—"}
                 </div>
               </div>
+              {printability[order.id] && (
+                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                  <Badge
+                    variant={
+                      printability[order.id].printable === false ? "destructive" : "outline"
+                    }
+                  >
+                    {printability[order.id].printable === true
+                      ? "Printability check: pass"
+                      : printability[order.id].printable === false
+                      ? "Printability check: issues"
+                      : "Printability check: inconclusive"}
+                  </Badge>
+                  <span>
+                    {[
+                      printability[order.id].watertight === null
+                        ? null
+                        : printability[order.id].watertight
+                        ? "watertight"
+                        : "not watertight",
+                      printability[order.id].holes === null
+                        ? null
+                        : `${printability[order.id].holes} holes`,
+                      printability[order.id].nonManifoldEdges === null
+                        ? null
+                        : `${printability[order.id].nonManifoldEdges} non-manifold edges`,
+                      printability[order.id].volumeCm3 === null
+                        ? null
+                        : `${printability[order.id].volumeCm3} cm³`,
+                      printability[order.id].error ?? null,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                  <span className="opacity-70">advisory only</span>
+                </div>
+              )}
               {order.fulfillment_error && (
                 <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-destructive">
                   {order.fulfillment_error}
