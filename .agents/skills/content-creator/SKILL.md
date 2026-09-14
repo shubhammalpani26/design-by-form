@@ -51,3 +51,13 @@ LIMIT 30;
 Treat every row as binding: never re-propose something recorded as rejected, always apply recorded preferences, and prefer the higher `weight` when rows conflict.
 
 **Write after feedback.** When Shubham corrects, rejects, approves, or states a preference, insert a row immediately with the Supabase insert tool — `skill = 'content-creator'`, `kind` one of `feedback` | `preference` | `decision` | `metric`, `context` = what was proposed, `learning` = the rule to apply next time, `weight` 5 for explicit corrections, 4 for preferences, 3 default. When a new rule contradicts an old one, set the old row `active = false` instead of duplicating. Never store secrets or bank details. Confirm each write in one line ("Noted: …").
+
+## Pet pieces: tone rules (binding)
+
+Every piece is modelled from the customer's own photo — their animal, not a breed template. Mention it naturally.
+
+- Lead with the living: adoptions, birthdays, milestones, habits at home. Date-range engravings ("2012 — 2024") stay a small minority across the grid; a wall of them reads as a digital cemetery.
+- Every post carries one specific story line before the pitch: "Cooper always sat like this on the back of the couch during morning coffee." Show the submitted photo alongside the piece where possible.
+- Never urgency: no countdowns, flash sales, scarcity, or grief-triggered retargeting copy.
+- Mention the preview approval step as reassurance — parents can ask for the ear to flop the way it really did.
+- Quiet craftsman, never eager salesperson.

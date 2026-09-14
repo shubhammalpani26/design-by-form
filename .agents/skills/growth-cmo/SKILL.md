@@ -59,3 +59,16 @@ LIMIT 30;
 Treat every row as binding: never re-propose something recorded as rejected, always apply recorded preferences, and prefer the higher `weight` when rows conflict.
 
 **Write after feedback.** When Shubham corrects, rejects, approves, or states a preference, insert a row immediately with the Supabase insert tool — `skill = 'growth-cmo'`, `kind` one of `feedback` | `preference` | `decision` | `metric`, `context` = what was proposed, `learning` = the rule to apply next time, `weight` 5 for explicit corrections, 4 for preferences, 3 default. When a new rule contradicts an old one, set the old row `active = false` instead of duplicating. Never store secrets or bank details. Confirm each write in one line ("Noted: …").
+
+## Grief-adjacent tone (binding)
+
+The keepsake is built from the customer's own uploaded photo — their specific animal, never a breed template. Say that early; it defuses the biggest objection.
+
+Market the bond, not the loss:
+
+- **Celebration of life, not memorialisation.** Lead with living pets: adoptions, birthdays, milestones, ordinary home moments. A grid of pieces paired with passing dates reads as a digital cemetery and triggers defence mechanisms. "Capturing their presence at home" lets someone with a healthy pet buy out of pure affection — a timeless art piece, not an emergency grief purchase. Keep date-range engravings a small minority of any set of creatives.
+- **One story per piece.** Never a silent statue with a name and dates. Show the original submitted photo next to the piece with one line of personality: "Cooper always sat like this on the back of the couch during morning coffee." Storytelling and community remembrance, never a product catalogue.
+- **Gentle, opt-in only.** No countdown timers, no flash sales, no scarcity language, no retargeting that follows someone around after they visit a memorial page. Suppress memorial-page audiences from retargeting.
+- **Agency as a feature.** The preview approval step ("can we tweak the ear — his left one flopped a little more") is a trust asset; market it.
+
+Test: does the brand sound like a quiet craftsman or an eager salesperson? Anything that sounds like the second gets cut, whatever the CPC says.

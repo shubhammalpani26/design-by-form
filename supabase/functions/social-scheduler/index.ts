@@ -41,26 +41,33 @@ const PRINTABILITY_CLAUSE =
  * Each post gets its own pet so the grid reads like many real customers, not one repeated order.
  * Deterministic per post id: the same slot always re-renders with the same name.
  */
-const ENGRAVINGS: Array<{ name: string; sub: string }> = [
-  { name: "BAILEY", sub: "2011 — 2024" },
-  { name: "MILO", sub: "GOOD BOY" },
-  { name: "LUNA", sub: "2010 — 2023" },
-  { name: "COOPER", sub: "ADOPTED 2021" },
-  { name: "DAISY", sub: "2012 — 2025" },
-  { name: "CHARLIE", sub: "OUR SUNSHINE" },
-  { name: "MAX", sub: "2008 — 2022" },
-  { name: "BELLA", sub: "THE BEST GIRL" },
-  { name: "SADIE", sub: "DAD'S BEST FRIEND" },
-  { name: "OLLIE", sub: "SOFA SUPERVISOR" },
-  { name: "ROSIE", sub: "2011 — 2025" },
-  { name: "DUKE", sub: "HOME SINCE 2019" },
-  { name: "NALA", sub: "2016 — 2025" },
-  { name: "TOBY", sub: "PROFESSIONAL NAPPER" },
-  { name: "SIMBA", sub: "2012 — 2024" },
-  { name: "CLEO", sub: "OUR LITTLE SHADOW" },
-  { name: "PEPPER", sub: "CHIEF TROUBLEMAKER" },
-  { name: "OSCAR", sub: "2009 — 2023" },
+const ENGRAVINGS: Array<{ name: string; sub: string; story: string }> = [
+  // Mostly living pets. A wall of "2012 — 2024" reads as a digital cemetery and makes the
+  // feed feel like grief is being mined, so date ranges stay a small minority (3 of 18) and
+  // every entry carries the little story that makes the animal a specific animal.
+  { name: "BAILEY", sub: "THE WELCOME COMMITTEE", story: "Bailey meets everyone at the door, every single time, even the mailman she has known for nine years." },
+  { name: "MILO", sub: "GOOD BOY", story: "Milo learned that sitting politely next to the toaster gets results. It does not. He is undeterred." },
+  { name: "LUNA", sub: "2010 — 2023", story: "Luna slept in the sunny square by the balcony door. Her family still walks around that square." },
+  { name: "COOPER", sub: "ADOPTED 2021", story: "Cooper always sat like this on the back of the couch during morning coffee." },
+  { name: "DAISY", sub: "OUR SHADOW", story: "Daisy follows her person room to room and sighs dramatically whenever a door closes." },
+  { name: "CHARLIE", sub: "OUR SUNSHINE", story: "Charlie sings at the kettle. Nobody knows why. The kettle has never responded." },
+  { name: "MAX", sub: "2008 — 2022", story: "Max carried the same rope toy to the door for fourteen years. It is still on the shelf." },
+  { name: "BELLA", sub: "THE BEST GIRL", story: "Bella tilts her head at exactly this angle whenever anyone says the word 'walk'." },
+  { name: "SADIE", sub: "DAD'S BEST FRIEND", story: "Sadie picked Dad on day one and has supervised his every nap since." },
+  { name: "OLLIE", sub: "SOFA SUPERVISOR", story: "Ollie owns the left cushion. Guests may borrow it briefly, under observation." },
+  { name: "ROSIE", sub: "FIRST ONE UP", story: "Rosie wakes the house at 6:04 a.m. She has never needed an alarm and neither has anyone else." },
+  { name: "DUKE", sub: "HOME SINCE 2019", story: "Duke spent his first week hiding under the bed. Now he takes up the whole of it." },
+  { name: "NALA", sub: "2016 — 2025", story: "Nala pressed her forehead into her person's hand to say hello. Nine years of the same greeting." },
+  { name: "TOBY", sub: "PROFESSIONAL NAPPER", story: "Toby naps in the laundry basket, warm clothes only, and looks personally betrayed by cold ones." },
+  { name: "SIMBA", sub: "KING OF THE STAIRS", story: "Simba sits halfway up the stairs so he can see both floors at once. Security is a full-time job." },
+  { name: "CLEO", sub: "OUR LITTLE SHADOW", story: "Cleo appears the second a suitcase opens and sits in it until the trip is cancelled." },
+  { name: "PEPPER", sub: "CHIEF TROUBLEMAKER", story: "Pepper has opened three cupboards, one fridge, and exactly zero of them by accident." },
+  { name: "OSCAR", sub: "BIRTHDAY BOY", story: "Oscar turned ten this spring and got a whole carrot cake to himself, as is tradition." },
 ];
+
+/** The story that goes under the photo — the piece is the ending, the animal is the post. */
+const storyFor = (id: string) => engravingFor(id).story;
+
 
 /**
  * The grid has to look like many different households, not one breed of dog.
@@ -578,8 +585,24 @@ async function resolveMediaUrl(raw: string): Promise<string> {
   return data.signedUrl;
 }
 
+/**
+ * Lead with the animal, not the product. Every caption carries the one small habit that
+ * made this pet theirs, so the grid reads as remembrance and affection rather than a
+ * product catalogue. No urgency, no countdowns, no flash-sale language — ever.
+ */
+function composeCaption(post: Post): string {
+  const base = (post.caption ?? "").trim();
+  const story = storyFor(post.id);
+  if (!story || base.includes(story)) return base;
+  const name = engravingFor(post.id).name;
+  const alreadyTold = new RegExp(`${name}\\b[^.]*\\b(always|still|sits|sleeps|naps|waits)`, "i").test(base);
+  if (alreadyTold) return base;
+  return `${story}\n\n${base}`;
+}
+
 async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
   const mediaUrl = await resolveMediaUrl(post.image_url!);
+  const caption = composeCaption(post);
   const isVideo = post.slot_type === "reel" || /\.(mp4|mov)(\?|$)/i.test(mediaUrl.split("?")[0]);
   const params = new URLSearchParams();
   if (isVideo) {
@@ -587,11 +610,12 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
     params.set("media_type", "REELS");
     params.set("video_url", mediaUrl);
     params.set("share_to_feed", "true");
-    params.set("caption", post.caption);
+    params.set("caption", caption);
   } else {
     params.set("image_url", mediaUrl);
     if (post.slot_type === "story") params.set("media_type", "STORIES");
-    else params.set("caption", post.caption);
+    else params.set("caption", caption);
+
   }
 
 
