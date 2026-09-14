@@ -259,8 +259,15 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
           targetMaxMm: SIZE_MAX_MM[row.size_key] ?? 180,
             reinforceBase: true,
         });
+        // Second opinion from the generator's own printability report. It is
+        // advisory only — our geometry gate still decides what ships.
+        const printability = await analyzePrintability(taskId, Deno.env.get("MESHY_API_KEY"));
+        const engineering = {
+          ...((preview?.engineering ?? {}) as Record<string, unknown>),
+          ...(printability ? { printability } : {}),
+        };
         await admin.from("originals_previews")
-          .update({ print_file_url: prepared.url, model_status: "ready" })
+          .update({ print_file_url: prepared.url, model_status: "ready", engineering })
           .eq("id", preview!.id);
         return { url: prepared.url, status: "ready" };
       }
