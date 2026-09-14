@@ -150,8 +150,10 @@ Deno.test("an already-lettered file is never lettered a second time", () => {
 });
 
 Deno.test("fitStlToLongestEdge scales an undersized file back up to the sold size", () => {
-  const tris = keepsakeTris();
-  const shrunk = writeStl(tris.map((t) => t.map(([x, y, z]) => [x * 0.5, y * 0.5, z * 0.5]) as typeof t));
+  const tris: Tri[] = [];
+  box(tris, [-15, -12, 0], [15, 12, 8]);
+  box(tris, [-9, -6, 8], [9, 6, 45]);
+  const shrunk = writeStl(tris);
   const fitted = fitStlToLongestEdge(shrunk, 120);
   const parsed = parseStl(fitted.stl);
   const xs = parsed.flat().map((p) => p[0]);
