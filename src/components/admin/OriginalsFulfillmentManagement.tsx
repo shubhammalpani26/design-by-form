@@ -28,6 +28,17 @@ interface OriginalsOrder {
   payment_provider: string;
   print_file_url: string | null;
   preview_image_url: string | null;
+  preview_id: string | null;
+}
+
+/** Generator's own printability report — advisory, beside our geometry gate. */
+interface PrintabilityReport {
+  printable: boolean | null;
+  watertight: boolean | null;
+  holes: number | null;
+  nonManifoldEdges: number | null;
+  volumeCm3: number | null;
+  error?: string;
 }
 
 /** Physical proof the lettering is geometry, not a render — shown inline. */
