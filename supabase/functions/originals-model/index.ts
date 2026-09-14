@@ -68,13 +68,20 @@ async function startModelTask(imageUrl: string): Promise<string> {
     headers: { Authorization: `Bearer ${meshyKey()}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       image_url: imageUrl,
-      ai_model: "meshy-6",
+      // Meshy 7 is the current generation; `latest` resolves here too.
+      ai_model: "meshy-7",
       enable_pbr: false,
       should_remesh: true,
       should_texture: false,
       topology: "triangle",
       target_polycount: 150000,
-      symmetry_mode: "auto",
+      // Keep the customer's actual pet, not a stylised interpretation of it.
+      image_enhancement: false,
+      // Seat the mesh origin on its base so lettering/placement stays predictable.
+      auto_size: true,
+      origin_at: "bottom",
+      // We only ever consume the GLB; skipping the other formats cuts task time.
+      target_formats: ["glb"],
     }),
   });
   const text = await res.text();
