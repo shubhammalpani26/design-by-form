@@ -281,6 +281,9 @@ function publicShape(feasibility: Record<string, unknown> | null) {
 }
 
 Deno.serve(async (req) => {
+  // Whole-invocation budget for partner calls; past this we answer with the
+  // published list price instead of being killed mid-request.
+  startPartnerBudget(90_000);
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
