@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { engraveStl, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
+import { engraveStl, fitStlToLongestEdge, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
