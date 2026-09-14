@@ -16,6 +16,7 @@ import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
 import { engravingLabel } from "../_shared/engraveStl.ts";
+import { sendAppEmail } from "../_shared/appEmail.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -351,6 +352,35 @@ Deno.serve(async (req) => {
           updated_at: now,
         })
         .eq("id", f.id);
+    }
+
+    // Ops notification: the partner bills at processing, so this is the moment
+    // money actually leaves the card. Never let a mail failure break fulfilment.
+    try {
+      const sentIds = new Set(usedFiles.map((f) => f.id));
+      await sendAppEmail("manufacturing-order-placed", "contact@nyzora.ai", {
+        idempotencyKey: `mfg-placed-${placed.orderId}`,
+        templateData: {
+          partnerOrderId: placed.orderId,
+          pieceCount: usedFiles.length,
+          pieces: paid
+            .filter((row) => sentIds.has(row.id))
+            .map((row) => ({
+              name: engravingLabel(row.personalization as Record<string, unknown> | null) || row.sku_slug,
+              size: row.size_label ?? null,
+              filament: filamentByOrder[row.id.slice(0, 8)] ?? null,
+              quantity: Math.max(1, Number(row.quantity ?? 1)),
+            })),
+          printingCost: placed.draft.printingCost,
+          deliveryCost: placed.draft.deliveryCost,
+          total: placed.draft.total,
+          customerEmail: paid[0].customer_email ?? null,
+          groupId: groupId ?? null,
+          placedAt: now,
+        },
+      });
+    } catch (mailError) {
+      console.error("manufacturing-order-placed email failed", mailError);
     }
 
     return json({ partnerOrderId: placed.orderId, pieces: usedFiles.length, cost: placed.draft.total });
