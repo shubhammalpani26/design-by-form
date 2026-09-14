@@ -40,14 +40,22 @@ interface ApiEnvelope<T> {
 }
 
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${BASE_URL}${path}`, {
-    ...init,
-    headers: {
-      "Authorization": `Bearer ${apiKey()}`,
-      "Content-Type": "application/json",
-      ...(init.headers ?? {}),
-    },
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${BASE_URL}${path}`, {
+      ...init,
+      signal: init.signal ?? AbortSignal.timeout(Math.max(5_000, budgetRemainingMs(30_000))),
+      headers: {
+        "Authorization": `Bearer ${apiKey()}`,
+        "Content-Type": "application/json",
+        ...(init.headers ?? {}),
+      },
+    });
+  } catch (e) {
+    const aborted = e instanceof DOMException && e.name === "TimeoutError";
+    if (aborted) throw new PartnerApiError("US manufacturing partner did not respond in time", 504);
+    throw e;
+  }
 
   const text = await res.text();
   let body: unknown = text;
