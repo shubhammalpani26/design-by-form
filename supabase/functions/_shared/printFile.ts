@@ -1,5 +1,5 @@
 import { glbToStl } from "./glbToStl.ts";
-import { HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
+import { fitStlToLongestEdge, HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
 
 /**
  * Default longest-edge size (mm) used when a design has no verified
