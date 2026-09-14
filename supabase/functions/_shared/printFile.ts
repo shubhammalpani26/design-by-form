@@ -1,5 +1,5 @@
 import { glbToStl } from "./glbToStl.ts";
-import { HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
+import { fitStlToLongestEdge, HEFT_SIZE_RESERVE_MM, reinforceKeepsakeStl } from "./engraveStl.ts";
 
 /**
  * Default longest-edge size (mm) used when a design has no verified
@@ -76,8 +76,18 @@ export async function ensurePrintFile(
     : target;
   const converted = glbToStl(bytes, conversionTarget);
   const reinforced = opts.reinforceBase ? reinforceKeepsakeStl(converted.stl, target) : null;
-  const stl = reinforced?.stl ?? converted.stl;
-  const size = reinforced?.size ?? converted.size;
+  let stl = reinforced?.stl ?? converted.stl;
+  let size = reinforced?.size ?? converted.size;
+  // The conversion deliberately reserved headroom for the enlarged plinth, and
+  // reinforcement may add less than that (or be skipped entirely). Always bring
+  // the finished file back to the sold size before quoting or printing.
+  if (opts.reinforceBase) {
+    const fitted = fitStlToLongestEdge(stl, target);
+    if (fitted.scale !== 1) {
+      stl = fitted.stl;
+      size = fitted.size;
+    }
+  }
   const triangleCount = new DataView(stl.buffer, stl.byteOffset, stl.byteLength).getUint32(80, true);
 
   const path = `print-files/${key}.stl`;

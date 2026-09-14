@@ -1,5 +1,5 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
-import { engraveStl, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
+import { engraveStl, fitStlToLongestEdge, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
@@ -147,4 +147,22 @@ Deno.test("an already-lettered file is never lettered a second time", () => {
   assertEquals(second.applied, false);
   assertEquals(second.reason, "already_lettered");
   assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
+});
+
+Deno.test("fitStlToLongestEdge scales an undersized file back up to the sold size", () => {
+  const tris: Tri[] = [];
+  box(tris, [-15, -12, 0], [15, 12, 8]);
+  box(tris, [-9, -6, 8], [9, 6, 45]);
+  const shrunk = writeStl(tris);
+  const fitted = fitStlToLongestEdge(shrunk, 120);
+  const parsed = parseStl(fitted.stl);
+  const xs = parsed.flat().map((p) => p[0]);
+  const ys = parsed.flat().map((p) => p[1]);
+  const zs = parsed.flat().map((p) => p[2]);
+  const longest = Math.max(
+    Math.max(...xs) - Math.min(...xs),
+    Math.max(...ys) - Math.min(...ys),
+    Math.max(...zs) - Math.min(...zs),
+  );
+  if (Math.abs(longest - 120) > 0.5) throw new Error(`expected 120mm, got ${longest}`);
 });
