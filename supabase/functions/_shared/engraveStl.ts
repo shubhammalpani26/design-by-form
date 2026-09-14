@@ -422,6 +422,48 @@ export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number)
   return { stl: writeStl(reinforced.tris, HEFT_HEADER), ...reinforced };
 }
 
+/**
+ * Scales a finished print file so its longest edge matches the sold size.
+ * The heavier-base step converts the mesh smaller on purpose to leave room for
+ * the enlarged plinth; without this the buyer would receive a shorter piece
+ * than the size they picked (and be quoted on the smaller file).
+ */
+export function fitStlToLongestEdge(
+  bytes: Uint8Array,
+  targetMm: number,
+): { stl: Uint8Array; size: { x: number; y: number; z: number }; scale: number } {
+  const tris = parseStl(bytes);
+  const bounds = boundsOf(tris);
+  const size = {
+    x: bounds.max[0] - bounds.min[0],
+    y: bounds.max[1] - bounds.min[1],
+    z: bounds.max[2] - bounds.min[2],
+  };
+  const longest = Math.max(size.x, size.y, size.z);
+  if (!(targetMm > 0) || !(longest > 0) || Math.abs(longest - targetMm) / targetMm < 0.005) {
+    return { stl: bytes, size, scale: 1 };
+  }
+  const scale = targetMm / longest;
+  const scaled = tris.map((tri) =>
+    tri.map(([x, y, z]) => [x * scale, y * scale, z * scale] as V3) as Tri
+  );
+  const next = boundsOf(scaled);
+  const header = hasStlHeader(bytes, LETTERED_HEADER)
+    ? LETTERED_HEADER
+    : hasStlHeader(bytes, HEFT_HEADER)
+    ? HEFT_HEADER
+    : undefined;
+  return {
+    stl: header ? writeStl(scaled, header) : writeStl(scaled),
+    size: {
+      x: Number((next.max[0] - next.min[0]).toFixed(2)),
+      y: Number((next.max[1] - next.min[1]).toFixed(2)),
+      z: Number((next.max[2] - next.min[2]).toFixed(2)),
+    },
+    scale,
+  };
+}
+
 /** Area of triangles lying on one extreme plane of a mesh. */
 function extremeArea(tris: Tri[], axis: 0 | 1 | 2, outward: -1 | 1, extreme: number, tolerance: number) {
   let area = 0;
