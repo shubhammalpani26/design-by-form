@@ -13,7 +13,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
 import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
-import { estimateLandedUnitCost, partnerCostToMbpUsd } from "../_shared/slant3d.ts";
+import { estimateLandedUnitCost, partnerCostToMbpUsd, startPartnerBudget } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
 
