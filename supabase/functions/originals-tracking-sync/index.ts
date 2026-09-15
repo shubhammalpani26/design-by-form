@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
+        "id, group_id, partner_order_id, production_status, tracking_numbers, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       // Smaller batches finish inside one invocation; the cron run that
@@ -273,7 +273,16 @@ Deno.serve(async (req) => {
         synced += 1;
 
         // Only log real movement so the admin timeline stays signal, not noise.
-        if (nextStatus !== row.production_status || numbers.length) {
+        // Re-reading the same status with the same tracking numbers is not
+        // movement — logging it every run buries every other order's timeline.
+        const previousNumbers = ((row.tracking_numbers ?? []) as unknown[]).map((n) =>
+          String(n),
+        );
+        const trackingChanged =
+          numbers.length > 0 &&
+          (previousNumbers.length !== numbers.length ||
+            numbers.some((n, i) => previousNumbers[i] !== n));
+        if (nextStatus !== row.production_status || trackingChanged) {
           const carrierConfirmed = nextStatus === "delivered" && carrierDeliveredAt !== null;
           await logPartnerEvent(admin, {
             orderId: row.id,

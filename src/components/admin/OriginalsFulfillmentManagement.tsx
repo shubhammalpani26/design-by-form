@@ -144,25 +144,15 @@ export function OriginalsFulfillmentManagement() {
   const { toast } = useToast();
 
   const load = useCallback(async () => {
-    const [ordersRes, eventsRes] = await Promise.all([
-      supabase
-        .from("originals_orders")
-        .select(
-          "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta, payment_provider, print_file_url, preview_image_url, preview_id",
-        )
-        .order("created_at", { ascending: false })
-        .limit(100),
-      supabase
-        .from("partner_order_events")
-        .select(
-          "id, originals_order_id, partner_order_id, source, stage, event, status, message, details, occurred_at",
-        )
-        .order("occurred_at", { ascending: false })
-        .limit(500),
-    ]);
+    const ordersRes = await supabase
+      .from("originals_orders")
+      .select(
+        "id, group_id, sku_slug, size_label, quantity, status, production_status, partner_order_id, tracking_numbers, carrier, customer_email, amount_usd, fulfillment_error, created_at, personalization, engraved_text, engraved_at, engraving_meta, payment_provider, print_file_url, preview_image_url, preview_id",
+      )
+      .order("created_at", { ascending: false })
+      .limit(100);
 
     if (ordersRes.error) console.error(ordersRes.error);
-    if (eventsRes.error) console.error(eventsRes.error);
     // Abandoned carts and failed payments never reach the partner — keep them
     // visible but plainly marked, and always below the real orders.
     const all = (ordersRes.data as OriginalsOrder[]) ?? [];
@@ -172,7 +162,37 @@ export function OriginalsFulfillmentManagement() {
       ),
     );
 
-    setEvents((eventsRes.data as PartnerEvent[]) ?? []);
+    // Scope the timeline to the orders on screen. A single global "latest 500"
+    // gets swallowed by whichever order the partner sync touched most, leaving
+    // every other card looking like nothing ever happened.
+    const eventCols =
+      "id, originals_order_id, partner_order_id, source, stage, event, status, message, details, occurred_at";
+    const [scopedRes, unmatchedRes] = await Promise.all([
+      all.length
+        ? supabase
+            .from("partner_order_events")
+            .select(eventCols)
+            .in(
+              "originals_order_id",
+              all.map((o) => o.id),
+            )
+            .order("occurred_at", { ascending: false })
+            .limit(1000)
+        : Promise.resolve({ data: [], error: null }),
+      supabase
+        .from("partner_order_events")
+        .select(eventCols)
+        .is("originals_order_id", null)
+        .order("occurred_at", { ascending: false })
+        .limit(100),
+    ]);
+    if (scopedRes.error) console.error(scopedRes.error);
+    if (unmatchedRes.error) console.error(unmatchedRes.error);
+
+    setEvents([
+      ...((scopedRes.data as PartnerEvent[]) ?? []),
+      ...((unmatchedRes.data as PartnerEvent[]) ?? []),
+    ]);
     setLoading(false);
 
     // Advisory printability report from the mesh generator, keyed by order.
