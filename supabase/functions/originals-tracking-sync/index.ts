@@ -273,7 +273,16 @@ Deno.serve(async (req) => {
         synced += 1;
 
         // Only log real movement so the admin timeline stays signal, not noise.
-        if (nextStatus !== row.production_status || numbers.length) {
+        // Re-reading the same status with the same tracking numbers is not
+        // movement — logging it every run buries every other order's timeline.
+        const previousNumbers = ((row.tracking_numbers ?? []) as unknown[]).map((n) =>
+          String(n),
+        );
+        const trackingChanged =
+          numbers.length > 0 &&
+          (previousNumbers.length !== numbers.length ||
+            numbers.some((n, i) => previousNumbers[i] !== n));
+        if (nextStatus !== row.production_status || trackingChanged) {
           const carrierConfirmed = nextStatus === "delivered" && carrierDeliveredAt !== null;
           await logPartnerEvent(admin, {
             orderId: row.id,
