@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendAppEmail } from "../_shared/appEmail.ts";
-import { getTracking } from "../_shared/slant3d.ts";
+import { getTracking, startPartnerBudget, partnerBudgetSpent } from "../_shared/slant3d.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 import { confirmCarrierDelivery } from "../_shared/carrierTracking.ts";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
@@ -149,6 +149,10 @@ Deno.serve(async (req) => {
   if (!caller) return unauthorized(corsHeaders);
 
   try {
+    // A slow partner must never burn the whole invocation: every partner call
+    // shares one wall-clock budget, and we stop cleanly before the gateway
+    // times out. Anything left over is picked up by the next scheduled run.
+    startPartnerBudget(60_000);
     const body = req.method === "POST" ? await req.json().catch(() => ({})) : {};
     const groupId = typeof body?.group_id === "string" ? body.group_id : null;
 
