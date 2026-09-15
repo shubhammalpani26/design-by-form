@@ -180,20 +180,46 @@ Deno.serve(async (req) => {
         "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
-      .limit(60);
+      // Smaller batches finish inside one invocation; the cron run that
+      // follows picks up whatever is left, oldest first.
+      .order("updated_at", { ascending: true, nullsFirst: true })
+      .limit(groupId ? 60 : 25);
     query = groupId ? query.eq("group_id", groupId) : query.in("production_status", OPEN);
 
     const { data: rows, error } = await query;
     if (error) throw error;
 
-    // One partner order can back several rows — sync each partner order once.
+    // One partner order can back several rows — look each one up once, and do
+    // the lookups side by side so one slow reply doesn't hold up the rest.
     const seen = new Map<string, { status: string; trackingNumbers: unknown[] }>();
+    const keys = [...new Set((rows ?? []).map((r) => r.partner_order_id!).filter(Boolean))];
+    let partnerFailures = 0;
+    for (let i = 0; i < keys.length; i += 5) {
+      if (partnerBudgetSpent()) break;
+      await Promise.all(
+        keys.slice(i, i + 5).map(async (key) => {
+          try {
+            seen.set(key, await getTracking(key));
+          } catch (e) {
+            partnerFailures += 1;
+            console.error("partner tracking lookup failed", key, e instanceof Error ? e.message : e);
+          }
+        }),
+      );
+    }
+
     let synced = 0;
+    let deferred = 0;
 
     for (const row of rows ?? []) {
       const key = row.partner_order_id!;
+      // No answer from the partner this round — leave the order untouched so
+      // the next run retries it; never mark it as synced.
+      if (!seen.has(key)) {
+        deferred += 1;
+        continue;
+      }
       try {
-        if (!seen.has(key)) seen.set(key, await getTracking(key));
         const { status, trackingNumbers } = seen.get(key)!;
         // The partner sometimes hands back the numbers JSON-encoded, or nested
         // one level deep — flatten it all down to plain tracking strings.
