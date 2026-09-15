@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
+        "id, group_id, partner_order_id, production_status, tracking_numbers, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       // Smaller batches finish inside one invocation; the cron run that
