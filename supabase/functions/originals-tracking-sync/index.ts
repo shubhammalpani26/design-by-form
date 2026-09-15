@@ -320,7 +320,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify(groupId ? { group_id: groupId } : { sweep: true }),
     }).catch(() => {});
 
-    return json({ synced, reviewsRequested });
+    return json({ synced, reviewsRequested, deferred, partnerFailures });
   } catch (e) {
     console.error("originals-tracking-sync error", e);
     return json({ error: "Could not sync tracking" }, 500);
