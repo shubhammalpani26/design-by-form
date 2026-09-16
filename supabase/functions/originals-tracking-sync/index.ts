@@ -213,9 +213,14 @@ Deno.serve(async (req) => {
 
     for (const row of rows ?? []) {
       const key = row.partner_order_id!;
-      // No answer from the partner this round — leave the order untouched so
-      // the next run retries it; never mark it as synced.
+      // No answer from the partner this round — retry it next run, but bump
+      // updated_at so a permanently failing row rotates to the back of the
+      // oldest-first queue instead of blocking the batch forever.
       if (!seen.has(key)) {
+        await admin
+          .from("originals_orders")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", row.id);
         deferred += 1;
         continue;
       }
