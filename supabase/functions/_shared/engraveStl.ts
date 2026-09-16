@@ -480,12 +480,17 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     candidates.set(key, (candidates.get(key) ?? 0) + triArea(tri));
   }
 
+  // Take the HIGHEST qualifying flat plane, not the widest one. The generated
+  // plinth is often stepped (a wide disc at the bottom, a narrower cylinder on
+  // top); cutting at the widest plane left that upper cylinder sitting on our
+  // slab — two bases stacked under the bust.
   let best: { z: number; area: number } | null = null;
   for (const [z, area] of candidates) {
-    if (area < footprint * 0.12) continue;
-    if (!best || area > best.area || (area === best.area && z > best.z)) best = { z, area };
+    if (area < footprint * 0.06) continue;
+    if (!best || z > best.z) best = { z, area };
   }
   return best?.z ?? null;
+
 }
 
 /**
