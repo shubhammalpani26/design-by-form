@@ -69,7 +69,7 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora enlarged plinth v5";
+const HEFT_HEADER = "Nyzora rectangular plinth v6";
 /**
  * Marks a file whose lettering is already cut in. Re-lettering such a file is
  * how a piece ended up with a second, mirrored set of glyphs on another face,
