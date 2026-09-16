@@ -14,7 +14,7 @@ Deno.test("only an exact verified v4 single-plinth engraving is reused", () => {
   const row = {
     print_file_url: "https://example.test/piece-engraved-v2.stl",
     engraved_text: "MILO",
-    engraving_meta: { placementVersion: 4, heftVersion: 5, placementVerified: true },
+    engraving_meta: { placementVersion: 4, heftVersion: 6, placementVerified: true },
   };
   assertEquals(reusableOrderPrintFile(row, "MILO"), row.print_file_url);
   assertEquals(reusableOrderPrintFile(row, "TOBY"), null);
