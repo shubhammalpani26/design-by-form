@@ -527,19 +527,21 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     tri.map(([x, y, z]) => [x, y, z - bounds.min[2] + addedHeight] as V3) as Tri
   );
 
-  // Footprint: the sculpture's own span, widened so the slab reads as a plinth
-  // and carries lettering comfortably.
+  // Footprint: the discarded plinth's own span, widened so the slab reads as a
+  // plinth and carries lettering comfortably. Never narrower than the
+  // sculpture standing on it.
   const keptBounds = boundsOf(lifted);
-  const cx = (keptBounds.max[0] + keptBounds.min[0]) / 2;
-  const cy = (keptBounds.max[1] + keptBounds.min[1]) / 2;
+  const cx = (bounds.max[0] + bounds.min[0]) / 2;
+  const cy = (bounds.max[1] + bounds.min[1]) / 2;
   const halfX = Math.max(
-    ((keptBounds.max[0] - keptBounds.min[0]) * HEFT_FOOTPRINT_SCALE) / 2,
-    (keptBounds.max[0] - keptBounds.min[0]) / 2 + 5,
+    (width * HEFT_FOOTPRINT_SCALE) / 2,
+    Math.max(keptBounds.max[0] - cx, cx - keptBounds.min[0]) + 5,
   );
   const halfY = Math.max(
-    ((keptBounds.max[1] - keptBounds.min[1]) * HEFT_FOOTPRINT_SCALE) / 2,
-    (keptBounds.max[1] - keptBounds.min[1]) / 2 + 5,
+    (depth * HEFT_FOOTPRINT_SCALE) / 2,
+    Math.max(keptBounds.max[1] - cy, cy - keptBounds.min[1]) + 5,
   );
+
 
   const out: Tri[] = [];
   // The slab overlaps the sculpture's open underside so the two fuse solidly.
