@@ -69,7 +69,7 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora rectangular plinth v6";
+const HEFT_HEADER = "Nyzora rectangular plinth v7";
 /**
  * Marks a file whose lettering is already cut in. Re-lettering such a file is
  * how a piece ended up with a second, mirrored set of glyphs on another face,
@@ -480,10 +480,51 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     candidates.set(key, (candidates.get(key) ?? 0) + triArea(tri));
   }
 
-  // Take the HIGHEST qualifying flat plane, not the widest one. The generated
-  // plinth is often stepped (a wide disc at the bottom, a narrower cylinder on
-  // top); cutting at the widest plane left that upper cylinder sitting on our
-  // slab — two bases stacked under the bust.
+  // First find a narrow neck followed by the sustained widening of the chest.
+  // Ornate generated pedestals often have several horizontal rings, so their
+  // top cannot be identified reliably from horizontal area alone.
+  const sectionArea = (z: number): number => {
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const tri of tris) {
+      for (let i = 0; i < 3; i++) {
+        const a = tri[i];
+        const b = tri[(i + 1) % 3];
+        const da = a[2] - z;
+        const db = b[2] - z;
+        if (Math.abs(da) < 1e-6) {
+          minX = Math.min(minX, a[0]); maxX = Math.max(maxX, a[0]);
+          minY = Math.min(minY, a[1]); maxY = Math.max(maxY, a[1]);
+        }
+        if (da * db < 0) {
+          const t = (z - a[2]) / (b[2] - a[2]);
+          const x = a[0] + (b[0] - a[0]) * t;
+          const y = a[1] + (b[1] - a[1]) * t;
+          minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+          minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+        }
+      }
+    }
+    return Number.isFinite(minX) ? (maxX - minX) * (maxY - minY) : 0;
+  };
+
+  const sections = Array.from({ length: 29 }, (_, i) => {
+    const ratio = 0.08 + i * 0.01;
+    const z = bounds.min[2] + height * ratio;
+    return { z, area: sectionArea(z) };
+  });
+  let neck: { z: number; area: number } | null = null;
+  for (let i = 2; i < sections.length - 7; i++) {
+    const here = sections[i];
+    if (!(here.area > footprint * 0.015)) continue;
+    const localMinimum = here.area <= sections[i - 1].area && here.area <= sections[i + 1].area;
+    const later = sections.slice(i + 3, i + 8);
+    const widened = later.filter((sample) => sample.area >= here.area * 1.65).length >= 3;
+    if (localMinimum && widened && (!neck || here.z > neck.z)) neck = here;
+  }
+  if (neck) return neck.z;
+
+  // Simple slab models do not have a neck-and-chest silhouette. For those,
+  // take the highest qualifying horizontal plane.
   let best: { z: number; area: number } | null = null;
   for (const [z, area] of candidates) {
     if (area < footprint * 0.06) continue;

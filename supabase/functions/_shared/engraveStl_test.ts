@@ -73,6 +73,23 @@ Deno.test("enlarges the original plinth before quoting without adding a second s
   assertEquals(parseStl(second.stl).length, parseStl(first.stl).length);
 });
 
+Deno.test("removes an ornate round pedestal before adding the rectangular plinth", () => {
+  const tris: Tri[] = [];
+  // Wide foot, tapered pedestal, narrow neck, then a broad chest.
+  box(tris, [-28, -28, 0], [28, 28, 8]);
+  box(tris, [-20, -20, 8], [20, 20, 22]);
+  box(tris, [-13, -13, 22], [13, 13, 35]);
+  box(tris, [-38, -32, 39], [38, 32, 110]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  const output = parseStl(result.stl);
+  const slabTop = result.baseHeightMm;
+  const pedestalBand = output.flatMap((tri) => tri).filter((point) =>
+    point[2] > slabTop + 2 && point[2] < slabTop + 20 && Math.abs(point[0]) <= 20 && Math.abs(point[1]) <= 20
+  );
+  assertEquals(pedestalBand.length, 0);
+});
+
 Deno.test("reinforced base keeps the final piece inside its sold size", () => {
   const tris: Tri[] = [];
   box(tris, [-30, -24, 0], [30, 24, 16]);
