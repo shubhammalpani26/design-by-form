@@ -546,7 +546,9 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   const out: Tri[] = [];
   // The slab overlaps the sculpture's open underside so the two fuse solidly.
   box(out, [cx - halfX, cy - halfY, 0], [cx + halfX, cy + halfY, slabTop + HEFT_OVERLAP_MM]);
-  out.push(...lifted);
+  // Never spread here: these meshes carry >100k triangles and a spread blows
+  // the call stack ("Maximum call stack size exceeded").
+  for (const tri of lifted) out.push(tri);
 
   const next = boundsOf(out);
   return {
