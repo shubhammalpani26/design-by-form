@@ -155,7 +155,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (
     row.engraved_text === label &&
     existingMeta?.placementVersion === 4 &&
-    existingMeta?.heftVersion === 6 &&
+    existingMeta?.heftVersion === 7 &&
     existingMeta?.placementVerified === true
   ) {
     return url;
@@ -187,7 +187,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         reliefMm: result.reliefMm,
         strokeMm: result.strokeMm,
         placementVersion: 4,
-        heftVersion: 6,
+        heftVersion: 7,
         placementVerified: result.placementVerified === true,
         orientationNormalized: result.orientationNormalized ?? false,
         letteringBounds: result.letteringBounds,
