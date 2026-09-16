@@ -23,3 +23,7 @@ Raised (not recessed) lettering is deliberate — additive prisms need no boolea
 ## No second lettering pass (2026-09-13)
 Delivered MILO showed the name under the base *and* a garbled mirrored copy on the front: the file was lettered twice.
 Final engraved files now carry the STL header `Nyzora enlarged plinth v5 | lettered v4`; `engraveStl()` refuses any file with that header (`reason: "already_lettered"`), so a retry can never add a second set of glyphs. Reuse checks in `engravingState.ts` expect `heftVersion === 5`.
+
+## Rectangular plinth (2026-09-16)
+The mesh generator invents the base from the photo — often round and tapered, which is why lettering could not sit flat and appeared to float.
+`reinforceTris()` now discards every triangle below the plinth shoulder and builds a deterministic rectangular slab (flat front face, square corners, 22–32 mm tall, footprint 1.25x the original base, 1.2 mm overlap into the sculpture). Header is `Nyzora rectangular plinth v6`; reuse checks expect `heftVersion === 6`.
