@@ -562,15 +562,37 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   const targetHeight = targetExtra > 0 ? targetExtra / (width * depth) : 0;
   const addedHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
 
-  // Keep only the sculpture; the generated base is discarded outright.
-  const kept = tris.filter((tri) => Math.max(tri[0][2], tri[1][2], tri[2][2]) > cutZ + 1e-6);
+  // Keep only the sculpture; clip crossing triangles at the cut plane instead
+  // of retaining their below-plane vertices (which leaves pedestal fragments).
+  const kept: Tri[] = [];
+  for (const tri of tris) {
+    let polygon: V3[] = tri;
+    const clipped: V3[] = [];
+    for (let i = 0; i < polygon.length; i++) {
+      const a = polygon[i];
+      const b = polygon[(i + 1) % polygon.length];
+      const aInside = a[2] >= cutZ;
+      const bInside = b[2] >= cutZ;
+      if (aInside) clipped.push(a);
+      if (aInside !== bInside) {
+        const t = (cutZ - a[2]) / (b[2] - a[2]);
+        clipped.push([
+          a[0] + (b[0] - a[0]) * t,
+          a[1] + (b[1] - a[1]) * t,
+          cutZ,
+        ]);
+      }
+    }
+    polygon = clipped;
+    for (let i = 1; i + 1 < polygon.length; i++) kept.push([polygon[0], polygon[i], polygon[i + 1]]);
+  }
   if (!kept.length) {
     return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
   }
 
-  const slabTop = (cutZ - bounds.min[2]) + addedHeight;
+  const slabTop = addedHeight;
   const lifted = kept.map((tri) =>
-    tri.map(([x, y, z]) => [x, y, z - bounds.min[2] + addedHeight] as V3) as Tri
+    tri.map(([x, y, z]) => [x, y, z - cutZ + addedHeight] as V3) as Tri
   );
 
   // Footprint: the discarded plinth's own span, widened so the slab reads as a
