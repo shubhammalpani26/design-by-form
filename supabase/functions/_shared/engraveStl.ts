@@ -718,21 +718,25 @@ function engraveTris(
 
   const axis = best.axis;
   const outward = best.outward;
-  // Plane of the chosen face, measured from the geometry actually facing it.
-  let facePlane = outward > 0 ? -Infinity : Infinity;
-  let uMin = Infinity, uMax = -Infinity, zMin = Infinity, zMax = -Infinity;
-  for (const t of band) {
+  // Only the wall that actually faces the buyer carries lettering.
+  const facing = band.filter((t) => {
     const n = triNormal(t);
     const dot = axis === "x" ? n[0] * outward : n[1] * outward;
-    if (dot <= 0.82) continue;
-    for (const [x, y, z] of t) {
-      const a = axis === "x" ? x : y;
-      const u = axis === "x" ? y : x;
-      facePlane = outward > 0 ? Math.max(facePlane, a) : Math.min(facePlane, a);
-      if (u < uMin) uMin = u; if (u > uMax) uMax = u;
-      if (z < zMin) zMin = z; if (z > zMax) zMax = z;
-    }
-  }
+    return dot > 0.82;
+  });
+  if (!facing.length) return { ok: false, reason: "no_flat_face" };
+
+  // A generated plinth is rounded and tapered: its most protruding contour is
+  // one thin ring, so lettering aligned to that single plane hangs in the air
+  // everywhere else. Anchor every stroke to the wall beneath it instead.
+  const sampler = makeSurfaceSampler(facing, axis, outward);
+  const region = chooseLetteringRegion(sampler);
+  if (!region) return { ok: false, reason: "face_too_small" };
+  const uMin = region.uMin;
+  const uMax = region.uMax;
+  const zMin = region.wMin;
+  const zMax = region.wMax;
+
   const faceWidth = uMax - uMin;
   const faceHeight = zMax - zMin;
   if (!(faceWidth > 6) || !(faceHeight > 4)) {
@@ -790,6 +794,9 @@ function engraveTris(
 
   const out: Tri[] = tris.slice();
   const letteringStart = out.length;
+  let studs = 0;
+  let missed = 0;
+  const planeAt = (u: number, w: number) => sampler.sample(u, w);
   for (const line of lines) {
     const baseline = cursorTop - line.cap;
     const width = textWidth(line.text) * line.cap;
@@ -810,17 +817,19 @@ function engraveTris(
               const local = pen + gx * line.cap;
               return flip ? uCenter * 2 - local : local;
             };
-            strokePrism(
+            const tally = strokePrism(
               out,
               axis,
               outward,
-              facePlane,
+              planeAt,
               toU(ax),
               baseline + ay * line.cap,
               toU(bx),
               baseline + by * line.cap,
               strokeMm,
             );
+            studs += tally.studs;
+            missed += tally.missed;
           }
         }
       }
@@ -829,6 +838,11 @@ function engraveTris(
     cursorTop = baseline - gap;
   }
 
+  // Any meaningful number of unsupported strokes means part of the name would
+  // print detached. Stop the order rather than ship floating letters.
+  if (studs > 0 && missed / studs > 0.02) {
+    return { ok: false, reason: "lettering_not_supported_by_face" };
+  }
 
   const lettering = out.slice(letteringStart);
   if (!lettering.length) return { ok: false, reason: "no_geometry_added" };
