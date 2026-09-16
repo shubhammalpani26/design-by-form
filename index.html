@@ -15,6 +15,10 @@
     <meta property="og:image" content="https://nyzora.ai/og-default.png" />
     <script>
       (function () {
+        if (window.location.hostname === 'www.nyzora.ai') {
+          window.location.replace('https://nyzora.ai' + window.location.pathname + window.location.search + window.location.hash);
+          return;
+        }
         var path = window.location.pathname.replace(/\/+$/, '') || '/';
         var params = new URLSearchParams(window.location.search);
         ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'ref', '__lovable_token'].forEach(function (key) { params.delete(key); });
