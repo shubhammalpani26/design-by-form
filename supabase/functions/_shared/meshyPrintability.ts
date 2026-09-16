@@ -16,6 +16,7 @@ export interface PrintabilitySummary {
   holes: number | null;
   nonManifoldEdges: number | null;
   volumeCm3: number | null;
+  degenerateFaces?: number;
   error?: string;
   raw?: unknown;
 }
