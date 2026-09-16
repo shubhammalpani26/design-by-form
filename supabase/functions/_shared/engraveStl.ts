@@ -489,11 +489,13 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
 }
 
 /**
- * Enlarges the generated piece's own plinth toward a 60% geometric-volume
- * increase. Plinth vertices are stretched vertically AND widened outward from
- * the footprint centre, so the base is both taller and broader — more mass and
- * a larger front face for lettering. The sculpture above is only translated.
- * No second slab or shell is added.
+ * Replaces the generated piece's own plinth with a true rectangular slab.
+ *
+ * The mesh generator invents whatever base the photo suggests — usually round
+ * and tapered, which leaves no flat wall to letter (strokes ended up hanging
+ * in front of the piece). We cut everything below the plinth shoulder away and
+ * build a deterministic box: flat front face, square corners, predictable
+ * height. The sculpture above is only translated up.
  */
 function reinforceTris(tris: Tri[]): ReinforcedTris {
   const bounds = boundsOf(tris);
@@ -504,36 +506,52 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
   }
 
-  const plinthTop = existingPlinthTop(tris, bounds);
-  if (plinthTop === null || plinthTop <= bounds.min[2]) {
-    return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
-  }
-  const plinthHeight = plinthTop - bounds.min[2];
+  // Where the generated plinth ends and the sculpture begins. When the
+  // generator produced no plinth at all we simply slab underneath the piece.
+  const detected = existingPlinthTop(tris, bounds);
+  const cutZ = detected !== null && detected > bounds.min[2] ? detected : bounds.min[2];
+
   const currentVolume = signedVolumeMm3(tris);
   const targetExtra = currentVolume * HEFT_TARGET_INCREASE;
   const targetHeight = targetExtra > 0 ? targetExtra / (width * depth) : 0;
   const addedHeight = Math.min(HEFT_MAX_HEIGHT_MM, Math.max(HEFT_MIN_HEIGHT_MM, targetHeight));
-  const scale = (plinthHeight + addedHeight) / plinthHeight;
-  const cx = (bounds.max[0] + bounds.min[0]) / 2;
-  const cy = (bounds.max[1] + bounds.min[1]) / 2;
-  const out = tris.map((tri) => tri.map(([x, y, z]) => {
-    const localZ = z - bounds.min[2];
-    if (localZ <= plinthHeight) {
-      // Plinth region: stretch height and widen footprint outward from centre.
-      const nextZ = localZ * scale;
-      const nextX = cx + (x - cx) * HEFT_FOOTPRINT_SCALE;
-      const nextY = cy + (y - cy) * HEFT_FOOTPRINT_SCALE;
-      return [nextX, nextY, nextZ] as V3;
-    }
-    // Sculpture above: translate up by the same added height, keep its shape.
-    return [x, y, localZ + addedHeight] as V3;
-  }) as Tri);
+
+  // Keep only the sculpture; the generated base is discarded outright.
+  const kept = tris.filter((tri) => Math.max(tri[0][2], tri[1][2], tri[2][2]) > cutZ + 1e-6);
+  if (!kept.length) {
+    return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
+  }
+
+  const slabTop = (cutZ - bounds.min[2]) + addedHeight;
+  const lifted = kept.map((tri) =>
+    tri.map(([x, y, z]) => [x, y, z - bounds.min[2] + addedHeight] as V3) as Tri
+  );
+
+  // Footprint: the sculpture's own span, widened so the slab reads as a plinth
+  // and carries lettering comfortably.
+  const keptBounds = boundsOf(lifted);
+  const cx = (keptBounds.max[0] + keptBounds.min[0]) / 2;
+  const cy = (keptBounds.max[1] + keptBounds.min[1]) / 2;
+  const halfX = Math.max(
+    ((keptBounds.max[0] - keptBounds.min[0]) * HEFT_FOOTPRINT_SCALE) / 2,
+    (keptBounds.max[0] - keptBounds.min[0]) / 2 + 5,
+  );
+  const halfY = Math.max(
+    ((keptBounds.max[1] - keptBounds.min[1]) * HEFT_FOOTPRINT_SCALE) / 2,
+    (keptBounds.max[1] - keptBounds.min[1]) / 2 + 5,
+  );
+
+  const out: Tri[] = [];
+  // The slab overlaps the sculpture's open underside so the two fuse solidly.
+  box(out, [cx - halfX, cy - halfY, 0], [cx + halfX, cy + halfY, slabTop + HEFT_OVERLAP_MM]);
+  out.push(...lifted);
+
   const next = boundsOf(out);
   return {
     tris: out,
     applied: true,
-    baseHeightMm: Number((plinthHeight + addedHeight).toFixed(2)),
-    volumeAddedCm3: Number((targetExtra / 1000).toFixed(2)),
+    baseHeightMm: Number((slabTop + HEFT_OVERLAP_MM).toFixed(2)),
+    volumeAddedCm3: Number((halfX * 2 * halfY * 2 * (slabTop + HEFT_OVERLAP_MM) / 1000).toFixed(2)),
     size: {
       x: Number((next.max[0] - next.min[0]).toFixed(2)),
       y: Number((next.max[1] - next.min[1]).toFixed(2)),
@@ -541,6 +559,7 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     },
   };
 }
+
 
 /** Applies the heavier Originals base before validation and partner quoting. */
 export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number): HeftBaseResult {
