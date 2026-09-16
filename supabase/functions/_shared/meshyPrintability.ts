@@ -75,7 +75,7 @@ export async function analyzePrintability(
   try {
     const started = await call("/print/analyze", apiKey, {
       method: "POST",
-      body: JSON.stringify({ task_id: taskId }),
+      body: JSON.stringify({ input_task_id: taskId }),
     });
 
     // Synchronous payloads carry the metrics directly; async ones return an id.
