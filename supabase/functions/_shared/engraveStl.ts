@@ -195,35 +195,47 @@ function box(out: Tri[], min: V3, max: V3) {
 /**
  * Extrudes a stroke segment as a prism on the chosen face.
  * `u` runs horizontally across the face, `w` is vertical (world Z).
+ *
+ * Every stud is anchored to the surface directly beneath it (`planeAt`). A
+ * single flat plane taken from the most protruding contour leaves the letters
+ * hanging in mid-air on a rounded, tapered plinth.
  */
 function strokePrism(
   out: Tri[],
   axis: "x" | "y",
   outward: number,
-  facePlane: number,
+  planeAt: (u: number, w: number) => number | null,
   u0: number,
   w0: number,
   u1: number,
   w1: number,
   strokeMm: number,
-) {
+): { studs: number; missed: number } {
   const dx = u1 - u0;
   const dz = w1 - w0;
   const len = Math.hypot(dx, dz);
-  if (len < 1e-6) return;
+  if (len < 1e-6) return { studs: 0, missed: 0 };
   const steps = Math.max(1, Math.ceil(len / (strokeMm * 0.6)));
   const half = strokeMm / 2;
 
-  const near = facePlane - outward * EMBED_MM;
-  const far = facePlane + outward * PROUD_MM;
-  const nMin = Math.min(near, far);
-  const nMax = Math.max(near, far);
+  let studs = 0;
+  let missed = 0;
   // A stroke is stamped as a chain of overlapping square studs; the slicer
   // unions them into one clean, continuous letter stroke.
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
     const u = u0 + dx * t;
     const w = w0 + dz * t;
+    studs += 1;
+    const facePlane = planeAt(u, w);
+    if (facePlane === null) {
+      missed += 1;
+      continue;
+    }
+    const near = facePlane - outward * EMBED_MM;
+    const far = facePlane + outward * PROUD_MM;
+    const nMin = Math.min(near, far);
+    const nMax = Math.max(near, far);
     const min: V3 = axis === "y"
       ? [u - half, nMin, w - half]
       : [nMin, u - half, w - half];
@@ -232,6 +244,159 @@ function strokePrism(
       : [nMax, u + half, w + half];
     box(out, min, max);
   }
+  return { studs, missed };
+}
+
+interface SurfaceSampler {
+  /** Depth of the face's surface at (u, w), or null where there is no wall. */
+  sample(u: number, w: number): number | null;
+  uMin: number;
+  uMax: number;
+  wMin: number;
+  wMax: number;
+}
+
+/**
+ * Builds a depth map of the chosen face so lettering can follow the real,
+ * curved wall of the plinth instead of one extreme plane.
+ */
+function makeSurfaceSampler(tris: Tri[], axis: "x" | "y", outward: number): SurfaceSampler {
+  const flat = tris.map((tri) =>
+    tri.map(([x, y, z]) => {
+      const a = axis === "x" ? x : y;
+      const u = axis === "x" ? y : x;
+      return [u, z, a] as V3;
+    }) as Tri
+  );
+  let uMin = Infinity, uMax = -Infinity, wMin = Infinity, wMax = -Infinity;
+  for (const tri of flat) {
+    for (const [u, w] of tri) {
+      if (u < uMin) uMin = u;
+      if (u > uMax) uMax = u;
+      if (w < wMin) wMin = w;
+      if (w > wMax) wMax = w;
+    }
+  }
+  const cells = 128;
+  const du = (uMax - uMin) / cells || 1;
+  const buckets: number[][] = Array.from({ length: cells + 1 }, () => []);
+  flat.forEach((tri, index) => {
+    const lo = Math.max(0, Math.floor((Math.min(tri[0][0], tri[1][0], tri[2][0]) - uMin) / du));
+    const hi = Math.min(cells, Math.floor((Math.max(tri[0][0], tri[1][0], tri[2][0]) - uMin) / du));
+    for (let c = lo; c <= hi; c++) buckets[c].push(index);
+  });
+
+  const at = (u: number, w: number): number | null => {
+    const cell = Math.min(cells, Math.max(0, Math.floor((u - uMin) / du)));
+    let best: number | null = null;
+    for (const index of buckets[cell]) {
+      const [A, B, C] = flat[index];
+      const denom = (B[1] - C[1]) * (A[0] - C[0]) + (C[0] - B[0]) * (A[1] - C[1]);
+      if (Math.abs(denom) < 1e-9) continue;
+      const l1 = ((B[1] - C[1]) * (u - C[0]) + (C[0] - B[0]) * (w - C[1])) / denom;
+      const l2 = ((C[1] - A[1]) * (u - C[0]) + (A[0] - C[0]) * (w - C[1])) / denom;
+      const l3 = 1 - l1 - l2;
+      if (l1 < -1e-6 || l2 < -1e-6 || l3 < -1e-6) continue;
+      const depth = l1 * A[2] + l2 * B[2] + l3 * C[2];
+      if (best === null || (outward > 0 ? depth > best : depth < best)) best = depth;
+    }
+    return best;
+  };
+
+  const sample = (u: number, w: number): number | null => {
+    const direct = at(u, w);
+    if (direct !== null) return direct;
+    // A hair of slack keeps a stroke anchored when it lands between facets.
+    for (const r of [0.4, 0.8, 1.5]) {
+      for (const [ou, ow] of [[r, 0], [-r, 0], [0, r], [0, -r]]) {
+        const near = at(u + ou, w + ow);
+        if (near !== null) return near;
+      }
+    }
+    return null;
+  };
+
+  return { sample, uMin, uMax, wMin, wMax };
+}
+
+/**
+ * Picks the largest patch of the face that is continuous and nearly flat, so
+ * the whole name sits on real wall rather than spilling past a curved edge.
+ */
+function chooseLetteringRegion(
+  s: SurfaceSampler,
+): { uMin: number; uMax: number; wMin: number; wMax: number } | null {
+  const NW = 48;
+  const NU = 96;
+  const dw = (s.wMax - s.wMin) / NW;
+  const du = (s.uMax - s.uMin) / NU;
+  if (!(dw > 0) || !(du > 0)) return null;
+
+  const rows: Array<{ w: number; lo: number; hi: number }> = [];
+  for (let j = 1; j < NW; j++) {
+    const w = s.wMin + dw * j;
+    let runLo: number | null = null;
+    let runHi = 0;
+    let bestLo: number | null = null;
+    let bestHi = 0;
+    for (let i = 0; i <= NU; i++) {
+      const u = s.uMin + du * i;
+      const hit = i < NU ? s.sample(u, w) !== null : false;
+      if (hit) {
+        if (runLo === null) runLo = u;
+        runHi = u;
+      } else if (runLo !== null) {
+        if (bestLo === null || runHi - runLo > bestHi - bestLo) {
+          bestLo = runLo;
+          bestHi = runHi;
+        }
+        runLo = null;
+      }
+    }
+    if (bestLo !== null && bestHi - bestLo > 0) rows.push({ w, lo: bestLo, hi: bestHi });
+  }
+  if (!rows.length) return null;
+
+  const widest = Math.max(...rows.map((r) => r.hi - r.lo));
+  let group: Array<{ w: number; lo: number; hi: number }> = [];
+  let current: Array<{ w: number; lo: number; hi: number }> = [];
+  for (const row of rows) {
+    if (row.hi - row.lo >= widest * 0.55) current.push(row);
+    else {
+      if (current.length > group.length) group = current;
+      current = [];
+    }
+  }
+  if (current.length > group.length) group = current;
+  if (group.length < 3) return null;
+
+  const uLo = Math.max(...group.map((r) => r.lo));
+  const uHi = Math.min(...group.map((r) => r.hi));
+  if (!(uHi - uLo > 0)) return null;
+
+  // Trim where the wall curves away, so no glyph is left standing off the
+  // surface it is meant to be fused to.
+  const midW = group[Math.floor(group.length / 2)].w;
+  const centreU = (uLo + uHi) / 2;
+  const centreDepth = s.sample(centreU, midW);
+  if (centreDepth === null) return null;
+  const FLAT_TOLERANCE_MM = 3;
+  const walk = (dir: 1 | -1) => {
+    let edge = centreU;
+    for (let u = centreU; dir > 0 ? u <= uHi : u >= uLo; u += dir * du) {
+      const depth = s.sample(u, midW);
+      if (depth === null || Math.abs(depth - centreDepth) > FLAT_TOLERANCE_MM) break;
+      edge = u;
+    }
+    return edge;
+  };
+
+  return {
+    uMin: walk(-1),
+    uMax: walk(1),
+    wMin: group[0].w,
+    wMax: group[group.length - 1].w,
+  };
 }
 
 type Attempt =
@@ -553,21 +718,25 @@ function engraveTris(
 
   const axis = best.axis;
   const outward = best.outward;
-  // Plane of the chosen face, measured from the geometry actually facing it.
-  let facePlane = outward > 0 ? -Infinity : Infinity;
-  let uMin = Infinity, uMax = -Infinity, zMin = Infinity, zMax = -Infinity;
-  for (const t of band) {
+  // Only the wall that actually faces the buyer carries lettering.
+  const facing = band.filter((t) => {
     const n = triNormal(t);
     const dot = axis === "x" ? n[0] * outward : n[1] * outward;
-    if (dot <= 0.82) continue;
-    for (const [x, y, z] of t) {
-      const a = axis === "x" ? x : y;
-      const u = axis === "x" ? y : x;
-      facePlane = outward > 0 ? Math.max(facePlane, a) : Math.min(facePlane, a);
-      if (u < uMin) uMin = u; if (u > uMax) uMax = u;
-      if (z < zMin) zMin = z; if (z > zMax) zMax = z;
-    }
-  }
+    return dot > 0.82;
+  });
+  if (!facing.length) return { ok: false, reason: "no_flat_face" };
+
+  // A generated plinth is rounded and tapered: its most protruding contour is
+  // one thin ring, so lettering aligned to that single plane hangs in the air
+  // everywhere else. Anchor every stroke to the wall beneath it instead.
+  const sampler = makeSurfaceSampler(facing, axis, outward);
+  const region = chooseLetteringRegion(sampler);
+  if (!region) return { ok: false, reason: "face_too_small" };
+  const uMin = region.uMin;
+  const uMax = region.uMax;
+  const zMin = region.wMin;
+  const zMax = region.wMax;
+
   const faceWidth = uMax - uMin;
   const faceHeight = zMax - zMin;
   if (!(faceWidth > 6) || !(faceHeight > 4)) {
@@ -625,6 +794,9 @@ function engraveTris(
 
   const out: Tri[] = tris.slice();
   const letteringStart = out.length;
+  let studs = 0;
+  let missed = 0;
+  const planeAt = (u: number, w: number) => sampler.sample(u, w);
   for (const line of lines) {
     const baseline = cursorTop - line.cap;
     const width = textWidth(line.text) * line.cap;
@@ -645,17 +817,19 @@ function engraveTris(
               const local = pen + gx * line.cap;
               return flip ? uCenter * 2 - local : local;
             };
-            strokePrism(
+            const tally = strokePrism(
               out,
               axis,
               outward,
-              facePlane,
+              planeAt,
               toU(ax),
               baseline + ay * line.cap,
               toU(bx),
               baseline + by * line.cap,
               strokeMm,
             );
+            studs += tally.studs;
+            missed += tally.missed;
           }
         }
       }
@@ -664,6 +838,11 @@ function engraveTris(
     cursorTop = baseline - gap;
   }
 
+  // Any meaningful number of unsupported strokes means part of the name would
+  // print detached. Stop the order rather than ship floating letters.
+  if (studs > 0 && missed / studs > 0.02) {
+    return { ok: false, reason: "lettering_not_supported_by_face" };
+  }
 
   const lettering = out.slice(letteringStart);
   if (!lettering.length) return { ok: false, reason: "no_geometry_added" };
