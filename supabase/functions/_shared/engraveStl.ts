@@ -380,7 +380,7 @@ function chooseLetteringRegion(
   const centreU = (uLo + uHi) / 2;
   const centreDepth = s.sample(centreU, midW);
   if (centreDepth === null) return null;
-  const FLAT_TOLERANCE_MM = 5;
+  const FLAT_TOLERANCE_MM = 3;
   const walk = (dir: 1 | -1) => {
     let edge = centreU;
     for (let u = centreU; dir > 0 ? u <= uHi : u >= uLo; u += dir * du) {
