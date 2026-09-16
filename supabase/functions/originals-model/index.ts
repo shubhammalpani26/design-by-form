@@ -209,7 +209,26 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
  * Resolves one order row to a printable .stl. Returns the url when ready,
  * or null while the mesh is still being generated.
  */
+/** Fetches the generator's own printability report once, if we don't have it. */
+async function backfillPrintability(previewId: string | null, fallbackTask: string | null) {
+  if (!previewId) return;
+  const { data: preview } = await admin
+    .from("originals_previews")
+    .select("id, model_task_id, engineering")
+    .eq("id", previewId)
+    .maybeSingle();
+  const eng = (preview?.engineering ?? {}) as Record<string, unknown>;
+  const taskId = (preview?.model_task_id ?? fallbackTask) as string | null;
+  if (eng.printability || !taskId) return;
+  const printability = await analyzePrintability(taskId, Deno.env.get("MESHY_API_KEY"));
+  if (!printability) return;
+  await admin.from("originals_previews")
+    .update({ engineering: { ...eng, printability } })
+    .eq("id", previewId);
+}
+
 async function resolveFile(row: OrderRow): Promise<{ url: string | null; status: string; error?: string }> {
+  await backfillPrintability(row.preview_id ?? null, row.model_task_id ?? null).catch(() => {});
   const expectedLabel = engravingLines(row.personalization).label;
   const reusable = reusableOrderPrintFile(row, expectedLabel);
   if (reusable) return { url: reusable, status: "ready" };
@@ -231,6 +250,18 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
     if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
+      // The feasibility pass builds the file without asking the generator for
+      // its own printability report — fetch it once here so Ops always sees it.
+      const existingEng = (preview?.engineering ?? {}) as Record<string, unknown>;
+      const taskForReport = (preview?.model_task_id ?? row.model_task_id) as string | null;
+      if (!existingEng.printability && taskForReport) {
+        const printability = await analyzePrintability(taskForReport, Deno.env.get("MESHY_API_KEY"));
+        if (printability) {
+          await admin.from("originals_previews")
+            .update({ engineering: { ...existingEng, printability } })
+            .eq("id", preview!.id);
+        }
+      }
       return { url: perSize[row.size_key], status: "ready" };
     }
     // A generic preview file has no guaranteed size identity. Never reuse it

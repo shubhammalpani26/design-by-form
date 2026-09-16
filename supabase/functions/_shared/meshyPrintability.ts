@@ -16,6 +16,7 @@ export interface PrintabilitySummary {
   holes: number | null;
   nonManifoldEdges: number | null;
   volumeCm3: number | null;
+  degenerateFaces?: number;
   error?: string;
   raw?: unknown;
 }
@@ -28,16 +29,30 @@ const num = (v: unknown): number | null => {
 const bool = (v: unknown): boolean | null => (typeof v === "boolean" ? v : null);
 
 function summarize(payload: Record<string, unknown>): PrintabilitySummary {
-  const r = (payload?.result ?? payload) as Record<string, unknown>;
-  const holes = num(r?.hole_count ?? r?.holes);
-  const nonManifold = num(r?.non_manifold_edge_count ?? r?.non_manifold_edges);
-  const watertight = bool(r?.is_watertight ?? r?.watertight);
-  const explicit = bool(r?.is_printable ?? r?.printable);
+  const top = (payload?.result ?? payload) as Record<string, unknown>;
+  // Meshy 7 nests the verdict under `printability.metrics`; older shapes put
+  // the same fields at the top level.
+  const report = (top?.printability ?? top) as Record<string, unknown>;
+  const m = (report?.metrics ?? report) as Record<string, unknown>;
+  const holes = num(m?.hole_count ?? m?.holes);
+  const nonManifold = num(m?.non_manifold_edge_count ?? m?.non_manifold_edges);
+  const watertight = bool(m?.is_watertight ?? m?.watertight);
+  const status = typeof report?.status === "string" ? report.status.toLowerCase() : null;
+  const explicit = bool(m?.is_printable ?? m?.printable) ??
+    (status ? status !== "error" : null);
   const printable = explicit !== null
     ? explicit
     : watertight === null && holes === null && nonManifold === null
     ? null
     : watertight !== false && (holes ?? 0) === 0 && (nonManifold ?? 0) === 0;
+
+  const rawVolume = num(m?.volume_cm3 ?? m?.volume);
+  // Meshy reports volume in cubic metres for print-analyze; scale to cm³.
+  const volumeCm3 = m?.volume_cm3 !== undefined
+    ? rawVolume
+    : rawVolume !== null
+    ? Math.round(rawVolume * 1_000_000 * 100) / 100
+    : null;
 
   return {
     source: "meshy",
@@ -46,8 +61,9 @@ function summarize(payload: Record<string, unknown>): PrintabilitySummary {
     watertight,
     holes,
     nonManifoldEdges: nonManifold,
-    volumeCm3: num(r?.volume_cm3 ?? r?.volume),
-    raw: r,
+    volumeCm3,
+    ...(typeof m?.degenerate_faces === "number" ? { degenerateFaces: m.degenerate_faces } : {}),
+    raw: top,
   };
 }
 
@@ -75,7 +91,7 @@ export async function analyzePrintability(
   try {
     const started = await call("/print/analyze", apiKey, {
       method: "POST",
-      body: JSON.stringify({ task_id: taskId }),
+      body: JSON.stringify({ input_task_id: taskId }),
     });
 
     // Synchronous payloads carry the metrics directly; async ones return an id.
