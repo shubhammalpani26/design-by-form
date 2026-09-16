@@ -231,6 +231,18 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
     if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
+      // The feasibility pass builds the file without asking the generator for
+      // its own printability report — fetch it once here so Ops always sees it.
+      const existingEng = (preview?.engineering ?? {}) as Record<string, unknown>;
+      const taskForReport = (preview?.model_task_id ?? row.model_task_id) as string | null;
+      if (!existingEng.printability && taskForReport) {
+        const printability = await analyzePrintability(taskForReport, Deno.env.get("MESHY_API_KEY"));
+        if (printability) {
+          await admin.from("originals_previews")
+            .update({ engineering: { ...existingEng, printability } })
+            .eq("id", preview!.id);
+        }
+      }
       return { url: perSize[row.size_key], status: "ready" };
     }
     // A generic preview file has no guaranteed size identity. Never reuse it
