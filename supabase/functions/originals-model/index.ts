@@ -209,7 +209,26 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
  * Resolves one order row to a printable .stl. Returns the url when ready,
  * or null while the mesh is still being generated.
  */
+/** Fetches the generator's own printability report once, if we don't have it. */
+async function backfillPrintability(previewId: string | null, fallbackTask: string | null) {
+  if (!previewId) return;
+  const { data: preview } = await admin
+    .from("originals_previews")
+    .select("id, model_task_id, engineering")
+    .eq("id", previewId)
+    .maybeSingle();
+  const eng = (preview?.engineering ?? {}) as Record<string, unknown>;
+  const taskId = (preview?.model_task_id ?? fallbackTask) as string | null;
+  if (eng.printability || !taskId) return;
+  const printability = await analyzePrintability(taskId, Deno.env.get("MESHY_API_KEY"));
+  if (!printability) return;
+  await admin.from("originals_previews")
+    .update({ engineering: { ...eng, printability } })
+    .eq("id", previewId);
+}
+
 async function resolveFile(row: OrderRow): Promise<{ url: string | null; status: string; error?: string }> {
+  await backfillPrintability(row.preview_id ?? null, row.model_task_id ?? null).catch(() => {});
   const expectedLabel = engravingLines(row.personalization).label;
   const reusable = reusableOrderPrintFile(row, expectedLabel);
   if (reusable) return { url: reusable, status: "ready" };
