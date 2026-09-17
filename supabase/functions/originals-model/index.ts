@@ -75,7 +75,10 @@ async function startModelTask(imageUrl: string): Promise<string> {
       should_remesh: true,
       should_texture: false,
       topology: "triangle",
-      target_polycount: 150000,
+      // 60k keeps every visible detail at this print size while staying well
+      // inside the worker's memory budget when we rebuild the base.
+      target_polycount: 60000,
+
       // Keep the customer's actual pet, not a stylised interpretation of it.
       image_enhancement: false,
       // Seat the mesh origin on its base so lettering/placement stays predictable.
