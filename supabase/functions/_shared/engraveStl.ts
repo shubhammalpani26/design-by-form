@@ -540,11 +540,13 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
   // really is the solid top of a plinth. The tops of four slim legs also form
   // horizontal faces, and cutting there would behead the animal's legs.
   let best: { z: number; area: number } | null = null;
-  for (const [z, area] of candidates) {
-    if (area < footprint * 0.06) continue;
+  for (const [z, { up, down }] of candidates) {
+    if (up < footprint * 0.06) continue;
+    // A body resting on legs shows a large downward face here — not a plinth.
+    if (down > up * 0.5) continue;
     const spanBelow = sectionArea(z - 0.5);
-    if (!(spanBelow > 0) || area / spanBelow < 0.45) continue;
-    if (!best || z > best.z) best = { z, area };
+    if (!(spanBelow > 0) || up / spanBelow < 0.45) continue;
+    if (!best || z > best.z) best = { z, area: up };
   }
   return best?.z ?? null;
 
