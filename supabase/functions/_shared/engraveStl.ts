@@ -519,7 +519,13 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     const localMinimum = here.area <= sections[i - 1].area && here.area <= sections[i + 1].area;
     const later = sections.slice(i + 3, i + 8);
     const widened = later.filter((sample) => sample.area >= here.area * 1.65).length >= 3;
-    if (localMinimum && widened && (!neck || here.z > neck.z)) neck = here;
+    // A pedestal is always broader than the neck it supports. A standing
+    // animal's legs make the same narrow-then-wide silhouette, but stay narrow
+    // all the way down — never mistake those for a pedestal and cut them off.
+    const below = sections.filter((sample) => sample.z < here.z - 1e-6);
+    const widestBelow = below.reduce((max, sample) => Math.max(max, sample.area), 0);
+    const pedestalBelow = widestBelow >= here.area * 1.4;
+    if (localMinimum && widened && pedestalBelow && (!neck || here.z > neck.z)) neck = here;
   }
   if (neck) return neck.z;
 
