@@ -561,7 +561,21 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   // Where the generated plinth ends and the sculpture begins. When the
   // generator produced no plinth at all we simply slab underneath the piece.
   const detected = existingPlinthTop(tris, bounds);
-  const cutZ = detected !== null && detected > bounds.min[2] ? detected : bounds.min[2];
+  let cutZ = detected !== null && detected > bounds.min[2] ? detected : bounds.min[2];
+
+  // Last-resort safety: a plinth is a small part of the piece. If the detected
+  // cut would destroy a large share of the sculpture, keep every bit of the
+  // animal and simply slab underneath it.
+  if (cutZ > bounds.min[2]) {
+    let total = 0;
+    let removed = 0;
+    for (const tri of tris) {
+      const area = triArea(tri);
+      total += area;
+      if (tri[0][2] < cutZ && tri[1][2] < cutZ && tri[2][2] < cutZ) removed += area;
+    }
+    if (total > 0 && removed / total > 0.35) cutZ = bounds.min[2];
+  }
 
   const currentVolume = signedVolumeMm3(tris);
   const targetExtra = currentVolume * HEFT_TARGET_INCREASE;
