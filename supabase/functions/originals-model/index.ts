@@ -328,6 +328,37 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   return master ? { url: master, status: "ready_master" } : { url: null, status: "needs_file" };
 }
 
+/**
+ * The generator's printability report stays advisory, but a mesh with more
+ * than a handful of holes or bad edges is held for a human look instead of
+ * flowing straight to the partner. Thresholds stay loose on purpose: routine
+ * noise (a couple of holes, a few dozen edges) must not block orders.
+ */
+const HOLD_HOLES = 5;
+const HOLD_NON_MANIFOLD_EDGES = 200;
+
+async function printabilityHold(rows: OrderRow[]): Promise<string | null> {
+  const ids = [...new Set(rows.map((r) => r.preview_id).filter(Boolean))] as string[];
+  if (!ids.length) return null;
+  const { data } = await admin
+    .from("originals_previews")
+    .select("id, engineering")
+    .in("id", ids);
+  const reasons: string[] = [];
+  for (const preview of data ?? []) {
+    const report = ((preview.engineering ?? {}) as Record<string, unknown>)
+      .printability as Record<string, unknown> | undefined;
+    if (!report) continue;
+    const holes = Number(report.holes);
+    const edges = Number(report.nonManifoldEdges);
+    if (Number.isFinite(holes) && holes > HOLD_HOLES) reasons.push(`${holes} holes`);
+    if (Number.isFinite(edges) && edges > HOLD_NON_MANIFOLD_EDGES) {
+      reasons.push(`${edges} non-manifold edges`);
+    }
+  }
+  return reasons.length ? [...new Set(reasons)].join(", ") : null;
+}
+
 async function fulfilGroup(groupId: string | null, orderId: string) {
   const res = await fetch(`${SUPABASE_URL}/functions/v1/originals-fulfill`, {
     method: "POST",
@@ -445,6 +476,22 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
       .or(`group_id.eq.${key},id.eq.${key}`)
       .limit(1);
     if (pending?.length) continue;
+
+    // Advisory report flags a messy mesh — park it in the review queue.
+    const hold = await printabilityHold(groupRows).catch(() => null);
+    if (hold) {
+      await admin
+        .from("originals_orders")
+        .update({
+          production_status: "awaiting_admin_approval",
+          fulfillment_error:
+            `Held for review — printability report flags ${hold}. Check the STL, then approve to send to manufacturing.`,
+          updated_at: new Date().toISOString(),
+        })
+        .in("id", groupRows.map((row) => row.id));
+      continue;
+    }
+
     const out = await fulfilGroup(key, key);
     if (out.ok) sent.push(key);
     else {
