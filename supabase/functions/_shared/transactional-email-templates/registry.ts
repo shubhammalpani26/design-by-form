@@ -24,4 +24,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'contact-form-submission': contactFormSubmission,
   'partner-refund-request': partnerRefundRequest,
   'manufacturing-order-placed': manufacturingOrderPlaced,
+  'order-held-for-review': orderHeldForReview,
 }

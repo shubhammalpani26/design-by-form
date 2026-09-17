@@ -15,7 +15,7 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl } from "../_shared/engraveStl.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
-import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
+import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
 import { preservedSourcePrintFile, reusableOrderPrintFile } from "../_shared/engravingState.ts";
 
 const corsHeaders = {
