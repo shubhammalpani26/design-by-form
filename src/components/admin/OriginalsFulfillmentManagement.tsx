@@ -476,9 +476,14 @@ export function OriginalsFulfillmentManagement() {
                 </div>
               )}
 
-              {order.payment_provider === "internal_test" && (
+              {(order.payment_provider === "internal_test" ||
+                order.production_status === "awaiting_admin_approval") && (
                 <div className="flex flex-wrap items-center gap-2 border border-border p-3">
-                  <Badge variant="outline">Internal inspection</Badge>
+                  <Badge variant="outline">
+                    {order.payment_provider === "internal_test"
+                      ? "Internal inspection"
+                      : "Held for review"}
+                  </Badge>
                   {order.preview_image_url && (
                     <Button variant="outline" size="sm" asChild>
                       <a href={order.preview_image_url} target="_blank" rel="noreferrer">
