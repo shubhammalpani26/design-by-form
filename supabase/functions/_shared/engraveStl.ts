@@ -666,8 +666,8 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   // Keep the object comfortably hand-sized: the band supports the attachment
   // and most of the silhouette, but no longer inherits an invented pedestal's
   // oversized footprint. The pet sits slightly toward the visible -Y front.
-  const baseWidth = Math.max(attachWidth + 12, width * 0.82);
-  const baseDepth = Math.max(attachDepth + 12, depth * 0.72);
+  const baseWidth = Math.max(attachWidth + 12, width * 0.78);
+  const baseDepth = Math.max(attachDepth + 12, depth * 0.58);
   const halfX = baseWidth / 2;
   const halfY = baseDepth / 2;
   const forwardBias = Math.min(6, Math.max(2, baseDepth * 0.07));
@@ -691,7 +691,7 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   // second hard-edged object beneath the bust.
   const upperHalfX = Math.min(halfX - 2, Math.max(attachWidth / 2 + 3.5, halfX * 0.68));
   const upperHalfY = Math.min(halfY - 2, Math.max(attachDepth / 2 + 3.5, halfY * 0.66));
-  const upperCy = -forwardBias;
+  const upperCy = Math.max(-forwardBias, -halfY + upperHalfY + 2);
   const out: Tri[] = [];
   box(out, [-halfX, -halfY, 0], [halfX, halfY, flatTop + 0.8]);
   rectangularFrustum(
