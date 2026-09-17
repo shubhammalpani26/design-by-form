@@ -70,3 +70,69 @@ export async function alertFulfillmentFailure(
     console.error("fulfillment alert: email failed", e);
   }
 }
+
+interface HeldInput {
+  orderId?: string | null;
+  groupId?: string | null;
+  customerEmail?: string | null;
+  pieces?: number | null;
+  /** Why it was parked, e.g. "12 holes, 340 bad edges". */
+  reason: string;
+}
+
+/**
+ * A held order is not a failure — it is waiting on a human — but silence would
+ * stall it forever, so the same channels as a failure get one notice. Never
+ * throws.
+ */
+export async function alertOrderHeld(
+  admin: SupabaseClient,
+  input: HeldInput,
+): Promise<void> {
+  const orderId = input.orderId ?? input.groupId ?? "unknown";
+  const short = String(orderId).slice(0, 8);
+  const message = input.reason.slice(0, 500);
+
+  try {
+    const { data: admins } = await admin
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (admins?.length) {
+      const { error: notifyErr } = await admin.from("notifications").insert(
+        admins.map((a: { user_id: string }) => ({
+          user_id: a.user_id,
+          title: `Held for review — order ${short}`,
+          message: `Printability report: ${message}`,
+          type: "order_held",
+          link: "/admin?tab=orders",
+          metadata: {
+            order_id: input.orderId ?? null,
+            group_id: input.groupId ?? null,
+            stage: "review",
+          },
+        })),
+      );
+      if (notifyErr) console.error("held alert: notification insert error", notifyErr);
+    }
+  } catch (e) {
+    console.error("held alert: notification insert failed", e);
+  }
+
+  try {
+    // The template pins the internal recipient; this address is only a fallback.
+    await sendAppEmail("order-held-for-review", "contact@nyzora.ai", {
+      idempotencyKey: `order-held-${orderId}-${message.slice(0, 60)}`,
+      templateData: {
+        orderId: input.orderId ?? input.groupId ?? null,
+        groupId: input.groupId ?? null,
+        customerEmail: input.customerEmail ?? null,
+        pieces: input.pieces ?? null,
+        reason: `Printability report flags ${message}`,
+      },
+    });
+  } catch (e) {
+    console.error("held alert: email failed", e);
+  }
+}

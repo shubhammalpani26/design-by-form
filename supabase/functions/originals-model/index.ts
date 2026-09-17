@@ -489,6 +489,15 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
           updated_at: new Date().toISOString(),
         })
         .in("id", groupRows.map((row) => row.id));
+      // Nothing reaches the partner until someone approves — tell ops now,
+      // otherwise a held order is invisible outside the admin panel.
+      await alertOrderHeld(admin, {
+        orderId: groupRows[0]?.id ?? key,
+        groupId: key,
+        customerEmail: groupRows[0]?.customer_email ?? null,
+        pieces: groupRows.length,
+        reason: hold,
+      }).catch((e) => console.error("held alert failed", key, e));
       continue;
     }
 
