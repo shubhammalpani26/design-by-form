@@ -27,3 +27,6 @@ Final engraved files now carry the STL header `Nyzora enlarged plinth v5 | lette
 ## Rectangular plinth (2026-09-16)
 The mesh generator invents the base from the photo — often round and tapered, which is why lettering could not sit flat and appeared to float.
 `reinforceTris()` now discards every triangle below the plinth shoulder and builds a deterministic rectangular slab (flat front face, square corners, 22–32 mm tall, footprint 1.25x the original base, 1.2 mm overlap into the sculpture). Header is `Nyzora rectangular plinth v6`; reuse checks expect `heftVersion === 6`.
+
+## Integrated plinth (2026-09-17)
+The plain slab looked like a separate box and could leave the bust sitting too far behind. The lower plinth now keeps a flat lettering band, then tapers through a sculpted shoulder into the pet with 2.4–4.5 mm of overlap. Its footprint comes from the pet's actual attachment area, the bust is centered and biased toward the visible front, and finished files use `Nyzora integrated plinth v8` with `heftVersion === 8`.

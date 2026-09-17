@@ -20,7 +20,7 @@ export function reusableOrderPrintFile(row: EngravingState, expectedLabel: strin
   const verifiedCurrent =
     row.engraved_text === expectedLabel &&
     meta?.placementVersion === 4 &&
-    meta?.heftVersion === 7 &&
+    meta?.heftVersion === 8 &&
     meta?.placementVerified === true;
 
   return verifiedCurrent ? row.print_file_url : null;

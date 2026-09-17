@@ -90,6 +90,41 @@ Deno.test("removes an ornate round pedestal before adding the rectangular plinth
   assertEquals(pedestalBand.length, 0);
 });
 
+Deno.test("integrates the bust through a tapered shoulder instead of perching it on a box", () => {
+  const tris: Tri[] = [];
+  box(tris, [-28, -28, 0], [28, 28, 10]);
+  box(tris, [-17, -15, 10], [17, 15, 30]);
+  // Deliberately rear-biased bust, matching the generator failure seen in SUNNY.
+  box(tris, [-36, -2, 34], [36, 46, 112]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  const output = parseStl(result.stl);
+  const points = output.flatMap((tri) => tri);
+  const slopedShoulder = output.some((tri) => {
+    const zs = tri.map((point) => point[2]);
+    if (Math.max(...zs) - Math.min(...zs) < 3) return false;
+    const xs = tri.map((point) => Math.abs(point[0]));
+    return Math.max(...xs) - Math.min(...xs) > 1;
+  });
+  assert(slopedShoulder, "shoulder did not taper");
+  const bustBottom = points.filter((point) => point[2] > result.baseHeightMm - 4 && point[2] < result.baseHeightMm + 3);
+  assert(bustBottom.length > 0, "bust does not overlap the shoulder");
+});
+
+Deno.test("centers a rear-biased bust toward the visible front of a compact plinth", () => {
+  const tris: Tri[] = [];
+  box(tris, [-25, -20, 0], [25, 20, 12]);
+  box(tris, [-14, 4, 12], [14, 30, 34]);
+  box(tris, [-32, 8, 34], [32, 48, 105]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  const points = parseStl(result.stl).flatMap((tri) => tri);
+  const bust = points.filter((point) => point[2] > result.baseHeightMm + 8);
+  const bustCy = (Math.min(...bust.map((p) => p[1])) + Math.max(...bust.map((p) => p[1]))) / 2;
+  assert(bustCy < 2, `bust remained too far behind: ${bustCy}`);
+  assert(result.size.y < 90, `plinth remained oversized: ${result.size.y}`);
+});
+
 Deno.test("never cuts the legs off a standing animal", () => {
   const tris: Tri[] = [];
   // Four slim legs under a broad body: the same narrow-then-wide silhouette as
@@ -106,7 +141,7 @@ Deno.test("never cuts the legs off a standing animal", () => {
   assert(result.applied);
   // The whole animal survives: full 110 mm of sculpture plus the new slab.
   assert(
-    result.size.z >= 110 + result.baseHeightMm - 2,
+    result.size.z >= 110 + result.baseHeightMm - 5,
     `sculpture was clipped: ${result.size.z}`,
   );
 });

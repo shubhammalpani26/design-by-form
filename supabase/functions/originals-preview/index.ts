@@ -112,7 +112,13 @@ Deno.serve(async (req) => {
       sourceUrl = sourceImage.trim();
     }
 
-    const content: unknown[] = [{ type: "text", text: prompt }];
+    // Server-side product truth wins over any stale browser prompt. Earlier
+    // clients appended "matte" after requesting satin PLA, and the later word
+    // caused the model to smooth away the print texture.
+    const productionAppearance =
+      " Mandatory physical appearance: show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base.";
+    const effectivePrompt = `${prompt}${productionAppearance}`;
+    const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 
     let previewDataUrl: string | undefined;
@@ -186,7 +192,7 @@ Deno.serve(async (req) => {
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${SERVICE_KEY}` },
             body: JSON.stringify({
               imageUrl: previewUrl,
-              prompt,
+              prompt: effectivePrompt,
               category: "Objects",
               manufacturingMethod: "fdm_us",
             }),
