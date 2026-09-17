@@ -648,20 +648,34 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   // Measure only the sculpture's attachment area. Using the old generated
   // model's full bounds made a needlessly large box and left the pet perched
   // near its rear edge.
+  // Measure only the sculpture's attachment area. Using the old generated
+  // model's full bounds made a needlessly large box and left the pet perched
+  // near its rear edge. Scanned in a single pass: these meshes carry >100k
+  // triangles, so building point arrays (or spreading them into Math.min)
+  // exhausts the worker's memory and call stack.
   const connectionBand = Math.max(5, height * 0.055);
-  const connectionPoints = kept
-    .flatMap((tri) => tri)
-    .filter((point) => point[2] <= cutZ + connectionBand);
-  const allKeptPoints = kept.flatMap((tri) => tri);
-  const attachment = connectionPoints.length >= 6 ? connectionPoints : allKeptPoints;
-  const attachMinX = Math.min(...attachment.map((point) => point[0]));
-  const attachMaxX = Math.max(...attachment.map((point) => point[0]));
-  const attachMinY = Math.min(...attachment.map((point) => point[1]));
-  const attachMaxY = Math.max(...attachment.map((point) => point[1]));
-  const attachWidth = Math.max(1, attachMaxX - attachMinX);
-  const attachDepth = Math.max(1, attachMaxY - attachMinY);
-  const attachCx = (attachMinX + attachMaxX) / 2;
-  const attachCy = (attachMinY + attachMaxY) / 2;
+  const scan = (limit: number) => {
+    let count = 0;
+    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (const tri of kept) {
+      for (const point of tri) {
+        if (point[2] > limit) continue;
+        count++;
+        if (point[0] < minX) minX = point[0];
+        if (point[0] > maxX) maxX = point[0];
+        if (point[1] < minY) minY = point[1];
+        if (point[1] > maxY) maxY = point[1];
+      }
+    }
+    return { count, minX, maxX, minY, maxY };
+  };
+  let attach = scan(cutZ + connectionBand);
+  if (attach.count < 6) attach = scan(Infinity);
+  const attachWidth = Math.max(1, attach.maxX - attach.minX);
+  const attachDepth = Math.max(1, attach.maxY - attach.minY);
+  const attachCx = (attach.minX + attach.maxX) / 2;
+  const attachCy = (attach.minY + attach.maxY) / 2;
+
 
   // Keep the object comfortably hand-sized: the band supports the attachment
   // and most of the silhouette, but no longer inherits an invented pedestal's
