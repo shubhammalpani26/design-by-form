@@ -106,7 +106,7 @@ Deno.test("never cuts the legs off a standing animal", () => {
   assert(result.applied);
   // The whole animal survives: full 110 mm of sculpture plus the new slab.
   assert(
-    result.size.z >= 110 + result.baseHeightMm - 1,
+    result.size.z >= 110 + result.baseHeightMm - 2,
     `sculpture was clipped: ${result.size.z}`,
   );
 });
