@@ -513,6 +513,19 @@ export function OriginalsFulfillmentManagement() {
                       </a>
                     </Button>
                   )}
+                  {order.preview_id && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={busy !== null}
+                      onClick={() => void rebuildRender(order)}
+                    >
+                      {busy === order.id
+                        ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        : null}
+                      Rebuild render
+                    </Button>
+                  )}
                   {order.production_status === "awaiting_admin_approval" && order.print_file_url && (
                     <Button
                       size="sm"
