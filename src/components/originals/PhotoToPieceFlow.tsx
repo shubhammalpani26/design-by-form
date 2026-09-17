@@ -35,7 +35,7 @@ const COLORS = ORIGINALS_COLORS;
 
 const colorClause = (key: string) => {
   const c = findOriginalsColor(key);
-  return ` The entire piece is a single uniform ${c.prompt} matte colour — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents; the raised lettering on the plinth reads through its own soft shadow only.`;
+  return ` The entire piece is printed in one uniform ${c.prompt} satin PLA filament — one solid material throughout, sculpture and plinth exactly the same colour, no two-tone, no colour gradient, no contrasting base, no painted or metallic accents. Fine, regular horizontal FDM layer lines must remain visibly readable across the pet and plinth under the studio light; do not smooth them into stone, ceramic, resin or a matte CG surface. The raised lettering reads through its own soft shadow only.`;
 };
 
 const TWEAK_CHIPS: Record<"photo" | "template", string[]> = {
