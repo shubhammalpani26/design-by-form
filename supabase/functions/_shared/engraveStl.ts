@@ -574,7 +574,7 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
       total += area;
       if (tri[0][2] < cutZ && tri[1][2] < cutZ && tri[2][2] < cutZ) removed += area;
     }
-    if (total > 0 && removed / total > 0.35) cutZ = bounds.min[2];
+    if (total > 0 && removed / total > 0.45) cutZ = bounds.min[2];
   }
 
   const currentVolume = signedVolumeMm3(tris);
