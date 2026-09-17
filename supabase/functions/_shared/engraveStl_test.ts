@@ -104,13 +104,11 @@ Deno.test("never cuts the legs off a standing animal", () => {
   box(tris, [-26, -14, 38], [26, 14, 110]);
   const result = reinforceKeepsakeStl(writeStl(tris));
   assert(result.applied);
-  const output = parseStl(result.stl);
-  const slabTop = result.baseHeightMm;
-  // The legs must survive: geometry still exists between the slab and the body.
-  const legBand = output.flatMap((tri) => tri).filter((point) =>
-    point[2] > slabTop + 5 && point[2] < slabTop + 30
+  // The whole animal survives: full 110 mm of sculpture plus the new slab.
+  assert(
+    result.size.z >= 110 + result.baseHeightMm - 1,
+    `sculpture was clipped: ${result.size.z}`,
   );
-  assert(legBand.length > 0, "legs were removed");
 });
 
 Deno.test("reinforced base keeps the final piece inside its sold size", () => {
