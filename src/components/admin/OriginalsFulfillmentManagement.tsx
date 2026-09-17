@@ -336,6 +336,21 @@ export function OriginalsFulfillmentManagement() {
     load();
   };
 
+  /** Re-renders the customer-facing image from the original photo with the current product prompt. */
+  const rebuildRender = async (order: OriginalsOrder) => {
+    setBusy(order.id);
+    const { data, error } = await supabase.functions.invoke("admin-regenerate-render", {
+      body: { orderId: order.id },
+    });
+    setBusy(null);
+    if (error || data?.error) {
+      toast({ title: "Render failed", description: data?.error ?? error?.message, variant: "destructive" });
+      return;
+    }
+    toast({ title: "Render rebuilt", description: "The image now matches the current print look." });
+    load();
+  };
+
   if (loading) return <div className="py-8 text-center text-muted-foreground">Loading orders…</div>;
 
   return (
