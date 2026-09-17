@@ -720,8 +720,17 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     },
   );
   // Never spread here: these meshes carry >100k triangles and a spread blows
-  // the call stack ("Maximum call stack size exceeded").
-  for (const tri of lifted) out.push(tri);
+  // the call stack ("Maximum call stack size exceeded"). Drain `kept` while
+  // translating so only one full copy of the mesh is ever in memory.
+  while (kept.length) {
+    const tri = kept.pop()!;
+    out.push([
+      [tri[0][0] + bustDx, tri[0][1] + bustDy, tri[0][2] - cutZ + bustFloor],
+      [tri[1][0] + bustDx, tri[1][1] + bustDy, tri[1][2] - cutZ + bustFloor],
+      [tri[2][0] + bustDx, tri[2][1] + bustDy, tri[2][2] - cutZ + bustFloor],
+    ]);
+  }
+
 
   const next = boundsOf(out);
   return {
