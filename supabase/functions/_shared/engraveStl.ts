@@ -779,9 +779,19 @@ export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number)
   const longest = Math.max(reinforced.size.x, reinforced.size.y, reinforced.size.z);
   if (maxDimensionMm && longest > maxDimensionMm) {
     const scale = maxDimensionMm / longest;
-    const scaled = reinforced.tris.map((tri) =>
-      tri.map(([x, y, z]) => [x * scale, y * scale, z * scale] as V3) as Tri
-    );
+    // Scale in place: a copy of this mesh would double peak memory.
+    const seen = new Set<V3>();
+    for (const tri of reinforced.tris) {
+      for (const point of tri) {
+        if (seen.has(point)) continue;
+        seen.add(point);
+        point[0] *= scale;
+        point[1] *= scale;
+        point[2] *= scale;
+      }
+    }
+    const scaled = reinforced.tris;
+
     const scaledBounds = boundsOf(scaled);
     reinforced = {
       ...reinforced,
