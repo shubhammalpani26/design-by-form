@@ -619,13 +619,15 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
 
   // Keep only the sculpture; clip crossing triangles at the cut plane instead
   // of retaining their below-plane vertices (which leaves pedestal fragments).
+  // The source list is drained as we go: holding the generated mesh and the
+  // clipped mesh at the same time exceeds the worker's memory budget.
   const kept: Tri[] = [];
-  for (const tri of tris) {
-    let polygon: V3[] = tri;
+  while (tris.length) {
+    const tri = tris.pop()!;
     const clipped: V3[] = [];
-    for (let i = 0; i < polygon.length; i++) {
-      const a = polygon[i];
-      const b = polygon[(i + 1) % polygon.length];
+    for (let i = 0; i < 3; i++) {
+      const a = tri[i];
+      const b = tri[(i + 1) % 3];
       const aInside = a[2] >= cutZ;
       const bInside = b[2] >= cutZ;
       if (aInside) clipped.push(a);
@@ -638,12 +640,12 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
         ]);
       }
     }
-    polygon = clipped;
-    for (let i = 1; i + 1 < polygon.length; i++) kept.push([polygon[0], polygon[i], polygon[i + 1]]);
+    for (let i = 1; i + 1 < clipped.length; i++) kept.push([clipped[0], clipped[i], clipped[i + 1]]);
   }
   if (!kept.length) {
-    return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
+    return { tris: kept, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
   }
+
 
   // Measure only the sculpture's attachment area. Using the old generated
   // model's full bounds made a needlessly large box and left the pet perched
