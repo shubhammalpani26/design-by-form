@@ -7,3 +7,4 @@
 - [x] Add explicit admin release to manufacturing
 - [ ] Validate dog and cat journeys end to end
 - [ ] Fuse the pet into a compact, front-weighted tapered plinth and rebuild SUNNY
+- [ ] Restore realistic PLA layer lines and subtle sheen in Originals preview renders
