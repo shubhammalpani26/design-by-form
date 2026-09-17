@@ -530,10 +530,14 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
   if (neck) return neck.z;
 
   // Simple slab models do not have a neck-and-chest silhouette. For those,
-  // take the highest qualifying horizontal plane.
+  // take the highest qualifying horizontal plane — but only where that plane
+  // really is the solid top of a plinth. The tops of four slim legs also form
+  // horizontal faces, and cutting there would behead the animal's legs.
   let best: { z: number; area: number } | null = null;
   for (const [z, area] of candidates) {
     if (area < footprint * 0.06) continue;
+    const spanBelow = sectionArea(z - 0.5);
+    if (!(spanBelow > 0) || area / spanBelow < 0.45) continue;
     if (!best || z > best.z) best = { z, area };
   }
   return best?.z ?? null;
