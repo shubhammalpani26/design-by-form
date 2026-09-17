@@ -69,7 +69,7 @@ const STROKE_MAX_MM = 1.6;
 const STROKE_RATIO = 0.2; // stroke thickness as a share of cap height
 const MIN_CAP_MM = 3.5; // below this, text is unreadable when printed
 const MAX_CAP_MM = 12.0;
-const HEFT_HEADER = "Nyzora rectangular plinth v7";
+const HEFT_HEADER = "Nyzora integrated plinth v8";
 /**
  * Marks a file whose lettering is already cut in. Re-lettering such a file is
  * how a piece ended up with a second, mirrored set of glyphs on another face,
@@ -79,11 +79,12 @@ const LETTERED_HEADER = `${HEFT_HEADER} | lettered v4`;
 const HEFT_TARGET_INCREASE = 1.0;
 const HEFT_MIN_HEIGHT_MM = 22;
 const HEFT_MAX_HEIGHT_MM = 32;
-const HEFT_OVERLAP_MM = 1.2;
-/** How much wider the plinth footprint grows — adds mass and lettering space. */
-const HEFT_FOOTPRINT_SCALE = 1.25;
+const HEFT_MIN_OVERLAP_MM = 2.4;
+const HEFT_MIN_FLAT_FRONT_MM = 16;
+const HEFT_SHOULDER_MIN_MM = 4;
+const HEFT_SHOULDER_MAX_MM = 8;
 /** Space reserved before reinforcement so the final piece keeps its sold size. */
-export const HEFT_SIZE_RESERVE_MM = HEFT_MAX_HEIGHT_MM - HEFT_OVERLAP_MM;
+export const HEFT_SIZE_RESERVE_MM = HEFT_MAX_HEIGHT_MM;
 
 const strokeFor = (cap: number) =>
   Math.min(STROKE_MAX_MM, Math.max(STROKE_MIN_MM, cap * STROKE_RATIO));
@@ -189,6 +190,27 @@ function box(out: Tri[], min: V3, max: V3) {
   for (const [a, b, c, d] of quads) {
     out.push([p[a], p[b], p[c]]);
     out.push([p[a], p[c], p[d]]);
+  }
+}
+
+/** Adds a closed rectangular frustum used as the sculpted plinth shoulder. */
+function rectangularFrustum(
+  out: Tri[],
+  lower: { minX: number; maxX: number; minY: number; maxY: number; z: number },
+  upper: { minX: number; maxX: number; minY: number; maxY: number; z: number },
+) {
+  const p: V3[] = [
+    [lower.minX, lower.minY, lower.z], [lower.maxX, lower.minY, lower.z],
+    [lower.maxX, lower.maxY, lower.z], [lower.minX, lower.maxY, lower.z],
+    [upper.minX, upper.minY, upper.z], [upper.maxX, upper.minY, upper.z],
+    [upper.maxX, upper.maxY, upper.z], [upper.minX, upper.maxY, upper.z],
+  ];
+  const quads: Array<[number, number, number, number]> = [
+    [0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4],
+    [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7],
+  ];
+  for (const [a, b, c, d] of quads) {
+    out.push([p[a], p[b], p[c]], [p[a], p[c], p[d]]);
   }
 }
 
@@ -558,8 +580,9 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
  * The mesh generator invents whatever base the photo suggests — usually round
  * and tapered, which leaves no flat wall to letter (strokes ended up hanging
  * in front of the piece). We cut everything below the plinth shoulder away and
- * build a deterministic box: flat front face, square corners, predictable
- * height. The sculpture above is only translated up.
+ * build a deterministic lower lettering band with a tapered shoulder. The
+ * shoulder overlaps the sculpture deeply enough that it reads and prints as
+ * one continuous object instead of a bust placed on a separate box.
  */
 function reinforceTris(tris: Tri[]): ReinforcedTris {
   const bounds = boundsOf(tris);
@@ -622,30 +645,66 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
     return { tris, applied: false, baseHeightMm: 0, volumeAddedCm3: 0, size: { x: width, y: depth, z: height } };
   }
 
-  const slabTop = addedHeight;
+  // Measure only the sculpture's attachment area. Using the old generated
+  // model's full bounds made a needlessly large box and left the pet perched
+  // near its rear edge.
+  const connectionBand = Math.max(5, height * 0.055);
+  const connectionPoints = kept
+    .flatMap((tri) => tri)
+    .filter((point) => point[2] <= cutZ + connectionBand);
+  const allKeptPoints = kept.flatMap((tri) => tri);
+  const attachment = connectionPoints.length >= 6 ? connectionPoints : allKeptPoints;
+  const attachMinX = Math.min(...attachment.map((point) => point[0]));
+  const attachMaxX = Math.max(...attachment.map((point) => point[0]));
+  const attachMinY = Math.min(...attachment.map((point) => point[1]));
+  const attachMaxY = Math.max(...attachment.map((point) => point[1]));
+  const attachWidth = Math.max(1, attachMaxX - attachMinX);
+  const attachDepth = Math.max(1, attachMaxY - attachMinY);
+  const attachCx = (attachMinX + attachMaxX) / 2;
+  const attachCy = (attachMinY + attachMaxY) / 2;
+
+  // Keep the object comfortably hand-sized: the band supports the attachment
+  // and most of the silhouette, but no longer inherits an invented pedestal's
+  // oversized footprint. The pet sits slightly toward the visible -Y front.
+  const baseWidth = Math.max(attachWidth + 12, width * 0.82);
+  const baseDepth = Math.max(attachDepth + 12, depth * 0.72);
+  const halfX = baseWidth / 2;
+  const halfY = baseDepth / 2;
+  const forwardBias = Math.min(6, Math.max(2, baseDepth * 0.07));
+  const bustDx = -attachCx;
+  const bustDy = -forwardBias - attachCy;
+  const overlap = Math.max(HEFT_MIN_OVERLAP_MM, Math.min(4.5, addedHeight * 0.12));
+  const shoulderHeight = Math.min(
+    HEFT_SHOULDER_MAX_MM,
+    Math.max(HEFT_SHOULDER_MIN_MM, addedHeight * 0.24),
+    addedHeight - HEFT_MIN_FLAT_FRONT_MM,
+  );
+  const flatTop = addedHeight - shoulderHeight;
+  const shoulderTop = addedHeight;
+  const bustFloor = shoulderTop - overlap;
   const lifted = kept.map((tri) =>
-    tri.map(([x, y, z]) => [x, y, z - cutZ + addedHeight] as V3) as Tri
+    tri.map(([x, y, z]) => [x + bustDx, y + bustDy, z - cutZ + bustFloor] as V3) as Tri
   );
 
-  // Footprint: the discarded plinth's own span, widened so the slab reads as a
-  // plinth and carries lettering comfortably. Never narrower than the
-  // sculpture standing on it.
-  const keptBounds = boundsOf(lifted);
-  const cx = (bounds.max[0] + bounds.min[0]) / 2;
-  const cy = (bounds.max[1] + bounds.min[1]) / 2;
-  const halfX = Math.max(
-    (width * HEFT_FOOTPRINT_SCALE) / 2,
-    Math.max(keptBounds.max[0] - cx, cx - keptBounds.min[0]) + 5,
-  );
-  const halfY = Math.max(
-    (depth * HEFT_FOOTPRINT_SCALE) / 2,
-    Math.max(keptBounds.max[1] - cy, cy - keptBounds.min[1]) + 5,
-  );
-
-
+  // The upper shoulder hugs the actual attachment area. It remains inset from
+  // the lettering band, producing a short sculpted transition rather than a
+  // second hard-edged object beneath the bust.
+  const upperHalfX = Math.min(halfX - 2, Math.max(attachWidth / 2 + 3.5, halfX * 0.68));
+  const upperHalfY = Math.min(halfY - 2, Math.max(attachDepth / 2 + 3.5, halfY * 0.66));
+  const upperCy = -forwardBias;
   const out: Tri[] = [];
-  // The slab overlaps the sculpture's open underside so the two fuse solidly.
-  box(out, [cx - halfX, cy - halfY, 0], [cx + halfX, cy + halfY, slabTop + HEFT_OVERLAP_MM]);
+  box(out, [-halfX, -halfY, 0], [halfX, halfY, flatTop + 0.8]);
+  rectangularFrustum(
+    out,
+    { minX: -halfX, maxX: halfX, minY: -halfY, maxY: halfY, z: flatTop },
+    {
+      minX: -upperHalfX,
+      maxX: upperHalfX,
+      minY: upperCy - upperHalfY,
+      maxY: upperCy + upperHalfY,
+      z: shoulderTop,
+    },
+  );
   // Never spread here: these meshes carry >100k triangles and a spread blows
   // the call stack ("Maximum call stack size exceeded").
   for (const tri of lifted) out.push(tri);
@@ -654,8 +713,12 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   return {
     tris: out,
     applied: true,
-    baseHeightMm: Number((slabTop + HEFT_OVERLAP_MM).toFixed(2)),
-    volumeAddedCm3: Number((halfX * 2 * halfY * 2 * (slabTop + HEFT_OVERLAP_MM) / 1000).toFixed(2)),
+    baseHeightMm: Number(shoulderTop.toFixed(2)),
+    volumeAddedCm3: Number((
+      (baseWidth * baseDepth * flatTop +
+        shoulderHeight * (baseWidth * baseDepth + upperHalfX * 2 * upperHalfY * 2) / 2) /
+      1000
+    ).toFixed(2)),
     size: {
       x: Number((next.max[0] - next.min[0]).toFixed(2)),
       y: Number((next.max[1] - next.min[1]).toFixed(2)),
