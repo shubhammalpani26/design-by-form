@@ -476,6 +476,22 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
       .or(`group_id.eq.${key},id.eq.${key}`)
       .limit(1);
     if (pending?.length) continue;
+
+    // Advisory report flags a messy mesh — park it in the review queue.
+    const hold = await printabilityHold(groupRows).catch(() => null);
+    if (hold) {
+      await admin
+        .from("originals_orders")
+        .update({
+          production_status: "awaiting_admin_approval",
+          fulfillment_error:
+            `Held for review — printability report flags ${hold}. Check the STL, then approve to send to manufacturing.`,
+          updated_at: new Date().toISOString(),
+        })
+        .in("id", groupRows.map((row) => row.id));
+      continue;
+    }
+
     const out = await fulfilGroup(key, key);
     if (out.ok) sent.push(key);
     else {
