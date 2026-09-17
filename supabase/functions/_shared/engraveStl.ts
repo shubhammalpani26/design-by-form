@@ -779,18 +779,18 @@ export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number)
   const longest = Math.max(reinforced.size.x, reinforced.size.y, reinforced.size.z);
   if (maxDimensionMm && longest > maxDimensionMm) {
     const scale = maxDimensionMm / longest;
-    // Scale in place: a copy of this mesh would double peak memory.
-    const seen = new Set<V3>();
+    // Scale in place: a copy of this mesh would double peak memory. Every
+    // vertex here is its own array (binary STL stores no shared indices), so
+    // scaling each one exactly once is safe.
     for (const tri of reinforced.tris) {
       for (const point of tri) {
-        if (seen.has(point)) continue;
-        seen.add(point);
         point[0] *= scale;
         point[1] *= scale;
         point[2] *= scale;
       }
     }
     const scaled = reinforced.tris;
+
 
     const scaledBounds = boundsOf(scaled);
     reinforced = {
