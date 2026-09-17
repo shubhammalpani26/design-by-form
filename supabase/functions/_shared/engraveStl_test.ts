@@ -90,6 +90,27 @@ Deno.test("removes an ornate round pedestal before adding the rectangular plinth
   assertEquals(pedestalBand.length, 0);
 });
 
+Deno.test("never cuts the legs off a standing animal", () => {
+  const tris: Tri[] = [];
+  // Four slim legs under a broad body: the same narrow-then-wide silhouette as
+  // a pedestal, but nothing below the legs is wider than the legs themselves.
+  for (const sx of [-1, 1]) {
+    for (const sy of [-1, 1]) {
+      const x = sx * 18;
+      const y = sy * 10;
+      box(tris, [x - 4, y - 4, 0], [x + 4, y + 4, 38]);
+    }
+  }
+  box(tris, [-26, -14, 38], [26, 14, 110]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  // The whole animal survives: full 110 mm of sculpture plus the new slab.
+  assert(
+    result.size.z >= 110 + result.baseHeightMm - 2,
+    `sculpture was clipped: ${result.size.z}`,
+  );
+});
+
 Deno.test("reinforced base keeps the final piece inside its sold size", () => {
   const tris: Tri[] = [];
   box(tris, [-30, -24, 0], [30, 24, 16]);
