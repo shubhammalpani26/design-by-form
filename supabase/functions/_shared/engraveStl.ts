@@ -468,7 +468,10 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
   const footprint = (bounds.max[0] - bounds.min[0]) * (bounds.max[1] - bounds.min[1]);
   if (!(height > 0) || !(footprint > 0)) return null;
 
-  const candidates = new Map<number, number>();
+  // Horizontal faces, kept apart by which way they look: the top of a plinth
+  // is an upward-facing shoulder. The underside of a body carried on legs is a
+  // downward-facing face of the same size, and must never be read as a plinth.
+  const candidates = new Map<number, { up: number; down: number }>();
   const minCandidate = bounds.min[2] + Math.max(3, height * 0.025);
   const maxCandidate = bounds.min[2] + height * 0.38;
   for (const tri of tris) {
@@ -477,7 +480,10 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     const z = (tri[0][2] + tri[1][2] + tri[2][2]) / 3;
     if (z < minCandidate || z > maxCandidate) continue;
     const key = Math.round(z * 2) / 2;
-    candidates.set(key, (candidates.get(key) ?? 0) + triArea(tri));
+    const entry = candidates.get(key) ?? { up: 0, down: 0 };
+    if (normal[2] > 0) entry.up += triArea(tri);
+    else entry.down += triArea(tri);
+    candidates.set(key, entry);
   }
 
   // First find a narrow neck followed by the sustained widening of the chest.
