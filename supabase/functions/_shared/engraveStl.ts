@@ -696,9 +696,9 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   const flatTop = addedHeight - shoulderHeight;
   const shoulderTop = addedHeight;
   const bustFloor = shoulderTop - overlap;
-  const lifted = kept.map((tri) =>
-    tri.map(([x, y, z]) => [x + bustDx, y + bustDy, z - cutZ + bustFloor] as V3) as Tri
-  );
+  // Translated below, draining `kept` as we go: holding a second full copy of
+  // a >100k-triangle mesh exhausts the worker's memory budget.
+
 
   // The upper shoulder hugs the actual attachment area. It remains inset from
   // the lettering band, producing a short sculpted transition rather than a
