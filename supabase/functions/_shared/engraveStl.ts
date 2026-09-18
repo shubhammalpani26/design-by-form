@@ -187,9 +187,12 @@ function box(out: Tri[], min: V3, max: V3) {
   const quads: Array<[number, number, number, number]> = [
     [0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7],
   ];
+  // Every triangle gets its own vertex arrays: downstream steps scale the mesh
+  // in place, and shared corner references would be scaled once per triangle.
+  const v = (i: number): V3 => [p[i][0], p[i][1], p[i][2]];
   for (const [a, b, c, d] of quads) {
-    out.push([p[a], p[b], p[c]]);
-    out.push([p[a], p[c], p[d]]);
+    out.push([v(a), v(b), v(c)]);
+    out.push([v(a), v(c), v(d)]);
   }
 }
 
@@ -209,8 +212,10 @@ function rectangularFrustum(
     [0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4],
     [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7],
   ];
+  // Own vertex arrays per triangle — see box(): in-place scaling downstream.
+  const v = (i: number): V3 => [p[i][0], p[i][1], p[i][2]];
   for (const [a, b, c, d] of quads) {
-    out.push([p[a], p[b], p[c]], [p[a], p[c], p[d]]);
+    out.push([v(a), v(b), v(c)], [v(a), v(c), v(d)]);
   }
 }
 
