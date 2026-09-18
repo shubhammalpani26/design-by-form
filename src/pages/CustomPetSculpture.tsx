@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     q: "How much does a custom pet sculpture cost?",
-    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, ships in 4–5 business days.",
+    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, ships in 7–8 business days.",
   },
 ];
 
@@ -101,7 +101,7 @@ const CustomPetSculpture = () => {
                 <p className="text-primary-foreground/60 text-base md:text-lg max-w-2xl leading-relaxed mb-10">
                   Upload one photo and our AI sculpts your dog or cat's head and shoulders in full three dimensions —
                   breed, ears, muzzle, markings — set on a weighted plinth engraved with their name. Made to order in
-                  the USA, shipped free in 4–5 business days, from $59.
+                  the USA, shipped free in 7–8 business days, from $59.
                 </p>
                 <div className="flex flex-wrap gap-4">
                   <Link
@@ -129,7 +129,7 @@ const CustomPetSculpture = () => {
               {[
                 { n: "01", t: "Upload a photo", d: "One clear, well-lit photo of their face. Front or three-quarter view works best — any dog, cat, rabbit, horse or bird." },
                 { n: "02", t: "See your sculpture", d: "Our AI sculpts their likeness in 3D and shows you the exact piece before you pay. Adjust one thing if it isn't right." },
-                { n: "03", t: "We make and ship it", d: "Your sculpture is checked for strength and printability, produced as one solid piece in the USA and shipped free in 4–5 business days." },
+                { n: "03", t: "We make and ship it", d: "Your sculpture is checked for strength and printability, produced as one solid piece in the USA and shipped free in 7–8 business days." },
               ].map((s) => (
                 <div key={s.n} className="bg-background p-8 md:p-10 flex gap-6">
                   <span className="text-sm tabular-nums text-muted-foreground shrink-0 pt-1">{s.n}</span>
@@ -198,7 +198,7 @@ const CustomPetSculpture = () => {
                 "A warm, happy expression as the default: perked ears, lifted cheeks, a gentle smile.",
                 "Engineering-checked for wall thickness, stability and print feasibility before anything is made.",
                 "Plant-based PLA in six curated colours, printed as one solid part in the USA.",
-                "Free US shipping on every size, ships in 4–5 business days.",
+                "Free US shipping on every size, ships in 7–8 business days.",
               ].map((point) => (
                 <div key={point} className="flex gap-3">
                   <Check className="w-5 h-5 shrink-0 mt-0.5 text-secondary" />
