@@ -241,3 +241,24 @@ Deno.test("fitStlToLongestEdge scales an undersized file back up to the sold siz
   );
   if (Math.abs(longest - 120) > 0.5) throw new Error(`expected 120mm, got ${longest}`);
 });
+
+Deno.test("shrinking to the sold size scales the new plinth evenly", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 16]);
+  box(tris, [-18, -12, 16], [18, 12, 120]);
+  const full = reinforceKeepsakeStl(writeStl(tris));
+  const shrunk = reinforceKeepsakeStl(writeStl(tris), 120);
+  assert(full.applied && shrunk.applied);
+  const scale = 120 / Math.max(full.size.x, full.size.y, full.size.z);
+  for (const axis of ["x", "y", "z"] as const) {
+    const expected = full.size[axis] * scale;
+    assert(
+      Math.abs(shrunk.size[axis] - expected) < 0.5,
+      `${axis}: ${shrunk.size[axis]} vs ${expected}`,
+    );
+  }
+  // The flat lettering band must survive the resize.
+  const lettered = engraveStl(shrunk.stl, { heading: "SUNNY" });
+  assert(lettered.applied, lettered.reason ?? "");
+  assertEquals(lettered.placementVerified, true);
+});
