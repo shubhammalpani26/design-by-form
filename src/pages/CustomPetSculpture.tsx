@@ -26,7 +26,7 @@ const faqs = [
   },
   {
     q: "How much does a custom pet sculpture cost?",
-    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, ships in 7–8 business days.",
+    a: "From $59 for the Petite (120 mm), $89 for the Standard (140 mm) and $139 for the Statement (196 mm). Every price includes free US shipping, ships in 7–8 business days. Business days exclude Saturdays, Sundays and US national holidays.",
   },
 ];
 

@@ -19,7 +19,7 @@ const STEPS = [
 ];
 
 const FAQS = [
-  { q: "How long does it take?", a: "Every Original is made to order. Your piece ships in 7–8 business days anywhere in the US." },
+  { q: "How long does it take?", a: "Every Original is made to order. Your piece ships in 7–8 business days anywhere in the US. Business days exclude Saturdays, Sundays and US national holidays." },
   { q: "What is it made of?", a: "Plant-based PLA — a dense matte polymer, precision 3D-printed as one solid part in the USA. The finish is a single matte colour with the fine horizontal layer lines of a real 3D print — to be clear, it is a durable printed material, not natural stone or ceramic. It is solid through, not hollow-feeling, and safe indoors on any shelf." },
   { q: "Is this a real product or just an AI image?", a: "The AI only designs it. What you see in the preview is turned into a manufacturable 3D model, checked by our engineering system for wall thickness, stability and print feasibility, then produced by a real US workshop and shipped to you as a physical object." },
   { q: "What if it arrives damaged or doesn't look right?", a: "You approve the render before anything is made, so the piece you get is the one you signed off on. If anything arrives the worse for wear in transit, send us a photo and a fresh piece goes into production the same day — at our cost, no return postage. If it doesn't match the render you approved, we remake it free and ship the new one." },
