@@ -18,7 +18,7 @@ const faqs = [
   },
   {
     q: "How long does it take to arrive?",
-    a: "Each piece is made to order and shipped free anywhere in the US, ships in 7–8 business days from order.",
+    a: "Each piece is made to order and shipped free anywhere in the US, ships in 7–8 business days from order. Business days exclude Saturdays, Sundays and US national holidays.",
   },
   {
     q: "Is this an alternative to a pet urn?",
