@@ -291,9 +291,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           ? sku.photo.promptTemplate({ heading, footnote })
           : sku.promptTemplate(values);
       const withColor = `${basePrompt}${colorClause(activeColor)}`;
-      const prompt = isTweak
-        ? `${withColor} Revision requested by the customer — keep everything else identical, apply only this change: ${tweakText.trim()}`
-        : withColor;
+      // The function appends the revision after its mandatory product rules so
+      // a long base prompt cannot truncate the customer's requested change.
+      const prompt = withColor;
       const { data, error } = await supabase.functions.invoke("originals-preview", {
         body: {
           skuSlug: sku.slug,

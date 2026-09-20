@@ -10,3 +10,4 @@
 - [x] Restore realistic PLA layer lines and subtle sheen in Originals preview renders
 
 - [x] Confirm that uploads use a standard product prompt plus customer details and the photo
+- [x] Keep pet preview remakes to one sculpture and preserve furry coat character
