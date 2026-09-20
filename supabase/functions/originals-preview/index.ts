@@ -43,8 +43,8 @@ Deno.serve(async (req) => {
 
     const skuSlug = String(body.skuSlug ?? "").slice(0, 80);
     const prompt = String(body.prompt ?? "").trim().slice(0, 4000);
-    const personalization = (body.personalization && typeof body.personalization === "object")
-      ? body.personalization
+    const personalization: Record<string, unknown> = (body.personalization && typeof body.personalization === "object")
+      ? body.personalization as Record<string, unknown>
       : {};
     const tweak = typeof personalization.tweak === "string"
       ? personalization.tweak.trim().slice(0, 500)
