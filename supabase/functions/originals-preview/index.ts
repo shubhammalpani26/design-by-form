@@ -46,6 +46,9 @@ Deno.serve(async (req) => {
     const personalization = (body.personalization && typeof body.personalization === "object")
       ? body.personalization
       : {};
+    const tweak = typeof personalization.tweak === "string"
+      ? personalization.tweak.trim().slice(0, 500)
+      : "";
     const sourceImage: string | undefined = typeof body.sourceImage === "string" ? body.sourceImage : undefined;
     if (!skuSlug || !prompt) return json({ error: "Missing details." }, 400);
 
@@ -116,8 +119,11 @@ Deno.serve(async (req) => {
     // clients appended "matte" after requesting satin PLA, and the later word
     // caused the model to smooth away the print texture.
     const productionAppearance =
-      " Mandatory physical appearance: show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base.";
-    const effectivePrompt = `${prompt}${productionAppearance}`;
+      " Mandatory physical appearance: show exactly one sculpture from one three-quarter camera angle, centered in one clean product photograph. Never create a triptych, contact sheet, turnaround, comparison, collage, multiple angles, repeated sculptures, or multiple products. Show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. Preserve the reference animal's coat character as sculpted printable form: for curly, shaggy, woolly, or long-haired pets, model the visible curls, locks, tufts, and furry volume clearly while avoiding loose individual hairs or fragile strands. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base.";
+    const revision = tweak
+      ? ` Final customer revision: apply only this change while preserving the same animal, likeness, single sculpture, single camera angle, plinth, lettering, colour, material, and composition: ${tweak}`
+      : "";
+    const effectivePrompt = `${prompt}${productionAppearance}${revision}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 
