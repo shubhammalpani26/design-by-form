@@ -66,7 +66,7 @@ const ENGRAVINGS: Array<{ name: string; sub: string; story: string }> = [
 ];
 
 /** The story that goes under the photo — the piece is the ending, the animal is the post. */
-const storyFor = (id: string) => engravingFor(id).story;
+const storyFor = (slot: { id: string; scheduled_at?: string | null }) => engravingFor(slot).story;
 
 
 /**
@@ -190,8 +190,8 @@ const SOFT_EDGE_CLAUSE =
   " Edges: the plinth is deep and heavy with generously rounded corners and a soft chamfer along every top and bottom edge — " +
   "no sharp knife edges anywhere, every transition eased and hand-friendly, the piece reading substantial and heavy in the hand.";
 
-const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${MONOCHROME_CLAUSE}${SATIN_CLAUSE}${SOFT_EDGE_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+const renderPrompt = (p: string, slot: Slot) =>
+  `${applySpecies(p, slot)}${engravingClause(engravingFor(slot))}${expressionFor(slot.id)}${MONOCHROME_CLAUSE}${SATIN_CLAUSE}${SOFT_EDGE_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
@@ -476,7 +476,7 @@ async function renderDue() {
     // Re-render with the engineering agent's own revision note until it passes,
     // so a rejected slot still makes its posting time.
     for (let pass = 0; pass < ENGINEERING_RETRIES; pass++) {
-      const base = post.is_render ? renderPrompt(post.image_prompt, post.id) : post.image_prompt;
+      const base = post.is_render ? renderPrompt(post.image_prompt, post) : post.image_prompt;
       const rendered = await renderImage(revision ? `${base} ${revision}` : base);
       if (!rendered.url) {
         if (rendered.status === 402 || rendered.status === 403) {
@@ -609,9 +609,9 @@ async function resolveMediaUrl(raw: string): Promise<string> {
  */
 function composeCaption(post: Post): string {
   const base = (post.caption ?? "").trim();
-  const story = storyFor(post.id);
+  const story = storyFor(post);
   if (!story || base.includes(story)) return base;
-  const name = engravingFor(post.id).name;
+  const name = engravingFor(post).name;
   const alreadyTold = new RegExp(`${name}\\b[^.]*\\b(always|still|sits|sleeps|naps|waits)`, "i").test(base);
   if (alreadyTold) return base;
   return `${story}\n\n${base}`;
