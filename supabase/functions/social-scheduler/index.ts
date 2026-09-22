@@ -355,8 +355,8 @@ const QUEUE_AHEAD_DAYS = 3;
 /**
  * The original content plan was a fixed run of days; once it was exhausted the cron kept
  * firing with nothing due and posting silently stopped. Top the queue up on every run by
- * recycling the plan's captions and prompts — each new row gets a fresh id, so the species,
- * engraving and expression all differ from the slot it was cloned from.
+ * recycling the plan's captions and prompts — each new row lands on its own posting slot,
+ * so the pet and species step forward in rotation instead of repeating.
  */
 async function ensureQueue() {
   const now = Date.now();
