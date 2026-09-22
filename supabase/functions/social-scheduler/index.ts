@@ -100,8 +100,25 @@ function hash(id: string, salt = "") {
   return h;
 }
 
-function speciesFor(id: string) {
-  return SPECIES[hash(id, "species:") % SPECIES.length];
+type Slot = { id: string; scheduled_at?: string | null };
+
+/**
+ * Pets rotate in order of the posting slot, never by a hash of the row id.
+ * Hashing collided — two consecutive posts both came out as CHARLIE — so the
+ * rotation now steps once per scheduled slot and cannot repeat a name until the
+ * whole cast of 18 has been through the grid.
+ */
+function slotSeq(slot: Slot) {
+  const t = slot.scheduled_at ? Date.parse(slot.scheduled_at) : NaN;
+  if (!Number.isFinite(t)) return hash(slot.id);
+  return Math.floor(t / (6 * 60 * 60 * 1000));
+}
+
+const pick = <T,>(arr: T[], n: number) => arr[((n % arr.length) + arr.length) % arr.length];
+
+function speciesFor(slot: Slot) {
+  // 7 and 18 are coprime, so species cycles through all 18 without repeating either.
+  return pick(SPECIES, slotSeq(slot) * 7 + 3);
 }
 
 /**
@@ -111,10 +128,10 @@ function speciesFor(id: string) {
 const SPECIES_NOUNS =
   /\b(golden retriever|labrador retriever|german shepherd|french bulldog|border collie|maine coon|british shorthair|domestic shorthair|persian cat|siamese cat|ragdoll cat|tabby cat|black cat|lop-eared rabbit|dachshund|shih tzu|beagle|puppy|kitten|dogs|cats|dog|cat|animal|pet)\b/gi;
 
-const applySpecies = (p: string, id: string) => p.replace(SPECIES_NOUNS, speciesFor(id));
+const applySpecies = (p: string, slot: Slot) => p.replace(SPECIES_NOUNS, speciesFor(slot));
 
-function engravingFor(id: string) {
-  return ENGRAVINGS[hash(id) % ENGRAVINGS.length];
+function engravingFor(slot: Slot) {
+  return pick(ENGRAVINGS, slotSeq(slot));
 }
 
 /**
