@@ -103,15 +103,18 @@ function hash(id: string, salt = "") {
 type Slot = { id: string; scheduled_at?: string | null };
 
 /**
- * Pets rotate in order of the posting slot, never by a hash of the row id.
+ * Pets rotate in order of the posting day, never by a hash of the row id.
  * Hashing collided — two consecutive posts both came out as CHARLIE — so the
- * rotation now steps once per scheduled slot and cannot repeat a name until the
- * whole cast of 18 has been through the grid.
+ * rotation now steps once per day and cannot repeat a name until all 18 have
+ * been through the grid. Extra slots on the same day are offset by 7 (coprime
+ * with 18) so they get a different pet from that day's main post.
  */
 function slotSeq(slot: Slot) {
   const t = slot.scheduled_at ? Date.parse(slot.scheduled_at) : NaN;
   if (!Number.isFinite(t)) return hash(slot.id);
-  return Math.floor(t / (6 * 60 * 60 * 1000));
+  const day = Math.floor(t / (24 * 60 * 60 * 1000));
+  const bucket = Math.floor((t % (24 * 60 * 60 * 1000)) / (6 * 60 * 60 * 1000));
+  return day + 7 * bucket;
 }
 
 const pick = <T,>(arr: T[], n: number) => arr[((n % arr.length) + arr.length) % arr.length];
