@@ -104,7 +104,7 @@ const OriginalsHome = () => {
         <div className="absolute inset-0">
           <img
             src={heroImg}
-            alt="Three matte sculptural personal pieces on a minimalist shelf"
+            alt="Two real Nyzora Originals pieces: a terracotta goldendoodle bust lettered NYRA 2014–2025 and a cream cat bust lettered NALAA, photographed in the studio"
             className="h-full w-full object-cover"
             width={1920}
             height={1088}
