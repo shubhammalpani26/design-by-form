@@ -66,7 +66,7 @@ const ENGRAVINGS: Array<{ name: string; sub: string; story: string }> = [
 ];
 
 /** The story that goes under the photo — the piece is the ending, the animal is the post. */
-const storyFor = (id: string) => engravingFor(id).story;
+const storyFor = (slot: { id: string; scheduled_at?: string | null }) => engravingFor(slot).story;
 
 
 /**
@@ -100,8 +100,28 @@ function hash(id: string, salt = "") {
   return h;
 }
 
-function speciesFor(id: string) {
-  return SPECIES[hash(id, "species:") % SPECIES.length];
+type Slot = { id: string; scheduled_at?: string | null };
+
+/**
+ * Pets rotate in order of the posting day, never by a hash of the row id.
+ * Hashing collided — two consecutive posts both came out as CHARLIE — so the
+ * rotation now steps once per day and cannot repeat a name until all 18 have
+ * been through the grid. Extra slots on the same day are offset by 7 (coprime
+ * with 18) so they get a different pet from that day's main post.
+ */
+function slotSeq(slot: Slot) {
+  const t = slot.scheduled_at ? Date.parse(slot.scheduled_at) : NaN;
+  if (!Number.isFinite(t)) return hash(slot.id);
+  const day = Math.floor(t / (24 * 60 * 60 * 1000));
+  const bucket = Math.floor((t % (24 * 60 * 60 * 1000)) / (6 * 60 * 60 * 1000));
+  return day + 7 * bucket;
+}
+
+const pick = <T,>(arr: T[], n: number) => arr[((n % arr.length) + arr.length) % arr.length];
+
+function speciesFor(slot: Slot) {
+  // 7 and 18 are coprime, so species cycles through all 18 without repeating either.
+  return pick(SPECIES, slotSeq(slot) * 7 + 3);
 }
 
 /**
@@ -111,10 +131,10 @@ function speciesFor(id: string) {
 const SPECIES_NOUNS =
   /\b(golden retriever|labrador retriever|german shepherd|french bulldog|border collie|maine coon|british shorthair|domestic shorthair|persian cat|siamese cat|ragdoll cat|tabby cat|black cat|lop-eared rabbit|dachshund|shih tzu|beagle|puppy|kitten|dogs|cats|dog|cat|animal|pet)\b/gi;
 
-const applySpecies = (p: string, id: string) => p.replace(SPECIES_NOUNS, speciesFor(id));
+const applySpecies = (p: string, slot: Slot) => p.replace(SPECIES_NOUNS, speciesFor(slot));
 
-function engravingFor(id: string) {
-  return ENGRAVINGS[hash(id) % ENGRAVINGS.length];
+function engravingFor(slot: Slot) {
+  return pick(ENGRAVINGS, slotSeq(slot));
 }
 
 /**
@@ -173,8 +193,8 @@ const SOFT_EDGE_CLAUSE =
   " Edges: the plinth is deep and heavy with generously rounded corners and a soft chamfer along every top and bottom edge — " +
   "no sharp knife edges anywhere, every transition eased and hand-friendly, the piece reading substantial and heavy in the hand.";
 
-const renderPrompt = (p: string, id: string) =>
-  `${applySpecies(p, id)}${engravingClause(engravingFor(id))}${expressionFor(id)}${MONOCHROME_CLAUSE}${SATIN_CLAUSE}${SOFT_EDGE_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
+const renderPrompt = (p: string, slot: Slot) =>
+  `${applySpecies(p, slot)}${engravingClause(engravingFor(slot))}${expressionFor(slot.id)}${MONOCHROME_CLAUSE}${SATIN_CLAUSE}${SOFT_EDGE_CLAUSE}${PRINTABILITY_CLAUSE}${FORMAT_CLAUSE}`;
 
 type Post = {
   id: string;
@@ -338,8 +358,8 @@ const QUEUE_AHEAD_DAYS = 3;
 /**
  * The original content plan was a fixed run of days; once it was exhausted the cron kept
  * firing with nothing due and posting silently stopped. Top the queue up on every run by
- * recycling the plan's captions and prompts — each new row gets a fresh id, so the species,
- * engraving and expression all differ from the slot it was cloned from.
+ * recycling the plan's captions and prompts — each new row lands on its own posting slot,
+ * so the pet and species step forward in rotation instead of repeating.
  */
 async function ensureQueue() {
   const now = Date.now();
@@ -459,7 +479,7 @@ async function renderDue() {
     // Re-render with the engineering agent's own revision note until it passes,
     // so a rejected slot still makes its posting time.
     for (let pass = 0; pass < ENGINEERING_RETRIES; pass++) {
-      const base = post.is_render ? renderPrompt(post.image_prompt, post.id) : post.image_prompt;
+      const base = post.is_render ? renderPrompt(post.image_prompt, post) : post.image_prompt;
       const rendered = await renderImage(revision ? `${base} ${revision}` : base);
       if (!rendered.url) {
         if (rendered.status === 402 || rendered.status === 403) {
@@ -592,9 +612,9 @@ async function resolveMediaUrl(raw: string): Promise<string> {
  */
 function composeCaption(post: Post): string {
   const base = (post.caption ?? "").trim();
-  const story = storyFor(post.id);
+  const story = storyFor(post);
   if (!story || base.includes(story)) return base;
-  const name = engravingFor(post.id).name;
+  const name = engravingFor(post).name;
   const alreadyTold = new RegExp(`${name}\\b[^.]*\\b(always|still|sits|sleeps|naps|waits)`, "i").test(base);
   if (alreadyTold) return base;
   return `${story}\n\n${base}`;
