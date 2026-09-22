@@ -62,8 +62,8 @@ async function startModelTask(imageUrl: string): Promise<string> {
     headers: { Authorization: `Bearer ${meshyKey()}`, "Content-Type": "application/json" },
     body: JSON.stringify({
       image_url: imageUrl,
-      // Meshy 7 is the current generation; `latest` resolves here too.
-      ai_model: "meshy-7",
+      // Meshy 7.1 is the current generation (sharper geometry); `latest` resolves here too.
+      ai_model: "meshy-7.1",
       enable_pbr: false,
       should_remesh: true,
       should_texture: false,
