@@ -19,7 +19,7 @@ declare global {
   }
 }
 
-import { isTrackingAllowed } from "./consent";
+import { isTrackingAllowed, onTrackingAllowed } from "./consent";
 
 let loaded = false;
 
@@ -51,8 +51,13 @@ export function initMetaPixel() {
 
 function track(event: string, params?: Record<string, unknown>, eventId?: string) {
   if (!PIXEL_ID) return;
-  initMetaPixel();
-  window.fbq?.("track", event, params ?? {}, eventId ? { eventID: eventId } : undefined);
+  // Defer until consent has resolved. Events fired on component mount (e.g.
+  // ViewContent) can race the async region check and be silently dropped
+  // otherwise — the pixel stub does not exist yet, so the call is a no-op.
+  onTrackingAllowed(() => {
+    initMetaPixel();
+    window.fbq?.("track", event, params ?? {}, eventId ? { eventID: eventId } : undefined);
+  });
 }
 
 /** Buyer landed on a product / personalization flow. */
