@@ -1,4 +1,5 @@
-import { useParams, Link, useNavigate } from "react-router-dom";
+import { useParams, Link, useNavigate, Navigate } from "react-router-dom";
+import { getSku } from "@/data/originalsSkus";
 import { ChevronLeft, ChevronRight, Shield } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
@@ -27,6 +28,16 @@ import { normalizeFinishes, type FinishOption } from "@/lib/finishes";
 
 
 const ProductDetail = () => {
+  const { slug } = useParams();
+  // Originals live at /originals/:slug. Ads and older links point at
+  // /product/:slug — forward them (keeping utm/fbclid) instead of 404ing.
+  if (getSku(slug)) {
+    return <Navigate to={`/originals/${slug}${window.location.search}`} replace />;
+  }
+  return <ProductDetailInner />;
+};
+
+const ProductDetailInner = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState<any>(null);
