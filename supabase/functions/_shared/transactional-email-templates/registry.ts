@@ -7,6 +7,7 @@ import { template as contactFormSubmission } from './contact-form-submission.tsx
 import { template as partnerRefundRequest } from './partner-refund-request.tsx'
 import { template as manufacturingOrderPlaced } from './manufacturing-order-placed.tsx'
 import { template as orderHeldForReview } from './order-held-for-review.tsx'
+import { template as generationFailing } from './generation-failing.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
