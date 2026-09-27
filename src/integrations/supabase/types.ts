@@ -124,6 +124,30 @@ export type Database = {
         }
         Relationships: []
       }
+      blocked_visitors: {
+        Row: {
+          created_at: string
+          id: string
+          ip_hash: string | null
+          reason: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          reason?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          ip_hash?: string | null
+          reason?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       brand_reviews: {
         Row: {
           author_email: string | null

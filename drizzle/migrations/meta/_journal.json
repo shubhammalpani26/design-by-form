@@ -29,6 +29,13 @@
       "when": 1790503476011,
       "tag": "0003_admin_read_originals_uploads",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790506151366,
+      "tag": "0004_block_and_purge_abusive_visitor",
+      "breakpoints": true
     }
   ]
 }

@@ -66,6 +66,20 @@ Deno.serve(async (req) => {
     const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
     const ipHash = await hashIp(ip);
 
+    // Visitors blocked by an admin (e.g. abusive uploads) cannot generate.
+    {
+      const filters = [`ip_hash.eq.${ipHash}`];
+      if (userId) filters.push(`user_id.eq.${userId}`);
+      const { data: blocked } = await admin
+        .from("blocked_visitors")
+        .select("id")
+        .or(filters.join(","))
+        .limit(1);
+      if (blocked && blocked.length > 0) {
+        return json({ error: "Previews are unavailable. Please contact contact@nyzora.ai.", code: "BLOCKED" }, 403);
+      }
+    }
+
     // Admins render unlimited previews (internal testing, content shoots).
     let unlimited = false;
     let used = 0;
