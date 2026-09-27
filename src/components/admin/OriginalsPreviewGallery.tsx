@@ -5,11 +5,20 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, Images } from "lucide-react";
 
+interface PreviewPersonalization {
+  colorLabel?: string;
+  heading?: string;
+  footnote?: string;
+  tweak?: string;
+  [key: string]: unknown;
+}
+
 interface PreviewRow {
   id: string;
   sku_slug: string;
   source_image_url: string | null;
   preview_image_url: string | null;
+  personalization: PreviewPersonalization | null;
   user_id: string | null;
   ip_hash: string | null;
   created_at: string;
@@ -37,7 +46,7 @@ export function OriginalsPreviewGallery() {
     setError(null);
     const { data, error: qError } = await supabase
       .from("originals_previews")
-      .select("id, sku_slug, source_image_url, preview_image_url, user_id, ip_hash, created_at")
+      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (qError) {
@@ -149,9 +158,18 @@ export function OriginalsPreviewGallery() {
                   )}
                 </div>
               </div>
-              <p className="text-[10px] text-muted-foreground">
-                Visitor {(visitorKey(item) ?? "").slice(0, 8)} · {item.user_id ? "signed in" : "guest"}
-              </p>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+                <span>Visitor {(visitorKey(item) ?? "").slice(0, 8)} · {item.user_id ? "signed in" : "guest"}</span>
+                {item.personalization?.colorLabel && (
+                  <span className="font-medium text-foreground">Colour: {item.personalization.colorLabel}</span>
+                )}
+                {(item.personalization?.heading || item.personalization?.footnote) && (
+                  <span>
+                    Lettering: {item.personalization.heading || "—"}
+                    {item.personalization.footnote ? ` · ${item.personalization.footnote}` : ""}
+                  </span>
+                )}
+              </div>
             </div>
           ))}
         </div>
