@@ -15,6 +15,13 @@
       "when": 1789312883240,
       "tag": "0001_add_slicer_weight_grams",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790503230537,
+      "tag": "0002_generation_health_check_cron",
+      "breakpoints": true
     }
   ]
 }
