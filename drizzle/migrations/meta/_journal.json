@@ -36,6 +36,13 @@
       "when": 1790506151366,
       "tag": "0004_block_and_purge_abusive_visitor",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790507023231,
+      "tag": "0005_admin_delete_originals_preview",
+      "breakpoints": true
     }
   ]
 }
