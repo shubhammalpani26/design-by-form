@@ -2681,6 +2681,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_delete_originals_preview: {
+        Args: { p_preview_id: string }
+        Returns: undefined
+      }
       admin_get_all_products: {
         Args: never
         Returns: {
