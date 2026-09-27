@@ -26,4 +26,5 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'partner-refund-request': partnerRefundRequest,
   'manufacturing-order-placed': manufacturingOrderPlaced,
   'order-held-for-review': orderHeldForReview,
+  'generation-failing': generationFailing,
 }
