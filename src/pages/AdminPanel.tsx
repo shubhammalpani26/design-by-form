@@ -18,6 +18,7 @@ import { ContactSubmissions } from "@/components/admin/ContactSubmissions";
 import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement";
 import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManagement";
 import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
+import { OriginalsPreviewGallery } from "@/components/admin/OriginalsPreviewGallery";
 import { SEOHead } from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -29,6 +30,7 @@ const TABS = [
   { value: "orders", label: "Orders" },
   { value: "print-farm", label: "US Print" },
   { value: "originals-ops", label: "Originals Ops" },
+  { value: "customer-photos", label: "Customer Photos" },
   { value: "print-validation", label: "Print Validation" },
   { value: "early-access", label: "Early Access" },
   { value: "contacts", label: "Contacts" },
@@ -168,6 +170,9 @@ export default function AdminPanel() {
 
           <TabsContent value="originals-ops">
             <OriginalsFulfillmentManagement />
+          </TabsContent>
+          <TabsContent value="customer-photos">
+            <OriginalsPreviewGallery />
           </TabsContent>
 
           <TabsContent value="print-validation">
