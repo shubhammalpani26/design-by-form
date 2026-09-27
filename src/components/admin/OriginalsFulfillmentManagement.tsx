@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Loader2, RefreshCw, Trash2, ChevronDown, ChevronRight, Download, ExternalLink, Send } from "lucide-react";
+import { OriginalsPreviewGallery } from "./OriginalsPreviewGallery";
 
 interface OriginalsOrder {
   id: string;
@@ -398,6 +399,8 @@ export function OriginalsFulfillmentManagement() {
           </p>
         </CardContent>
       </Card>
+
+      <OriginalsPreviewGallery />
 
       {orders.map((order) => {
         const list = eventsByOrder.get(order.id) ?? [];
