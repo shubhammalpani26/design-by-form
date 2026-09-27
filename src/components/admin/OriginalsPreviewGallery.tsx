@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, Images } from "lucide-react";
+import { Loader2, RefreshCw, Images, Trash2 } from "lucide-react";
 
 interface PreviewPersonalization {
   colorLabel?: string;
@@ -40,6 +40,27 @@ export function OriginalsPreviewGallery() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  /**
+   * Removes a preview and its files everywhere: the uploaded photo, the
+   * render, and the database rows. Server-side function enforces admin-only.
+   */
+  const deletePreview = async (item: GalleryItem) => {
+    const label = item.personalization?.heading || item.sku_slug;
+    if (!window.confirm(`Delete this preview (${label})? The customer's photo and its render are removed permanently.`)) return;
+    setDeletingId(item.id);
+    setError(null);
+    const { error: dError } = await supabase.rpc("admin_delete_originals_preview", {
+      p_preview_id: item.id,
+    });
+    if (dError) {
+      setError(`Couldn't delete: ${dError.message}`);
+    } else {
+      setItems((prev) => prev.filter((p) => p.id !== item.id));
+    }
+    setDeletingId(null);
+  };
 
   const load = useCallback(async () => {
     setLoading(true);
