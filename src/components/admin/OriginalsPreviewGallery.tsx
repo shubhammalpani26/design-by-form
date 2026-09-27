@@ -135,9 +135,25 @@ export function OriginalsPreviewGallery() {
                 <Badge variant="outline" className="text-xs">
                   {item.sku_slug}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {new Date(item.created_at).toLocaleString()}
-                </span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-muted-foreground">
+                    {new Date(item.created_at).toLocaleString()}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                    title="Delete this preview, its photo and its render"
+                    disabled={deletingId === item.id}
+                    onClick={() => deletePreview(item)}
+                  >
+                    {deletingId === item.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    )}
+                  </Button>
+                </div>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 <div>
