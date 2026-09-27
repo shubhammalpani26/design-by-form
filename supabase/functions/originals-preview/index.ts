@@ -49,6 +49,26 @@ Deno.serve(async (req) => {
     const tweak = typeof personalization.tweak === "string"
       ? personalization.tweak.trim().slice(0, 500)
       : "";
+
+    // Only the six colours we actually sell may be saved with a preview.
+    // The site picker always sends one of these; anything else is a crafted
+    // request and gets rejected rather than stored.
+    const ALLOWED_COLOR_LABELS = new Set([
+      "Bone White", "Charcoal", "Marble", "Slate Grey", "Sand", "Blush",
+    ]);
+    if (typeof personalization.colorLabel === "string") {
+      const label = personalization.colorLabel.trim();
+      if (!ALLOWED_COLOR_LABELS.has(label)) {
+        return json({ error: "Please pick one of the six colours shown on the page." }, 400);
+      }
+      personalization.colorLabel = label;
+    }
+    // Keep lettering fields bounded so crafted requests can't store essays.
+    for (const key of ["heading", "footnote"] as const) {
+      if (typeof personalization[key] === "string") {
+        personalization[key] = (personalization[key] as string).trim().slice(0, 40);
+      }
+    }
     const sourceImage: string | undefined = typeof body.sourceImage === "string" ? body.sourceImage : undefined;
     if (!skuSlug || !prompt) return json({ error: "Missing details." }, 400);
 
