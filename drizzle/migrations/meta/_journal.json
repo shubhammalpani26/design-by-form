@@ -22,6 +22,13 @@
       "when": 1790503230537,
       "tag": "0002_generation_health_check_cron",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790503476011,
+      "tag": "0003_admin_read_originals_uploads",
+      "breakpoints": true
     }
   ]
 }
