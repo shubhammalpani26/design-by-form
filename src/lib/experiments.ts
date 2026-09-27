@@ -14,7 +14,7 @@ export const EXPERIMENTS = {
   hero_copy: {
     a: {
       headline: ["Upload one photo.", "Hold them in your hands."],
-      sub: "A photo of your dog or cat becomes a solid keepsake with their name on the base — one matte colour with the honest texture of a 3D print, made in the USA. See it free in about a minute. Ships in 7–8 business days.",
+      sub: "A photo of your pet becomes a solid keepsake with their name on the base — one matte colour with the honest texture of a 3D print, made in the USA. See it free in about a minute. Ships in 7–8 business days.",
       cta: "See your pet sculpted — free",
     },
     b: {
