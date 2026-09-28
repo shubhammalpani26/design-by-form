@@ -128,6 +128,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
   const [preview, setPreview] = useState<{ url: string; id: string | null; remaining: number } | null>(null);
+  // Every render made for this photo in this session, so buyers can flip back
+  // to an earlier version they preferred. Whichever is showing gets made.
+  const [versions, setVersions] = useState<{ url: string; id: string | null; remaining: number }[]>([]);
+  const versionIdx = preview ? versions.findIndex((v) => v.url === preview.url) : -1;
   
   const [showTweak, setShowTweak] = useState(false);
   const [tweak, setTweak] = useState("");
@@ -166,7 +170,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       // expanded, not hidden behind the "+ Add" toggle.
       if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
       if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
-      if (d.preview) setPreview(d.preview);
+      if (d.preview) { setPreview(d.preview); setVersions([d.preview]); }
       setRestored(true);
     });
     return () => { cancelled = true; };
@@ -316,7 +320,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
         },
       });
       if (error) throw new Error(await readFnError(error, "We couldn't render that one. Try a clearer photo."));
-      setPreview({ url: data.previewUrl, id: data.previewId ?? null, remaining: data.remaining ?? 0 });
+      const next = { url: data.previewUrl, id: data.previewId ?? null, remaining: data.remaining ?? 0 };
+      setPreview(next);
+      setVersions((prev) => (isRefine ? [...prev, next] : [next]));
       if (isTweak) {
         setShowTweak(false);
         setTweak("");
@@ -401,7 +407,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     setCheckingOut(true);
     trackExperiment("reveal_screen", revealVariant, "checkout_click", {
       skuSlug: sku.slug,
-      metadata: { sizeKey, price: selectedPrice, pieces: basketCount },
+      metadata: { sizeKey, price: selectedPrice, pieces: basketCount, version: versionIdx + 1, versions: versions.length },
     });
     trackInitiateCheckout(sku.slug, basketTotal, basketCount);
 
@@ -673,7 +679,33 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   </div>
                 )}
               </div>
+              {versions.length > 1 && versionIdx >= 0 && !refining && (
+                <div className="flex items-center justify-center gap-4 border-t border-border py-1.5 text-xs text-muted-foreground">
+                  <button
+                    type="button"
+                    aria-label="Previous version"
+                    disabled={versionIdx === 0}
+                    className="px-2 py-1 disabled:opacity-30 hover:text-foreground"
+                    onClick={() => {
+                      setPreview(versions[versionIdx - 1]);
+                      trackExperiment("reveal_screen", revealVariant, "version_flip", { skuSlug: sku.slug, metadata: { to: versionIdx } });
+                    }}
+                  >‹</button>
+                  <span className="tabular-nums">{versionIdx + 1} of {versions.length}</span>
+                  <button
+                    type="button"
+                    aria-label="Next version"
+                    disabled={versionIdx === versions.length - 1}
+                    className="px-2 py-1 disabled:opacity-30 hover:text-foreground"
+                    onClick={() => {
+                      setPreview(versions[versionIdx + 1]);
+                      trackExperiment("reveal_screen", revealVariant, "version_flip", { skuSlug: sku.slug, metadata: { to: versionIdx + 2 } });
+                    }}
+                  >›</button>
+                </div>
+              )}
             </div>
+
 
           </div>
 
