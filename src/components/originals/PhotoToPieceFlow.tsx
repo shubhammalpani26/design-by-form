@@ -148,6 +148,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [checkingOut, setCheckingOut] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
   const [razorpayOpen, setRazorpayOpen] = useState(false);
+  const [savedCheckout, setSavedCheckout] = useState(false);
+  const [savedSecret, setSavedSecret] = useState<string | null>(null);
+  const [savedLoading, setSavedLoading] = useState(false);
   const checkoutRef = useRef<HTMLDivElement | null>(null);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [limitReached, setLimitReached] = useState(false);
@@ -439,6 +442,38 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     } catch (e) {
       toast({ title: "Checkout didn't open", description: (e as Error).message, variant: "destructive" });
       setCheckingOut(false);
+    }
+  };
+
+  // Pay for the saved pieces only — no need to finish (or keep) the current piece.
+  const checkoutSaved = async () => {
+    if (!cart.items.length) return;
+    trackExperiment("reveal_screen", revealVariant, "checkout_click", {
+      skuSlug: sku.slug,
+      metadata: { pieces: cart.count, price: cart.total, savedOnly: true },
+    });
+    trackInitiateCheckout(sku.slug, cart.total, cart.count);
+    if (PAYMENT_PROVIDER === "razorpay") {
+      setSavedCheckout(true);
+      return;
+    }
+    setSavedLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("originals-checkout", {
+        body: {
+          items: cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
+          returnUrl: `${window.location.origin}/originals/checkout/return`,
+          environment: getStripeEnvironment(),
+        },
+      });
+      if (error) throw new Error(await readFnError(error, "Checkout is temporarily unavailable."));
+      if (!data?.clientSecret) throw new Error("Checkout is temporarily unavailable.");
+      setSavedSecret(data.clientSecret);
+      setSavedCheckout(true);
+    } catch (e) {
+      toast({ title: "Checkout didn't open", description: (e as Error).message, variant: "destructive" });
+    } finally {
+      setSavedLoading(false);
     }
   };
 
@@ -1142,15 +1177,48 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             ))}
           </div>
           <p className="px-2 text-center text-xs leading-relaxed text-muted-foreground">
-            Total so far ${cart.total} · one payment, one shipment · free US shipping
+            Total ${cart.total} · one payment, one shipment · free US shipping
           </p>
-          <Button
-            type="button"
-            className="w-full rounded-none h-11"
-            onClick={() => setBasketOpen(false)}
-          >
-            Back to my current piece
-          </Button>
+          {savedCheckout && cart.items.length > 0 ? (
+            <div className="space-y-3">
+              {savedSecret ? (
+                <OriginalsCheckout key={savedSecret} clientSecret={savedSecret} />
+              ) : (
+                <RazorpayCheckout
+                  items={cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity }))}
+                  returnUrl={`${window.location.origin}/originals/checkout/return`}
+                  totalUsd={cart.total}
+                  onPaying={() => { payingRef.current = true; trackExperiment("reveal_screen", revealVariant, "payment_reached", { skuSlug: sku.slug, metadata: { price: cart.total, pieces: cart.count, savedOnly: true } }); }}
+                />
+              )}
+              <button
+                type="button"
+                className="w-full text-center text-[11px] tracking-[0.15em] uppercase text-muted-foreground hover:text-foreground"
+                onClick={() => { setSavedCheckout(false); setSavedSecret(null); }}
+              >
+                Cancel
+              </button>
+            </div>
+          ) : (
+            <>
+              <Button
+                type="button"
+                className="w-full rounded-none h-11"
+                disabled={savedLoading || cart.items.length === 0}
+                onClick={checkoutSaved}
+              >
+                {savedLoading ? "Opening checkout…" : `Check out ${cart.count === 1 ? "this piece" : `these ${cart.count} pieces`} — $${cart.total}`}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full rounded-none h-11"
+                onClick={() => setBasketOpen(false)}
+              >
+                {preview ? "Back to my current piece" : "Keep browsing"}
+              </Button>
+            </>
+          )}
         </DialogContent>
       </Dialog>
     </div>
