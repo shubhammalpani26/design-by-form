@@ -250,6 +250,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     return () => clearInterval(id);
   }, [loading, waitingLines.length]);
 
+  // Pre-pick the entry size once a preview exists so the price and checkout
+  // button sit right under the preview — visitors can still change it.
+  useEffect(() => {
+    if (preview && !sizeKey && sku.sizes[0]) setSizeKey(sku.sizes[0].key);
+  }, [preview, sizeKey, sku.sizes]);
+
   // A session is priced for one size/preview — drop it if either changes.
   useEffect(() => {
     setClientSecret(null);
@@ -671,113 +677,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
           </div>
 
-          {/* ---- Not quite right? inline tweaks ---- */}
-          <div className="mt-5">
-            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {COLORS.map((c) => {
-                const active = c.key === colorKey;
-                return (
-                  <button
-                    key={c.key}
-                    type="button"
-                    disabled={refining}
-                    onClick={() => {
-                      if (c.key === colorKey) return;
-                      setColorKey(c.key);
-                      trackExperiment("reveal_screen", revealVariant, "color_change", { skuSlug: sku.slug });
-                      void generate("", c.key);
-                    }}
-                    aria-pressed={active}
-                    className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors disabled:opacity-50 ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
-                  >
-                    <span className="h-4 w-4 border border-foreground/20" style={{ backgroundColor: c.swatch }} aria-hidden />
-                    {c.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="mt-4">
-            {!showTweak ? (
-              <div className="flex items-center justify-between gap-3">
-                {tweakCount < MAX_TWEAKS ? (
-                  <button
-                    type="button"
-                    disabled={refining}
-                    onClick={() => {
-                      setShowTweak(true);
-                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
-                    }}
-                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
-                  >
-                    Adjust one thing
-                    {tweakCount > 0 && (
-                      <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
-                        ({MAX_TWEAKS - tweakCount} left)
-                      </span>
-                    )}
-                  </button>
-                ) : (
-                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
-                    This is the one
-                  </p>
-                )}
-              </div>
-            ) : (
-              <div className="border border-border p-4">
-                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                  Tell us what to change
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {TWEAK_CHIPS[mode === "photo" ? "photo" : "template"].map((chip) => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => setTweak((t) => (t.trim() ? `${t.trim()} ${chip}` : chip))}
-                      className="border border-border px-3 py-1.5 text-xs hover:border-foreground/50"
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
-                <Textarea
-                  className="mt-3 rounded-none"
-                  rows={2}
-                  maxLength={300}
-                  placeholder="e.g. turn the head slightly to the left and make the name larger"
-                  value={tweak}
-                  onChange={(e) => setTweak(e.target.value)}
-                />
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    className="flex-1 rounded-none"
-                    disabled={!tweak.trim() || refining}
-                    onClick={() => void generate(tweak)}
-                  >
-                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    {refining ? "Adjusting…" : "Re-render with this change"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-none"
-                    disabled={refining}
-                    onClick={() => { setShowTweak(false); setTweak(""); }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Keeps your photo and details — only the change you describe is applied.
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground/80">
-                  Heads up: this replaces your current preview — you won't be able to go back to it.
-                </p>
-              </div>
-            )}
-          </div>
-
           <div className="mt-5" ref={sizeRef}>
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
               {sizeKey ? reveal.sizePrompt : "Choose your size to continue"}
@@ -790,7 +689,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <button
                     key={s.key}
                     type="button"
-                    onClick={() => setSizeKey(s.key)}
+                    onClick={() => { setSizeKey(s.key); trackExperiment("reveal_screen", revealVariant, "size_select", { skuSlug: sku.slug, metadata: { sizeKey: s.key, price: priceFor(s.key, s.price) } }); }}
                     className={`border p-3 text-left transition-colors ${state === "unprintable" ? "border-destructive/40 opacity-60" : active ? "border-foreground bg-foreground/5" : sizeKey ? "border-border hover:border-foreground/40" : "border-foreground/30 hover:border-foreground/60"}`}
                   >
                     <span className="block text-sm">{s.label}</span>
@@ -962,6 +861,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                         ? `Check out ${basketCount} pieces — $${basketTotal}`
                         : reveal.cta(selectedPrice)}
                 </Button>
+                <p className="mt-2 text-center text-xs text-muted-foreground">
+                  You approve the final preview before we make it · free remake if it's not right · Ships in 7–8 business days
+                </p>
 
                 <Button
                   type="button"
@@ -980,6 +882,114 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               </>
             )}
           </div>
+
+          {/* ---- Not quite right? inline tweaks ---- */}
+          <div className="mt-5">
+            <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {COLORS.map((c) => {
+                const active = c.key === colorKey;
+                return (
+                  <button
+                    key={c.key}
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      if (c.key === colorKey) return;
+                      setColorKey(c.key);
+                      trackExperiment("reveal_screen", revealVariant, "color_change", { skuSlug: sku.slug });
+                      void generate("", c.key);
+                    }}
+                    aria-pressed={active}
+                    className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors disabled:opacity-50 ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
+                  >
+                    <span className="h-4 w-4 border border-foreground/20" style={{ backgroundColor: c.swatch }} aria-hidden />
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="mt-4">
+            {!showTweak ? (
+              <div className="flex items-center justify-between gap-3">
+                {tweakCount < MAX_TWEAKS ? (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      setShowTweak(true);
+                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
+                    }}
+                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
+                  >
+                    Adjust one thing
+                    {tweakCount > 0 && (
+                      <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
+                        ({MAX_TWEAKS - tweakCount} left)
+                      </span>
+                    )}
+                  </button>
+                ) : (
+                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
+                    This is the one
+                  </p>
+                )}
+              </div>
+            ) : (
+              <div className="border border-border p-4">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Tell us what to change
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {TWEAK_CHIPS[mode === "photo" ? "photo" : "template"].map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setTweak((t) => (t.trim() ? `${t.trim()} ${chip}` : chip))}
+                      className="border border-border px-3 py-1.5 text-xs hover:border-foreground/50"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  className="mt-3 rounded-none"
+                  rows={2}
+                  maxLength={300}
+                  placeholder="e.g. turn the head slightly to the left and make the name larger"
+                  value={tweak}
+                  onChange={(e) => setTweak(e.target.value)}
+                />
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    className="flex-1 rounded-none"
+                    disabled={!tweak.trim() || refining}
+                    onClick={() => void generate(tweak)}
+                  >
+                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    {refining ? "Adjusting…" : "Re-render with this change"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-none"
+                    disabled={refining}
+                    onClick={() => { setShowTweak(false); setTweak(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Keeps your photo and details — only the change you describe is applied.
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground/80">
+                  Heads up: this replaces your current preview — you won't be able to go back to it.
+                </p>
+              </div>
+            )}
+          </div>
+
 
           {topReview ? (
             <div className="mt-5 border border-border p-4">
