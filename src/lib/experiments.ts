@@ -106,15 +106,29 @@ export const trackExperiment = (
   event: string,
   opts?: { skuSlug?: string; metadata?: Record<string, unknown> },
 ) => {
+  // keepalive lets the event survive an immediate page navigation (e.g. the
+  // redirect straight after checkout), which a normal request would lose.
+  const url = import.meta.env.VITE_SUPABASE_URL;
+  const key = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const row = {
+    experiment,
+    variant,
+    event,
+    session_id: getSessionId(),
+    sku_slug: opts?.skuSlug ?? null,
+    metadata: opts?.metadata ?? {},
+  };
+  if (url && key && typeof fetch === "function") {
+    void fetch(`${url}/rest/v1/experiment_events`, {
+      method: "POST",
+      keepalive: true,
+      headers: { apikey: key, Authorization: `Bearer ${key}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify(row),
+    }).catch(() => undefined);
+    return;
+  }
   void supabase
     .from("experiment_events")
-    .insert({
-      experiment,
-      variant,
-      event,
-      session_id: getSessionId(),
-      sku_slug: opts?.skuSlug ?? null,
-      metadata: (opts?.metadata ?? {}) as never,
-    })
+    .insert(row as never)
     .then(undefined, () => undefined);
 };

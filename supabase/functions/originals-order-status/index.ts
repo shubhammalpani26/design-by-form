@@ -12,6 +12,9 @@ const json = (body: unknown, status = 200) =>
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 
+const pickText = (v: unknown) =>
+  typeof v === "string" && v.trim() ? v.trim().slice(0, 40) : null;
+
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 Deno.serve(async (req) => {
@@ -31,7 +34,7 @@ Deno.serve(async (req) => {
 
     const query = admin
       .from("originals_orders")
-      .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, customer_email, created_at, production_status, tracking_numbers, shipped_at, delivered_at")
+      .select("id, status, sku_slug, size_label, amount_usd, quantity, preview_image_url, personalization, customer_email, created_at, production_status, tracking_numbers, shipped_at, delivered_at")
       .order("created_at", { ascending: true });
     const { data: rows } = byGroup
       ? await query.eq("group_id", groupId)
@@ -50,6 +53,8 @@ Deno.serve(async (req) => {
       quantity: r.quantity ?? 1,
       previewImageUrl: r.preview_image_url,
       status: r.status,
+      petName: pickText((r.personalization as any)?.heading),
+      colorLabel: pickText((r.personalization as any)?.colorLabel),
     }));
 
     // Shipping happens per order group, so tracking is shared across pieces.
@@ -66,6 +71,8 @@ Deno.serve(async (req) => {
         sizeLabel: order.size_label,
         amountUsd: items.reduce((sum, i) => sum + Number(i.amountUsd ?? 0), 0),
         previewImageUrl: order.preview_image_url,
+        petName: pickText((order.personalization as any)?.heading),
+        colorLabel: pickText((order.personalization as any)?.colorLabel),
         emailMasked: email ? email.replace(/^(.).*(@.*)$/, "$1•••$2") : null,
         createdAt: order.created_at,
         productionStatus: order.production_status ?? "queued",

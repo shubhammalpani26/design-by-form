@@ -786,7 +786,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                       items={basketLines.map((l) => ({ ...l, quantity: l.quantity ?? 1 }))}
                       returnUrl={`${window.location.origin}/originals/checkout/return`}
                       totalUsd={basketTotal}
-                      onPaying={() => { payingRef.current = true; }}
+                      onPaying={() => { payingRef.current = true; trackExperiment("reveal_screen", revealVariant, "payment_reached", { skuSlug: sku.slug, metadata: { price: basketTotal, pieces: basketCount } }); }}
                     />
 
                   )}

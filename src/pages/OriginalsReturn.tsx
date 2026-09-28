@@ -16,6 +16,8 @@ interface OrderView {
   sizeLabel: string | null;
   amountUsd: number;
   previewImageUrl: string | null;
+  petName?: string | null;
+  colorLabel?: string | null;
   emailMasked: string | null;
 }
 
@@ -26,6 +28,8 @@ interface OrderItem {
   amountUsd: number;
   quantity: number;
   previewImageUrl: string | null;
+  petName?: string | null;
+  colorLabel?: string | null;
 }
 
 const SKU_NAMES: Record<string, string> = {
@@ -170,7 +174,7 @@ export default function OriginalsReturn() {
                   <div className="min-w-0 flex-1 text-sm">
                     <p className="truncate">{SKU_NAMES[it.skuSlug] ?? "Nyzora piece"}</p>
                     <p className="text-xs text-muted-foreground">
-                      {it.sizeLabel}
+                      {[it.petName, it.sizeLabel, it.colorLabel].filter(Boolean).join(" · ")}
                       {it.quantity > 1 ? ` · ×${it.quantity}` : ""}
                     </p>
                   </div>
@@ -180,9 +184,26 @@ export default function OriginalsReturn() {
             </div>
           )}
 
+          {items.length <= 1 && (
+            <dl className="mt-6 grid grid-cols-3 border border-foreground/10 text-sm" data-testid="order-details">
+              <div className="p-3">
+                <dt className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Pet</dt>
+                <dd className="mt-1 truncate">{order.petName ?? "—"}</dd>
+              </div>
+              <div className="border-l border-foreground/10 p-3">
+                <dt className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Size</dt>
+                <dd className="mt-1">{order.sizeLabel ?? "—"}</dd>
+              </div>
+              <div className="border-l border-foreground/10 p-3">
+                <dt className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">Colour</dt>
+                <dd className="mt-1">{order.colorLabel ?? "—"}</dd>
+              </div>
+            </dl>
+          )}
+
           <div className="mt-6 space-y-1 text-sm">
             <p className="tabular-nums">
-              {items.length > 1 ? `Total — $${order.amountUsd}` : `${order.sizeLabel} — $${order.amountUsd}`}
+              {items.length > 1 ? `Total — $${order.amountUsd}` : `Total — $${order.amountUsd}`}
             </p>
             <p className="text-muted-foreground">Order {order.id.slice(0, 8)}</p>
             {order.emailMasked && (
@@ -195,6 +216,17 @@ export default function OriginalsReturn() {
             <div className="flex items-center gap-2"><Truck className="h-4 w-4" /> {internalTest ? "Manufacturing paused" : "Ships in 7–8 business days"}</div>
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
+
+          {(
+            <div className="mt-6 border border-foreground/10 p-4">
+              <p className="flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase">
+                <ShieldCheck className="h-4 w-4" /> Our remake guarantee
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                You approve the final preview before we make anything. If your piece arrives damaged, defective or doesn't match the preview you approved, we remake and reship it free.
+              </p>
+            </div>
+          )}
 
           <div className="mt-6 border-t border-foreground/10 pt-6 text-xs leading-relaxed text-muted-foreground">
             {internalTest
