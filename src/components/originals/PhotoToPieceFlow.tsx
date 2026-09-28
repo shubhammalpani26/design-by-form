@@ -170,7 +170,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       // expanded, not hidden behind the "+ Add" toggle.
       if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
       if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
-      if (d.preview) setPreview(d.preview);
+      if (d.preview) { setPreview(d.preview); setVersions([d.preview]); }
       setRestored(true);
     });
     return () => { cancelled = true; };
