@@ -217,7 +217,7 @@ export default function OriginalsReturn() {
             <div className="flex items-center gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 
-          {!internalTest && (
+          {(
             <div className="mt-6 border border-foreground/10 p-4">
               <p className="flex items-center gap-2 text-[11px] tracking-[0.2em] uppercase">
                 <ShieldCheck className="h-4 w-4" /> Our remake guarantee
