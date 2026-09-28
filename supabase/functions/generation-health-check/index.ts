@@ -31,7 +31,7 @@ Deno.serve(async (req) => {
   const { data: events, error } = await admin
     .from("experiment_events")
     .select("event")
-    .eq("experiment", "originals_funnel")
+    .eq("experiment", "render_progress")
     .gte("created_at", since)
     .limit(1000);
 
