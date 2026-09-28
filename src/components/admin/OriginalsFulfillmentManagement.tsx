@@ -239,7 +239,8 @@ export function OriginalsFulfillmentManagement() {
     const states = orders.map(engravingState);
     const total = states.filter((s) => s !== "none").length;
     const engraved = states.filter((s) => s === "engraved").length;
-    return { total, engraved, blocked: total - engraved };
+    const blocked = states.filter((s) => s === "blocked").length;
+    return { total, engraved, blocked };
   }, [orders]);
 
   const unmatched = useMemo(
