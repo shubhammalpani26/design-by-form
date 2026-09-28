@@ -115,19 +115,19 @@ const wantedEngraving = (p: unknown): string => {
   return [heading, footnote].filter(Boolean).join(" / ");
 };
 
-type EngravingState = "none" | "engraved" | "blocked";
+type EngravingState = "none" | "engraved" | "pending" | "blocked";
 
 /**
  * The fulfilment gate refuses to ship a personalised piece without a matching
- * engraving record — silently. This makes that gate visible.
+ * engraving record — silently. This makes that gate visible. Lettering runs
+ * after the 3D model is built, so "not yet lettered" is pending, not blocked.
  */
 const engravingState = (o: OriginalsOrder): EngravingState => {
   if (UNPAID.includes(o.status)) return "none";
   const wanted = wantedEngraving(o.personalization);
   if (!wanted) return "none";
-  return o.engraved_at && normalizeEngraving(o.engraved_text ?? "") === wanted
-    ? "engraved"
-    : "blocked";
+  if (!o.engraved_at) return o.fulfillment_error ? "blocked" : "pending";
+  return normalizeEngraving(o.engraved_text ?? "") === wanted ? "engraved" : "blocked";
 };
 
 
@@ -426,11 +426,15 @@ export function OriginalsFulfillmentManagement() {
                   {engraved !== "none" && (
                     <Badge
                       variant="outline"
-                      className={engraved === "engraved" ? tone.delivered : tone.failed}
+                      className={
+                        engraved === "engraved" ? tone.delivered : engraved === "pending" ? "" : tone.failed
+                      }
                     >
                       {engraved === "engraved"
                         ? `Engraved: ${order.engraved_text}${geometryNote(order)}`
-                        : "Engraving missing — blocked"}
+                        : engraved === "pending"
+                          ? "Lettering in progress"
+                          : "Engraving missing — blocked"}
                     </Badge>
                   )}
 
