@@ -297,7 +297,7 @@ export async function draftOrder(
     orderItems.push({
       type: "STATIONERY",
       quantity: 1,
-      publicStationeryServiceId: insertId,
+      stationeryId: insertId,
     });
   }
 
