@@ -24,8 +24,6 @@ import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
-import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
-import actionPhoto from "@/assets/pet-action-photo.jpeg.asset.json";
 
 
 
