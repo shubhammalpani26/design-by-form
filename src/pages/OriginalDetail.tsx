@@ -11,6 +11,7 @@ import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
 import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
 import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
+import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
 
 
 const OriginalDetail = () => {
@@ -67,14 +68,30 @@ const OriginalDetail = () => {
       </div>
 
       <div className="container mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
-        <div className="border border-border bg-muted/20">
-          <img
-            src={sku.image}
-            alt={sku.imageAlt ?? `${sku.name} personalized piece`}
-            width={1024}
-            height={1280}
-            className="w-full object-contain"
-          />
+        <div>
+          {sku.slug === "pet-silhouette-keepsake" ? (
+            <figure>
+              <div className="grid grid-cols-2 gap-px border border-border bg-border">
+                <div className="min-w-0 bg-muted/20">
+                  <div className="aspect-[3/4]">
+                    <img src={nyraPhoto.url} alt="Original photograph of Nyra the dog" width={672} height={1127} className="h-full w-full object-contain" />
+                  </div>
+                  <p className="border-t border-border bg-background px-2 py-2 text-center text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Nyra’s photo</p>
+                </div>
+                <div className="min-w-0 bg-muted/20">
+                  <div className="aspect-[3/4]">
+                    <img src={sku.image} alt={sku.imageAlt ?? `${sku.name} personalized piece`} width={1024} height={1280} className="h-full w-full object-contain" />
+                  </div>
+                  <p className="border-t border-border bg-background px-2 py-2 text-center text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Finished piece</p>
+                </div>
+              </div>
+              <figcaption className="mt-2 text-xs text-muted-foreground">A real pet and a real finished sculpture. Each piece is made from your own photo.</figcaption>
+            </figure>
+          ) : (
+            <div className="border border-border bg-muted/20">
+              <img src={sku.image} alt={sku.imageAlt ?? `${sku.name} personalized piece`} width={1024} height={1280} className="w-full object-contain" />
+            </div>
+          )}
         </div>
 
         <div>

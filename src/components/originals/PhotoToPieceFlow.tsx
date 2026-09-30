@@ -24,6 +24,8 @@ import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
+import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
+import actionPhoto from "@/assets/pet-action-photo.jpeg.asset.json";
 
 
 
@@ -536,6 +538,20 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           />
 
           <PhotoPrivacyNotice className="mt-3" />
+           <details className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
+             <summary className="cursor-pointer text-foreground underline underline-offset-4">Which photo works best?</summary>
+             <div className="mt-3 grid grid-cols-2 gap-3">
+               <figure className="min-w-0">
+                 <img src={nyraPhoto.url} alt="Nyra facing the camera in clear light" loading="lazy" className="aspect-[4/3] w-full object-cover object-top" />
+                 <figcaption className="mt-1 leading-snug">Best: clear face, good light.</figcaption>
+               </figure>
+               <figure className="min-w-0">
+                 <img src={actionPhoto.url} alt="Cat jumping, with its face small in the frame" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                 <figcaption className="mt-1 leading-snug">Harder: far away or in motion.</figcaption>
+               </figure>
+             </div>
+             <p className="mt-2">Front or three-quarter view works best. Keep the ears and face in frame.</p>
+           </details>
           </>
           )}
 
