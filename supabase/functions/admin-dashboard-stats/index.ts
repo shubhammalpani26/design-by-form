@@ -118,7 +118,7 @@ Deno.serve(async (req) => {
       };
       const fields = "ad_name,spend,impressions,clicks,ctr,cpc,actions";
       const [acct, byAd, camp] = await Promise.all([
-        g(`/${AD_ACCOUNT}?fields=currency,balance,amount_spent,spend_cap,account_status`),
+        g(`/${AD_ACCOUNT}?fields=currency,balance,amount_spent,spend_cap,account_status,funding_source_details`),
         g(`/${AD_ACCOUNT}/insights?level=ad&date_preset=${preset}&fields=${fields}&limit=50`),
         g(`/${CAMPAIGN_ID}?fields=effective_status,daily_budget,adsets{daily_budget,effective_status}`),
       ]);
@@ -146,6 +146,7 @@ Deno.serve(async (req) => {
         currency: acct.currency,
         // Meta reports balance/amount_spent/budget in the smallest currency unit.
         balance: Number(acct.balance ?? 0) / 100,
+        fundsText: acct.funding_source_details?.display_string ?? null,
         spendCapLeft: acct.spend_cap ? (Number(acct.spend_cap) - Number(acct.amount_spent)) / 100 : null,
         campaignStatus: camp.effective_status,
         dailyBudget: adsetBudget ? Number(adsetBudget) / 100 : null,

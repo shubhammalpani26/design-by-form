@@ -96,7 +96,11 @@ export function AdminDashboard() {
               <>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
                   <Stat label="Campaign" value={ads.campaignStatus ?? "—"} hint={ads.dailyBudget ? `${money(ads.dailyBudget, ads.currency)}/day` : undefined} />
-                  <Stat label="Balance due / left" value={money(ads.balance, ads.currency)} hint={ads.spendCapLeft != null ? `Spend cap left ${money(ads.spendCapLeft, ads.currency)}` : undefined} />
+                  <Stat
+                    label="Can still spend"
+                    value={ads.spendCapLeft != null ? money(ads.spendCapLeft, ads.currency) : "—"}
+                    hint={[ads.fundsText, `Unpaid bill ${money(ads.balance, ads.currency)}`].filter(Boolean).join(" · ")}
+                  />
                   <Stat label="CTR · CPC" value={`${ads.totals.ctr.toFixed(2)}%`} hint={`${money(ads.totals.cpc, ads.currency)} per click`} />
                   <Stat label="Landed · Purchases" value={`${ads.totals.landings} · ${ads.totals.purchases}`} hint={`${ads.totals.impressions} impressions`} />
                 </div>
