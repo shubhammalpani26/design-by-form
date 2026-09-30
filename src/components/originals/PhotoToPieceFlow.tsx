@@ -542,11 +542,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
              <summary className="cursor-pointer text-foreground underline underline-offset-4">Which photo works best?</summary>
              <div className="mt-3 grid grid-cols-2 gap-3">
                <figure className="min-w-0">
-                 <img src={nyraPhoto.url} alt="Nyra facing the camera in clear light" loading="lazy" className="aspect-[4/3] w-full object-cover object-top" />
+                 <img src={`https://nyzora.ai${nyraPhoto.url}`} alt="Nyra facing the camera in clear light" loading="lazy" className="aspect-[4/3] w-full object-cover object-top" />
                  <figcaption className="mt-1 leading-snug">Best: clear face, good light.</figcaption>
                </figure>
                <figure className="min-w-0">
-                 <img src={actionPhoto.url} alt="Cat jumping, with its face small in the frame" loading="lazy" className="aspect-[4/3] w-full object-cover" />
+                 <img src={`https://nyzora.ai${actionPhoto.url}`} alt="Cat jumping, with its face small in the frame" loading="lazy" className="aspect-[4/3] w-full object-cover" />
                  <figcaption className="mt-1 leading-snug">Harder: far away or in motion.</figcaption>
                </figure>
              </div>
