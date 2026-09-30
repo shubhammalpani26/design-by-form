@@ -12,6 +12,7 @@ import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
 import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
 import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
+import nalaaPhoto from "@/assets/pet-action-photo.jpeg.asset.json";
 
 
 const OriginalDetail = () => {
