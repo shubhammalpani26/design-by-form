@@ -19,10 +19,12 @@ import { EarlyAccessManagement } from "@/components/admin/EarlyAccessManagement"
 import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManagement";
 import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
 import { OriginalsPreviewGallery } from "@/components/admin/OriginalsPreviewGallery";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { SEOHead } from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const TABS = [
+  { value: "dashboard", label: "Dashboard" },
   { value: "designers", label: "Creators" },
   { value: "products", label: "Products" },
   { value: "users", label: "Users" },
@@ -42,7 +44,7 @@ const TABS = [
 export default function AdminPanel() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState("designers");
+  const [tab, setTab] = useState("dashboard");
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -170,6 +172,9 @@ export default function AdminPanel() {
 
           <TabsContent value="originals-ops">
             <OriginalsFulfillmentManagement />
+          </TabsContent>
+          <TabsContent value="dashboard">
+            <AdminDashboard />
           </TabsContent>
           <TabsContent value="customer-photos">
             <OriginalsPreviewGallery />
