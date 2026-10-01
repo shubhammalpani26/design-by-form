@@ -92,11 +92,11 @@ export function OriginalsPreviewGallery() {
     if (!window.confirm(`Delete this preview (${label})? The customer's photo and its render are removed permanently.`)) return;
     setDeletingId(item.id);
     setError(null);
-    const { error: dError } = await supabase.rpc("admin_delete_originals_preview", {
-      p_preview_id: item.id,
+    const { data: dData, error: dError } = await supabase.functions.invoke("admin-delete-preview", {
+      body: { previewId: item.id },
     });
-    if (dError) {
-      setError(`Couldn't delete: ${dError.message}`);
+    if (dError || dData?.error) {
+      setError(`Couldn't delete: ${dData?.error ?? dError?.message}`);
     } else {
       setItems((prev) => prev.filter((p) => p.id !== item.id));
     }
