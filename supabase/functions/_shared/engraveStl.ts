@@ -426,6 +426,42 @@ function chooseLetteringRegion(
   };
 }
 
+/**
+ * Finds a single flat, vertical front wall (our generated rectangular plinth).
+ * Returns null for sculpted/rounded bases so the curved-surface path is used.
+ */
+function findFlatFront(
+  facing: Tri[],
+  axis: "x" | "y",
+  outward: number,
+): { plane: number; uMin: number; uMax: number; wMin: number; wMax: number } | null {
+  const strict = facing.filter((t) => {
+    const n = triNormal(t);
+    return (axis === "x" ? n[0] * outward : n[1] * outward) > 0.995;
+  });
+  if (!strict.length) return null;
+  let front = outward > 0 ? -Infinity : Infinity;
+  for (const t of strict) for (const p of t) {
+    const a = axis === "x" ? p[0] : p[1];
+    front = outward > 0 ? Math.max(front, a) : Math.min(front, a);
+  }
+  let area = 0;
+  let uMin = Infinity, uMax = -Infinity, wMin = Infinity, wMax = -Infinity;
+  for (const t of strict) {
+    if (!t.every((p) => Math.abs((axis === "x" ? p[0] : p[1]) - front) < 0.3)) continue;
+    area += triArea(t);
+    for (const p of t) {
+      const u = axis === "x" ? p[1] : p[0];
+      if (u < uMin) uMin = u; if (u > uMax) uMax = u;
+      if (p[2] < wMin) wMin = p[2]; if (p[2] > wMax) wMax = p[2];
+    }
+  }
+  const rect = (uMax - uMin) * (wMax - wMin);
+  // Must be one essentially solid rectangle, wide and tall enough to letter.
+  if (!(rect > 0) || area / rect < 0.9 || uMax - uMin < 20 || wMax - wMin < 8) return null;
+  return { plane: front, uMin, uMax, wMin, wMax };
+}
+
 type Attempt =
   | {
       ok: true;
@@ -952,16 +988,39 @@ function engraveTris(
   });
   if (!facing.length) return { ok: false, reason: "no_flat_face" };
 
-  // A generated plinth is rounded and tapered: its most protruding contour is
-  // one thin ring, so lettering aligned to that single plane hangs in the air
-  // everywhere else. Anchor every stroke to the wall beneath it instead.
-  const sampler = makeSurfaceSampler(facing, axis, outward);
-  const region = chooseLetteringRegion(sampler);
-  if (!region) return { ok: false, reason: "face_too_small" };
-  const uMin = region.uMin;
-  const uMax = region.uMax;
-  const zMin = region.wMin;
-  const zMax = region.wMax;
+  // Our own rectangular plinth has one truly flat front wall. When it is
+  // present, letter only that wall: exactly centred, level, and never spilling
+  // onto the sloped shoulder above it (which made lettering look uneven).
+  const flatFront = findFlatFront(facing, axis, outward);
+  let sampler: SurfaceSampler;
+  let uMin: number, uMax: number, zMin: number, zMax: number;
+  if (flatFront) {
+    const plane = flatFront.plane;
+    sampler = {
+      sample: (u, w) =>
+        u >= flatFront.uMin - 0.01 && u <= flatFront.uMax + 0.01 &&
+        w >= flatFront.wMin - 0.01 && w <= flatFront.wMax + 0.01
+          ? plane
+          : null,
+      uMin: flatFront.uMin, uMax: flatFront.uMax, wMin: flatFront.wMin, wMax: flatFront.wMax,
+    };
+    const padU = (flatFront.uMax - flatFront.uMin) * 0.06;
+    const padW = Math.max(1.5, (flatFront.wMax - flatFront.wMin) * 0.1);
+    uMin = flatFront.uMin + padU;
+    uMax = flatFront.uMax - padU;
+    zMin = flatFront.wMin + padW;
+    zMax = flatFront.wMax - padW;
+  } else {
+    // A generated plinth is rounded and tapered: anchor every stroke to the
+    // wall beneath it instead of one extreme plane.
+    sampler = makeSurfaceSampler(facing, axis, outward);
+    const region = chooseLetteringRegion(sampler);
+    if (!region) return { ok: false, reason: "face_too_small" };
+    uMin = region.uMin;
+    uMax = region.uMax;
+    zMin = region.wMin;
+    zMax = region.wMax;
+  }
 
   const faceWidth = uMax - uMin;
   const faceHeight = zMax - zMin;
@@ -1072,6 +1131,19 @@ function engraveTris(
 
   const lettering = out.slice(letteringStart);
   if (!lettering.length) return { ok: false, reason: "no_geometry_added" };
+  const lb = boundsOf(lettering);
+  // Quality gates — fail into manual review rather than ship lopsided or
+  // faint lettering.
+  const letterCentreU = axis === "y" ? (lb.min[0] + lb.max[0]) / 2 : (lb.min[1] + lb.max[1]) / 2;
+  if (Math.abs(letterCentreU - uCenter) > Math.max(1.5, faceWidth * 0.04)) {
+    return { ok: false, reason: "lettering_off_centre" };
+  }
+  if (lb.max[2] > zMax + 1.5 || lb.min[2] < zMin - 1.5) {
+    return { ok: false, reason: "lettering_outside_flat_face" };
+  }
+  if (footnote && lines[lines.length - 1].cap < MIN_CAP_MM * 0.85) {
+    return { ok: false, reason: "footnote_too_small_to_read" };
+  }
   return {
     ok: true,
     tris: out,
