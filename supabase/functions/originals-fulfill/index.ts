@@ -290,30 +290,8 @@ Deno.serve(async (req) => {
     const buyer = { email: paid[0].customer_email ?? "orders@nyzora.ai", address: customer.address };
 
     if (dryRun) {
-      const draft = await draftOrder(buyer, items, "nyzora-originals");
-      const cancelError = await releaseDraftOrder(draft.publicId);
-      await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
-        groupId,
-        partnerOrderId: draft.publicId,
-        stage: "quote",
-        event: cancelError ? "dry_run_draft_release_failed" : "dry_run_draft_released",
-        status: cancelError ? "failed" : draft.status,
-        message: cancelError,
-        details: {
-          printingCost: draft.printingCost,
-          deliveryCost: draft.deliveryCost,
-          total: draft.total,
-        },
-      });
-      return json({
-        dryRun: true,
-        draftId: draft.publicId,
-        status: draft.status,
-        printingCost: draft.printingCost,
-        deliveryCost: draft.deliveryCost,
-        total: draft.total,
-        pieces: items.length,
-      });
+      // Owner rule: never draft partner orders except to place a real one.
+      return json({ error: "Dry runs are disabled — partner drafts are only created for real orders" }, 400);
     }
 
     await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
