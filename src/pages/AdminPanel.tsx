@@ -32,7 +32,7 @@ const TABS = [
   { value: "orders", label: "Orders" },
   { value: "print-farm", label: "US Print" },
   { value: "originals-ops", label: "Originals Ops" },
-  { value: "customer-photos", label: "Customer Photos" },
+  { value: "customer-photos", label: "Everything" },
   { value: "print-validation", label: "Print Validation" },
   { value: "early-access", label: "Early Access" },
   { value: "contacts", label: "Contacts" },
