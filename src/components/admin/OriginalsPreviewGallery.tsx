@@ -3,6 +3,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Loader2, RefreshCw, Images, Trash2, Box } from "lucide-react";
 import { ModelViewer3D } from "@/components/ModelViewer3D";
 
@@ -74,7 +81,7 @@ export function OriginalsPreviewGallery() {
   const [showAll, setShowAll] = useState(false);
   const [ordersOnly, setOrdersOnly] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [modelOpen, setModelOpen] = useState<string | null>(null);
+  const [modelView, setModelView] = useState<{ url: string; name: string; label: string } | null>(null);
 
   /**
    * Removes a preview and its files everywhere: the uploaded photo, the
@@ -297,36 +304,26 @@ export function OriginalsPreviewGallery() {
                   {o.partner_order_id && <div className="text-muted-foreground">Slant order {o.partner_order_id}</div>}
                   {o.print_file_url && (
                     <div className="flex gap-2 pt-1">
-                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === o.id ? null : o.id)}>
-                        <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === o.id ? "Hide" : "View"} production 3D (with lettering)
+                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelView({ url: o.print_file_url!, name: o.engraved_text || item.sku_slug, label: "Production 3D (with lettering)" })}>
+                        <Box className="mr-1 h-3.5 w-3.5" /> View production 3D (with lettering)
                       </Button>
                       <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
                         <a href={o.print_file_url} download>STL</a>
                       </Button>
                     </div>
                   )}
-                  {modelOpen === o.id && o.print_file_url && (
-                    <div className="h-72 w-full overflow-hidden rounded border">
-                      <ModelViewer3D modelUrl={o.print_file_url} productName={o.engraved_text || item.sku_slug} />
-                    </div>
-                  )}
                 </div>
               ))}
               {item.print_file_url ? (
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === item.id ? null : item.id)}>
-                      <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === item.id ? "Hide preview 3D" : "View preview 3D (no lettering)"}
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelView({ url: item.print_file_url!, name: item.personalization?.heading || item.sku_slug, label: "Preview 3D (no lettering)" })}>
+                      <Box className="mr-1 h-3.5 w-3.5" /> View preview 3D (no lettering)
                     </Button>
                     <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
                       <a href={item.print_file_url} download>Download STL</a>
                     </Button>
                   </div>
-                  {modelOpen === item.id && (
-                    <div className="h-72 w-full overflow-hidden rounded border">
-                      <ModelViewer3D modelUrl={item.print_file_url} productName={item.personalization?.heading || item.sku_slug} />
-                    </div>
-                  )}
                 </div>
               ) : item.model_status ? (
                 <p className="text-[10px] text-muted-foreground">3D model: {item.model_status}</p>
@@ -341,6 +338,21 @@ export function OriginalsPreviewGallery() {
             </Button>
           </div>
         )}
+        <Dialog open={!!modelView} onOpenChange={(open) => !open && setModelView(null)}>
+          <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-2xl h-[88vh] sm:h-[80vh] flex flex-col">
+            <DialogHeader className="shrink-0">
+              <DialogTitle className="text-base">{modelView?.label}</DialogTitle>
+              <DialogDescription className="text-xs">
+                {modelView?.name} · drag to rotate, pinch to zoom
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 w-full overflow-hidden rounded border bg-accent">
+              {modelView && (
+                <ModelViewer3D modelUrl={modelView.url} productName={modelView.name} />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
