@@ -114,6 +114,11 @@ export function OrdersManagement() {
         <Badge variant="secondary">{orders.length} Total</Badge>
       </div>
 
+      {orders.length === 0 && (
+        <p className="text-sm text-muted-foreground">
+          No marketplace orders yet. Pet piece orders live in the Originals Ops tab.
+        </p>
+      )}
       <div className="grid gap-4">
         {orders.map((order) => (
           <Card key={order.id}>

@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Loader2, RefreshCw, Images, Trash2 } from "lucide-react";
+import { Loader2, RefreshCw, Images, Trash2, Box } from "lucide-react";
+import ModelViewer3D from "@/components/ModelViewer3D";
 
 interface PreviewPersonalization {
   colorLabel?: string;
@@ -21,6 +22,8 @@ interface PreviewRow {
   personalization: PreviewPersonalization | null;
   user_id: string | null;
   ip_hash: string | null;
+  print_file_url: string | null;
+  model_status: string | null;
   created_at: string;
 }
 
@@ -41,6 +44,7 @@ export function OriginalsPreviewGallery() {
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [modelOpen, setModelOpen] = useState<string | null>(null);
 
   /**
    * Removes a preview and its files everywhere: the uploaded photo, the
@@ -67,7 +71,7 @@ export function OriginalsPreviewGallery() {
     setError(null);
     const { data, error: qError } = await supabase
       .from("originals_previews")
-      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, created_at")
+      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, print_file_url, model_status, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (qError) {
@@ -207,6 +211,25 @@ export function OriginalsPreviewGallery() {
                   </span>
                 )}
               </div>
+              {item.print_file_url ? (
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === item.id ? null : item.id)}>
+                      <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === item.id ? "Hide 3D model" : "View 3D model"}
+                    </Button>
+                    <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
+                      <a href={item.print_file_url} download>Download STL</a>
+                    </Button>
+                  </div>
+                  {modelOpen === item.id && (
+                    <div className="h-72 w-full overflow-hidden rounded border">
+                      <ModelViewer3D modelUrl={item.print_file_url} productName={item.personalization?.heading || item.sku_slug} />
+                    </div>
+                  )}
+                </div>
+              ) : item.model_status ? (
+                <p className="text-[10px] text-muted-foreground">3D model: {item.model_status}</p>
+              ) : null}
             </div>
           ))}
         </div>
