@@ -316,19 +316,14 @@ export function OriginalsPreviewGallery() {
               ))}
               {item.print_file_url ? (
                 <div className="space-y-2">
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === item.id ? null : item.id)}>
-                      <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === item.id ? "Hide preview 3D" : "View preview 3D (no lettering)"}
+                <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelView({ url: item.print_file_url!, name: item.personalization?.heading || item.sku_slug, label: "Preview 3D (no lettering)" })}>
+                      <Box className="mr-1 h-3.5 w-3.5" /> View preview 3D (no lettering)
                     </Button>
                     <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
                       <a href={item.print_file_url} download>Download STL</a>
                     </Button>
                   </div>
-                  {modelOpen === item.id && (
-                    <div className="h-72 w-full overflow-hidden rounded border">
-                      <ModelViewer3D modelUrl={item.print_file_url} productName={item.personalization?.heading || item.sku_slug} />
-                    </div>
-                  )}
                 </div>
               ) : item.model_status ? (
                 <p className="text-[10px] text-muted-foreground">3D model: {item.model_status}</p>
