@@ -393,32 +393,29 @@ export async function listPartnerOrders(): Promise<Array<Record<string, unknown>
 }
 
 /**
- * Releases a draft order. The partner's DELETE occasionally 404s/405s on fresh
- * drafts, so we retry once and then fall back to a status PATCH. Returns the
- * failure reason instead of throwing — callers are always best-effort — but it
- * must never fail silently: the reason is logged and surfaced to admins.
+ * Releases a draft order via the partner's only cancel route
+ * (DELETE /orders/{publicOrderId} per their OpenAPI spec — there is no PATCH).
+ * A 404 "Order not found" means the draft no longer exists, which is the
+ * desired end state. Returns the failure reason instead of throwing — callers
+ * are best-effort — but every attempt's error is logged and surfaced.
  */
 export async function releaseDraftOrder(publicId: string): Promise<string | null> {
-  const attempts: Array<() => Promise<unknown>> = [
-    () => request(`/orders/${encodeURIComponent(publicId)}`, { method: "DELETE" }),
-    () => request(`/orders/${encodeURIComponent(publicId)}`, { method: "DELETE" }),
-    () =>
-      request(`/orders/${encodeURIComponent(publicId)}`, {
-        method: "PATCH",
-        body: JSON.stringify({ status: "CANCELED" }),
-      }),
-  ];
-  let last = "unknown error";
-  for (const run of attempts) {
+  const errors: string[] = [];
+  for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      await run();
+      await request(`/orders/${encodeURIComponent(publicId)}`, { method: "DELETE" });
       return null;
     } catch (e) {
-      last = e instanceof Error ? e.message : String(e);
+      if (e instanceof PartnerApiError && e.status === 404 && !/Cannot DELETE/i.test(e.message)) {
+        return null;
+      }
+      errors.push(e instanceof Error ? e.message : String(e));
+      if (attempt === 0) await new Promise((r) => setTimeout(r, 750));
     }
   }
-  console.error("partner draft release failed", publicId, last);
-  return last;
+  const reason = errors.join(" | ");
+  console.error("partner draft release failed", publicId, reason);
+  return reason;
 }
 
 
