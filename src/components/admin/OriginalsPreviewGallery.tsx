@@ -338,6 +338,21 @@ export function OriginalsPreviewGallery() {
             </Button>
           </div>
         )}
+        <Dialog open={!!modelView} onOpenChange={(open) => !open && setModelView(null)}>
+          <DialogContent className="max-w-[95vw] w-[95vw] sm:max-w-2xl h-[88vh] sm:h-[80vh] flex flex-col">
+            <DialogHeader className="shrink-0">
+              <DialogTitle className="text-base">{modelView?.label}</DialogTitle>
+              <DialogDescription className="text-xs">
+                {modelView?.name} · drag to rotate, pinch to zoom
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex-1 min-h-0 w-full overflow-hidden rounded border bg-accent">
+              {modelView && (
+                <ModelViewer3D modelUrl={modelView.url} productName={modelView.name} />
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
