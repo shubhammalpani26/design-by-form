@@ -543,38 +543,8 @@ export async function estimateLandedUnitCost(
     metrics: file.STLMetrics,
   });
 
-  try {
-    const draft = await draftOrder(
-      { email: "orders@nyzora.ai", address: REFERENCE_US_DESTINATION },
-      [{ publicFileServiceId: file.publicFileServiceId, quantity: 1, filamentId }],
-    );
-    if (draft.total > 0) {
-      // Free the draft so it never lingers on the partner dashboard.
-      // Awaited + retried: a silently failed cancel leaves DRAFT clutter.
-      const cancelError = await releaseDraftOrder(draft.publicId);
-      if (cancelError) console.error("quote draft not released", draft.publicId, cancelError);
-      const printCost = draft.printingCost > 0 ? draft.printingCost : printUsd;
-      // A zero delivery cost means the partner did not price the leg, not that
-      // shipping is free to us — substitute the weight-based estimate.
-      const shipCost = draft.deliveryCost > 0
-        ? draft.deliveryCost
-        : fallbackShippingUsd(file.STLMetrics);
-      return {
-        landedUsd: Math.round((printCost + shipCost) * 100) / 100,
-        printUsd: printCost,
-        shippingUsd: Math.round(shipCost * 100) / 100,
-        estimated: draft.deliveryCost > 0,
-        fileId: file.publicFileServiceId,
-        filamentId,
-        metrics: file.STLMetrics,
-      };
-    }
-  } catch (_e) {
-    /* shipping estimate unavailable — fall back to print-only cost */
-  }
-
-  // No live delivery cost: price the shipping leg from the piece's own weight
-  // rather than pretending it is free.
+  // Quoting NEVER drafts a partner order (owner rule): price comes from the
+  // file estimate endpoint, shipping from the piece's own sliced weight.
   const shippingUsd = fallbackShippingUsd(file.STLMetrics);
   return {
     landedUsd: Math.round((printUsd + shippingUsd) * 100) / 100,
