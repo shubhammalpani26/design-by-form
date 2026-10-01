@@ -81,7 +81,7 @@ export function OriginalsPreviewGallery() {
   const [showAll, setShowAll] = useState(false);
   const [ordersOnly, setOrdersOnly] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [modelOpen, setModelOpen] = useState<string | null>(null);
+  const [modelView, setModelView] = useState<{ url: string; name: string; label: string } | null>(null);
 
   /**
    * Removes a preview and its files everywhere: the uploaded photo, the
