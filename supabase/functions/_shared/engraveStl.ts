@@ -1131,6 +1131,19 @@ function engraveTris(
 
   const lettering = out.slice(letteringStart);
   if (!lettering.length) return { ok: false, reason: "no_geometry_added" };
+  const lb = boundsOf(lettering);
+  // Quality gates — fail into manual review rather than ship lopsided or
+  // faint lettering.
+  const letterCentreU = axis === "y" ? (lb.min[0] + lb.max[0]) / 2 : (lb.min[1] + lb.max[1]) / 2;
+  if (Math.abs(letterCentreU - uCenter) > Math.max(1.5, faceWidth * 0.04)) {
+    return { ok: false, reason: "lettering_off_centre" };
+  }
+  if (lb.max[2] > zMax + 1.5 || lb.min[2] < zMin - 1.5) {
+    return { ok: false, reason: "lettering_outside_flat_face" };
+  }
+  if (footnote && lines[lines.length - 1].cap < MIN_CAP_MM * 0.85) {
+    return { ok: false, reason: "footnote_too_small_to_read" };
+  }
   return {
     ok: true,
     tris: out,
