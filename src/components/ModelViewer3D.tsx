@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ExternalLink, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 
 // Global cache for loaded models - persists across component mounts/unmounts
@@ -165,10 +166,28 @@ export const ModelViewer3D = ({ modelUrl, productName, onError }: ModelViewer3DP
     };
     animate();
 
-    const loader = new GLTFLoader();
+    const isStl = /\.stl(\?|$)/i.test(modelUrl ?? "");
+    const loader = isStl
+      ? {
+          load: (
+            url: string,
+            ok: (g: { scene: THREE.Object3D }) => void,
+            prog: (e: ProgressEvent) => void,
+            fail: (e: unknown) => void,
+          ) =>
+            new STLLoader().load(url, (geom) => {
+              geom.computeVertexNormals();
+              const mesh = new THREE.Mesh(geom, new THREE.MeshStandardMaterial({ color: 0xd8d2c8, roughness: 0.6 }));
+              mesh.rotation.x = -Math.PI / 2; // STL is Z-up
+              const group = new THREE.Group();
+              group.add(mesh);
+              ok({ scene: group });
+            }, prog, fail),
+        }
+      : new GLTFLoader();
     loader.load(
       proxiedUrl,
-      (gltf) => {
+      (gltf: { scene: THREE.Object3D }) => {
         if (cancelled) return;
 
         loadedScene = gltf.scene;
