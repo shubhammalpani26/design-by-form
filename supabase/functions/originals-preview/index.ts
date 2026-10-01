@@ -108,6 +108,22 @@ Deno.serve(async (req) => {
       unlimited = isAdmin === true;
     }
 
+    if (!unlimited && !userId) {
+      // Guests get 2 renders per network per day, then must sign in.
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count: guestCount } = await admin
+        .from("originals_previews")
+        .select("id", { count: "exact", head: true })
+        .eq("ip_hash", ipHash)
+        .is("user_id", null)
+        .gte("created_at", since);
+      if ((guestCount ?? 0) >= 2) {
+        return json({
+          error: "Sign in to keep creating previews — it's free and keeps your renders saved.",
+          code: "SIGNIN_REQUIRED",
+        }, 401);
+      }
+    }
     if (!unlimited) {
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { count } = await admin

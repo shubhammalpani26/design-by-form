@@ -343,6 +343,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     } catch (e) {
       trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
       const raw = (e as Error).message || "";
+      if (/sign in to keep/i.test(raw)) {
+        // Draft (photo, details, renders) is already saved, so it survives the round trip.
+        toast({ title: "Sign in to keep going", description: "Your photo and previews are saved." });
+        const returnTo = window.location.pathname + window.location.search;
+        window.location.href = `/auth?returnTo=${encodeURIComponent(returnTo)}`;
+        return;
+      }
       const isLimit = /limit|429|too many/i.test(raw);
       setLimitReached(isLimit);
       setErrorMsg(
