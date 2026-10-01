@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw, Images, Trash2, Box } from "lucide-react";
-import ModelViewer3D from "@/components/ModelViewer3D";
+import { ModelViewer3D } from "@/components/ModelViewer3D";
 
 interface PreviewPersonalization {
   colorLabel?: string;
