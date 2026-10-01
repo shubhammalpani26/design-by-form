@@ -304,17 +304,12 @@ export function OriginalsPreviewGallery() {
                   {o.partner_order_id && <div className="text-muted-foreground">Slant order {o.partner_order_id}</div>}
                   {o.print_file_url && (
                     <div className="flex gap-2 pt-1">
-                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === o.id ? null : o.id)}>
-                        <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === o.id ? "Hide" : "View"} production 3D (with lettering)
+                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelView({ url: o.print_file_url!, name: o.engraved_text || item.sku_slug, label: "Production 3D (with lettering)" })}>
+                        <Box className="mr-1 h-3.5 w-3.5" /> View production 3D (with lettering)
                       </Button>
                       <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
                         <a href={o.print_file_url} download>STL</a>
                       </Button>
-                    </div>
-                  )}
-                  {modelOpen === o.id && o.print_file_url && (
-                    <div className="h-72 w-full overflow-hidden rounded border">
-                      <ModelViewer3D modelUrl={o.print_file_url} productName={o.engraved_text || item.sku_slug} />
                     </div>
                   )}
                 </div>
