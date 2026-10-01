@@ -27,9 +27,38 @@ interface PreviewRow {
   created_at: string;
 }
 
+interface OrderInfo {
+  id: string;
+  created_at: string;
+  customer_email: string | null;
+  user_id: string | null;
+  amount_usd: number;
+  size_label: string | null;
+  status: string;
+  production_status: string;
+  shipping_address: any;
+  print_file_url: string | null;
+  engraved_text: string | null;
+  partner_order_id: string | null;
+  promo_code: string | null;
+  discount_usd: number | null;
+  partnerTotal: number | null;
+  partnerPrint: number | null;
+  partnerShip: number | null;
+}
+
 interface GalleryItem extends PreviewRow {
   signedSourceUrl: string | null;
+  orders: OrderInfo[];
 }
+
+const fmtAddress = (a: any) => {
+  if (!a) return null;
+  const ad = a.address ?? a;
+  return [a.name, ad.line1, ad.line2, [ad.city, ad.state, ad.postal_code].filter(Boolean).join(" "), ad.country, a.phone]
+    .filter(Boolean)
+    .join(", ");
+};
 
 const PAGE_SIZE = 24;
 
@@ -43,6 +72,7 @@ export function OriginalsPreviewGallery() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showAll, setShowAll] = useState(false);
+  const [ordersOnly, setOrdersOnly] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [modelOpen, setModelOpen] = useState<string | null>(null);
 
@@ -91,7 +121,36 @@ export function OriginalsPreviewGallery() {
         return { ...row, signedSourceUrl: s?.signedUrl ?? null };
       }),
     );
-    setItems(signed);
+    // Attach any orders placed from each preview, plus what the partner billed.
+    const ids = rows.map((r) => r.id);
+    const { data: ord } = ids.length
+      ? await supabase
+          .from("originals_orders")
+          .select("id, preview_id, created_at, customer_email, user_id, amount_usd, size_label, status, production_status, shipping_address, print_file_url, engraved_text, partner_order_id, promo_code, discount_usd")
+          .in("preview_id", ids)
+      : { data: [] as any[] };
+    const orderIds = (ord ?? []).map((o: any) => o.id);
+    const { data: ev } = orderIds.length
+      ? await supabase
+          .from("partner_order_events")
+          .select("originals_order_id, details")
+          .in("originals_order_id", orderIds)
+          .eq("event", "order_processed")
+      : { data: [] as any[] };
+    const cost = new Map<string, any>();
+    (ev ?? []).forEach((e: any) => cost.set(e.originals_order_id, e.details));
+    const byPreview = new Map<string, OrderInfo[]>();
+    (ord ?? []).forEach((o: any) => {
+      const c = cost.get(o.id) ?? {};
+      const info: OrderInfo = {
+        ...o,
+        partnerTotal: c.total ?? null,
+        partnerPrint: c.printingCost ?? null,
+        partnerShip: c.deliveryCost ?? null,
+      };
+      byPreview.set(o.preview_id, [...(byPreview.get(o.preview_id) ?? []), info]);
+    });
+    setItems(signed.map((r) => ({ ...r, orders: byPreview.get(r.id) ?? [] })));
     setLoading(false);
   }, []);
 
@@ -99,7 +158,8 @@ export function OriginalsPreviewGallery() {
     load();
   }, [load]);
 
-  const visible = showAll ? items : items.slice(0, PAGE_SIZE);
+  const filtered = ordersOnly ? items.filter((i) => i.orders.length > 0) : items;
+  const visible = showAll ? filtered : filtered.slice(0, PAGE_SIZE);
   const visitorKey = (i: GalleryItem) => i.user_id ?? i.ip_hash ?? "unknown";
   const distinctVisitors = new Set(items.map(visitorKey)).size;
 
@@ -109,7 +169,7 @@ export function OriginalsPreviewGallery() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <Images className="h-4 w-4" /> Customer photo review
+              <Images className="h-4 w-4" /> Everything
             </CardTitle>
             <p className="text-xs text-muted-foreground mt-1">
               Every real upload next to the render it produced — {items.length} previews from{" "}
@@ -117,6 +177,10 @@ export function OriginalsPreviewGallery() {
               can see this.
             </p>
           </div>
+          <div className="flex gap-2">
+          <Button variant={ordersOnly ? "default" : "outline"} size="sm" onClick={() => setOrdersOnly((v) => !v)}>
+            {ordersOnly ? "Showing orders only" : "Orders only"}
+          </Button>
           <Button variant="outline" size="sm" onClick={load} disabled={loading}>
             {loading ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -125,6 +189,7 @@ export function OriginalsPreviewGallery() {
             )}
             Refresh
           </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -211,11 +276,47 @@ export function OriginalsPreviewGallery() {
                   </span>
                 )}
               </div>
+              {item.orders.map((o) => (
+                <div key={o.id} className="rounded border border-foreground/30 p-2 text-xs space-y-1">
+                  <div className="flex flex-wrap items-center justify-between gap-1">
+                    <span className="font-semibold text-foreground">ORDER · ${Number(o.amount_usd).toFixed(0)} · {o.size_label}</span>
+                    <Badge variant="secondary" className="text-[10px]">{o.status} · {o.production_status}</Badge>
+                  </div>
+                  <div className="text-muted-foreground">{new Date(o.created_at).toLocaleString()} · #{o.id.slice(0, 8)}</div>
+                  <div><span className="text-muted-foreground">Email:</span> {o.customer_email ?? "—"} {o.user_id ? "(account)" : "(guest)"}</div>
+                  <div><span className="text-muted-foreground">Ship to:</span> {fmtAddress(o.shipping_address) ?? "—"}</div>
+                  <div>
+                    <span className="text-muted-foreground">Slant 3D cost:</span>{" "}
+                    {o.partnerTotal != null ? `$${o.partnerTotal.toFixed(2)} (print $${o.partnerPrint?.toFixed(2)} + ship $${o.partnerShip?.toFixed(2)})` : "not charged yet"}
+                    {o.partnerTotal != null && (
+                      <span className="text-muted-foreground"> · margin ${(Number(o.amount_usd) - o.partnerTotal).toFixed(2)}</span>
+                    )}
+                  </div>
+                  {o.promo_code && <div><span className="text-muted-foreground">Promo:</span> {o.promo_code} (−${Number(o.discount_usd ?? 0).toFixed(2)})</div>}
+                  <div><span className="text-muted-foreground">Lettering in file:</span> {o.engraved_text ?? "none yet"}</div>
+                  {o.partner_order_id && <div className="text-muted-foreground">Slant order {o.partner_order_id}</div>}
+                  {o.print_file_url && (
+                    <div className="flex gap-2 pt-1">
+                      <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === o.id ? null : o.id)}>
+                        <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === o.id ? "Hide" : "View"} production 3D (with lettering)
+                      </Button>
+                      <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
+                        <a href={o.print_file_url} download>STL</a>
+                      </Button>
+                    </div>
+                  )}
+                  {modelOpen === o.id && o.print_file_url && (
+                    <div className="h-72 w-full overflow-hidden rounded border">
+                      <ModelViewer3D modelUrl={o.print_file_url} productName={o.engraved_text || item.sku_slug} />
+                    </div>
+                  )}
+                </div>
+              ))}
               {item.print_file_url ? (
                 <div className="space-y-2">
                   <div className="flex gap-2">
                     <Button variant="outline" size="sm" className="h-7 text-xs" onClick={() => setModelOpen(modelOpen === item.id ? null : item.id)}>
-                      <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === item.id ? "Hide 3D model" : "View 3D model"}
+                      <Box className="mr-1 h-3.5 w-3.5" /> {modelOpen === item.id ? "Hide preview 3D" : "View preview 3D (no lettering)"}
                     </Button>
                     <Button asChild variant="ghost" size="sm" className="h-7 text-xs">
                       <a href={item.print_file_url} download>Download STL</a>
@@ -233,10 +334,10 @@ export function OriginalsPreviewGallery() {
             </div>
           ))}
         </div>
-        {!showAll && items.length > PAGE_SIZE && (
+        {!showAll && filtered.length > PAGE_SIZE && (
           <div className="pt-4 text-center">
             <Button variant="outline" size="sm" onClick={() => setShowAll(true)}>
-              Show all {items.length}
+              Show all {filtered.length}
             </Button>
           </div>
         )}
