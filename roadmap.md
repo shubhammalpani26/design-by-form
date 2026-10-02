@@ -15,3 +15,7 @@
 
 - [x] Confirm that uploads use a standard product prompt plus customer details and the photo
 - [x] Keep pet preview remakes to one sculpture and preserve furry coat character
+
+## Open
+- [ ] Prepare 4 paused Meta ads on ad set 120249343361580499: NYRA in lap, NALAA first meeting, Buddy video, NYRA eyes-closed hug (user request 2026-10-02). Reuse approved copy. Landing link verified 2026-10-02.
+- [ ] Flag to user: cap headroom ~₹3,242, balance ₹3,826 — raise cap/add funds in Meta before activation.
