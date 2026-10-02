@@ -732,6 +732,74 @@ async function publishDue() {
   return { published };
 }
 
+/* --------------------------- Facebook Page mirror -------------------------- */
+
+const FB_PAGE_ID = "1087872784403919";
+const FB_BATCH = 3;
+
+async function fbForm(path: string, token: string, form: Record<string, string>) {
+  const res = await fetch(`${FB_API}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({ ...form, access_token: token }).toString(),
+  });
+  const text = await res.text();
+  if (!res.ok) throw new Error(`Meta ${res.status} ${path}: ${text.slice(0, 300)}`);
+  return JSON.parse(text || "{}") as { id?: string; post_id?: string };
+}
+
+/**
+ * Every Instagram post is mirrored to the Nyzora Page so people who meet an ad on
+ * Facebook find the same real feed. Upcoming posts mirror right after they publish on
+ * Instagram (fb_scheduled_at null); backfilled ones carry their own fb_scheduled_at.
+ */
+async function publishFacebookDue() {
+  const now = new Date().toISOString();
+  const { data } = await admin
+    .from("social_scheduled_posts")
+    .select("id, slot_type, caption, fb_caption, image_prompt, image_url, is_render, engineering_status, attempts, fb_attempts, fb_scheduled_at, status, scheduled_at")
+    .eq("fb_status", "pending")
+    .neq("slot_type", "story")
+    .not("image_url", "is", null)
+    .or(`fb_scheduled_at.lte.${now},and(fb_scheduled_at.is.null,status.eq.published)`)
+    .order("fb_scheduled_at", { ascending: true, nullsFirst: true })
+    .limit(FB_BATCH);
+  const rows = (data ?? []) as Array<Post & { fb_caption: string | null; fb_attempts: number }>;
+  if (!rows.length) return 0;
+
+  const { pageToken } = await metaCreds();
+  let posted = 0;
+  for (const row of rows) {
+    const { data: claimed } = await admin
+      .from("social_scheduled_posts")
+      .update({ fb_status: "publishing" })
+      .eq("id", row.id)
+      .eq("fb_status", "pending")
+      .select("id");
+    if (!claimed?.length) continue;
+    try {
+      const mediaUrl = await resolveMediaUrl(row.image_url!);
+      const caption = (row.fb_caption ?? "").trim() || composeCaption(row);
+      const isVideo = row.slot_type === "reel" || /\.(mp4|mov)$/i.test(mediaUrl.split("?")[0]);
+      const res = isVideo
+        ? await fbForm(`/${FB_PAGE_ID}/videos`, pageToken, { file_url: mediaUrl, description: caption })
+        : await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: mediaUrl, caption, published: "true" });
+      await admin
+        .from("social_scheduled_posts")
+        .update({ fb_status: "published", fb_post_id: res.post_id ?? res.id ?? null, fb_error: null })
+        .eq("id", row.id);
+      posted++;
+    } catch (e) {
+      const attempts = (row.fb_attempts ?? 0) + 1;
+      await admin
+        .from("social_scheduled_posts")
+        .update({ fb_status: attempts >= MAX_ATTEMPTS ? "failed" : "pending", fb_attempts: attempts, fb_error: (e as Error).message.slice(0, 500) })
+        .eq("id", row.id);
+    }
+  }
+  return posted;
+}
+
 /* --------------------------------- entry --------------------------------- */
 
 Deno.serve(async (req) => {
@@ -820,6 +888,12 @@ Deno.serve(async (req) => {
     // Publishing does not consume AI credits. Always release one approved creative,
     // even when the generation probe keeps the AI circuit paused.
     const publishedResult = await publishDue();
+    let facebook = 0;
+    try {
+      facebook = await publishFacebookDue();
+    } catch (e) {
+      console.error("facebook mirror failed", e);
+    }
 
     await admin
       .from("social_scheduler_state")
