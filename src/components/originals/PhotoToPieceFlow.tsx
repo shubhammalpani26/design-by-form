@@ -687,7 +687,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             </button>
           )}
           {loading && (
-            <div className="mt-4 aspect-square w-full animate-pulse bg-muted/40" aria-hidden />
+            <p role="status" className="mt-4 text-center text-xs text-muted-foreground">
+              Making your piece from your photo…
+            </p>
           )}
         </div>
       )}
@@ -700,11 +702,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {reveal.headline(displayName || "your piece")}
           </h2>
 
-          <div className="mt-4 grid grid-cols-[80px_1fr] gap-3 items-start">
-            {mode === "photo" && photo && (
-              <img src={photo.dataUrl} alt="Your photo" className="w-20 h-20 object-cover border border-border" />
-            )}
-            <div className={`border border-border bg-muted/20 ${mode === "photo" && photo ? "" : "col-span-2"}`}>
+           <div className="mt-4">
+             <div className="border border-border bg-muted/20">
               <div className="relative">
                 <img
                   src={preview.url}
@@ -754,8 +753,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 </div>
               )}
             </div>
-
-
+             {mode === "photo" && photo && (
+               <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+                 <img src={photo.dataUrl} alt="Your original photo" className="h-12 w-12 shrink-0 border border-border object-cover" />
+                 <span>Your original photo</span>
+               </div>
+             )}
           </div>
 
           <div className="mt-5" ref={sizeRef}>
