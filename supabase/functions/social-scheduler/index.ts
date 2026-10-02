@@ -612,7 +612,9 @@ async function resolveMediaUrl(raw: string): Promise<string> {
  */
 function composeCaption(post: Post): string {
   const base = (post.caption ?? "").trim();
-  const story = storyFor(post);
+  // The fictional pet stories exist only for AI renders. Real-photo posts (and reels)
+  // already carry the real animal's own caption, so never prepend a made-up story.
+  const story = post.is_render ? storyFor(post) : "";
   if (!story || base.includes(story)) return base;
   const name = engravingFor(post).name;
   const alreadyTold = new RegExp(`${name}\\b[^.]*\\b(always|still|sits|sleeps|naps|waits)`, "i").test(base);
