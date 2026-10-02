@@ -905,6 +905,7 @@ Deno.serve(async (req) => {
       ...rendered,
       queued: refill.queued,
       published: publishedResult.published ?? 0,
+      facebook,
 
       ai_paused: rendered.paused === true || (aiCircuitPaused && (rendered.rendered ?? 0) === 0),
     });
