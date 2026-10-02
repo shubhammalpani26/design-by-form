@@ -790,6 +790,12 @@ async function publishFacebookDue() {
         .eq("id", row.id);
       posted++;
     } catch (e) {
+      const msg = (e as Error).message;
+      // Page-level identity check from Meta: not this post's fault, so don't burn retries.
+      if (msg.includes('"code":368')) {
+        await admin.from("social_scheduled_posts").update({ fb_status: "pending", fb_error: msg.slice(0, 500) }).eq("id", row.id);
+        break;
+      }
       const attempts = (row.fb_attempts ?? 0) + 1;
       await admin
         .from("social_scheduled_posts")
