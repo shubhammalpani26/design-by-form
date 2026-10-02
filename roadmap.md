@@ -1,5 +1,6 @@
 # Roadmap
 
+- [x] Diagnose pet page view-to-render drop-off and bring the photo upload forward on mobile
 - [x] Show Nyra's source photo beside the real finished piece and add a compact optional pet-photo guide
 - [ ] Audit all pet Originals changes from the last two days
 - [x] Add admin-only zero-payment test checkout
