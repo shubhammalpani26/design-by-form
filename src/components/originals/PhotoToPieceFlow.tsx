@@ -518,7 +518,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             onClick={() => fileRef.current?.click()}
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => { e.preventDefault(); void pickFile(e.dataTransfer.files?.[0]); }}
-             className="mt-4 h-auto w-full rounded-none border-dashed border-foreground/25 bg-background p-0 font-normal hover:border-foreground/50 hover:bg-background"
+             className="mt-4 h-auto w-full min-w-0 whitespace-normal rounded-none border-dashed border-foreground/25 bg-background p-0 font-normal hover:border-foreground/50 hover:bg-background"
           >
             {photo ? (
               <div className="flex items-center gap-4 p-4 text-left">
@@ -529,10 +529,10 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 </div>
               </div>
             ) : (
-               <div className="flex flex-col items-center gap-2 px-4 py-5 md:py-10">
+               <div className="flex w-full min-w-0 flex-col items-center gap-2 px-4 py-5 md:py-10">
                 <Camera className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm">{sku.photo.label}</span>
-                <span className="text-xs text-muted-foreground text-center max-w-[18rem]">{sku.photo.hint}</span>
+                <span className="max-w-full text-center text-xs leading-relaxed text-muted-foreground sm:max-w-[18rem]">{sku.photo.hint}</span>
               </div>
             )}
            </Button>
@@ -546,7 +546,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
           <PhotoPrivacyNotice className="mt-3" />
            {!showOptions && (
-             <Button type="button" variant="link" onClick={() => setShowOptions(true)} className="mt-2 h-auto p-0 text-xs text-muted-foreground">
+             <Button type="button" variant="link" onClick={() => setShowOptions(true)} className="mt-2 h-auto max-w-full whitespace-normal p-0 text-left text-xs text-muted-foreground">
                <Plus className="mr-1 h-3 w-3" /> Add a name, date or colour before previewing
              </Button>
            )}
