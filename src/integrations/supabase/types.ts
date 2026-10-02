@@ -2341,6 +2341,12 @@ export type Database = {
           day_index: number
           engineering: Json | null
           engineering_status: string
+          fb_attempts: number
+          fb_caption: string | null
+          fb_error: string | null
+          fb_post_id: string | null
+          fb_scheduled_at: string | null
+          fb_status: string
           id: string
           ig_media_id: string | null
           image_prompt: string
@@ -2361,6 +2367,12 @@ export type Database = {
           day_index?: number
           engineering?: Json | null
           engineering_status?: string
+          fb_attempts?: number
+          fb_caption?: string | null
+          fb_error?: string | null
+          fb_post_id?: string | null
+          fb_scheduled_at?: string | null
+          fb_status?: string
           id?: string
           ig_media_id?: string | null
           image_prompt: string
@@ -2381,6 +2393,12 @@ export type Database = {
           day_index?: number
           engineering?: Json | null
           engineering_status?: string
+          fb_attempts?: number
+          fb_caption?: string | null
+          fb_error?: string | null
+          fb_post_id?: string | null
+          fb_scheduled_at?: string | null
+          fb_status?: string
           id?: string
           ig_media_id?: string | null
           image_prompt?: string
