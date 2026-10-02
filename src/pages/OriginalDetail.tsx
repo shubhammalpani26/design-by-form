@@ -62,13 +62,13 @@ const OriginalDetail = () => {
       />
       <Header />
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8">
         <Link to="/" className="inline-flex items-center text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
           <ArrowLeft className="mr-2 h-3 w-3" /> Collection
         </Link>
       </div>
 
-      <div className="container mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16">
+      <div className="container mx-auto px-4 pb-20 grid grid-cols-1 lg:grid-cols-2 gap-5 lg:gap-16">
         <div>
           {sku.slug === "pet-silhouette-keepsake" || sku.slug === "pet-portrait-sculpture" ? (
             (() => {
@@ -80,19 +80,19 @@ const OriginalDetail = () => {
             <figure>
               <div className="grid grid-cols-2 gap-px border border-border bg-border">
                 <div className="min-w-0 bg-muted/20">
-                  <div className="aspect-[3/4]">
+                  <div className="aspect-[3/2] sm:aspect-[3/4]">
                     <img src={`https://nyzora.ai${sourceAsset.url}`} alt={sourceAlt} width={672} height={1127} className="h-full w-full object-contain" />
                   </div>
                   <p className="border-t border-border bg-background px-2 py-2 text-center text-[11px] uppercase tracking-[0.12em] text-muted-foreground">{sourceLabel}</p>
                 </div>
                 <div className="min-w-0 bg-muted/20">
-                  <div className="aspect-[3/4]">
+                  <div className="aspect-[3/2] sm:aspect-[3/4]">
                     <img src={sku.image} alt={sku.imageAlt ?? `${sku.name} personalized piece`} width={1024} height={1280} className="h-full w-full object-contain" />
                   </div>
                   <p className="border-t border-border bg-background px-2 py-2 text-center text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Finished piece</p>
                 </div>
               </div>
-              <figcaption className="mt-2 text-xs text-muted-foreground">A real pet and a real finished sculpture. Each piece is made from your own photo.</figcaption>
+              <figcaption className="mt-2 text-xs text-muted-foreground">{isPortrait ? "Nalaa" : "Nyra"} and the finished sculpture. Yours begins with your own photo.</figcaption>
             </figure>
               );
             })()
@@ -106,14 +106,14 @@ const OriginalDetail = () => {
         <div>
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Nyzora Originals</p>
           <h1 className="mt-3 text-3xl md:text-4xl font-light tracking-tight">{sku.name}</h1>
-          <p className="mt-3 text-lg tabular-nums">
+          <p className="mt-2 text-lg tabular-nums">
             {sku.sizes.length > 1 ? `From $${Math.min(...sku.sizes.map((s) => s.price))}` : `$${sku.price}`}
             <span className="ml-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">Free US shipping</span>
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 hidden text-xs text-muted-foreground md:block">
             Ordering more than one piece? Add each to your order — one payment, one shipment.
           </p>
-          <div className="mt-6">
+          <div className="mt-4">
             <PhotoToPieceFlow sku={sku} />
           </div>
 
