@@ -92,7 +92,7 @@ const OriginalDetail = () => {
                   <p className="border-t border-border bg-background px-2 py-2 text-center text-[11px] uppercase tracking-[0.12em] text-muted-foreground">Finished piece</p>
                 </div>
               </div>
-              <figcaption className="mt-2 text-xs text-muted-foreground">Nyra and her finished sculpture. Yours begins with your own photo.</figcaption>
+              <figcaption className="mt-2 text-xs text-muted-foreground">{isPortrait ? "Nalaa" : "Nyra"} and the finished sculpture. Yours begins with your own photo.</figcaption>
             </figure>
               );
             })()
