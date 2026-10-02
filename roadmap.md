@@ -1,5 +1,6 @@
 # Roadmap
 
+- [ ] Use the original BUDDY video for the pet keepsake campaign; discard the re-cuts and prepare it for ad/post review
 - [x] Diagnose pet page view-to-render drop-off and bring the photo upload forward on mobile
 - [x] Remove the misleading blank render space and show the completed piece full-width above the source photo
 - [x] Show Nyra's source photo beside the real finished piece and add a compact optional pet-photo guide
