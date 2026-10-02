@@ -865,6 +865,12 @@ Deno.serve(async (req) => {
       .eq("id", "default")
       .maybeSingle();
 
+    // Extra daily slots that only mirror due posts to the Facebook Page (no rendering, no Instagram).
+    if (action === "facebook_only") {
+      if (state?.paused && !isAiCircuitPause(state.pause_reason)) return json({ skipped: "paused" });
+      return json({ ok: true, facebook: await publishFacebookDue() });
+    }
+
     const aiCircuitPaused = state?.paused === true && isAiCircuitPause(state.pause_reason);
     if (state?.paused && !aiCircuitPaused) {
       return json({ skipped: "paused", reason: state.pause_reason });
