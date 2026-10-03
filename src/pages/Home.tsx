@@ -265,6 +265,7 @@ const Home = () => {
             "Creator-designed furniture marketplace featuring unique, sustainable pieces from independent designers.",
           sameAs: [
             "https://www.instagram.com/nyzora.ai",
+            "https://www.facebook.com/1087872784403919",
             "https://www.linkedin.com/company/nyzora",
           ],
           contactPoint: {
