@@ -200,7 +200,45 @@ export const SocialScheduleManagement = () => {
                       <Badge variant="outline">✓ printable</Badge>
                     ) : null}
                     <span className="text-xs text-muted-foreground">{et(p.scheduled_at)} ET</span>
+                    {p.fb_status && p.fb_status !== "skip" && (
+                      <Badge
+                        variant={
+                          (p.fb_status === "published"
+                            ? "default"
+                            : p.fb_status === "failed"
+                              ? "destructive"
+                              : p.fb_status === "pending"
+                                ? "outline"
+                                : "secondary") as never
+                        }
+                      >
+                        FB: {p.fb_status}
+                      </Badge>
+                    )}
                   </div>
+                  {p.fb_status && p.fb_status !== "skip" && (
+                    <p className="text-xs text-muted-foreground">
+                      Facebook:{" "}
+                      {p.fb_status === "published" && p.fb_post_id ? (
+                        <a
+                          href={`https://www.facebook.com/${p.fb_post_id}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="underline"
+                        >
+                          View post
+                        </a>
+                      ) : p.fb_scheduled_at ? (
+                        `scheduled ${et(p.fb_scheduled_at)} ET`
+                      ) : (
+                        "mirrors after Instagram publishes"
+                      )}
+                      {p.fb_caption && p.fb_caption !== p.caption ? " · custom FB caption" : ""}
+                    </p>
+                  )}
+                  {p.fb_error && p.fb_status !== "published" && (
+                    <p className="text-xs text-destructive">Facebook error: {p.fb_error}</p>
+                  )}
                   <p className="whitespace-pre-line text-sm">
                     {p.caption || <span className="text-muted-foreground">Story — no caption</span>}
                   </p>
