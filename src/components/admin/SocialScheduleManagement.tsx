@@ -19,6 +19,11 @@ interface ScheduledPost {
   engineering_status: string;
   status: string;
   last_error: string | null;
+  fb_status: string | null;
+  fb_scheduled_at: string | null;
+  fb_post_id: string | null;
+  fb_caption: string | null;
+  fb_error: string | null;
 }
 
 interface SchedulerState {
@@ -64,7 +69,7 @@ export const SocialScheduleManagement = () => {
       supabase
         .from("social_scheduled_posts" as any)
         .select(
-          "id, scheduled_at, slot_type, day_index, theme, caption, image_prompt, image_url, engineering, engineering_status, status, last_error",
+          "id, scheduled_at, slot_type, day_index, theme, caption, image_prompt, image_url, engineering, engineering_status, status, last_error, fb_status, fb_scheduled_at, fb_post_id, fb_caption, fb_error",
         )
         .order("scheduled_at", { ascending: true }),
       supabase
