@@ -124,12 +124,13 @@ Deno.serve(async (req) => {
         }, 401);
       }
     }
-    if (!unlimited) {
+    if (!unlimited && userId) {
+      // Signed-in shoppers: 4 per day per account, regardless of network.
       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
       const { count } = await admin
         .from("originals_previews")
         .select("id", { count: "exact", head: true })
-        .eq("ip_hash", ipHash)
+        .eq("user_id", userId)
         .gte("created_at", since);
       used = count ?? 0;
       if (used >= FREE_PREVIEWS_PER_DAY) {
