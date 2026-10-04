@@ -167,7 +167,7 @@ serve(async (req) => {
           body: JSON.stringify({
             image_url: existingImageUrl,
             enable_pbr: false, // Disable PBR for faster generation
-            ai_model: "meshy-6",
+            ai_model: "meshy-7.1",
           }),
         });
 
@@ -652,7 +652,7 @@ Respond ONLY in valid JSON format (no markdown):
           body: JSON.stringify({
             image_url: imageUrl,
             enable_pbr: false, // Disable PBR for faster generation
-            ai_model: "meshy-6",
+            ai_model: "meshy-7.1",
           }),
         });
 
