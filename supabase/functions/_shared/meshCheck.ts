@@ -183,6 +183,7 @@ export function analyseStl(
       overhangFraction: 0,
       baseFootprintMm2: 0,
       tipRatio: 0,
+      thinFeatureFraction: 0,
       warnings,
       blockers: ["The mesh has no geometry."],
       printable: false,
@@ -255,6 +256,7 @@ export function analyseStl(
   const overhangFraction = area > 0 ? overhangArea / area : 0;
   const baseWidth = Math.max(1e-6, Math.min(size.x, size.y));
   const tipRatio = size.z / baseWidth;
+  const thinFraction = thinFeatureFraction(tris);
 
   if (openEdges > 0) {
     const msg = `Mesh is not watertight (${openEdges} open edges).`;
