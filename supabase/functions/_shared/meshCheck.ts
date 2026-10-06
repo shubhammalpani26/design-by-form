@@ -290,6 +290,16 @@ export function analyseStl(
     warnings.push(`Tall and narrow (height/width ${tipRatio.toFixed(1)}) — may need a raft.`);
   }
 
+  if (thinFraction >= FDM.featureFailFraction) {
+    blockers.push(
+      `Thin features (wings, ears, tail or paws under ~${FDM.minFeatureMm} mm on ${Math.round(thinFraction * 100)}% of the surface) — likely to fail the partner's quality check.`,
+    );
+  } else if (thinFraction >= FDM.featureWarnFraction) {
+    warnings.push(
+      `Some thin features (~${Math.round(thinFraction * 100)}% of the surface under ${FDM.minFeatureMm} mm) — may be fragile.`,
+    );
+  }
+
   const envelope = opts.envelopeMm;
   if (envelope && Math.max(size.x, size.y, size.z) > envelope + 0.5) {
     blockers.push(`Piece exceeds the build envelope (${envelope} mm).`);
