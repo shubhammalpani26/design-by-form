@@ -28,6 +28,20 @@ export const FDM = {
   tipRatioFail: 4.5,
   /** Slab used to measure the footprint that actually touches the plate. */
   baseSlabMm: 1.0,
+  /**
+   * Local feature thickness (wings, ears, tails, raised paws). The mean wall
+   * estimate (2V/A) is a global average — a thin wing on a solid bust barely
+   * moves it, which is how a partner can accept the slice and then fail the
+   * piece at QC. We sample the surface and measure the distance to the nearest
+   * *unconnected* surface; two surfaces closer than this are a thin feature.
+   */
+  minFeatureMm: 1.4,
+  /** Warn when this share of sampled surface sits on a thin feature. */
+  featureWarnFraction: 0.02,
+  /** Refuse above this share. */
+  featureFailFraction: 0.08,
+  /** Cap on surface samples so large meshes stay fast. */
+  featureSampleMax: 4000,
 } as const;
 
 export interface MeshMetric {
@@ -51,6 +65,8 @@ export interface MeshReport {
   overhangFraction: number;
   baseFootprintMm2: number;
   tipRatio: number;
+  /** Share of sampled surface on a feature thinner than FDM.minFeatureMm. */
+  thinFeatureFraction: number;
   warnings: string[];
   blockers: string[];
   printable: boolean;
@@ -87,6 +103,91 @@ function parseBinaryStl(bytes: Uint8Array): V3[][] {
 const key = (v: V3) =>
   `${Math.round(v[0] * 1000)},${Math.round(v[1] * 1000)},${Math.round(v[2] * 1000)}`;
 
+/**
+ * Estimates the share of surface that belongs to a thin feature (wing, ear,
+ * tail, raised paw). For each sampled triangle centroid we find the nearest
+ * centroid of a triangle that shares no vertex with it — i.e. the surface on
+ * the *other side* of the material. A connected neighbour is always close
+ * (same surface); an unconnected one that is close means the material between
+ * them is thinner than the nozzle can print reliably.
+ */
+function thinFeatureFraction(tris: V3[][]): number {
+  const cell = FDM.minFeatureMm * 1.5;
+  const grid = new Map<string, number[]>();
+  const centroids: V3[] = [];
+  const vertKeys: string[][] = [];
+
+  // Sample points spread across each triangle's surface, with the sample count
+  // proportional to area. Centroid-only sampling misses thin features whenever
+  // triangles are large (the two sides of a thin wall can be one big triangle
+  // each, whose centroids are far apart along the surface).
+  const areas = tris.map(([a, b, c]) => {
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    return Math.hypot(
+      u[1] * w[2] - u[2] * w[1],
+      u[2] * w[0] - u[0] * w[2],
+      u[0] * w[1] - u[1] * w[0],
+    ) / 2;
+  });
+  const totalArea = areas.reduce((s, a) => s + a, 0) || 1;
+
+  for (let i = 0; i < tris.length; i++) {
+    const [a, b, c] = tris[i];
+    // ~1 sample per 2 mm², capped overall by featureSampleMax via area scaling.
+    const n = Math.max(1, Math.min(64, Math.round((areas[i] / totalArea) * FDM.featureSampleMax * 2)));
+    for (let s = 0; s < n; s++) {
+      // Deterministic stratified barycentric samples (no RNG -> reproducible).
+      let r1 = ((s * 2 + 1) / (2 * n));
+      let r2 = (((s * 7) % n) + 0.5) / n;
+      if (r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
+      const idx = centroids.length;
+      centroids.push([
+        a[0] + r1 * (b[0] - a[0]) + r2 * (c[0] - a[0]),
+        a[1] + r1 * (b[1] - a[1]) + r2 * (c[1] - a[1]),
+        a[2] + r1 * (b[2] - a[2]) + r2 * (c[2] - a[2]),
+      ]);
+      vertKeys.push([key(a), key(b), key(c)]);
+      const gk = `${Math.floor(centroids[idx][0] / cell)},${Math.floor(centroids[idx][1] / cell)},${Math.floor(centroids[idx][2] / cell)}`;
+      const bucket = grid.get(gk);
+      if (bucket) bucket.push(idx);
+      else grid.set(gk, [idx]);
+    }
+  }
+
+  const limit2 = FDM.minFeatureMm * FDM.minFeatureMm;
+  let thin = 0;
+
+  for (let i = 0; i < centroids.length; i++) {
+    const p = centroids[i];
+    const mine = vertKeys[i];
+    const cx = Math.floor(p[0] / cell);
+    const cy = Math.floor(p[1] / cell);
+    const cz = Math.floor(p[2] / cell);
+    let best2 = Infinity;
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          const bucket = grid.get(`${cx + dx},${cy + dy},${cz + dz}`);
+          if (!bucket) continue;
+          for (const j of bucket) {
+            if (j === i) continue;
+            // Same surface (shares a vertex) — not the far side of a wall.
+            if (vertKeys[j].some((k) => mine.includes(k))) continue;
+            const q = centroids[j];
+            const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2;
+            if (d2 < best2) best2 = d2;
+          }
+        }
+      }
+    }
+    if (best2 < limit2) thin++;
+  }
+
+  return centroids.length ? thin / centroids.length : 0;
+}
+
 /** Analyses binary STL bytes (millimetres) for FDM printability. */
 export function analyseStl(
   bytes: Uint8Array,
@@ -108,6 +209,7 @@ export function analyseStl(
       overhangFraction: 0,
       baseFootprintMm2: 0,
       tipRatio: 0,
+      thinFeatureFraction: 0,
       warnings,
       blockers: ["The mesh has no geometry."],
       printable: false,
@@ -180,6 +282,7 @@ export function analyseStl(
   const overhangFraction = area > 0 ? overhangArea / area : 0;
   const baseWidth = Math.max(1e-6, Math.min(size.x, size.y));
   const tipRatio = size.z / baseWidth;
+  const thinFraction = thinFeatureFraction(tris);
 
   if (openEdges > 0) {
     const msg = `Mesh is not watertight (${openEdges} open edges).`;
@@ -211,6 +314,16 @@ export function analyseStl(
     blockers.push(`Too tall for its base (height/width ${tipRatio.toFixed(1)}).`);
   } else if (tipRatio >= FDM.tipRatioWarn) {
     warnings.push(`Tall and narrow (height/width ${tipRatio.toFixed(1)}) — may need a raft.`);
+  }
+
+  if (thinFraction >= FDM.featureFailFraction) {
+    blockers.push(
+      `Thin features (wings, ears, tail or paws under ~${FDM.minFeatureMm} mm on ${Math.round(thinFraction * 100)}% of the surface) — likely to fail the partner's quality check.`,
+    );
+  } else if (thinFraction >= FDM.featureWarnFraction) {
+    warnings.push(
+      `Some thin features (~${Math.round(thinFraction * 100)}% of the surface under ${FDM.minFeatureMm} mm) — may be fragile.`,
+    );
   }
 
   const envelope = opts.envelopeMm;
@@ -266,6 +379,18 @@ export function analyseStl(
       target: `h/w < ${FDM.tipRatioWarn}`,
     },
     {
+      key: "features",
+      label: "Thin features",
+      value: `${Math.round(thinFraction * 100)}% of surface under ${FDM.minFeatureMm} mm`,
+      status:
+        thinFraction >= FDM.featureFailFraction
+          ? "fail"
+          : thinFraction >= FDM.featureWarnFraction
+            ? "warn"
+            : "pass",
+      target: `< ${Math.round(FDM.featureWarnFraction * 100)}%`,
+    },
+    {
       key: "envelope",
       label: "Build envelope",
       value: `${envelopeMax.toFixed(0)} mm longest edge`,
@@ -291,6 +416,7 @@ export function analyseStl(
     overhangFraction,
     baseFootprintMm2: baseArea,
     tipRatio,
+    thinFeatureFraction: thinFraction,
     warnings,
     blockers,
     printable: blockers.length === 0,
