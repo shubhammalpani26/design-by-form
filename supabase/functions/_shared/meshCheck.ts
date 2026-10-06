@@ -112,21 +112,47 @@ const key = (v: V3) =>
  * them is thinner than the nozzle can print reliably.
  */
 function thinFeatureFraction(tris: V3[][]): number {
-  const step = Math.max(1, Math.floor(tris.length / FDM.featureSampleMax));
   const cell = FDM.minFeatureMm * 1.5;
   const grid = new Map<string, number[]>();
   const centroids: V3[] = [];
   const vertKeys: string[][] = [];
 
-  for (let i = 0; i < tris.length; i += step) {
+  // Sample points spread across each triangle's surface, with the sample count
+  // proportional to area. Centroid-only sampling misses thin features whenever
+  // triangles are large (the two sides of a thin wall can be one big triangle
+  // each, whose centroids are far apart along the surface).
+  const areas = tris.map(([a, b, c]) => {
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    return Math.hypot(
+      u[1] * w[2] - u[2] * w[1],
+      u[2] * w[0] - u[0] * w[2],
+      u[0] * w[1] - u[1] * w[0],
+    ) / 2;
+  });
+  const totalArea = areas.reduce((s, a) => s + a, 0) || 1;
+
+  for (let i = 0; i < tris.length; i++) {
     const [a, b, c] = tris[i];
-    const idx = centroids.length;
-    centroids.push([(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3]);
-    vertKeys.push([key(a), key(b), key(c)]);
-    const gk = `${Math.floor(centroids[idx][0] / cell)},${Math.floor(centroids[idx][1] / cell)},${Math.floor(centroids[idx][2] / cell)}`;
-    const bucket = grid.get(gk);
-    if (bucket) bucket.push(idx);
-    else grid.set(gk, [idx]);
+    // ~1 sample per 2 mm², capped overall by featureSampleMax via area scaling.
+    const n = Math.max(1, Math.min(64, Math.round((areas[i] / totalArea) * FDM.featureSampleMax * 2)));
+    for (let s = 0; s < n; s++) {
+      // Deterministic stratified barycentric samples (no RNG -> reproducible).
+      let r1 = ((s * 2 + 1) / (2 * n));
+      let r2 = (((s * 7) % n) + 0.5) / n;
+      if (r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
+      const idx = centroids.length;
+      centroids.push([
+        a[0] + r1 * (b[0] - a[0]) + r2 * (c[0] - a[0]),
+        a[1] + r1 * (b[1] - a[1]) + r2 * (c[1] - a[1]),
+        a[2] + r1 * (b[2] - a[2]) + r2 * (c[2] - a[2]),
+      ]);
+      vertKeys.push([key(a), key(b), key(c)]);
+      const gk = `${Math.floor(centroids[idx][0] / cell)},${Math.floor(centroids[idx][1] / cell)},${Math.floor(centroids[idx][2] / cell)}`;
+      const bucket = grid.get(gk);
+      if (bucket) bucket.push(idx);
+      else grid.set(gk, [idx]);
+    }
   }
 
   const limit2 = FDM.minFeatureMm * FDM.minFeatureMm;
