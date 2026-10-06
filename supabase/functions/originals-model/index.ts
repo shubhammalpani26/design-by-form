@@ -342,10 +342,15 @@ async function printabilityHold(rows: OrderRow[]): Promise<string | null> {
   if (!ids.length) return null;
   const { data } = await admin
     .from("originals_previews")
-    .select("id, engineering")
+    .select("id, engineering, photo_screen")
     .in("id", ids);
   const reasons: string[] = [];
   for (const preview of data ?? []) {
+    // Photo screen was down when this preview was made — a person must
+    // confirm the photo is a pet before anything goes to the partner.
+    if (preview.photo_screen === "unscreened") {
+      reasons.push("customer photo was not screened (pet / explicit check was unavailable)");
+    }
     const report = ((preview.engineering ?? {}) as Record<string, unknown>)
       .printability as Record<string, unknown> | undefined;
     if (!report) continue;
