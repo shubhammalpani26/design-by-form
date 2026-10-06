@@ -96,5 +96,5 @@ Deno.serve(async (req) => {
     console.error("order watch: email failed", e);
   }
 
-  return new Response(JSON.stringify({ ok: true, flagged: items.length, items }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ ok: true, flagged: items.length }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
 });
