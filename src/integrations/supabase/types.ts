@@ -1638,6 +1638,7 @@ export type Database = {
           model_status: string | null
           model_task_id: string | null
           personalization: Json
+          photo_screen: string | null
           preview_image_url: string | null
           print_file_url: string | null
           print_files: Json
@@ -1655,6 +1656,7 @@ export type Database = {
           model_status?: string | null
           model_task_id?: string | null
           personalization?: Json
+          photo_screen?: string | null
           preview_image_url?: string | null
           print_file_url?: string | null
           print_files?: Json
@@ -1672,6 +1674,7 @@ export type Database = {
           model_status?: string | null
           model_task_id?: string | null
           personalization?: Json
+          photo_screen?: string | null
           preview_image_url?: string | null
           print_file_url?: string | null
           print_files?: Json

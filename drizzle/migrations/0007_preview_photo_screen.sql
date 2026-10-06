@@ -1,0 +1,1 @@
+ALTER TABLE public.originals_previews ADD COLUMN IF NOT EXISTS photo_screen text;
