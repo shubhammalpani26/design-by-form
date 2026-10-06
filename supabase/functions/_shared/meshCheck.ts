@@ -28,6 +28,20 @@ export const FDM = {
   tipRatioFail: 4.5,
   /** Slab used to measure the footprint that actually touches the plate. */
   baseSlabMm: 1.0,
+  /**
+   * Local feature thickness (wings, ears, tails, raised paws). The mean wall
+   * estimate (2V/A) is a global average — a thin wing on a solid bust barely
+   * moves it, which is how a partner can accept the slice and then fail the
+   * piece at QC. We sample the surface and measure the distance to the nearest
+   * *unconnected* surface; two surfaces closer than this are a thin feature.
+   */
+  minFeatureMm: 1.4,
+  /** Warn when this share of sampled surface sits on a thin feature. */
+  featureWarnFraction: 0.02,
+  /** Refuse above this share. */
+  featureFailFraction: 0.08,
+  /** Cap on surface samples so large meshes stay fast. */
+  featureSampleMax: 4000,
 } as const;
 
 export interface MeshMetric {
@@ -51,6 +65,8 @@ export interface MeshReport {
   overhangFraction: number;
   baseFootprintMm2: number;
   tipRatio: number;
+  /** Share of sampled surface on a feature thinner than FDM.minFeatureMm. */
+  thinFeatureFraction: number;
   warnings: string[];
   blockers: string[];
   printable: boolean;
