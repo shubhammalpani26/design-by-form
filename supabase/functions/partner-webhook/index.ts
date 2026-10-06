@@ -65,6 +65,13 @@ const toProductionStatus = (event: string): string | null => {
   return null;
 };
 
+const PRODUCT_NAME: Record<string, string> = {
+  "pet-silhouette-keepsake": "Pet Memorial Sculpture",
+  "pet-portrait-sculpture": "Pet Portrait Sculpture",
+  "nursery-name-date": "Nursery Name & Date Piece",
+  "wedding-coordinates": "Wedding Coordinates Piece",
+};
+
 const pick = (o: Record<string, unknown>, keys: string[]): string | null => {
   for (const k of keys) {
     const v = o[k];
