@@ -146,22 +146,62 @@ Deno.serve(async (req) => {
     // preview approval still gates production.
     if (sourceImage && decodeDataUrl(sourceImage)) {
       try {
-        const cls = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+        const cls = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
           method: "POST",
-          headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
+          headers: {
+            "Lovable-API-Key": LOVABLE_API_KEY,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+            "X-Lovable-AIG-SDK": "fetch",
+          },
           body: JSON.stringify({
-            model: "google/gemini-2.5-flash",
-            messages: [{
+            model: "openai/gpt-6-astra",
+            stream: true,
+            store: false,
+            reasoning: { effort: "low" },
+            input: [{
               role: "user",
               content: [
-                { type: "image_url", image_url: { url: sourceImage.trim() } },
-                { type: "text", text: 'Answer with JSON only: {"has_pet": boolean, "explicit": boolean}. has_pet = a real animal (dog, cat, bird, rabbit, horse, etc.) is clearly visible. explicit = nudity, sexual content or graphic gore.' },
+                { type: "input_image", image_url: sourceImage.trim() },
+                { type: "input_text", text: "Screen this upload. has_pet = a real animal (dog, cat, bird, rabbit, horse, etc.) is clearly visible. explicit = nudity, sexual content or graphic gore." },
               ],
             }],
+            text: {
+              format: {
+                type: "json_schema",
+                name: "pet_screen",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: { has_pet: { type: "boolean" }, explicit: { type: "boolean" } },
+                  required: ["has_pet", "explicit"],
+                  additionalProperties: false,
+                },
+              },
+            },
           }),
         });
-        if (cls.ok) {
-          const txt = String((await cls.json()).choices?.[0]?.message?.content ?? "");
+        if (cls.ok && cls.body) {
+          let txt = "";
+          let buf = "";
+          const reader = cls.body.getReader();
+          const dec = new TextDecoder();
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split("\n");
+            buf = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.startsWith("data:")) continue;
+              const d = line.slice(5).trim();
+              if (!d || d === "[DONE]") continue;
+              try {
+                const ev = JSON.parse(d);
+                if (ev.type === "response.output_text.delta") txt += ev.delta ?? "";
+              } catch { /* ignore partial */ }
+            }
+          }
           const m = /\{[\s\S]*\}/.exec(txt);
           const verdict = m ? JSON.parse(m[0]) : null;
           if (verdict?.explicit === true) {
