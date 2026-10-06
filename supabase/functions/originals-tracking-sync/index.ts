@@ -261,6 +261,27 @@ Deno.serve(async (req) => {
         }
 
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
+
+        // The partner reported a paid piece as cancelled or failed through its
+        // API — the buyer still sees "order confirmed", so alert immediately.
+        // Only on the transition, so repeat syncs don't re-alert.
+        if (
+          ["cancelled", "failed"].includes(nextStatus) &&
+          nextStatus !== row.production_status
+        ) {
+          await alertPartnerStatusChange(admin, {
+            orderId: row.id,
+            groupId: row.group_id,
+            partnerOrderId: key,
+            customerEmail: row.customer_email,
+            productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || row.sku_slug || null,
+            amountUsd: row.amount_usd ?? null,
+            productionStatus: nextStatus,
+            event: `partner_status_${status}`,
+            message: null,
+          });
+        }
+
         await admin
           .from("originals_orders")
           .update({
