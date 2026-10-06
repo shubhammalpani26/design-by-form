@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
+import { alertPartnerStatusChange } from "../_shared/fulfillmentAlert.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 
 /**
@@ -180,9 +181,17 @@ Deno.serve(async (req) => {
   const { data: rows } = partnerOrderId
     ? await admin
       .from("originals_orders")
-      .select("id, group_id, production_status")
+      .select("id, group_id, production_status, sku_slug, size_label, customer_email, amount_usd")
       .eq("partner_order_id", partnerOrderId)
-    : { data: [] as Array<{ id: string; group_id: string | null; production_status: string }> };
+    : { data: [] as Array<{
+        id: string;
+        group_id: string | null;
+        production_status: string;
+        sku_slug: string | null;
+        size_label: string | null;
+        customer_email: string | null;
+        amount_usd: number | null;
+      }> };
 
   const production = toProductionStatus(event);
   const now = new Date().toISOString();
