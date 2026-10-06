@@ -353,6 +353,18 @@ export function analyseStl(
       target: `h/w < ${FDM.tipRatioWarn}`,
     },
     {
+      key: "features",
+      label: "Thin features",
+      value: `${Math.round(thinFraction * 100)}% of surface under ${FDM.minFeatureMm} mm`,
+      status:
+        thinFraction >= FDM.featureFailFraction
+          ? "fail"
+          : thinFraction >= FDM.featureWarnFraction
+            ? "warn"
+            : "pass",
+      target: `< ${Math.round(FDM.featureWarnFraction * 100)}%`,
+    },
+    {
       key: "envelope",
       label: "Build envelope",
       value: `${envelopeMax.toFixed(0)} mm longest edge`,
@@ -378,6 +390,7 @@ export function analyseStl(
     overhangFraction,
     baseFootprintMm2: baseArea,
     tipRatio,
+    thinFeatureFraction: thinFraction,
     warnings,
     blockers,
     printable: blockers.length === 0,
