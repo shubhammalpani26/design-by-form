@@ -217,6 +217,28 @@ Deno.serve(async (req) => {
       (terminal.includes(production) || !terminal.includes(row.production_status));
     if (!shouldUpdate) continue;
 
+    // A partner-side cancellation or failure must reach a human immediately —
+    // the buyer still sees their paid order as confirmed. Fire only on the
+    // transition, so replays of the same event don't re-alert.
+    if (
+      (production === "cancelled" || production === "failed") &&
+      production !== row.production_status
+    ) {
+      await alertPartnerStatusChange(admin, {
+        orderId: row.id,
+        groupId: row.group_id,
+        partnerOrderId,
+        customerEmail: row.customer_email,
+        productName: row.sku_slug && PRODUCT_NAME[row.sku_slug]
+          ? `${PRODUCT_NAME[row.sku_slug]}${row.size_label ? ` — ${row.size_label}` : ""}`
+          : row.size_label ?? null,
+        amountUsd: row.amount_usd,
+        productionStatus: production,
+        event,
+        message,
+      });
+    }
+
     await admin
       .from("originals_orders")
       .update({
