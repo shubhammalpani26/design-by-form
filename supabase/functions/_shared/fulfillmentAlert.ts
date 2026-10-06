@@ -1,6 +1,85 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendAppEmail } from "./appEmail.ts";
 
+interface PartnerStatusInput {
+  orderId?: string | null;
+  groupId?: string | null;
+  partnerOrderId?: string | null;
+  customerEmail?: string | null;
+  productName?: string | null;
+  amountUsd?: number | null;
+  /** What the partner reported: "cancelled" or "failed". */
+  productionStatus: string;
+  /** The raw partner event, e.g. "order.cancelled". */
+  event?: string | null;
+  /** Any reason the partner gave. */
+  message?: string | null;
+}
+
+/**
+ * A paid piece that the manufacturing partner cancelled or failed is invisible
+ * to the buyer — their order still reads "confirmed" — so it must reach us the
+ * moment the partner says so: one in-dashboard notification per admin plus one
+ * email. Idempotency keys keep replays and multi-piece groups to one email.
+ * Never throws — alerting must not break fulfillment.
+ */
+export async function alertPartnerStatusChange(
+  admin: SupabaseClient,
+  input: PartnerStatusInput,
+): Promise<void> {
+  const orderId = input.orderId ?? input.groupId ?? "unknown";
+  const short = String(orderId).slice(0, 8);
+  const message = input.message ?? "No reason was given by the partner.";
+
+  try {
+    const { data: admins } = await admin
+      .from("user_roles")
+      .select("user_id")
+      .eq("role", "admin");
+
+    if (admins?.length) {
+      const { error: notifyErr } = await admin.from("notifications").insert(
+        admins.map((a: { user_id: string }) => ({
+          user_id: a.user_id,
+          title: `Partner reported order ${short} as ${input.productionStatus}`,
+          message: `${input.partnerOrderId ?? "partner order"}: ${message.slice(0, 400)}`,
+          type: "partner_status_alert",
+          link: "/admin?tab=orders",
+          metadata: {
+            order_id: input.orderId ?? null,
+            group_id: input.groupId ?? null,
+            partner_order_id: input.partnerOrderId ?? null,
+            production_status: input.productionStatus,
+          },
+        })),
+      );
+      if (notifyErr) console.error("partner status alert: notification insert error", notifyErr);
+    }
+  } catch (e) {
+    console.error("partner status alert: notification insert failed", e);
+  }
+
+  try {
+    // The template pins the internal recipient; this address is only a fallback.
+    await sendAppEmail("partner-order-cancelled", "contact@nyzora.ai", {
+      idempotencyKey: `partner-${input.productionStatus}-${input.partnerOrderId ?? orderId}-${message.slice(0, 60)}`,
+      templateData: {
+        orderId: input.orderId ?? input.groupId ?? null,
+        groupId: input.groupId ?? null,
+        partnerOrderId: input.partnerOrderId ?? null,
+        productName: input.productName ?? null,
+        customerEmail: input.customerEmail ?? null,
+        amountUsd: input.amountUsd ?? null,
+        status: input.productionStatus,
+        event: input.event ?? null,
+        message,
+      },
+    });
+  } catch (e) {
+    console.error("partner status alert: email failed", e);
+  }
+}
+
 interface AlertInput {
   orderId?: string | null;
   groupId?: string | null;

@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 import { getTracking, startPartnerBudget, partnerBudgetSpent } from "../_shared/slant3d.ts";
+import { alertPartnerStatusChange } from "../_shared/fulfillmentAlert.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 import { confirmCarrierDelivery } from "../_shared/carrierTracking.ts";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
@@ -177,7 +178,7 @@ Deno.serve(async (req) => {
     let query = admin
       .from("originals_orders")
       .select(
-        "id, group_id, partner_order_id, production_status, tracking_numbers, customer_email, sku_slug, size_label, carrier, shipped_at, shipping_notified_at, review_requested_at",
+        "id, group_id, partner_order_id, production_status, tracking_numbers, customer_email, sku_slug, size_label, carrier, amount_usd, shipped_at, shipping_notified_at, review_requested_at",
       )
       .not("partner_order_id", "is", null)
       // Smaller batches finish inside one invocation; the cron run that
@@ -260,6 +261,27 @@ Deno.serve(async (req) => {
         }
 
         const shipped = nextStatus === "shipped" || nextStatus === "delivered";
+
+        // The partner reported a paid piece as cancelled or failed through its
+        // API — the buyer still sees "order confirmed", so alert immediately.
+        // Only on the transition, so repeat syncs don't re-alert.
+        if (
+          ["cancelled", "failed"].includes(nextStatus) &&
+          nextStatus !== row.production_status
+        ) {
+          await alertPartnerStatusChange(admin, {
+            orderId: row.id,
+            groupId: row.group_id,
+            partnerOrderId: key,
+            customerEmail: row.customer_email,
+            productName: (row.sku_slug && PRODUCT_NAME[row.sku_slug]) || row.sku_slug || null,
+            amountUsd: row.amount_usd ?? null,
+            productionStatus: nextStatus,
+            event: `partner_status_${status}`,
+            message: null,
+          });
+        }
+
         await admin
           .from("originals_orders")
           .update({

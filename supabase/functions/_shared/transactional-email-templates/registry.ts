@@ -7,6 +7,7 @@ import { template as contactFormSubmission } from './contact-form-submission.tsx
 import { template as partnerRefundRequest } from './partner-refund-request.tsx'
 import { template as manufacturingOrderPlaced } from './manufacturing-order-placed.tsx'
 import { template as orderHeldForReview } from './order-held-for-review.tsx'
+import { template as partnerOrderCancelled } from './partner-order-cancelled.tsx'
 import { template as generationFailing } from './generation-failing.tsx'
 
 export interface TemplateEntry {
@@ -26,5 +27,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'partner-refund-request': partnerRefundRequest,
   'manufacturing-order-placed': manufacturingOrderPlaced,
   'order-held-for-review': orderHeldForReview,
+  'partner-order-cancelled': partnerOrderCancelled,
   'generation-failing': generationFailing,
 }

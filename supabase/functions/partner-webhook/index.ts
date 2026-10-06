@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { logPartnerEvent } from "../_shared/partnerEvents.ts";
+import { alertPartnerStatusChange } from "../_shared/fulfillmentAlert.ts";
 import { detectCarrier } from "../_shared/transactional-email-templates/originals-order-shipped.tsx";
 
 /**
@@ -62,6 +63,13 @@ const toProductionStatus = (event: string): string | null => {
   if (e.includes("fail") || e.includes("reject")) return "failed";
   if (e.includes("process") || e.includes("print") || e.includes("pack")) return "in_production";
   return null;
+};
+
+const PRODUCT_NAME: Record<string, string> = {
+  "pet-silhouette-keepsake": "Pet Memorial Sculpture",
+  "pet-portrait-sculpture": "Pet Portrait Sculpture",
+  "nursery-name-date": "Nursery Name & Date Piece",
+  "wedding-coordinates": "Wedding Coordinates Piece",
 };
 
 const pick = (o: Record<string, unknown>, keys: string[]): string | null => {
@@ -180,9 +188,17 @@ Deno.serve(async (req) => {
   const { data: rows } = partnerOrderId
     ? await admin
       .from("originals_orders")
-      .select("id, group_id, production_status")
+      .select("id, group_id, production_status, sku_slug, size_label, customer_email, amount_usd")
       .eq("partner_order_id", partnerOrderId)
-    : { data: [] as Array<{ id: string; group_id: string | null; production_status: string }> };
+    : { data: [] as Array<{
+        id: string;
+        group_id: string | null;
+        production_status: string;
+        sku_slug: string | null;
+        size_label: string | null;
+        customer_email: string | null;
+        amount_usd: number | null;
+      }> };
 
   const production = toProductionStatus(event);
   const now = new Date().toISOString();
@@ -207,6 +223,28 @@ Deno.serve(async (req) => {
     const shouldUpdate = production &&
       (terminal.includes(production) || !terminal.includes(row.production_status));
     if (!shouldUpdate) continue;
+
+    // A partner-side cancellation or failure must reach a human immediately —
+    // the buyer still sees their paid order as confirmed. Fire only on the
+    // transition, so replays of the same event don't re-alert.
+    if (
+      (production === "cancelled" || production === "failed") &&
+      production !== row.production_status
+    ) {
+      await alertPartnerStatusChange(admin, {
+        orderId: row.id,
+        groupId: row.group_id,
+        partnerOrderId,
+        customerEmail: row.customer_email,
+        productName: row.sku_slug && PRODUCT_NAME[row.sku_slug]
+          ? `${PRODUCT_NAME[row.sku_slug]}${row.size_label ? ` — ${row.size_label}` : ""}`
+          : row.size_label ?? null,
+        amountUsd: row.amount_usd,
+        productionStatus: production,
+        event,
+        message,
+      });
+    }
 
     await admin
       .from("originals_orders")
