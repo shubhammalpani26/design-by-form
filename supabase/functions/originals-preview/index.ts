@@ -141,6 +141,81 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Pets only: screen the photo before spending a render. Reject photos with
+    // no animal, and anything explicit. Fails open on classifier errors —
+    // preview approval still gates production.
+    if (sourceImage && decodeDataUrl(sourceImage)) {
+      try {
+        const cls = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
+          method: "POST",
+          headers: {
+            "Lovable-API-Key": LOVABLE_API_KEY,
+            Authorization: `Bearer ${LOVABLE_API_KEY}`,
+            "Content-Type": "application/json",
+            "X-Lovable-AIG-SDK": "fetch",
+          },
+          body: JSON.stringify({
+            model: "openai/gpt-6-astra",
+            stream: true,
+            store: false,
+            reasoning: { effort: "low" },
+            input: [{
+              role: "user",
+              content: [
+                { type: "input_image", image_url: sourceImage.trim() },
+                { type: "input_text", text: "Screen this upload. has_pet = a real animal (dog, cat, bird, rabbit, horse, etc.) is clearly visible. explicit = nudity, sexual content or graphic gore." },
+              ],
+            }],
+            text: {
+              format: {
+                type: "json_schema",
+                name: "pet_screen",
+                strict: true,
+                schema: {
+                  type: "object",
+                  properties: { has_pet: { type: "boolean" }, explicit: { type: "boolean" } },
+                  required: ["has_pet", "explicit"],
+                  additionalProperties: false,
+                },
+              },
+            },
+          }),
+        });
+        if (cls.ok && cls.body) {
+          let txt = "";
+          let buf = "";
+          const reader = cls.body.getReader();
+          const dec = new TextDecoder();
+          for (;;) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            buf += dec.decode(value, { stream: true });
+            const lines = buf.split("\n");
+            buf = lines.pop() ?? "";
+            for (const line of lines) {
+              if (!line.startsWith("data:")) continue;
+              const d = line.slice(5).trim();
+              if (!d || d === "[DONE]") continue;
+              try {
+                const ev = JSON.parse(d);
+                if (ev.type === "response.output_text.delta") txt += ev.delta ?? "";
+              } catch { /* ignore partial */ }
+            }
+          }
+          const m = /\{[\s\S]*\}/.exec(txt);
+          const verdict = m ? JSON.parse(m[0]) : null;
+          if (verdict?.explicit === true) {
+            return json({ error: "We can't use that photo. Please upload a clear photo of your pet.", code: "PHOTO_REJECTED" }, 400);
+          }
+          if (verdict?.has_pet === false) {
+            return json({ error: "We couldn't find a pet in that photo. Please upload a clear photo of your pet's face.", code: "NO_PET" }, 400);
+          }
+        }
+      } catch (e) {
+        console.error("pet screen failed", e);
+      }
+    }
+
     // Upload the buyer's photo so the model can see it (and so we keep a record).
     let sourceUrl: string | null = null;
     let sourceStoragePath: string | null = null;
@@ -170,7 +245,7 @@ Deno.serve(async (req) => {
     // clients appended "matte" after requesting satin PLA, and the later word
     // caused the model to smooth away the print texture.
     const productionAppearance =
-      " Mandatory physical appearance: show exactly one sculpture from one three-quarter camera angle, centered in one clean product photograph. Never create a triptych, contact sheet, turnaround, comparison, collage, multiple angles, repeated sculptures, or multiple products. Show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. Preserve the reference animal's coat character as sculpted printable form: for curly, shaggy, woolly, or long-haired pets, model the visible curls, locks, tufts, and furry volume clearly while avoiding loose individual hairs or fragile strands. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base. People never become part of the sculpture when an animal is present: sculpt the animal only — no human head, face, hands or body anywhere in the piece; when the photo contains no animal at all, the person is the subject instead and their head and shoulders are sculpted as the bust under the same material, plinth and lettering rules. Lettering rule: every name and date on the plinth must be raised lettering standing slightly out from the front face in bold sans-serif capitals, like a cast nameplate — never engraved, carved, cut, etched, debossed, recessed, or pressed into the surface.";
+      " Mandatory physical appearance: show exactly one sculpture from one three-quarter camera angle, centered in one clean product photograph. Never create a triptych, contact sheet, turnaround, comparison, collage, multiple angles, repeated sculptures, or multiple products. Show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. Preserve the reference animal's coat character as sculpted printable form: for curly, shaggy, woolly, or long-haired pets, model the visible curls, locks, tufts, and furry volume clearly while avoiding loose individual hairs or fragile strands. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base. People never become part of the sculpture: sculpt the animal only — no human head, face, hands or body anywhere in the piece. Lettering rule: every name and date on the plinth must be raised lettering standing slightly out from the front face in bold sans-serif capitals, like a cast nameplate — never engraved, carved, cut, etched, debossed, recessed, or pressed into the surface.";
     const revision = tweak
       ? ` Final customer revision: apply only this change while preserving the same animal, likeness, single sculpture, single camera angle, plinth, lettering, colour, material, and composition: ${tweak}`
       : "";
