@@ -142,9 +142,11 @@ Deno.serve(async (req) => {
     }
 
     // Pets only: screen the photo before spending a render. Reject photos with
-    // no animal, and anything explicit. Fails open on classifier errors —
-    // preview approval still gates production.
+    // no animal, and anything explicit. Fails open on classifier errors, but
+    // the preview is marked "unscreened" so any order from it is held for review.
+    let photoScreen: string | null = null;
     if (sourceImage && decodeDataUrl(sourceImage)) {
+      photoScreen = "unscreened";
       try {
         const cls = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
           method: "POST",
@@ -204,6 +206,9 @@ Deno.serve(async (req) => {
           }
           const m = /\{[\s\S]*\}/.exec(txt);
           const verdict = m ? JSON.parse(m[0]) : null;
+          if (typeof verdict?.has_pet === "boolean" && typeof verdict?.explicit === "boolean") {
+            photoScreen = "passed";
+          }
           if (verdict?.explicit === true) {
             return json({ error: "We can't use that photo. Please upload a clear photo of your pet.", code: "PHOTO_REJECTED" }, 400);
           }
@@ -311,6 +316,7 @@ Deno.serve(async (req) => {
         personalization,
         source_image_url: sourceStoragePath,
         preview_image_url: previewUrl,
+        photo_screen: photoScreen,
       })
       .select("id")
       .single();
