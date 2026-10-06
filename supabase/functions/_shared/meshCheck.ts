@@ -103,6 +103,65 @@ function parseBinaryStl(bytes: Uint8Array): V3[][] {
 const key = (v: V3) =>
   `${Math.round(v[0] * 1000)},${Math.round(v[1] * 1000)},${Math.round(v[2] * 1000)}`;
 
+/**
+ * Estimates the share of surface that belongs to a thin feature (wing, ear,
+ * tail, raised paw). For each sampled triangle centroid we find the nearest
+ * centroid of a triangle that shares no vertex with it — i.e. the surface on
+ * the *other side* of the material. A connected neighbour is always close
+ * (same surface); an unconnected one that is close means the material between
+ * them is thinner than the nozzle can print reliably.
+ */
+function thinFeatureFraction(tris: V3[][]): number {
+  const step = Math.max(1, Math.floor(tris.length / FDM.featureSampleMax));
+  const cell = FDM.minFeatureMm * 1.5;
+  const grid = new Map<string, number[]>();
+  const centroids: V3[] = [];
+  const vertKeys: string[][] = [];
+
+  for (let i = 0; i < tris.length; i += step) {
+    const [a, b, c] = tris[i];
+    const idx = centroids.length;
+    centroids.push([(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3, (a[2] + b[2] + c[2]) / 3]);
+    vertKeys.push([key(a), key(b), key(c)]);
+    const gk = `${Math.floor(centroids[idx][0] / cell)},${Math.floor(centroids[idx][1] / cell)},${Math.floor(centroids[idx][2] / cell)}`;
+    const bucket = grid.get(gk);
+    if (bucket) bucket.push(idx);
+    else grid.set(gk, [idx]);
+  }
+
+  const limit2 = FDM.minFeatureMm * FDM.minFeatureMm;
+  let thin = 0;
+
+  for (let i = 0; i < centroids.length; i++) {
+    const p = centroids[i];
+    const mine = vertKeys[i];
+    const cx = Math.floor(p[0] / cell);
+    const cy = Math.floor(p[1] / cell);
+    const cz = Math.floor(p[2] / cell);
+    let best2 = Infinity;
+
+    for (let dx = -1; dx <= 1; dx++) {
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dz = -1; dz <= 1; dz++) {
+          const bucket = grid.get(`${cx + dx},${cy + dy},${cz + dz}`);
+          if (!bucket) continue;
+          for (const j of bucket) {
+            if (j === i) continue;
+            // Same surface (shares a vertex) — not the far side of a wall.
+            if (vertKeys[j].some((k) => mine.includes(k))) continue;
+            const q = centroids[j];
+            const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2;
+            if (d2 < best2) best2 = d2;
+          }
+        }
+      }
+    }
+    if (best2 < limit2) thin++;
+  }
+
+  return centroids.length ? thin / centroids.length : 0;
+}
+
 /** Analyses binary STL bytes (millimetres) for FDM printability. */
 export function analyseStl(
   bytes: Uint8Array,
