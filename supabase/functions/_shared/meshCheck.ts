@@ -147,42 +147,54 @@ function thinFeatureFraction(tris: V3[][]): number {
   const count = px.length;
   if (!count) return 0;
 
+  // Index facets (not samples) by every cell their bounding box touches, so a
+  // sample can measure its exact perpendicular distance to the far wall even
+  // when that wall is one large triangle.
   const grid = new Map<string, number[]>();
   const cellKey = (x: number, y: number, z: number) => `${x},${y},${z}`;
-  for (let i = 0; i < count; i++) {
-    const k = cellKey(Math.floor(px[i] / cell), Math.floor(py[i] / cell), Math.floor(pz[i] / cell));
-    const bucket = grid.get(k);
-    if (bucket) bucket.push(i); else grid.set(k, [i]);
+  for (let t = 0; t < tris.length; t++) {
+    if (areas[t] <= 0) continue;
+    const [a, b, c] = tris[t];
+    const lo = [0, 1, 2].map((k) => Math.floor(Math.min(a[k], b[k], c[k]) / cell));
+    const hi = [0, 1, 2].map((k) => Math.floor(Math.max(a[k], b[k], c[k]) / cell));
+    if ((hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1) > 20000) continue;
+    for (let x = lo[0]; x <= hi[0]; x++) for (let y = lo[1]; y <= hi[1]; y++) for (let z = lo[2]; z <= hi[2]; z++) {
+      const k = cellKey(x, y, z);
+      const bucket = grid.get(k);
+      if (bucket) bucket.push(t); else grid.set(k, [t]);
+    }
   }
 
-  // Dense sampling would let a nearby facet's samples miss each other; test
-  // each sample against nearby *facets' planes* via their samples, using the
-  // perpendicular (through-material) distance rather than raw distance.
   const limit = FDM.minFeatureMm;
   let thin = 0;
   for (let i = 0; i < count; i++) {
     const np = normals[owner[i]];
     if (np[0] === 0 && np[1] === 0 && np[2] === 0) continue;
-    const cx = Math.floor(px[i] / cell), cy = Math.floor(py[i] / cell), cz = Math.floor(pz[i] / cell);
+    const p: V3 = [px[i], py[i], pz[i]];
+    const cx = Math.floor(p[0] / cell), cy = Math.floor(p[1] / cell), cz = Math.floor(p[2] / cell);
+    const seen = new Set<number>();
     let hit = false;
-    for (let dx = -1; dx <= 1 && !hit; dx++) {
-      for (let dy = -1; dy <= 1 && !hit; dy++) {
-        for (let dz = -1; dz <= 1 && !hit; dz++) {
-          const bucket = grid.get(cellKey(cx + dx, cy + dy, cz + dz));
-          if (!bucket) continue;
-          for (const j of bucket) {
-            if (owner[j] === owner[i]) continue;
-            const nq = normals[owner[j]];
-            // Opposite side of the material faces the other way.
-            if (np[0] * nq[0] + np[1] * nq[1] + np[2] * nq[2] > -0.7) continue;
-            const ddx = px[j] - px[i], ddy = py[j] - py[i], ddz = pz[j] - pz[i];
-            const dist = Math.hypot(ddx, ddy, ddz);
-            if (dist <= 1e-6 || dist >= limit) continue;
-            // ...and lies through the surface, not sideways along it.
-            const along = Math.abs(ddx * np[0] + ddy * np[1] + ddz * np[2]);
-            if (along >= 0.7 * dist) { hit = true; break; }
-          }
-        }
+    for (let dx = -1; dx <= 1 && !hit; dx++) for (let dy = -1; dy <= 1 && !hit; dy++) for (let dz = -1; dz <= 1 && !hit; dz++) {
+      const bucket = grid.get(cellKey(cx + dx, cy + dy, cz + dz));
+      if (!bucket) continue;
+      for (const t of bucket) {
+        if (t === owner[i] || seen.has(t)) continue;
+        seen.add(t);
+        const nq = normals[t];
+        // The far wall of the material faces the other way.
+        if (np[0] * nq[0] + np[1] * nq[1] + np[2] * nq[2] > -0.7) continue;
+        const [a, b, c] = tris[t];
+        const d = (p[0] - a[0]) * nq[0] + (p[1] - a[1]) * nq[1] + (p[2] - a[2]) * nq[2];
+        if (Math.abs(d) < 1e-4 || Math.abs(d) >= limit) continue;
+        // Project p onto that facet's plane; it must land inside the facet.
+        const q: V3 = [p[0] - d * nq[0], p[1] - d * nq[1], p[2] - d * nq[2]];
+        const inside = [[a, b], [b, c], [c, a]].every(([e0, e1]) => {
+          const ex = e1[0] - e0[0], ey = e1[1] - e0[1], ez = e1[2] - e0[2];
+          const vx = q[0] - e0[0], vy = q[1] - e0[1], vz = q[2] - e0[2];
+          const cr = [ey * vz - ez * vy, ez * vx - ex * vz, ex * vy - ey * vx];
+          return cr[0] * nq[0] + cr[1] * nq[1] + cr[2] * nq[2] >= -1e-6;
+        });
+        if (inside) { hit = true; break; }
       }
     }
     if (hit) thin++;
