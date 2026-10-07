@@ -105,87 +105,101 @@ const key = (v: V3) =>
 
 /**
  * Estimates the share of surface that belongs to a thin feature (wing, ear,
- * tail, raised paw). For each sampled triangle centroid we find the nearest
- * centroid of a triangle that shares no vertex with it — i.e. the surface on
- * the *other side* of the material. A connected neighbour is always close
- * (same surface); an unconnected one that is close means the material between
- * them is thinner than the nozzle can print reliably.
+ * tail, raised paw). A sample is "thin" only when a nearby sample sits on the
+ * *opposite side of the material*: its facet faces the other way (normals
+ * opposed) and it lies straight through the surface along the normal. Nearby
+ * points on the same continuous surface face the same way and lie sideways, so
+ * fine meshes on ordinary busts are never mistaken for thin walls.
  */
 function thinFeatureFraction(tris: V3[][]): number {
-  const cell = FDM.minFeatureMm * 1.5;
-  const grid = new Map<string, number[]>();
-  const centroids: V3[] = [];
-  const vertKeys: string[][] = [];
-
-  // Sample points spread across each triangle's surface, with the sample count
-  // proportional to area. Centroid-only sampling misses thin features whenever
-  // triangles are large (the two sides of a thin wall can be one big triangle
-  // each, whose centroids are far apart along the surface).
-  const areas = tris.map(([a, b, c]) => {
+  const cell = FDM.minFeatureMm;
+  const areas: number[] = [];
+  const normals: V3[] = [];
+  for (const [a, b, c] of tris) {
     const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
     const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-    return Math.hypot(
-      u[1] * w[2] - u[2] * w[1],
-      u[2] * w[0] - u[0] * w[2],
-      u[0] * w[1] - u[1] * w[0],
-    ) / 2;
-  });
-  const totalArea = areas.reduce((s, a) => s + a, 0) || 1;
+    const n: V3 = [u[1] * w[2] - u[2] * w[1], u[2] * w[0] - u[0] * w[2], u[0] * w[1] - u[1] * w[0]];
+    const len = Math.hypot(n[0], n[1], n[2]);
+    areas.push(len / 2);
+    normals.push(len > 0 ? [n[0] / len, n[1] / len, n[2] / len] : [0, 0, 0]);
+  }
+  const totalArea = areas.reduce((s, x) => s + x, 0) || 1;
 
+  // Area-proportional samples, total capped by featureSampleMax. Fractional
+  // budgets accumulate so many small facets still get sampled evenly.
+  const px: number[] = [], py: number[] = [], pz: number[] = [], owner: number[] = [];
+  let carry = 0;
   for (let i = 0; i < tris.length; i++) {
+    carry += (areas[i] / totalArea) * FDM.featureSampleMax;
+    const n = Math.min(64, Math.floor(carry));
+    carry -= n;
     const [a, b, c] = tris[i];
-    // ~1 sample per 2 mm², capped overall by featureSampleMax via area scaling.
-    const n = Math.max(1, Math.min(64, Math.round((areas[i] / totalArea) * FDM.featureSampleMax * 2)));
     for (let s = 0; s < n; s++) {
-      // Deterministic stratified barycentric samples (no RNG -> reproducible).
-      let r1 = ((s * 2 + 1) / (2 * n));
-      let r2 = (((s * 7) % n) + 0.5) / n;
+      let r1 = n === 1 ? 1 / 3 : (s * 2 + 1) / (2 * n);
+      let r2 = n === 1 ? 1 / 3 : (((s * 7) % n) + 0.5) / n;
       if (r1 + r2 > 1) { r1 = 1 - r1; r2 = 1 - r2; }
-      const idx = centroids.length;
-      centroids.push([
-        a[0] + r1 * (b[0] - a[0]) + r2 * (c[0] - a[0]),
-        a[1] + r1 * (b[1] - a[1]) + r2 * (c[1] - a[1]),
-        a[2] + r1 * (b[2] - a[2]) + r2 * (c[2] - a[2]),
-      ]);
-      vertKeys.push([key(a), key(b), key(c)]);
-      const gk = `${Math.floor(centroids[idx][0] / cell)},${Math.floor(centroids[idx][1] / cell)},${Math.floor(centroids[idx][2] / cell)}`;
-      const bucket = grid.get(gk);
-      if (bucket) bucket.push(idx);
-      else grid.set(gk, [idx]);
+      px.push(a[0] + r1 * (b[0] - a[0]) + r2 * (c[0] - a[0]));
+      py.push(a[1] + r1 * (b[1] - a[1]) + r2 * (c[1] - a[1]));
+      pz.push(a[2] + r1 * (b[2] - a[2]) + r2 * (c[2] - a[2]));
+      owner.push(i);
+    }
+  }
+  const count = px.length;
+  if (!count) return 0;
+
+  // Index facets (not samples) by every cell their bounding box touches, so a
+  // sample can measure its exact perpendicular distance to the far wall even
+  // when that wall is one large triangle.
+  const grid = new Map<string, number[]>();
+  const cellKey = (x: number, y: number, z: number) => `${x},${y},${z}`;
+  for (let t = 0; t < tris.length; t++) {
+    if (areas[t] <= 0) continue;
+    const [a, b, c] = tris[t];
+    const lo = [0, 1, 2].map((k) => Math.floor(Math.min(a[k], b[k], c[k]) / cell));
+    const hi = [0, 1, 2].map((k) => Math.floor(Math.max(a[k], b[k], c[k]) / cell));
+    if ((hi[0] - lo[0] + 1) * (hi[1] - lo[1] + 1) * (hi[2] - lo[2] + 1) > 20000) continue;
+    for (let x = lo[0]; x <= hi[0]; x++) for (let y = lo[1]; y <= hi[1]; y++) for (let z = lo[2]; z <= hi[2]; z++) {
+      const k = cellKey(x, y, z);
+      const bucket = grid.get(k);
+      if (bucket) bucket.push(t); else grid.set(k, [t]);
     }
   }
 
-  const limit2 = FDM.minFeatureMm * FDM.minFeatureMm;
+  const limit = FDM.minFeatureMm;
   let thin = 0;
-
-  for (let i = 0; i < centroids.length; i++) {
-    const p = centroids[i];
-    const mine = vertKeys[i];
-    const cx = Math.floor(p[0] / cell);
-    const cy = Math.floor(p[1] / cell);
-    const cz = Math.floor(p[2] / cell);
-    let best2 = Infinity;
-
-    for (let dx = -1; dx <= 1; dx++) {
-      for (let dy = -1; dy <= 1; dy++) {
-        for (let dz = -1; dz <= 1; dz++) {
-          const bucket = grid.get(`${cx + dx},${cy + dy},${cz + dz}`);
-          if (!bucket) continue;
-          for (const j of bucket) {
-            if (j === i) continue;
-            // Same surface (shares a vertex) — not the far side of a wall.
-            if (vertKeys[j].some((k) => mine.includes(k))) continue;
-            const q = centroids[j];
-            const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 + (p[2] - q[2]) ** 2;
-            if (d2 < best2) best2 = d2;
-          }
-        }
+  for (let i = 0; i < count; i++) {
+    const np = normals[owner[i]];
+    if (np[0] === 0 && np[1] === 0 && np[2] === 0) continue;
+    const p: V3 = [px[i], py[i], pz[i]];
+    const cx = Math.floor(p[0] / cell), cy = Math.floor(p[1] / cell), cz = Math.floor(p[2] / cell);
+    const seen = new Set<number>();
+    let hit = false;
+    for (let dx = -1; dx <= 1 && !hit; dx++) for (let dy = -1; dy <= 1 && !hit; dy++) for (let dz = -1; dz <= 1 && !hit; dz++) {
+      const bucket = grid.get(cellKey(cx + dx, cy + dy, cz + dz));
+      if (!bucket) continue;
+      for (const t of bucket) {
+        if (t === owner[i] || seen.has(t)) continue;
+        seen.add(t);
+        const nq = normals[t];
+        // The far wall of the material faces the other way.
+        if (np[0] * nq[0] + np[1] * nq[1] + np[2] * nq[2] > -0.7) continue;
+        const [a, b, c] = tris[t];
+        const d = (p[0] - a[0]) * nq[0] + (p[1] - a[1]) * nq[1] + (p[2] - a[2]) * nq[2];
+        if (Math.abs(d) < 1e-4 || Math.abs(d) >= limit) continue;
+        // Project p onto that facet's plane; it must land inside the facet.
+        const q: V3 = [p[0] - d * nq[0], p[1] - d * nq[1], p[2] - d * nq[2]];
+        const inside = [[a, b], [b, c], [c, a]].every(([e0, e1]) => {
+          const ex = e1[0] - e0[0], ey = e1[1] - e0[1], ez = e1[2] - e0[2];
+          const vx = q[0] - e0[0], vy = q[1] - e0[1], vz = q[2] - e0[2];
+          const cr = [ey * vz - ez * vy, ez * vx - ex * vz, ex * vy - ey * vx];
+          return cr[0] * nq[0] + cr[1] * nq[1] + cr[2] * nq[2] >= -1e-6;
+        });
+        if (inside) { hit = true; break; }
       }
     }
-    if (best2 < limit2) thin++;
+    if (hit) thin++;
   }
-
-  return centroids.length ? thin / centroids.length : 0;
+  return thin / count;
 }
 
 /** Analyses binary STL bytes (millimetres) for FDM printability. */
