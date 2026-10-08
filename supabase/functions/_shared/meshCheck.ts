@@ -193,7 +193,11 @@ function thinFeatureFraction(tris: V3[][]): number {
         if (np[0] * nq[0] + np[1] * nq[1] + np[2] * nq[2] > -0.7) continue;
         const [a, b, c] = tris[t];
         const d = (p[0] - a[0]) * nq[0] + (p[1] - a[1]) * nq[1] + (p[2] - a[2]) * nq[2];
-        if (Math.abs(d) < 1e-4 || Math.abs(d) >= limit) continue;
+        // Signed distance matters: for thin material the sample sits behind
+        // the far wall (d < 0). Two surfaces facing each other across a narrow
+        // air gap (crevice, folded wing, raised letters) give d > 0 and must
+        // NOT count as thin material.
+        if (d > -1e-4 || d <= -limit) continue;
         // Project p onto that facet's plane; it must land inside the facet.
         const q: V3 = [p[0] - d * nq[0], p[1] - d * nq[1], p[2] - d * nq[2]];
         const inside = [[a, b], [b, c], [c, a]].every(([e0, e1]) => {
