@@ -47,6 +47,7 @@ function buildPrompt(p: Record<string, unknown>) {
     "The expression is warm and alive: relaxed lifted cheeks, ears alert, bright brows. The eyes are sculpted, not painted: deep almond sockets with defined lids and a raised iris dome — no glass, inserts, glossy beads, paint or fine whiskers. " +
     "The shoulders flow directly into one compact deep rectangular plinth through a broad tapered, softly filleted transition — one continuous object, no separate slab, seam, gap, round pedestal or narrow neck; centre the bust over the plinth and slightly toward its front. " +
     `Keep a straight flat front lettering band with generously rounded corners and soft chamfers on every outer edge — ${lettering} ` +
+    "Printability rule: no thin or fragile parts — ears, wings, tails, paws, crests and beaks are thick, rounded and fused into the body or plinth, never sticking out freely or spread open; wings fold tight against the body, tails wrap against the body or plinth, ears are chunky with no see-through gaps. Every feature must be at least as thick as a pencil at scale. " +
     "Monolithic and solid, one continuous part, flat stable base, studio lighting on a clean neutral background showing depth, layer texture and shadow."
   );
 }
