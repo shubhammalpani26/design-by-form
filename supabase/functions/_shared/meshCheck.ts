@@ -36,10 +36,18 @@ export const FDM = {
    * *unconnected* surface; two surfaces closer than this are a thin feature.
    */
   minFeatureMm: 1.4,
-  /** Warn when this share of sampled surface sits on a thin feature. */
-  featureWarnFraction: 0.02,
-  /** Refuse above this share. */
-  featureFailFraction: 0.08,
+  /**
+   * Warn when this share of sampled surface sits on a thin feature.
+   * 0.05% ≈ 2 of 4000 samples — catches even a single tiny thin spot.
+   */
+  featureWarnFraction: 0.0005,
+  /**
+   * Refuse above this share. 0.3% ≈ 12 of 4000 samples — a real thin
+   * wing/ear/tail of any size trips this, while stray sampling noise on an
+   * otherwise solid mesh stays a warning. A thin wing on a big bust must not
+   * slip through just because it is small relative to the whole surface.
+   */
+  featureFailFraction: 0.003,
   /** Cap on surface samples so large meshes stay fast. */
   featureSampleMax: 4000,
 } as const;
