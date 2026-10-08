@@ -256,7 +256,7 @@ Deno.serve(async (req) => {
     const revision = tweak
       ? ` Final customer revision: apply only this change while preserving the same animal, likeness, single sculpture, single camera angle, plinth, lettering, colour, material, and composition: ${tweak}`
       : "";
-    const effectivePrompt = `${prompt}${productionAppearance}${revision}`;
+    const effectivePrompt = `${prompt}${productionAppearance}${printability}${revision}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 

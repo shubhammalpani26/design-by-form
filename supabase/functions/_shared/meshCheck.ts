@@ -193,7 +193,11 @@ function thinFeatureFraction(tris: V3[][]): number {
         if (np[0] * nq[0] + np[1] * nq[1] + np[2] * nq[2] > -0.7) continue;
         const [a, b, c] = tris[t];
         const d = (p[0] - a[0]) * nq[0] + (p[1] - a[1]) * nq[1] + (p[2] - a[2]) * nq[2];
-        if (Math.abs(d) < 1e-4 || Math.abs(d) >= limit) continue;
+        // Signed distance matters: for thin material the sample sits behind
+        // the far wall (d < 0). Two surfaces facing each other across a narrow
+        // air gap (crevice, folded wing, raised letters) give d > 0 and must
+        // NOT count as thin material.
+        if (d > -1e-4 || d <= -limit) continue;
         // Project p onto that facet's plane; it must land inside the facet.
         const q: V3 = [p[0] - d * nq[0], p[1] - d * nq[1], p[2] - d * nq[2]];
         const inside = [[a, b], [b, c], [c, a]].every(([e0, e1]) => {
@@ -338,13 +342,14 @@ export function analyseStl(
     warnings.push(`Tall and narrow (height/width ${tipRatio.toFixed(1)}) — may need a raft.`);
   }
 
+  const thinPct = (thinFraction * 100).toFixed(1);
   if (thinFraction >= FDM.featureFailFraction) {
     blockers.push(
-      `Thin features (wings, ears, tail or paws under ~${FDM.minFeatureMm} mm on ${Math.round(thinFraction * 100)}% of the surface) — likely to fail the partner's quality check.`,
+      `Thin features (wings, ears, tail or paws under ~${FDM.minFeatureMm} mm on ${thinPct}% of the surface) — likely to fail the partner's quality check.`,
     );
   } else if (thinFraction >= FDM.featureWarnFraction) {
     warnings.push(
-      `Some thin features (~${Math.round(thinFraction * 100)}% of the surface under ${FDM.minFeatureMm} mm) — may be fragile.`,
+      `Some thin features (~${thinPct}% of the surface under ${FDM.minFeatureMm} mm) — may be fragile.`,
     );
   }
 
@@ -403,14 +408,14 @@ export function analyseStl(
     {
       key: "features",
       label: "Thin features",
-      value: `${Math.round(thinFraction * 100)}% of surface under ${FDM.minFeatureMm} mm`,
+      value: `${(thinFraction * 100).toFixed(1)}% of surface under ${FDM.minFeatureMm} mm`,
       status:
         thinFraction >= FDM.featureFailFraction
           ? "fail"
           : thinFraction >= FDM.featureWarnFraction
             ? "warn"
             : "pass",
-      target: `< ${Math.round(FDM.featureWarnFraction * 100)}%`,
+      target: `< ${(FDM.featureWarnFraction * 100).toFixed(1)}%`,
     },
     {
       key: "envelope",
