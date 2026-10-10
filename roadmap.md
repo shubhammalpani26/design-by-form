@@ -19,5 +19,6 @@
 ## Open
 - [x] Save the supplied NALAA static and two presenter reels unchanged in the existing campaign library.
 - [x] Publish the first approved presenter reel and schedule the second for Oct 8 at 18:00 UTC, alongside existing real-photo posts; no paid activation.
-- [ ] Prepare 4 paused Meta ads on ad set 120249343361580499: NYRA in lap, NALAA first meeting, Buddy video, NYRA eyes-closed hug (user request 2026-10-02). Reuse approved copy. Landing link verified 2026-10-02.
+- [x] Prepare 4 paused Meta ads on ad set 120249343361580499: NYRA in lap, NALAA first meeting, Buddy video, NYRA eyes-closed hug (user request 2026-10-02). Reuse approved copy. Landing link verified 2026-10-02.
+- [x] Prepare 2 paused presenter-video Meta ads (man + woman) on the same ad set, approved copy, created 2026-10-10.
 - [ ] Flag to user: cap headroom ~₹3,242, balance ₹3,826 — raise cap/add funds in Meta before activation.
