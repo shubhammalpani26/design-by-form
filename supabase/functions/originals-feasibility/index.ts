@@ -11,17 +11,12 @@
  * poll it and finish the pricing.
  */
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
 import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
 import { estimateLandedUnitCost, partnerCostToMbpUsd, startPartnerBudget } from "../_shared/slant3d.ts";
 import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-internal-key, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -328,6 +323,10 @@ Deno.serve(async (req) => {
     if (checked.some((s) => s.sizeKey === sizeKey)) {
       return json({ status: "ready", sizes: publicShape(existing) });
     }
+    const blockedGeometry = existing?.geometry as (MeshReport & { sizeKey?: string }) | undefined;
+    if (currentGeometry && existing?.geometryBlocked && blockedGeometry?.sizeKey === sizeKey) {
+      return json({ status: "unprintable", reasons: blockedGeometry.blockers, score: blockedGeometry.score, metrics: blockedGeometry.metrics, sizes: publicShape(existing) });
+    }
 
 
     // Mesh not started yet — kick it off (guarded so parallel polls don't double-spend).
@@ -388,6 +387,7 @@ Deno.serve(async (req) => {
     /** Raw STL bytes per size, kept so a slice failure can trigger a repair retry. */
     const rawStl: Record<string, Uint8Array> = {};
     const repairedOnce = new Set<string>();
+    const repairedReports = new Map<string, MeshReport>();
 
     const makeRepaired = async (key: string): Promise<string | null> => {
       if (repairedOnce.has(key)) return null;
@@ -398,6 +398,7 @@ Deno.serve(async (req) => {
       if (!summary.changed) return null;
       const { url } = await uploadStl(admin, `originals/preview/${previewId}/${key}-repaired`, stl);
       const after = analyseStl(stl, { envelopeMm: US_MAX_MM });
+      repairedReports.set(key, after);
       rawStl[key] = stl;
       await logValidation({
         preview_id: previewId,
@@ -458,10 +459,14 @@ Deno.serve(async (req) => {
         });
 
         // Auto-repair before giving up: weld cracks, drop degenerates, re-seat.
-        if (!report.printable) {
+        // Welding cannot thicken a feature, reduce overhang or fix stability.
+        // Only topology failures justify repair; repeating heavy analyses on
+        // physically thin pieces exhausted the worker before it could answer.
+        const topologyOnly = report.blockers.length > 0 && report.blockers.every((b) => b.startsWith("Mesh is not watertight"));
+        if (!report.printable && topologyOnly) {
           const repairedUrl = await makeRepaired(key);
-          if (repairedUrl && rawStl[key]) {
-            const after = analyseStl(rawStl[key], { envelopeMm: US_MAX_MM });
+          const after = repairedReports.get(key);
+          if (repairedUrl && after) {
             if (after.printable) {
               nextFiles[key] = repairedUrl;
               report = after;

@@ -1,10 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -256,7 +251,8 @@ Deno.serve(async (req) => {
     const revision = tweak
       ? ` Final customer revision: apply only this change while preserving the same animal, likeness, single sculpture, single camera angle, plinth, lettering, colour, material, and composition: ${tweak}`
       : "";
-    const effectivePrompt = `${prompt}${productionAppearance}${printability}${revision}`;
+    const photoIsolation = " Reference isolation: the upload may be a phone screenshot or search-results page. Use ONLY the main real pet photo as a likeness reference. Ignore and completely remove phone status bars, browser/search controls, buttons, icons, watermarks, captions, frames, thumbnails and all existing text. Do not edit the screenshot in place: create an entirely new clean studio product photo containing only one pet sculpture and its plinth. The only text allowed is the customer's requested plinth lettering.";
+    const effectivePrompt = `${prompt}${productionAppearance}${printability}${revision}${photoIsolation}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 
