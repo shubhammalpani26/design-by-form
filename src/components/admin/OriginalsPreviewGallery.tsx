@@ -31,6 +31,7 @@ interface PreviewRow {
   ip_hash: string | null;
   print_file_url: string | null;
   model_status: string | null;
+  photo_screen: string | null;
   created_at: string;
 }
 
@@ -211,6 +212,11 @@ export function OriginalsPreviewGallery() {
                 <Badge variant="outline" className="text-xs">
                   {item.sku_slug}
                 </Badge>
+                {item.photo_screen?.startsWith("rejected") && (
+                  <Badge variant="destructive" className="text-xs">
+                    {item.photo_screen === "rejected_explicit" ? "Rejected: explicit" : "Rejected: no pet"}
+                  </Badge>
+                )}
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-muted-foreground">
                     {new Date(item.created_at).toLocaleString()}
