@@ -206,10 +206,38 @@ Deno.serve(async (req) => {
           if (typeof verdict?.has_pet === "boolean" && typeof verdict?.explicit === "boolean") {
             photoScreen = "passed";
           }
-          if (verdict?.explicit === true) {
-            return json({ error: "We can't use that photo. Please upload a clear photo of your pet.", code: "PHOTO_REJECTED" }, 400);
-          }
-          if (verdict?.has_pet === false) {
+          if (verdict?.explicit === true || verdict?.has_pet === false) {
+            // Keep an audit trail: store the photo and a row marked rejected so
+            // admins can review what was turned away and why. Rejected rows
+            // never count toward preview limits and never get a render.
+            const screen = verdict.explicit === true ? "rejected_explicit" : "rejected_no_pet";
+            try {
+              const decoded = decodeDataUrl(sourceImage!);
+              let path: string | null = null;
+              if (decoded && decoded.bytes.byteLength <= MAX_UPLOAD_BYTES) {
+                const ext = decoded.mime.includes("png") ? "png" : decoded.mime.includes("webp") ? "webp" : "jpg";
+                path = `source/${crypto.randomUUID()}.${ext}`;
+                const { error: upErr } = await admin.storage.from("originals-uploads").upload(path, decoded.bytes, {
+                  contentType: decoded.mime,
+                  upsert: false,
+                });
+                if (upErr) path = null;
+              }
+              await admin.from("originals_previews").insert({
+                user_id: userId,
+                ip_hash: ipHash,
+                sku_slug: skuSlug,
+                personalization,
+                source_image_url: path,
+                preview_image_url: null,
+                photo_screen: screen,
+              });
+            } catch (e) {
+              console.error("rejected-photo audit failed", e);
+            }
+            if (verdict.explicit === true) {
+              return json({ error: "We can't use that photo. Please upload a clear photo of your pet.", code: "PHOTO_REJECTED" }, 400);
+            }
             return json({ error: "We couldn't find a pet in that photo. Please upload a clear photo of your pet's face.", code: "NO_PET" }, 400);
           }
         }
