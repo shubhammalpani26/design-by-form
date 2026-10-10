@@ -341,8 +341,12 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
       setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 80);
     } catch (e) {
-      trackExperiment("render_progress", progressVariant, "generate_error", { skuSlug: sku.slug });
       const raw = (e as Error).message || "";
+      // Photo rejections (no pet, explicit) and preview limits are the system
+      // working as intended — log them separately so the outage alert only
+      // fires on genuine render failures.
+      const intentional = /find a pet|no pet|not allowed|can't use|cannot use|explicit|limit|429|too many|sign in/i.test(raw);
+      trackExperiment("render_progress", progressVariant, intentional ? "generate_rejected" : "generate_error", { skuSlug: sku.slug });
       if (/sign in to keep/i.test(raw)) {
         // Draft (photo, details, renders) is already saved, so it survives the round trip.
         toast({ title: "Sign in to keep going", description: "Your photo and previews are saved." });
