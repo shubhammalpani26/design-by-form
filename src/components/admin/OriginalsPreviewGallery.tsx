@@ -31,6 +31,7 @@ interface PreviewRow {
   ip_hash: string | null;
   print_file_url: string | null;
   model_status: string | null;
+  photo_screen: string | null;
   created_at: string;
 }
 
@@ -108,7 +109,7 @@ export function OriginalsPreviewGallery() {
     setError(null);
     const { data, error: qError } = await supabase
       .from("originals_previews")
-      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, print_file_url, model_status, created_at")
+      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, print_file_url, model_status, photo_screen, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (qError) {
@@ -211,6 +212,11 @@ export function OriginalsPreviewGallery() {
                 <Badge variant="outline" className="text-xs">
                   {item.sku_slug}
                 </Badge>
+                {item.photo_screen?.startsWith("rejected") && (
+                  <Badge variant="destructive" className="text-xs">
+                    {item.photo_screen === "rejected_explicit" ? "Rejected: explicit" : "Rejected: no pet"}
+                  </Badge>
+                )}
                 <div className="flex items-center gap-1">
                   <span className="text-xs text-muted-foreground">
                     {new Date(item.created_at).toLocaleString()}
