@@ -209,9 +209,32 @@ function thinFeatureFraction(tris: V3[][]): number {
         if (inside) { hit = true; break; }
       }
     }
-    if (hit) thin++;
+    // A real thin feature has open air on its outside. Overlapping internal
+    // shells (e.g. the pet's base cap buried in the fused plinth) face into
+    // solid material, so their "outside" sits inside the piece — skip them.
+    if (hit && isOutside(tris, [p[0] + np[0] * 0.5, p[1] + np[1] * 0.5, p[2] + np[2] * 0.5])) thin++;
   }
   return thin / count;
+}
+
+/** Generalized winding number test: true when the point lies outside the solid. */
+function isOutside(tris: V3[][], p: V3): boolean {
+  let w = 0;
+  for (const [A, B, C] of tris) {
+    const a = [A[0] - p[0], A[1] - p[1], A[2] - p[2]];
+    const b = [B[0] - p[0], B[1] - p[1], B[2] - p[2]];
+    const c = [C[0] - p[0], C[1] - p[1], C[2] - p[2]];
+    const la = Math.hypot(a[0], a[1], a[2]), lb = Math.hypot(b[0], b[1], b[2]), lc = Math.hypot(c[0], c[1], c[2]);
+    const det =
+      a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
+    const den =
+      la * lb * lc +
+      (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) * lc +
+      (b[0] * c[0] + b[1] * c[1] + b[2] * c[2]) * la +
+      (c[0] * a[0] + c[1] * a[1] + c[2] * a[2]) * lb;
+    w += 2 * Math.atan2(det, den);
+  }
+  return Math.abs(w / (4 * Math.PI)) < 0.5;
 }
 
 /** Analyses binary STL bytes (millimetres) for FDM printability. */
