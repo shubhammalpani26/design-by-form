@@ -1,10 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
-};
+import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -48,7 +43,8 @@ function buildPrompt(p: Record<string, unknown>) {
     "The shoulders flow directly into one compact deep rectangular plinth through a broad tapered, softly filleted transition — one continuous object, no separate slab, seam, gap, round pedestal or narrow neck; centre the bust over the plinth and slightly toward its front. " +
     `Keep a straight flat front lettering band with generously rounded corners and soft chamfers on every outer edge — ${lettering} ` +
     "Printability rule: no thin or fragile parts — ears, wings, tails, paws, crests and beaks are thick, rounded and fused into the body or plinth, never sticking out freely or spread open; wings fold tight against the body, tails wrap against the body or plinth, ears are chunky with no see-through gaps. Every feature must be at least as thick as a pencil at scale. " +
-    "Monolithic and solid, one continuous part, flat stable base, studio lighting on a clean neutral background showing depth, layer texture and shadow."
+    "Monolithic and solid, one continuous part, flat stable base, studio lighting on a clean neutral background showing depth, layer texture and shadow. " +
+    "If the reference is a phone screenshot or search-results page, use only the main pet photo. Create a new clean product photo, not an edited screenshot. Remove all status bars, search/browser controls, icons, watermarks, captions, frames and thumbnails; the only text allowed is the requested plinth lettering."
   );
 }
 
