@@ -1,0 +1,1 @@
+UPDATE public.originals_orders SET status = 'refunded', updated_at = now() WHERE group_id = '42a44ae1-e7cd-4df8-8e5c-a876c17237c9' AND production_status = 'cancelled';
