@@ -108,7 +108,7 @@ export function OriginalsPreviewGallery() {
     setError(null);
     const { data, error: qError } = await supabase
       .from("originals_previews")
-      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, print_file_url, model_status, created_at")
+      .select("id, sku_slug, source_image_url, preview_image_url, personalization, user_id, ip_hash, print_file_url, model_status, photo_screen, created_at")
       .order("created_at", { ascending: false })
       .limit(100);
     if (qError) {
