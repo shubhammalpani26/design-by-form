@@ -1,5 +1,8 @@
 # Roadmap
 
+- [ ] Fix CPU exhaustion in pet printability checks and verify the supplied pet models.
+- [ ] Remove screenshot controls from generated pet previews and retest the beach dog.
+
 - [x] Use the original BUDDY video for the pet keepsake campaign; discard the re-cuts and prepare it for ad/post review
 - [x] Diagnose pet page view-to-render drop-off and bring the photo upload forward on mobile
 - [x] Remove the misleading blank render space and show the completed piece full-width above the source photo

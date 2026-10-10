@@ -174,6 +174,10 @@ function thinFeatureFraction(tris: V3[][]): number {
   }
 
   const limit = FDM.minFeatureMm;
+  // A projected index answers outside/inside queries without visiting every
+  // triangle per sample. Signed crossings preserve overlapping solid shells
+  // (even/odd parity would incorrectly call their overlap empty air).
+  const outside = makeOutsideTest(tris, normals);
   let thin = 0;
   for (let i = 0; i < count; i++) {
     const np = normals[owner[i]];
@@ -212,29 +216,63 @@ function thinFeatureFraction(tris: V3[][]): number {
     // A real thin feature has open air on its outside. Overlapping internal
     // shells (e.g. the pet's base cap buried in the fused plinth) face into
     // solid material, so their "outside" sits inside the piece — skip them.
-    if (hit && isOutside(tris, [p[0] + np[0] * 0.5, p[1] + np[1] * 0.5, p[2] + np[2] * 0.5])) thin++;
+    if (hit && outside([p[0] + np[0] * 0.5, p[1] + np[1] * 0.5, p[2] + np[2] * 0.5])) thin++;
   }
   return thin / count;
 }
 
-/** Generalized winding number test: true when the point lies outside the solid. */
-function isOutside(tris: V3[][], p: V3): boolean {
-  let w = 0;
-  for (const [A, B, C] of tris) {
-    const a = [A[0] - p[0], A[1] - p[1], A[2] - p[2]];
-    const b = [B[0] - p[0], B[1] - p[1], B[2] - p[2]];
-    const c = [C[0] - p[0], C[1] - p[1], C[2] - p[2]];
-    const la = Math.hypot(a[0], a[1], a[2]), lb = Math.hypot(b[0], b[1], b[2]), lc = Math.hypot(c[0], c[1], c[2]);
-    const det =
-      a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0]);
-    const den =
-      la * lb * lc +
-      (a[0] * b[0] + a[1] * b[1] + a[2] * b[2]) * lc +
-      (b[0] * c[0] + b[1] * c[1] + b[2] * c[2]) * la +
-      (c[0] * a[0] + c[1] * a[1] + c[2] * a[2]) * lb;
-    w += 2 * Math.atan2(det, den);
+function makeOutsideTest(tris: V3[][], normals: V3[]): (p: V3) => boolean {
+  const cell = FDM.minFeatureMm * 4;
+  const columns = new Map<string, number[]>();
+  const large: number[] = [];
+  for (let i = 0; i < tris.length; i++) {
+    if (Math.abs(normals[i][0]) < 1e-10) continue;
+    const [a, b, c] = tris[i];
+    const y0 = Math.floor(Math.min(a[1], b[1], c[1]) / cell);
+    const y1 = Math.floor(Math.max(a[1], b[1], c[1]) / cell);
+    const z0 = Math.floor(Math.min(a[2], b[2], c[2]) / cell);
+    const z1 = Math.floor(Math.max(a[2], b[2], c[2]) / cell);
+    // Never drop a large facet: it still participates via the fallback list.
+    if ((y1 - y0 + 1) * (z1 - z0 + 1) > 4096) { large.push(i); continue; }
+    for (let y = y0; y <= y1; y++) for (let z = z0; z <= z1; z++) {
+      const k = `${y},${z}`;
+      const bucket = columns.get(k);
+      if (bucket) bucket.push(i); else columns.set(k, [i]);
+    }
   }
-  return Math.abs(w / (4 * Math.PI)) < 0.5;
+  return (p) => {
+    const bucket = columns.get(`${Math.floor(p[1] / cell)},${Math.floor(p[2] / cell)}`) ?? [];
+    const hits: { x: number; sign: number }[] = [];
+    const intersect = (i: number) => {
+      const [a, b, c] = tris[i];
+      const by = b[1] - a[1], bz = b[2] - a[2];
+      const cy = c[1] - a[1], cz = c[2] - a[2];
+      const dy = p[1] - a[1], dz = p[2] - a[2];
+      const det = by * cz - bz * cy;
+      if (Math.abs(det) < 1e-12) return;
+      const u = (dy * cz - dz * cy) / det;
+      const v = (by * dz - bz * dy) / det;
+      if (u < -1e-9 || v < -1e-9 || u + v > 1 + 1e-9) return;
+      const x = a[0] + u * (b[0] - a[0]) + v * (c[0] - a[0]);
+      if (x <= p[0] + 1e-7) return;
+      hits.push({ x, sign: Math.sign(normals[i][0]) });
+    };
+    for (const i of bucket) intersect(i);
+    for (const i of large) intersect(i);
+    hits.sort((a, b) => a.x - b.x);
+    let winding = 0;
+    for (let i = 0; i < hits.length;) {
+      const x = hits[i].x;
+      let positive = false, negative = false;
+      // Adjacent facets meeting on an edge represent one crossing, not two.
+      while (i < hits.length && Math.abs(hits[i].x - x) < 1e-7) {
+        if (hits[i].sign > 0) positive = true; else negative = true;
+        i++;
+      }
+      winding += Number(positive) - Number(negative);
+    }
+    return winding === 0;
+  };
 }
 
 /** Analyses binary STL bytes (millimetres) for FDM printability. */
