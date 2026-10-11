@@ -14,6 +14,7 @@ import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
+import { PreviewShareButton } from "./PreviewShareButton";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
