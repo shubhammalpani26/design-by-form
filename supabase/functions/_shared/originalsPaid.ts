@@ -1,6 +1,47 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { sendAppEmail } from "./appEmail.ts";
 import { actualWeightLabel } from "./originalsWeight.ts";
+import { sendMetaEvent, type MetaTracking } from "./metaCapi.ts";
+
+/**
+ * Server-side Purchase for Meta, once per paid group. event_id = first order
+ * row id, the same id the confirmation page passes to the pixel, so Meta
+ * dedupes. Only sent when the buyer's browser had tracking consent at checkout
+ * (meta_tracking is stored only then). Test orders are never reported.
+ */
+// deno-lint-ignore no-explicit-any
+async function reportPurchaseToMeta(admin: any, providerOrderId: string) {
+  try {
+    const { data: rows } = await admin
+      .from("originals_orders")
+      .select("id, sku_slug, quantity, amount_usd, meta_tracking, meta_capi_sent_at, payment_provider, updated_at")
+      .eq("provider_order_id", providerOrderId)
+      .order("created_at", { ascending: true });
+    if (!rows?.length) return;
+    const first = rows[0];
+    if (first.payment_provider === "internal_test") return;
+    if (rows.some((r: any) => r.meta_capi_sent_at)) return;
+    const tracking = first.meta_tracking as MetaTracking | null;
+    if (!tracking) return;
+    const value = rows.reduce((s: number, r: any) => s + Number(r.amount_usd ?? 0), 0);
+    const pieces = rows.reduce((s: number, r: any) => s + Math.max(1, Number(r.quantity ?? 1) || 1), 0);
+    const ok = await sendMetaEvent({
+      eventName: "Purchase",
+      eventId: first.id,
+      eventTime: Math.floor(new Date(first.updated_at ?? Date.now()).getTime() / 1000),
+      tracking,
+      valueUsd: value,
+      numItems: pieces,
+      contentIds: [...new Set(rows.map((r: any) => String(r.sku_slug)))] as string[],
+    });
+    if (ok) {
+      await admin.from("originals_orders").update({ meta_capi_sent_at: new Date().toISOString() })
+        .eq("provider_order_id", providerOrderId);
+    }
+  } catch (e) {
+    console.error("meta purchase report failed", e);
+  }
+}
 
 const db = () =>
   createClient(Deno.env.get("SUPABASE_URL")!, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
@@ -97,6 +138,7 @@ export async function markOriginalsPaid(
 
   await sendReceipt(email ?? orders[0].customer_email ?? null, orders);
 
+  await reportPurchaseToMeta(admin, providerOrderId);
 
   const { error: prodErr } = await admin.functions.invoke("originals-model", {
     body: { order_id: claimed[0].id },

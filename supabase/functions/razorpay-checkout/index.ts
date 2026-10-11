@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { trackingFromRequest } from "../_shared/metaCapi.ts";
 import {
   createRazorpayOrder,
   razorpayConfigured,
@@ -57,6 +58,7 @@ Deno.serve(async (req) => {
 
     // Razorpay does not collect a shipping address for us, so the buyer's
     // details come from our own form.
+    const metaTracking = trackingFromRequest(req, body.tracking);
     const c = body.customer ?? {};
     const customer = {
       name: str(c.name, 80),
@@ -193,6 +195,7 @@ Deno.serve(async (req) => {
         shipping_address: shipping,
         promo_code: promo?.code ?? null,
         discount_usd: Math.round(lineSubtotal * (1 - discountRatio) * 100) / 100,
+        meta_tracking: internalTest ? null : metaTracking,
       };
     });
 
