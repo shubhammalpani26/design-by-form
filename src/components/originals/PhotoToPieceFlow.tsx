@@ -14,6 +14,7 @@ import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
+import { PreviewShareButton } from "./PreviewShareButton";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
@@ -763,6 +764,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                  <span>Your original photo</span>
                </div>
              )}
+          </div>
+
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Sending this to someone you'd gift it to? Share the preview.
+            </p>
+            <PreviewShareButton
+              previewUrl={preview.url}
+              pieceName={displayName}
+              skuSlug={sku.slug}
+              onShared={() => trackExperiment("reveal_screen", revealVariant, "share", { skuSlug: sku.slug })}
+            />
           </div>
 
           <div className="mt-5" ref={sizeRef}>
