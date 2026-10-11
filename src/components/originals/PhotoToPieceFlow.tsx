@@ -978,7 +978,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   Add this piece & make another
                 </Button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
-                  Want a dog <em>and</em> a cat? Add each piece to your order — one payment, one shipment.
+                  Want more than one pet? Add each piece to your order — one payment, one shipment.
                 </p>
               </>
             )}

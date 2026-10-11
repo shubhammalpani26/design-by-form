@@ -10,7 +10,7 @@ import { getSku } from "@/data/originalsSkus";
 const faqs = [
   {
     q: "How do I get a custom sculpture of my pet?",
-    a: "Upload one clear photo of your dog or cat on the product page. Our AI sculpts their head and shoulders in full 3D, you pick a size and colour, add their name if you like, and we make and ship it to you.",
+    a: "Upload one clear photo of your pet on the product page. Our AI sculpts their head and shoulders in full 3D, you pick a size and colour, add their name if you like, and we make and ship it to you.",
   },
   {
     q: "Will it actually look like my pet?",
@@ -69,7 +69,7 @@ const CustomPetSculpture = () => {
     <div className="min-h-screen flex flex-col">
       <SEOHead
         title="Custom Pet Sculpture from a Photo — 3D Dog & Cat Statues"
-        description="A custom pet sculpture made from your photo: your dog or cat sculpted in 3D, engraved with their name. Made in the USA, free shipping, from $59."
+        description="A custom pet sculpture made from your photo: your pet sculpted in 3D, engraved with their name. Made in the USA, free shipping, from $59."
         keywords={[
           "custom pet sculpture",
           "custom pet statue",
@@ -99,7 +99,7 @@ const CustomPetSculpture = () => {
                   <span className="font-light italic">From a single photo.</span>
                 </h1>
                 <p className="text-primary-foreground/60 text-base md:text-lg max-w-2xl leading-relaxed mb-10">
-                  Upload one photo and our AI sculpts your dog or cat's head and shoulders in full three dimensions —
+                  Upload one photo and our AI sculpts your pet's head and shoulders in full three dimensions —
                   breed, ears, muzzle, markings — set on a weighted plinth engraved with their name. Made to order in
                   the USA, shipped free in 7–8 business days, from $59.
                 </p>
