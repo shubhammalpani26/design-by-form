@@ -111,7 +111,10 @@ Deno.serve(async (req) => {
         .select("id", { count: "exact", head: true })
         .eq("ip_hash", ipHash)
         .is("user_id", null)
-        .not("photo_screen", "like", "rejected%")
+        // photo_screen is NULL for template pieces (no photo to screen), and
+        // `NOT (NULL LIKE 'rejected%')` is NULL in SQL — those rows must still
+        // count toward the cap.
+        .or("photo_screen.is.null,photo_screen.not.like.rejected%")
         .gte("created_at", since);
       if ((guestCount ?? 0) >= 2) {
         return json({
@@ -127,7 +130,7 @@ Deno.serve(async (req) => {
         .from("originals_previews")
         .select("id", { count: "exact", head: true })
         .eq("user_id", userId)
-        .not("photo_screen", "like", "rejected%")
+        .or("photo_screen.is.null,photo_screen.not.like.rejected%")
         .gte("created_at", since);
       used = count ?? 0;
       if (used >= FREE_PREVIEWS_PER_DAY) {
