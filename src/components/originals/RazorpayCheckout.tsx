@@ -1,3 +1,4 @@
+import { metaTrackingContext } from "@/lib/metaPixel";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -164,7 +165,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       return null;
     }
     const { data, error } = await supabase.functions.invoke("razorpay-checkout", {
-      body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
+      body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null, tracking: metaTrackingContext() },
     });
     if (error || data?.error || !data?.providerOrderId) {
       throw new Error(data?.error || "Checkout is temporarily unavailable.");
@@ -202,7 +203,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       const [Razorpay, checkout] = await Promise.all([
         loadRazorpay(),
         supabase.functions.invoke("razorpay-checkout", {
-          body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null },
+          body: { items, returnUrl, customer: values, promoCode: promo?.code ?? null, tracking: metaTrackingContext() },
         }),
       ]);
 

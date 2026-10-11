@@ -20,6 +20,7 @@ declare global {
 }
 
 import { isTrackingAllowed, onTrackingAllowed } from "./consent";
+import { supabase } from "@/integrations/supabase/client";
 
 let loaded = false;
 
@@ -72,13 +73,49 @@ export function trackCustomize(skuSlug: string) {
 
 /** Buyer opened checkout. */
 export function trackInitiateCheckout(skuSlug: string, valueUsd: number, pieces: number) {
-  track("InitiateCheckout", {
-    content_ids: [skuSlug],
-    content_type: "product",
-    num_items: pieces,
-    value: valueUsd,
-    currency: "USD",
+  const eventId = `ic-${crypto.randomUUID()}`;
+  track(
+    "InitiateCheckout",
+    { content_ids: [skuSlug], content_type: "product", num_items: pieces, value: valueUsd, currency: "USD" },
+    eventId,
+  );
+  // Server-side copy (Conversions API), same event id so Meta dedupes.
+  onTrackingAllowed(() => {
+    const tracking = metaTrackingContext();
+    if (!tracking) return;
+    void supabase.functions
+      .invoke("meta-capi", { body: { eventName: "InitiateCheckout", eventId, skuSlug, valueUsd, numItems: pieces, tracking } })
+      .catch(() => {});
   });
+}
+
+function readCookie(name: string) {
+  const m = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
+  return m ? decodeURIComponent(m[1]) : null;
+}
+
+/**
+ * Browser context for server-side Meta events. Returns null unless the
+ * visitor may be tracked, so no consent → nothing is stored or sent.
+ */
+export function metaTrackingContext() {
+  if (!isTrackingAllowed() || typeof document === "undefined") return null;
+  let fbc = readCookie("_fbc");
+  if (!fbc) {
+    const clid = new URLSearchParams(window.location.search).get("fbclid") ?? sessionStorage.getItem("nyzora_fbclid");
+    if (clid) fbc = `fb.1.${Date.now()}.${clid}`;
+  }
+  return { fbp: readCookie("_fbp"), fbc, sourceUrl: window.location.origin + window.location.pathname };
+}
+
+// Remember the ad click id for the session so checkout pages can still attribute it.
+if (typeof window !== "undefined") {
+  try {
+    const clid = new URLSearchParams(window.location.search).get("fbclid");
+    if (clid) sessionStorage.setItem("nyzora_fbclid", clid);
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Fire once per confirmed, paid order. eventID = order id so server events dedupe. */
