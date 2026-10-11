@@ -25,9 +25,9 @@ function buildPrompt(p: Record<string, unknown>) {
   const colour = COLOR_PROMPTS[colorKey] ?? COLOR_PROMPTS.bone;
 
   const lettering = heading
-    ? `the front face of the plinth carries the raised name "${heading}"${
+    ? `HARD CONSTRAINT — the front face of the plinth carries the RAISED name "${heading}"${
       footnote ? ` with "${footnote}" raised on a second line below it` : ""
-    }, standing proud of the surface in the same single colour as the rest of the piece, crisp and legible, and nothing whatsoever on the top of the plinth.`
+    }, in bold sans-serif capitals that physically protrude outward from the flat face like a cast nameplate, standing proud of the surface in the same single colour as the rest of the piece, crisp and legible, each letter casting a tiny shadow onto the plinth face. Never engraved, carved, cut, etched, debossed, recessed, incised or pressed-in — sunken letters of any kind are a failed render. Nothing whatsoever on the top of the plinth.`
     : "the plinth is left completely bare, with no lettering anywhere on it.";
 
   return (
