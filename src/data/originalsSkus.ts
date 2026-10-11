@@ -79,7 +79,7 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Custom Pet Memorial Sculpture",
     tagline: "A pet memorial gift made from your photo — their head sculpted in full three dimensions, your words engraved.",
     description:
-      "A personalized pet memorial made from a photo of your dog or cat: their head and shoulders modelled in full three dimensions on a weighted plinth, with their name and dates engraved into the front face — a nickname, a date, a line only the two of you understand. A dignified alternative to a pet urn or an engraved plaque, and a pet loss gift you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
+      "A personalized pet memorial made from a photo of your pet: their head and shoulders modelled in full three dimensions on a weighted plinth, with their name and dates engraved into the front face — a nickname, a date, a line only the two of you understand. A dignified alternative to a pet urn or an engraved plaque, and a pet loss gift you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light without any fragile or glued-in parts. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 59,
     image: petImg,
     imageAlt: "Real finished piece: custom dog memorial sculpture in terracotta PLA with NYRA and the memorial years 2014–2025 raised on the visible front of the plinth",
@@ -124,14 +124,14 @@ export const ORIGINALS_SKUS: OriginalSku[] = [
     name: "Custom Pet Portrait Sculpture",
     tagline: "A personalized pet gift for the one still curled up next to you.",
     description:
-      "The same sculpture, made while they're still here. A custom 3D portrait of your dog or cat's head and shoulders, modelled from your photo and set on a weighted plinth engraved with their name — a personalized pet gift for a birthday, a gotcha day, or no reason at all. Rounded, modelled volume you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
+      "The same sculpture, made while they're still here. A custom 3D portrait of your pet's head and shoulders, modelled from your photo and set on a weighted plinth engraved with their name — a personalized pet gift for a birthday, a gotcha day, or no reason at all. Rounded, modelled volume you can hold and turn: cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out. The eyes are set as deep almond sockets with defined lids and a raised iris dome, so they read as eyes in any light. The surface is a single matte colour throughout, with the fine horizontal layer lines that are the honest signature of precision 3D printing — no two-tone, no contrasting base. Made from plant-based PLA, 3D-printed as one solid part in the USA and shipped free.",
     price: 59,
     image: petPortraitImg,
     dimensions: "196 × 150 × 120 mm",
     seo: {
       title: "Custom Pet Portrait Sculpture from a Photo — Personalized Dog & Cat Gift",
       description:
-        "A personalized pet gift sculpted from your photo: a custom 3D dog or cat portrait engraved with their name. Made in the USA, free shipping, from $59.",
+        "A personalized pet gift sculpted from your photo: a custom 3D pet portrait engraved with their name. Made in the USA, free shipping, from $59.",
       keywords: [
         "personalized pet gift",
         "custom dog statue",

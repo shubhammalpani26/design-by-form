@@ -14,7 +14,7 @@ const faqs = [
   },
   {
     q: "How is the sculpture made from a photo?",
-    a: "You upload one clear photo of your dog or cat. Our AI models their head and shoulders in full three dimensions, keeping their breed, ear shape and markings. Our engineering system then checks the model for wall thickness, stability and print feasibility before it is produced as one solid part in the USA.",
+    a: "You upload one clear photo of your pet. Our AI models their head and shoulders in full three dimensions, keeping their breed, ear shape and markings. Our engineering system then checks the model for wall thickness, stability and print feasibility before it is produced as one solid part in the USA.",
   },
   {
     q: "How long does it take to arrive?",
@@ -99,7 +99,7 @@ const PetMemorialGifts = () => {
                 </h1>
                 <p className="text-primary-foreground/60 text-base md:text-lg max-w-2xl leading-relaxed mb-10">
                   Most pet memorial gifts are generic — a paw print, a frame, a stone. Ours is sculpted from a photo of
-                  your dog or cat: their face, their ears, their expression, with their name and dates engraved on the
+                  your pet: their face, their ears, their expression, with their name and dates engraved on the
                   plinth. Made to order in the USA, shipped free in 7–8 business days.
                 </p>
                 <div className="flex flex-wrap gap-4">
@@ -202,7 +202,7 @@ const PetMemorialGifts = () => {
               </h2>
               <p className="text-muted-foreground leading-relaxed text-base md:text-lg max-w-3xl">
                 A pet loss gift is hard to get right. Flowers wilt, cards get put away, and generic "rainbow bridge"
-                gifts can feel hollow. A sculpture of their actual dog or cat — made from a photo you already have,
+                gifts can feel hollow. A sculpture of their actual pet — made from a photo you already have,
                 or one from their social media — says you understood what they lost. It works as a dog memorial gift,
                 a cat memorial gift, or a remembrance for rabbits, horses and birds too. If you're not sure of the
                 exact dates, leave the footnote blank and the plinth arrives clean.
