@@ -28,7 +28,7 @@ function buildPrompt(p: Record<string, unknown>) {
     ? `HARD CONSTRAINT — the front face of the plinth carries the RAISED name "${heading}"${
       footnote ? ` with "${footnote}" raised on a second line below it` : ""
     }, in bold sans-serif capitals that physically protrude outward from the flat face like a cast nameplate, standing proud of the surface in the same single colour as the rest of the piece, crisp and legible, each letter casting a tiny shadow onto the plinth face. Never engraved, carved, cut, etched, debossed, recessed, incised or pressed-in — sunken letters of any kind are a failed render. Nothing whatsoever on the top of the plinth.`
-    : "the plinth is left completely bare, with no lettering anywhere on it.";
+    : "HARD CONSTRAINT — NO LETTERING: the plinth is completely blank and unmarked — no name, letters, numbers, date, monogram or nameplate anywhere. Never invent a name; any text is a failed render.";
 
   return (
     `Using the animal in the reference photo, create a fully three-dimensional FDM-printed PLA bust of that exact animal${
@@ -44,7 +44,7 @@ function buildPrompt(p: Record<string, unknown>) {
     `Keep a straight flat front lettering band with generously rounded corners and soft chamfers on every outer edge — ${lettering} ` +
     "Printability rule: no thin or fragile parts — ears, wings, tails, paws, crests and beaks are thick, rounded and fused into the body or plinth, never sticking out freely or spread open; wings fold tight against the body, tails wrap against the body or plinth, ears are chunky with no see-through gaps; long or floppy ears (retrievers, spaniels, hounds, lop rabbits) are one thick mass hanging against the cheek and neck, blended broadly into the head and shoulder — never a thin free-hanging flap; fur is thick sculpted masses, never fine separate tufts. Every feature must be at least as thick as a pencil at scale. " +
     "Monolithic and solid, one continuous part, flat stable base, studio lighting on a clean neutral background showing depth, layer texture and shadow. " +
-    "If the reference is a phone screenshot or search-results page, use only the main pet photo. Create a new clean product photo, not an edited screenshot. Remove all status bars, search/browser controls, icons, watermarks, captions, frames and thumbnails; the only text allowed is the requested plinth lettering."
+    "If the reference is a phone screenshot or search-results page, use only the main pet photo. Create a new clean product photo, not an edited screenshot. Remove all status bars, search/browser controls, icons, watermarks, captions, frames and thumbnails; " + (heading ? "the only text allowed is the requested plinth lettering." : "no text of any kind is allowed anywhere in the image.")
   );
 }
 
