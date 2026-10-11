@@ -766,6 +766,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
              )}
           </div>
 
+          <div className="mt-3 flex items-center justify-between gap-3">
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Sending this to someone you'd gift it to? Share the preview.
+            </p>
+            <PreviewShareButton
+              previewUrl={preview.url}
+              pieceName={displayName}
+              skuSlug={sku.slug}
+              onShared={() => trackExperiment("reveal_screen", revealVariant, "share", { skuSlug: sku.slug })}
+            />
+          </div>
+
           <div className="mt-5" ref={sizeRef}>
             <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
               {sizeKey ? reveal.sizePrompt : "Choose your size to continue"}
