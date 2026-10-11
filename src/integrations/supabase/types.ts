@@ -1504,6 +1504,8 @@ export type Database = {
           fulfillment_error: string | null
           group_id: string | null
           id: string
+          meta_capi_sent_at: string | null
+          meta_tracking: Json | null
           model_status: string | null
           model_task_id: string | null
           partner_cost_usd: number | null
@@ -1546,6 +1548,8 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          meta_capi_sent_at?: string | null
+          meta_tracking?: Json | null
           model_status?: string | null
           model_task_id?: string | null
           partner_cost_usd?: number | null
@@ -1588,6 +1592,8 @@ export type Database = {
           fulfillment_error?: string | null
           group_id?: string | null
           id?: string
+          meta_capi_sent_at?: string | null
+          meta_tracking?: Json | null
           model_status?: string | null
           model_task_id?: string | null
           partner_cost_usd?: number | null
