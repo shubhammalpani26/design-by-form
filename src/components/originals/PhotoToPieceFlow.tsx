@@ -412,6 +412,37 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     resetForAnother();
   };
 
+  // A size that passed the maker check while the chosen/default one didn't.
+  const makeableSize = unprintable
+    ? sku.sizes.find((s) => s.key !== sizeKey && checkFor(s.key).state === "confirmed") ?? null
+    : null;
+
+  /** The "can't be made" button always does something useful — never a dead end. */
+  const fixUnprintable = () => {
+    if (makeableSize) {
+      setSizeKey(makeableSize.key);
+      trackExperiment("reveal_screen", revealVariant, "size_select", { skuSlug: sku.slug, metadata: { sizeKey: makeableSize.key, via: "unprintable_fix" } });
+      return;
+    }
+    if (tweakCount < MAX_TWEAKS) {
+      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
+      void generate(
+        "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
+      );
+      return;
+    }
+    if (mode === "photo") {
+      setPreview(null);
+      setClientSecret(null);
+      setPhoto(null);
+      setShowTweak(false);
+      setTweak("");
+      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => fileRef.current?.click(), 400);
+    }
+  };
+
   const basketLines = [
     ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
     { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1 },
