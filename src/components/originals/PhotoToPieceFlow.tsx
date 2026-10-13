@@ -417,6 +417,41 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     ? sku.sizes.find((s) => s.key !== sizeKey && checkFor(s.key).state === "confirmed") ?? null
     : null;
 
+  // Shoppers aren't 3D modellers: when no size can be made we apply the
+  // sturdier fix ourselves, once per photo. If that still fails, the only ask
+  // is a different photo.
+  const autoFixedRef = useRef<Set<string>>(new Set());
+  const sizesStillChecking = sku.sizes.some((s) => checkFor(s.key).state === "checking");
+  const canAutoFix = autoFixedRef.current.size < 1 && tweakCount < MAX_TWEAKS;
+
+  const changePhoto = (via: string) => {
+    setPreview(null);
+    setClientSecret(null);
+    setPhoto(null);
+    setShowTweak(false);
+    setTweak("");
+    autoFixedRef.current = new Set();
+    trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via } });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => fileRef.current?.click(), 400);
+  };
+
+  const runAutoFix = () => {
+    if (!preview?.id) return;
+    autoFixedRef.current.add(preview.id);
+    trackExperiment("reveal_screen", revealVariant, "auto_fix", { skuSlug: sku.slug });
+    void generate(
+      "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
+    );
+  };
+
+  useEffect(() => {
+    if (!unprintable || makeableSize || sizesStillChecking || refining || loading) return;
+    if (!preview?.id || autoFixedRef.current.has(preview.id) || !canAutoFix) return;
+    runAutoFix();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unprintable, makeableSize, sizesStillChecking, refining, loading, preview?.id, canAutoFix]);
+
   /** The "can't be made" button always does something useful — never a dead end. */
   const fixUnprintable = () => {
     if (makeableSize) {
@@ -424,23 +459,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       trackExperiment("reveal_screen", revealVariant, "size_select", { skuSlug: sku.slug, metadata: { sizeKey: makeableSize.key, via: "unprintable_fix" } });
       return;
     }
-    if (tweakCount < MAX_TWEAKS) {
-      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
-      void generate(
-        "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
-      );
+    if (canAutoFix) {
+      runAutoFix();
       return;
     }
-    if (mode === "photo") {
-      setPreview(null);
-      setClientSecret(null);
-      setPhoto(null);
-      setShowTweak(false);
-      setTweak("");
-      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setTimeout(() => fileRef.current?.click(), 400);
-    }
+    if (mode === "photo") changePhoto("unprintable_fix");
   };
 
   const basketLines = [
@@ -872,14 +895,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {unprintable && (
             <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
               <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
-                {makeableSize ? "Not available in this size" : "Can't be made as-is"}
+                {makeableSize
+                  ? "Not available in this size"
+                  : refining || sizesStillChecking || canAutoFix
+                    ? "Making it sturdier for you"
+                    : "Please try a different photo"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {makeableSize
                   ? `This shape holds up best at the ${makeableSize.label} size. Choose ${makeableSize.label} to continue.`
-                  : tweakCount < MAX_TWEAKS
-                    ? "Our makers checked this shape and it won't hold up in production. Tap below and we'll make a sturdier version, then re-check."
-                    : "Our makers checked this shape and it won't hold up in production. Try a different photo and we'll check again."}
+                  : refining || sizesStillChecking || canAutoFix
+                    ? "A few thin parts wouldn't hold up when made. We're automatically making a sturdier version and re-checking it — nothing for you to do."
+                    : "This photo's pose has parts too delicate to make. A clear, front-facing photo of your pet usually works — your preview is free."}
               </p>
             </div>
           )}
@@ -1019,9 +1046,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   {unprintable
                     ? makeableSize
                       ? `Choose ${makeableSize.label} — $${priceFor(makeableSize.key, makeableSize.price)}`
-                      : tweakCount < MAX_TWEAKS
-                        ? refining ? "Making a sturdier version…" : "Make a sturdier version"
-                        : "Try a different photo"
+                      : refining || sizesStillChecking
+                        ? "Fixing it for you…"
+                        : canAutoFix
+                          ? "Fix it for me"
+                          : "Upload a different photo"
                     : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
@@ -1082,7 +1111,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-4">
             {!showTweak ? (
               <div className="flex items-center justify-between gap-3">
-                {tweakCount < MAX_TWEAKS ? (
+                {unprintable ? (
+                  <span />
+                ) : tweakCount < MAX_TWEAKS ? (
                   <button
                     type="button"
                     disabled={refining}
@@ -1108,16 +1139,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <button
                     type="button"
                     disabled={refining}
-                    onClick={() => {
-                      setPreview(null);
-                      setClientSecret(null);
-                      setPhoto(null);
-                      setShowTweak(false);
-                      setTweak("");
-                      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug });
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      setTimeout(() => fileRef.current?.click(), 400);
-                    }}
+                    onClick={() => changePhoto("reveal_link")}
                     className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
                   >
                     Use a different photo
