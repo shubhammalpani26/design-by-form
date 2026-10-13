@@ -1052,6 +1052,25 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     This is the one
                   </p>
                 )}
+                {mode === "photo" && (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      setPreview(null);
+                      setClientSecret(null);
+                      setPhoto(null);
+                      setShowTweak(false);
+                      setTweak("");
+                      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug });
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                      setTimeout(() => fileRef.current?.click(), 400);
+                    }}
+                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
+                  >
+                    Use a different photo
+                  </button>
+                )}
               </div>
             ) : (
               <div className="border border-border p-4">
