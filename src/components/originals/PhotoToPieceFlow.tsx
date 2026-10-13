@@ -417,6 +417,42 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     ? sku.sizes.find((s) => s.key !== sizeKey && checkFor(s.key).state === "confirmed") ?? null
     : null;
 
+  // Shoppers aren't 3D modellers: when no size can be made we apply the
+  // sturdier fix ourselves, once per photo. If that still fails, the only ask
+  // is a different photo.
+  const autoFixedRef = useRef<Set<string>>(new Set());
+  const sizesStillChecking = sku.sizes.some((s) => checkFor(s.key).state === "checking");
+  const canAutoFix = autoFixedRef.current.size < 1 && tweakCount < MAX_TWEAKS;
+  const autoFixing = refining && autoFixedRef.current.size > 0 && !!unprintable;
+
+  const changePhoto = (via: string) => {
+    setPreview(null);
+    setClientSecret(null);
+    setPhoto(null);
+    setShowTweak(false);
+    setTweak("");
+    autoFixedRef.current = new Set();
+    trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via } });
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    setTimeout(() => fileRef.current?.click(), 400);
+  };
+
+  const runAutoFix = () => {
+    if (!preview?.id) return;
+    autoFixedRef.current.add(preview.id);
+    trackExperiment("reveal_screen", revealVariant, "auto_fix", { skuSlug: sku.slug });
+    void generate(
+      "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
+    );
+  };
+
+  useEffect(() => {
+    if (!unprintable || makeableSize || sizesStillChecking || refining || loading) return;
+    if (!preview?.id || autoFixedRef.current.has(preview.id) || !canAutoFix) return;
+    runAutoFix();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [unprintable, makeableSize, sizesStillChecking, refining, loading, preview?.id, canAutoFix]);
+
   /** The "can't be made" button always does something useful — never a dead end. */
   const fixUnprintable = () => {
     if (makeableSize) {
@@ -424,23 +460,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       trackExperiment("reveal_screen", revealVariant, "size_select", { skuSlug: sku.slug, metadata: { sizeKey: makeableSize.key, via: "unprintable_fix" } });
       return;
     }
-    if (tweakCount < MAX_TWEAKS) {
-      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
-      void generate(
-        "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
-      );
+    if (canAutoFix) {
+      runAutoFix();
       return;
     }
-    if (mode === "photo") {
-      setPreview(null);
-      setClientSecret(null);
-      setPhoto(null);
-      setShowTweak(false);
-      setTweak("");
-      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
-      window.scrollTo({ top: 0, behavior: "smooth" });
-      setTimeout(() => fileRef.current?.click(), 400);
-    }
+    if (mode === "photo") changePhoto("unprintable_fix");
   };
 
   const basketLines = [
