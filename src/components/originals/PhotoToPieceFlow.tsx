@@ -25,7 +25,7 @@ import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
-import realPieceImg from "@/assets/originals-real-piece-nyra.jpg";
+import { suggestColorFromPhoto } from "@/lib/suggestColorFromPhoto";
 
 
 
@@ -143,6 +143,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [tweakCount, setTweakCount] = useState(0);
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
+  const colorPickedRef = useRef(false);
   // Nobody buys until they have consciously picked a size — that click is also
   // what triggers the real manufacturing check for that size.
   const [sizeKey, setSizeKey] = useState<string | null>(null);
@@ -170,7 +171,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       if (d.heading) setHeading(d.heading);
       if (d.footnote) setFootnote(d.footnote);
       if (d.values) setValues(d.values);
-      if (d.colorKey) setColorKey(d.colorKey);
+      if (d.colorKey) { setColorKey(d.colorKey); colorPickedRef.current = true; }
       // A returning visitor who saved a name/date should see those fields
       // expanded, not hidden behind the "+ Add" toggle.
       if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
@@ -280,7 +281,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       toast({ title: "That photo is over 25 MB", description: "Try a smaller one.", variant: "destructive" });
       return;
     }
-    setPhoto({ dataUrl: await preparePhotoDataUrl(file), name: file.name });
+    const dataUrl = await preparePhotoDataUrl(file);
+    setPhoto({ dataUrl, name: file.name });
+    // Default the colour to the pet's coat unless the shopper already chose one.
+    if (!colorPickedRef.current) {
+      const suggested = await suggestColorFromPhoto(dataUrl);
+      if (suggested) setColorKey(suggested);
+    }
 
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
@@ -640,7 +647,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <button
                     key={c.key}
                     type="button"
-                    onClick={() => setColorKey(c.key)}
+                    onClick={() => { colorPickedRef.current = true; setColorKey(c.key); }}
                     aria-pressed={active}
                     className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
                   >
@@ -768,9 +775,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <span>Your original photo</span>
                 </div>
               )}
-              <div className="mt-3 flex items-center gap-3 border border-border bg-background p-2 text-xs text-muted-foreground">
-                <img src={realPieceImg} alt="A real finished piece, held in hand" className="h-12 w-12 shrink-0 border border-border object-cover" />
-                <span>A real finished piece — this is what arrives at your door. If it's not right, we remake it free.</span>
+              <div className="mt-3 border border-border bg-background p-2 text-xs text-muted-foreground">
+                <span>Your piece is made from this preview, in the colour you choose. If it doesn't look like your pet, we remake it free.</span>
               </div>
           </div>
 
@@ -1005,6 +1011,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     disabled={refining}
                     onClick={() => {
                       if (c.key === colorKey) return;
+                      colorPickedRef.current = true;
                       setColorKey(c.key);
                       trackExperiment("reveal_screen", revealVariant, "color_change", { skuSlug: sku.slug });
                       void generate("", c.key);
