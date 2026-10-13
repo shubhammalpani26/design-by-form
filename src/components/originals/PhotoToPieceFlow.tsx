@@ -896,14 +896,18 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {unprintable && (
             <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
               <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
-                {makeableSize ? "Not available in this size" : "Can't be made as-is"}
+                {makeableSize
+                  ? "Not available in this size"
+                  : refining || sizesStillChecking || canAutoFix
+                    ? "Making it sturdier for you"
+                    : "Please try a different photo"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
                 {makeableSize
                   ? `This shape holds up best at the ${makeableSize.label} size. Choose ${makeableSize.label} to continue.`
-                  : tweakCount < MAX_TWEAKS
-                    ? "Our makers checked this shape and it won't hold up in production. Tap below and we'll make a sturdier version, then re-check."
-                    : "Our makers checked this shape and it won't hold up in production. Try a different photo and we'll check again."}
+                  : refining || sizesStillChecking || canAutoFix
+                    ? "A few thin parts wouldn't hold up when made. We're automatically making a sturdier version and re-checking it — nothing for you to do."
+                    : "This photo's pose has parts too delicate to make. A clear, front-facing photo of your pet usually works — your preview is free."}
               </p>
             </div>
           )}
@@ -1043,9 +1047,11 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   {unprintable
                     ? makeableSize
                       ? `Choose ${makeableSize.label} — $${priceFor(makeableSize.key, makeableSize.price)}`
-                      : tweakCount < MAX_TWEAKS
-                        ? refining ? "Making a sturdier version…" : "Make a sturdier version"
-                        : "Try a different photo"
+                      : refining || sizesStillChecking
+                        ? "Fixing it for you…"
+                        : canAutoFix
+                          ? "Fix it for me"
+                          : "Upload a different photo"
                     : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
@@ -1106,7 +1112,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <div className="mt-4">
             {!showTweak ? (
               <div className="flex items-center justify-between gap-3">
-                {tweakCount < MAX_TWEAKS ? (
+                {unprintable ? (
+                  <span />
+                ) : tweakCount < MAX_TWEAKS ? (
                   <button
                     type="button"
                     disabled={refining}
