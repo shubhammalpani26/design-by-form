@@ -841,10 +841,14 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {unprintable && (
             <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
               <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
-                Can't be made as-is
+                {makeableSize ? "Not available in this size" : "Can't be made as-is"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Our makers checked this shape and it won't hold up in production. Adjust one thing and we'll re-check.
+                {makeableSize
+                  ? `This shape holds up best at the ${makeableSize.label} size. Choose ${makeableSize.label} to continue.`
+                  : tweakCount < MAX_TWEAKS
+                    ? "Our makers checked this shape and it won't hold up in production. Tap below and we'll make a sturdier version, then re-check."
+                    : "Our makers checked this shape and it won't hold up in production. Try a different photo and we'll check again."}
               </p>
             </div>
           )}
@@ -970,15 +974,23 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey || !!unprintable}
+                  disabled={checkingOut || refining || (!sizeKey && !unprintable)}
                   onClick={(e) => {
                     e.preventDefault();
+                    if (unprintable) {
+                      fixUnprintable();
+                      return;
+                    }
                     void checkout();
                   }}
                 >
-                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {checkingOut || refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {unprintable
-                    ? "Adjust one thing to continue"
+                    ? makeableSize
+                      ? `Choose ${makeableSize.label} — $${priceFor(makeableSize.key, makeableSize.price)}`
+                      : tweakCount < MAX_TWEAKS
+                        ? refining ? "Making a sturdier version…" : "Make a sturdier version"
+                        : "Try a different photo"
                     : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
