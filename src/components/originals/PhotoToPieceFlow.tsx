@@ -539,10 +539,19 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
             {photo ? (
               <div className="flex items-center gap-4 p-4 text-left">
                 <img src={photo.dataUrl} alt="Your uploaded photo" className="h-20 w-20 object-cover" />
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <p className="text-sm truncate">{photo.name}</p>
                   <p className="text-xs text-muted-foreground">Tap to choose a different photo</p>
                 </div>
+                <span
+                  role="button"
+                  aria-label="Remove photo"
+                  title="Remove photo"
+                  onClick={(e) => { e.stopPropagation(); setPhoto(null); if (fileRef.current) fileRef.current.value = ""; }}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center border border-border text-muted-foreground hover:border-foreground/50 hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </span>
               </div>
             ) : (
                <div className="flex w-full min-w-0 flex-col items-center gap-2 px-4 py-5 md:py-10">
