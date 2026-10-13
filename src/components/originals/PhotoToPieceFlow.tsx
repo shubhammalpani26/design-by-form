@@ -540,7 +540,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
               <div className="flex items-center gap-4 p-4 text-left">
                 <img src={photo.dataUrl} alt="Your uploaded photo" className="h-20 w-20 object-cover" />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm truncate">{photo.name}</p>
+                  <p className="text-sm">Your photo</p>
                   <p className="text-xs text-muted-foreground">Tap to choose a different photo</p>
                 </div>
                 <span
