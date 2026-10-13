@@ -25,6 +25,7 @@ import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
+import realPieceImg from "@/assets/originals-real-piece-nyra.jpg";
 
 
 
@@ -761,12 +762,16 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                 </div>
               )}
             </div>
-             {mode === "photo" && photo && (
-               <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                 <img src={photo.dataUrl} alt="Your original photo" className="h-12 w-12 shrink-0 border border-border object-cover" />
-                 <span>Your original photo</span>
-               </div>
-             )}
+              {mode === "photo" && photo && (
+                <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
+                  <img src={photo.dataUrl} alt="Your original photo" className="h-12 w-12 shrink-0 border border-border object-cover" />
+                  <span>Your original photo</span>
+                </div>
+              )}
+              <div className="mt-3 flex items-center gap-3 border border-border bg-background p-2 text-xs text-muted-foreground">
+                <img src={realPieceImg} alt="A real finished piece, held in hand" className="h-12 w-12 shrink-0 border border-border object-cover" />
+                <span>A real finished piece — this is what arrives at your door. If it's not right, we remake it free.</span>
+              </div>
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3">
