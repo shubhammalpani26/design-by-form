@@ -171,7 +171,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       if (d.heading) setHeading(d.heading);
       if (d.footnote) setFootnote(d.footnote);
       if (d.values) setValues(d.values);
-      if (d.colorKey) setColorKey(d.colorKey);
+      if (d.colorKey) { setColorKey(d.colorKey); colorPickedRef.current = true; }
       // A returning visitor who saved a name/date should see those fields
       // expanded, not hidden behind the "+ Add" toggle.
       if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
@@ -647,7 +647,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <button
                     key={c.key}
                     type="button"
-                    onClick={() => setColorKey(c.key)}
+                    onClick={() => { colorPickedRef.current = true; setColorKey(c.key); }}
                     aria-pressed={active}
                     className={`flex items-center gap-2 border px-2.5 py-1.5 text-xs transition-colors ${active ? "border-foreground" : "border-border hover:border-foreground/40"}`}
                   >
@@ -775,9 +775,8 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <span>Your original photo</span>
                 </div>
               )}
-              <div className="mt-3 flex items-center gap-3 border border-border bg-background p-2 text-xs text-muted-foreground">
-                <img src={realPieceImg} alt="A real finished piece, held in hand" className="h-12 w-12 shrink-0 border border-border object-cover" />
-                <span>A real finished piece — this is what arrives at your door. If it's not right, we remake it free.</span>
+              <div className="mt-3 border border-border bg-background p-2 text-xs text-muted-foreground">
+                <span>Your piece is made from this preview, in the colour you choose. If it doesn't look like your pet, we remake it free.</span>
               </div>
           </div>
 
@@ -1012,6 +1011,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                     disabled={refining}
                     onClick={() => {
                       if (c.key === colorKey) return;
+                      colorPickedRef.current = true;
                       setColorKey(c.key);
                       trackExperiment("reveal_screen", revealVariant, "color_change", { skuSlug: sku.slug });
                       void generate("", c.key);
