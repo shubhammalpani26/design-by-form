@@ -412,6 +412,37 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     resetForAnother();
   };
 
+  // A size that passed the maker check while the chosen/default one didn't.
+  const makeableSize = unprintable
+    ? sku.sizes.find((s) => s.key !== sizeKey && checkFor(s.key).state === "confirmed") ?? null
+    : null;
+
+  /** The "can't be made" button always does something useful — never a dead end. */
+  const fixUnprintable = () => {
+    if (makeableSize) {
+      setSizeKey(makeableSize.key);
+      trackExperiment("reveal_screen", revealVariant, "size_select", { skuSlug: sku.slug, metadata: { sizeKey: makeableSize.key, via: "unprintable_fix" } });
+      return;
+    }
+    if (tweakCount < MAX_TWEAKS) {
+      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
+      void generate(
+        "Make it sturdier for production: thicker, chunkier ears, tail and paws blended into the body, no thin or spread-out parts, solid base. Keep the pet's likeness and pose.",
+      );
+      return;
+    }
+    if (mode === "photo") {
+      setPreview(null);
+      setClientSecret(null);
+      setPhoto(null);
+      setShowTweak(false);
+      setTweak("");
+      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via: "unprintable_fix" } });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      setTimeout(() => fileRef.current?.click(), 400);
+    }
+  };
+
   const basketLines = [
     ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
     { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1 },
@@ -841,10 +872,14 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           {unprintable && (
             <div className="mt-4 border border-destructive/40 bg-destructive/5 p-3">
               <p className="text-[11px] tracking-[0.2em] uppercase text-destructive">
-                Can't be made as-is
+                {makeableSize ? "Not available in this size" : "Can't be made as-is"}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">
-                Our makers checked this shape and it won't hold up in production. Adjust one thing and we'll re-check.
+                {makeableSize
+                  ? `This shape holds up best at the ${makeableSize.label} size. Choose ${makeableSize.label} to continue.`
+                  : tweakCount < MAX_TWEAKS
+                    ? "Our makers checked this shape and it won't hold up in production. Tap below and we'll make a sturdier version, then re-check."
+                    : "Our makers checked this shape and it won't hold up in production. Try a different photo and we'll check again."}
               </p>
             </div>
           )}
@@ -970,15 +1005,23 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   type="button"
                   size="lg"
                   className="mt-5 w-full rounded-none h-12"
-                  disabled={checkingOut || !sizeKey || !!unprintable}
+                  disabled={checkingOut || refining || (!sizeKey && !unprintable)}
                   onClick={(e) => {
                     e.preventDefault();
+                    if (unprintable) {
+                      fixUnprintable();
+                      return;
+                    }
                     void checkout();
                   }}
                 >
-                  {checkingOut ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
+                  {checkingOut || refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
                   {unprintable
-                    ? "Adjust one thing to continue"
+                    ? makeableSize
+                      ? `Choose ${makeableSize.label} — $${priceFor(makeableSize.key, makeableSize.price)}`
+                      : tweakCount < MAX_TWEAKS
+                        ? refining ? "Making a sturdier version…" : "Make a sturdier version"
+                        : "Try a different photo"
                     : !sizeKey
                     ? "Choose a size to continue"
                     : basketCount > 1
