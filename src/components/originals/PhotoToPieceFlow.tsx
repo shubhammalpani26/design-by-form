@@ -423,7 +423,6 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const autoFixedRef = useRef<Set<string>>(new Set());
   const sizesStillChecking = sku.sizes.some((s) => checkFor(s.key).state === "checking");
   const canAutoFix = autoFixedRef.current.size < 1 && tweakCount < MAX_TWEAKS;
-  const autoFixing = refining && autoFixedRef.current.size > 0 && !!unprintable;
 
   const changePhoto = (via: string) => {
     setPreview(null);
@@ -1140,16 +1139,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
                   <button
                     type="button"
                     disabled={refining}
-                    onClick={() => {
-                      setPreview(null);
-                      setClientSecret(null);
-                      setPhoto(null);
-                      setShowTweak(false);
-                      setTweak("");
-                      trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug });
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                      setTimeout(() => fileRef.current?.click(), 400);
-                    }}
+                    onClick={() => changePhoto("reveal_link")}
                     className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
                   >
                     Use a different photo
