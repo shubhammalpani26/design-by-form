@@ -25,7 +25,7 @@ import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
-import realPieceImg from "@/assets/originals-real-piece-nyra.jpg";
+import { suggestColorFromPhoto } from "@/lib/suggestColorFromPhoto";
 
 
 
@@ -143,6 +143,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const [tweakCount, setTweakCount] = useState(0);
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
+  const colorPickedRef = useRef(false);
   // Nobody buys until they have consciously picked a size — that click is also
   // what triggers the real manufacturing check for that size.
   const [sizeKey, setSizeKey] = useState<string | null>(null);
@@ -280,7 +281,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       toast({ title: "That photo is over 25 MB", description: "Try a smaller one.", variant: "destructive" });
       return;
     }
-    setPhoto({ dataUrl: await preparePhotoDataUrl(file), name: file.name });
+    const dataUrl = await preparePhotoDataUrl(file);
+    setPhoto({ dataUrl, name: file.name });
+    // Default the colour to the pet's coat unless the shopper already chose one.
+    if (!colorPickedRef.current) {
+      const suggested = await suggestColorFromPhoto(dataUrl);
+      if (suggested) setColorKey(suggested);
+    }
 
     trackExperiment("render_progress", progressVariant, "photo_selected", { skuSlug: sku.slug });
   }, [toast]);
