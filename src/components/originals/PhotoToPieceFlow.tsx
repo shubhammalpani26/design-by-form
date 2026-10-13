@@ -504,6 +504,9 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
           <p className="mt-2 text-sm text-muted-foreground">
             Free, in about a minute. No account, no card — you only pay if you love it.
           </p>
+          <p className="mt-3 border border-border bg-background px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+            <span className="text-foreground">From ${Math.min(...sku.sizes.map((s) => s.price))}</span> · free US shipping · ships in 7–8 business days · you approve the final preview before we make it
+          </p>
 
           {reviewCount > 0 && (
             <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
