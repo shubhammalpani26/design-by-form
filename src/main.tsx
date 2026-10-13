@@ -29,6 +29,33 @@ window.addEventListener("error", (e) => {
   }
 });
 
+// Stale module files (after a new deploy, or the dev server re-bundling its
+// dependencies) fail with "Importing a module script failed" / "Failed to fetch
+// dynamically imported module". Reload once to pick up fresh files instead of
+// leaving a blank screen; the session flag prevents reload loops.
+const CHUNK_RELOAD_KEY = "nyzora:chunk-reloaded";
+const isStaleModuleError = (msg: string) =>
+  /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module/i.test(msg);
+const reloadOnceForStaleModules = () => {
+  if (sessionStorage.getItem(CHUNK_RELOAD_KEY) === "1") return false;
+  sessionStorage.setItem(CHUNK_RELOAD_KEY, "1");
+  window.location.reload();
+  return true;
+};
+window.addEventListener("vite:preloadError", (e) => {
+  if (reloadOnceForStaleModules()) e.preventDefault();
+});
+window.addEventListener("unhandledrejection", (e) => {
+  const msg = String((e.reason as Error)?.message ?? e.reason ?? "");
+  if (isStaleModuleError(msg) && reloadOnceForStaleModules()) e.preventDefault();
+});
+window.addEventListener("error", (e) => {
+  const msg = e.message ?? e.error?.message ?? "";
+  if (isStaleModuleError(msg) && reloadOnceForStaleModules()) e.preventDefault();
+});
+// Clear the flag once the app has been up for a while, so a later deploy can reload again.
+window.setTimeout(() => sessionStorage.removeItem(CHUNK_RELOAD_KEY), 10_000);
+
 // Tracking only starts once consent resolves: instantly outside the regions
 // that require consent, and after the visitor accepts inside them.
 onTrackingAllowed(() => {
