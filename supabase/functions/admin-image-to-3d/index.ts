@@ -59,7 +59,9 @@ Deno.serve(async (req) => {
     if (body.action === "poll") {
       const taskId = String(body.task_id ?? "");
       if (!/^[\w-]{1,200}$/.test(taskId)) return json({ error: "Invalid task id" }, 400);
-      const sizeMm = Math.min(Math.max(Number(body.size_mm) || 140, 30), 220);
+      // No 220 mm partner-envelope clamp here: this tool is for any object
+      // (mannequins, fixtures, etc.), so sizes are capped only for sanity.
+      const sizeMm = Math.min(Math.max(Number(body.size_mm) || 140, 20), 2000);
       const res = await fetch(`${MESHY}/${taskId}`, { headers: { Authorization: `Bearer ${key}` } });
       if (!res.ok) return json({ error: `Status check failed (${res.status})` }, 502);
       const d = await res.json();
@@ -71,8 +73,9 @@ Deno.serve(async (req) => {
         modelUrl: d.model_urls.glb,
         key: `admin-image-to-3d/${taskId}-${sizeMm}mm`,
         targetMaxMm: sizeMm,
+        envelopeMaxMm: 2000,
       });
-      const r = prepared.stl ? analyseStl(prepared.stl, { envelopeMm: 220 }) : null;
+      const r = prepared.stl ? analyseStl(prepared.stl, { envelopeMm: sizeMm }) : null;
       return json({
         status,
         progress: 100,

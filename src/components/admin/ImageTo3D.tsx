@@ -105,9 +105,10 @@ export function ImageTo3D() {
             {preview && <img src={preview} alt="Uploaded" className="h-48 w-full rounded border border-border object-contain" />}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="i3d-size">Longest side (mm, 30–220)</Label>
-            <Input id="i3d-size" type="number" min={30} max={220} value={sizeMm} disabled={busy}
+            <Label htmlFor="i3d-size">Longest side (mm)</Label>
+            <Input id="i3d-size" type="number" min={20} max={2000} value={sizeMm} disabled={busy}
               onChange={(e) => setSizeMm(Number(e.target.value))} />
+            <p className="text-xs text-muted-foreground">Any size — not limited to the 220 mm pet-piece envelope.</p>
             <Button onClick={start} disabled={!file || busy} className="w-full">
               <Upload className="mr-2 h-4 w-4" /> {busy ? "Working…" : "Create 3D model"}
             </Button>
