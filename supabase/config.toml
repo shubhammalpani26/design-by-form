@@ -131,3 +131,6 @@ verify_jwt = false
 
 [functions.notify-partner-refund]
 verify_jwt = false
+
+[functions.admin-image-to-3d]
+verify_jwt = false
