@@ -72,13 +72,14 @@ export function ImageTo3D() {
     setProgress(0);
     try {
       setStatus("Uploading image…");
-      const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
-      const path = `admin-image-to-3d/${Date.now()}.${ext}`;
-      const { error } = await supabase.storage.from("product-images").upload(path, file, { contentType: file.type });
-      if (error) throw error;
-      const { data: pub } = supabase.storage.from("product-images").getPublicUrl(path);
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(String(r.result));
+        r.onerror = () => reject(new Error("Could not read the image"));
+        r.readAsDataURL(file);
+      });
       setStatus("Starting…");
-      const d = await call({ action: "start", image_url: pub.publicUrl });
+      const d = await call({ action: "start", image_data_url: dataUrl });
       poll(d.task_id);
     } catch (e) {
       setBusy(false);
