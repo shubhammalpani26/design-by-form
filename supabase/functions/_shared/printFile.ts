@@ -50,7 +50,7 @@ export async function uploadStl(
  */
 export async function ensurePrintFile(
   admin: any,
-  opts: { modelUrl: string; key: string; targetMaxMm?: number; reinforceBase?: boolean },
+  opts: { modelUrl: string; key: string; targetMaxMm?: number; reinforceBase?: boolean; envelopeMaxMm?: number },
 ): Promise<PreparedPrintFile> {
   const { modelUrl, key } = opts;
   if (isPrintable(modelUrl)) {
@@ -70,7 +70,7 @@ export async function ensurePrintFile(
   if (!res.ok) throw new Error(`Could not download the 3D model (${res.status})`);
   const bytes = new Uint8Array(await res.arrayBuffer());
 
-  const target = Math.min(opts.targetMaxMm || DEFAULT_PRINT_MAX_MM, US_MAX_MM);
+  const target = Math.min(opts.targetMaxMm || DEFAULT_PRINT_MAX_MM, opts.envelopeMaxMm ?? US_MAX_MM);
   const conversionTarget = opts.reinforceBase
     ? Math.max(1, target - HEFT_SIZE_RESERVE_MM)
     : target;
