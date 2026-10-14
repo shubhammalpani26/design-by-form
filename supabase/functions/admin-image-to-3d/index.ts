@@ -32,8 +32,19 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
 
     if (body.action === "start") {
-      const imageUrl = String(body.image_url ?? "");
-      if (!/^https:\/\//i.test(imageUrl)) return json({ error: "A public https image URL is required" }, 400);
+      let imageUrl = String(body.image_url ?? "");
+      const dataUrl = String(body.image_data_url ?? "");
+      const m = dataUrl.match(/^data:(image\/(png|jpeg|webp));base64,(.+)$/);
+      if (m) {
+        const bytes = Uint8Array.from(atob(m[3]), (c) => c.charCodeAt(0));
+        if (bytes.length > 15 * 1024 * 1024) return json({ error: "Image too large (max 15 MB)" }, 400);
+        const ext = m[2] === "jpeg" ? "jpg" : m[2];
+        const path = `admin-image-to-3d/${Date.now()}.${ext}`;
+        const { error: upErr } = await admin.storage.from("product-images").upload(path, bytes, { contentType: m[1] });
+        if (upErr) return json({ error: `Upload failed: ${upErr.message}` }, 500);
+        imageUrl = admin.storage.from("product-images").getPublicUrl(path).data.publicUrl;
+      }
+      if (!/^https:\/\//i.test(imageUrl)) return json({ error: "An image is required" }, 400);
       const res = await fetch(MESHY, {
         method: "POST",
         headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
