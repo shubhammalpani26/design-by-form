@@ -20,6 +20,7 @@ import { SocialScheduleManagement } from "@/components/admin/SocialScheduleManag
 import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
 import { OriginalsPreviewGallery } from "@/components/admin/OriginalsPreviewGallery";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { ImageTo3D } from "@/components/admin/ImageTo3D";
 import { SEOHead } from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -34,6 +35,7 @@ const TABS = [
   { value: "originals-ops", label: "Originals Ops" },
   { value: "customer-photos", label: "Everything" },
   { value: "print-validation", label: "Print Validation" },
+  { value: "image-to-3d", label: "Image to 3D" },
   { value: "early-access", label: "Early Access" },
   { value: "contacts", label: "Contacts" },
   { value: "notifications", label: "Notifications" },
@@ -182,6 +184,10 @@ export default function AdminPanel() {
 
           <TabsContent value="print-validation">
             <PrintValidationLog />
+          </TabsContent>
+
+          <TabsContent value="image-to-3d">
+            <ImageTo3D />
           </TabsContent>
 
           <TabsContent value="early-access">
