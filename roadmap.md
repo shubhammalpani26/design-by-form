@@ -25,3 +25,7 @@
 - [x] Prepare 4 paused Meta ads on ad set 120249343361580499: NYRA in lap, NALAA first meeting, Buddy video, NYRA eyes-closed hug (user request 2026-10-02). Reuse approved copy. Landing link verified 2026-10-02.
 - [x] Prepare 2 paused presenter-video Meta ads (man + woman) on the same ad set, approved copy, created 2026-10-10.
 - [ ] Flag to user: cap headroom ~₹3,242, balance ₹3,826 — raise cap/add funds in Meta before activation.
+
+## Open tasks
+- [ ] Growth plan: research audience + recommend where to start for more visitors (asked 2026-10-15)
+- [ ] Finish activating the five GitHub content skills (onetake, collage b-roll, lemo-opuscar, character-animation-base, hyperframes sub-skills)
