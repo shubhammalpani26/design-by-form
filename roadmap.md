@@ -28,7 +28,7 @@
 
 ## Open tasks
 - [x] Growth plan delivered 2026-10-15; research + plan saved in /mnt/documents/marketing/
-- [ ] Finish activating the five GitHub content skills (onetake, collage b-roll, lemo-opuscar, character-animation-base, hyperframes sub-skills)
-- [ ] Fix "server error" when saving skills (likely oversized media inside the downloaded skills)
-- [ ] Fix admin dashboard Meta ads card (expired token) by switching it to the linked Meta Ads connection
-- [ ] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
+- [x] Activate the five content skills from the 'Five Skills' PDF (HyperFrames + its video helpers, OneTake, Collage B-roll, Lemo-Opuscar, Character Animation) — done 2026-10-24
+- [x] Fix "server error" when saving skills — caused by large demo videos/GIFs inside the downloads; removed them
+- [x] Fix admin dashboard Meta ads card — now uses the linked Meta Ads connection (no expiring token)
+- [x] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
