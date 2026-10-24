@@ -35,5 +35,5 @@
 - [x] Replace the two AI-room composite posts (Oct 25 pug, Oct 27 white dog) with real, unaltered photos — user found them cartoonish (2026-10-24)
 - [x] Mixed posting plan Oct 25–Nov 1 (10 carousels, 2 Reels, 5 single photos, 2–3/day); carousel publishing added to the scheduler; scheduler runs 3x daily
 - [x] Re-cut first Reel with "Bone White" dog label; scheduled Oct 31 13:00 UTC
-- [ ] Holiday gift ads (Meta): goal = free previews, whole US, two audiences — next: research offer, creative, copy, budget; blocked on adding funds + raising spend limit in Meta
-- [ ] Holiday "Secret gift" Kling videos: creator version v3 with captions queued as Reel Oct 24 8 PM ET, then story showcase and launch film; use the workspace video skills where they fit
+- [ ] Holiday gift ads (Meta): Sales goal, whole US; 3 video ads (captioned secret gift + 2 real-photo Reels); landing page verified 2026-10-24 — waiting on owner: audience setup, budget, copy, special-category answer; then create paused; activation needs funds + higher spending limit
+- [ ] Holiday "Secret gift" Kling videos: creator v3 done + queued; next = one more video with the 230 Kling credits left (plan after the campaign setup), launch film after top-up
