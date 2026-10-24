@@ -199,7 +199,9 @@ const renderPrompt = (p: string, slot: Slot) =>
 type Post = {
   id: string;
   scheduled_at: string;
-  slot_type: "feed" | "story" | "reel";
+  slot_type: "feed" | "story" | "reel" | "carousel";
+  /** Ordered slide URLs for carousel posts; image_url holds the cover slide. */
+  media_urls?: string[] | null;
   caption: string;
   image_prompt: string;
   image_url: string | null;
@@ -622,9 +624,54 @@ function composeCaption(post: Post): string {
   return `${story}\n\n${base}`;
 }
 
-async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
-  const mediaUrl = await resolveMediaUrl(post.image_url!);
+/** Wait until an Instagram media container has finished processing. */
+async function waitForContainer(id: string, token: string, isVideo: boolean) {
+  let status = "IN_PROGRESS";
+  // Video transcoding on Meta's side is much slower than image ingestion.
+  const maxAttempts = isVideo ? 60 : 20;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : isVideo ? 5000 : 3000));
+    const s = (await fb(`/${id}?fields=status_code,status`, token)) as { status_code?: string; status?: string };
+    status = s.status_code ?? "IN_PROGRESS";
+    if (status === "FINISHED") return;
+    if (status === "ERROR" || status === "EXPIRED") throw new Error(`media processing ${status}: ${s.status ?? ""}`);
+  }
+  throw new Error(`media still processing (${status})`);
+}
+
+/** Carousel slides in order; Instagram accepts 2-10 items. */
+function carouselSlides(post: Post): string[] {
+  const urls = Array.isArray(post.media_urls) ? post.media_urls.filter((u) => typeof u === "string" && u) : [];
+  if (urls.length < 2 || urls.length > 10) throw new Error(`carousel needs 2-10 slides, has ${urls.length}`);
+  return urls;
+}
+
+async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }, dryRun = false) {
   const caption = composeCaption(post);
+
+  if (post.slot_type === "carousel") {
+    const children: string[] = [];
+    for (const raw of carouselSlides(post)) {
+      const url = await resolveMediaUrl(raw);
+      const p = new URLSearchParams({ image_url: url, is_carousel_item: "true" });
+      const child = (await fb(`/${creds.igUserId}/media?${p.toString()}`, creds.pageToken, { method: "POST" })) as { id?: string };
+      if (!child.id) throw new Error("carousel slide container creation failed");
+      await waitForContainer(child.id, creds.pageToken, false);
+      children.push(child.id);
+    }
+    const p = new URLSearchParams({ media_type: "CAROUSEL", children: children.join(","), caption });
+    const parent = (await fb(`/${creds.igUserId}/media?${p.toString()}`, creds.pageToken, { method: "POST" })) as { id?: string };
+    if (!parent.id) throw new Error("carousel container creation failed");
+    await waitForContainer(parent.id, creds.pageToken, false);
+    // Dry run: Meta accepted every slide and the carousel; stop before anything goes live.
+    if (dryRun) return `dry-run:${parent.id}`;
+    const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${parent.id}`, creds.pageToken, {
+      method: "POST",
+    })) as { id?: string };
+    return published.id ?? null;
+  }
+
+  const mediaUrl = await resolveMediaUrl(post.image_url!);
   const isVideo = post.slot_type === "reel" || /\.(mp4|mov)(\?|$)/i.test(mediaUrl.split("?")[0]);
   const params = new URLSearchParams();
   if (isVideo) {
@@ -637,31 +684,14 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
     params.set("image_url", mediaUrl);
     if (post.slot_type === "story") params.set("media_type", "STORIES");
     else params.set("caption", caption);
-
   }
-
 
   const container = (await fb(`/${creds.igUserId}/media?${params.toString()}`, creds.pageToken, {
     method: "POST",
   })) as { id?: string };
   if (!container.id) throw new Error("media container creation failed");
-
-
-  let status = "IN_PROGRESS";
-  // Video transcoding on Meta's side is much slower than image ingestion.
-  const maxAttempts = isVideo ? 60 : 20;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : isVideo ? 5000 : 3000));
-
-    const s = (await fb(`/${container.id}?fields=status_code,status`, creds.pageToken)) as {
-      status_code?: string;
-      status?: string;
-    };
-    status = s.status_code ?? "IN_PROGRESS";
-    if (status === "FINISHED") break;
-    if (status === "ERROR" || status === "EXPIRED") throw new Error(`media processing ${status}: ${s.status ?? ""}`);
-  }
-  if (status !== "FINISHED") throw new Error(`media still processing (${status})`);
+  await waitForContainer(container.id, creds.pageToken, isVideo);
+  if (dryRun) return `dry-run:${container.id}`;
 
   const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${container.id}`, creds.pageToken, {
     method: "POST",
@@ -680,7 +710,7 @@ async function publishDue() {
 
   const { data } = await admin
     .from("social_scheduled_posts")
-    .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
+    .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts")
     .eq("status", "ready")
     .in("engineering_status", ["pass", "skipped", "advisory_fail"])
     .not("image_url", "is", null)
@@ -757,7 +787,7 @@ async function publishFacebookDue() {
   const now = new Date().toISOString();
   const { data } = await admin
     .from("social_scheduled_posts")
-    .select("id, slot_type, caption, fb_caption, image_prompt, image_url, is_render, engineering_status, attempts, fb_attempts, fb_scheduled_at, status, scheduled_at")
+    .select("id, slot_type, caption, fb_caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts, fb_attempts, fb_scheduled_at, status, scheduled_at")
     .eq("fb_status", "pending")
     .neq("slot_type", "story")
     .not("image_url", "is", null)
@@ -778,12 +808,25 @@ async function publishFacebookDue() {
       .select("id");
     if (!claimed?.length) continue;
     try {
-      const mediaUrl = await resolveMediaUrl(row.image_url!);
       const caption = (row.fb_caption ?? "").trim() || composeCaption(row);
-      const isVideo = row.slot_type === "reel" || /\.(mp4|mov)$/i.test(mediaUrl.split("?")[0]);
-      const res = isVideo
-        ? await fbForm(`/${FB_PAGE_ID}/videos`, pageToken, { file_url: mediaUrl, description: caption })
-        : await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: mediaUrl, caption, published: "true" });
+      let res: { id?: string; post_id?: string };
+      if (row.slot_type === "carousel") {
+        // Facebook's equivalent of a carousel: unpublished photos attached to one Page post.
+        const form: Record<string, string> = { message: caption };
+        const slides = carouselSlides(row);
+        for (let i = 0; i < slides.length; i++) {
+          const photo = await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: await resolveMediaUrl(slides[i]), published: "false" });
+          if (!photo.id) throw new Error("facebook slide upload failed");
+          form[`attached_media[${i}]`] = JSON.stringify({ media_fbid: photo.id });
+        }
+        res = await fbForm(`/${FB_PAGE_ID}/feed`, pageToken, form);
+      } else {
+        const mediaUrl = await resolveMediaUrl(row.image_url!);
+        const isVideo = row.slot_type === "reel" || /\.(mp4|mov)$/i.test(mediaUrl.split("?")[0]);
+        res = isVideo
+          ? await fbForm(`/${FB_PAGE_ID}/videos`, pageToken, { file_url: mediaUrl, description: caption })
+          : await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: mediaUrl, caption, published: "true" });
+      }
       await admin
         .from("social_scheduled_posts")
         .update({ fb_status: "published", fb_post_id: res.post_id ?? res.id ?? null, fb_error: null })
@@ -825,7 +868,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (action === "publish_now") {
+    if (action === "publish_now" || action === "dry_run") {
       const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
       const { data: userData } = await admin.auth.getUser(token);
       const uid = userData?.user?.id;
@@ -836,7 +879,7 @@ Deno.serve(async (req) => {
 
       const { data: row } = await admin
         .from("social_scheduled_posts")
-        .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
+        .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts")
         .eq("id", postId)
         .maybeSingle();
       const post = row as Post | null;
@@ -849,6 +892,15 @@ Deno.serve(async (req) => {
         creds = await metaCreds();
       } catch (e) {
         return json({ error: (e as Error).message }, 400);
+      }
+
+      if (action === "dry_run") {
+        // Builds Meta containers without publishing, to prove a post will be accepted.
+        try {
+          return json({ ok: true, dry_run: await publishOne(post, creds, true) });
+        } catch (e) {
+          return json({ error: (e as Error).message.slice(0, 500) }, 500);
+        }
       }
 
       try {
