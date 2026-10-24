@@ -2362,6 +2362,7 @@ export type Database = {
           image_url: string | null
           is_render: boolean
           last_error: string | null
+          media_urls: Json | null
           published_at: string | null
           scheduled_at: string
           slot_type: string
@@ -2388,6 +2389,7 @@ export type Database = {
           image_url?: string | null
           is_render?: boolean
           last_error?: string | null
+          media_urls?: Json | null
           published_at?: string | null
           scheduled_at: string
           slot_type?: string
@@ -2414,6 +2416,7 @@ export type Database = {
           image_url?: string | null
           is_render?: boolean
           last_error?: string | null
+          media_urls?: Json | null
           published_at?: string | null
           scheduled_at?: string
           slot_type?: string
