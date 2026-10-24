@@ -199,7 +199,9 @@ const renderPrompt = (p: string, slot: Slot) =>
 type Post = {
   id: string;
   scheduled_at: string;
-  slot_type: "feed" | "story" | "reel";
+  slot_type: "feed" | "story" | "reel" | "carousel";
+  /** Ordered slide URLs for carousel posts; image_url holds the cover slide. */
+  media_urls?: string[] | null;
   caption: string;
   image_prompt: string;
   image_url: string | null;
