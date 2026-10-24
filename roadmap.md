@@ -32,4 +32,4 @@
 - [x] Fix "server error" when saving skills — caused by large demo videos/GIFs inside the downloads; removed them
 - [x] Fix admin dashboard Meta ads card — now uses the linked Meta Ads connection (no expiring token)
 - [x] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
-- [ ] Replace the two AI-room composite posts (Oct 25 pug, Oct 27 white dog) with real, unaltered photos — user found them cartoonish (2026-10-24)
+- [x] Replace the two AI-room composite posts (Oct 25 pug, Oct 27 white dog) with real, unaltered photos — user found them cartoonish (2026-10-24)
