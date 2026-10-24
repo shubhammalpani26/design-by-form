@@ -15,7 +15,7 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const AD_ACCOUNT = "act_2036145687783794";
-const CAMPAIGN_ID = "120249343361350499";
+const META_GATEWAY = "https://connector-gateway.lovable.dev/meta_ads/v26.0";
 const REAL_PROVIDERS = ["razorpay", "cashfree"];
 
 Deno.serve(async (req) => {
@@ -100,28 +100,38 @@ Deno.serve(async (req) => {
     const paid = (orders ?? []).filter((o) => o.status !== "pending" && o.status !== "failed" && o.status !== "cancelled");
     const revenue = paid.reduce((s, o) => s + Number(o.amount_usd ?? 0) - Number(o.discount_usd ?? 0), 0);
 
-    // --- Meta ads ---
+    // --- Meta ads (via the linked Meta Ads connection; no expiring tokens) ---
     let ads: any = null;
     try {
-      const { data: tokenRow } = await admin
-        .from("user_connector_tokens").select("meta_defaults").eq("user_id", u.user.id).maybeSingle();
-      const stored = (tokenRow?.meta_defaults as any)?.meta_token;
-      const valid = stored?.access_token && (!stored.expires_at || new Date(stored.expires_at).getTime() > Date.now());
-      const token = valid ? stored.access_token : Deno.env.get("META_ACCESS_TOKEN");
-      if (!token) throw new Error("No Meta access token");
+      const lovableKey = Deno.env.get("LOVABLE_API_KEY");
+      const metaKey = Deno.env.get("META_ADS_API_KEY");
+      if (!lovableKey || !metaKey) throw new Error("Meta Ads connection is not linked");
       const preset = days === 1 ? "today" : days === 7 ? "last_7d" : "last_30d";
       const g = async (path: string) => {
-        const r = await fetch(`https://graph.facebook.com/v21.0${path}${path.includes("?") ? "&" : "?"}access_token=${token}`);
-        const j = await r.json();
-        if (j.error) throw new Error(j.error.message);
+        const r = await fetch(`${META_GATEWAY}${path}`, {
+          headers: { Authorization: `Bearer ${lovableKey}`, "X-Connection-Api-Key": metaKey },
+        });
+        const text = await r.text();
+        let j: any = null;
+        try { j = JSON.parse(text); } catch { /* non-JSON */ }
+        if (!r.ok || j?.error) {
+          console.error(`Meta gateway [${r.status}]: ${text.slice(0, 500)}`);
+          throw new Error(j?.error?.error_user_msg ?? j?.error?.message ?? `Meta request failed (${r.status})`);
+        }
         return j;
       };
       const fields = "ad_name,spend,impressions,clicks,ctr,cpc,actions";
-      const [acct, byAd, camp] = await Promise.all([
+      const [acct, byAd, camps] = await Promise.all([
         g(`/${AD_ACCOUNT}?fields=currency,balance,amount_spent,spend_cap,account_status,funding_source_details`),
         g(`/${AD_ACCOUNT}/insights?level=ad&date_preset=${preset}&fields=${fields}&limit=50`),
-        g(`/${CAMPAIGN_ID}?fields=effective_status,daily_budget,adsets{daily_budget,effective_status}`),
+        g(`/${AD_ACCOUNT}/campaigns?fields=name,effective_status,daily_budget,adsets.limit(20){daily_budget,effective_status}&limit=50`),
       ]);
+      const activeCamps = (camps.data ?? []).filter((c: any) => c.effective_status === "ACTIVE");
+      const activeBudget = activeCamps.reduce((s: number, c: any) => {
+        if (c.daily_budget) return s + Number(c.daily_budget);
+        const sets = (c.adsets?.data ?? []).filter((a: any) => a.effective_status === "ACTIVE");
+        return s + sets.reduce((t: number, a: any) => t + Number(a.daily_budget ?? 0), 0);
+      }, 0);
       const act = (a: any[] | undefined, t: string) =>
         Number((a ?? []).find((x) => x.action_type === t)?.value ?? 0);
       const rows = (byAd.data ?? []).map((r: any) => ({
@@ -141,15 +151,15 @@ Deno.serve(async (req) => {
         }),
         { spend: 0, impressions: 0, clicks: 0, landings: 0, purchases: 0 },
       );
-      const adsetBudget = camp.adsets?.data?.[0]?.daily_budget ?? camp.daily_budget;
       ads = {
         currency: acct.currency,
         // Meta reports balance/amount_spent/budget in the smallest currency unit.
         balance: Number(acct.balance ?? 0) / 100,
         fundsText: acct.funding_source_details?.display_string ?? null,
         spendCapLeft: acct.spend_cap ? (Number(acct.spend_cap) - Number(acct.amount_spent)) / 100 : null,
-        campaignStatus: camp.effective_status,
-        dailyBudget: adsetBudget ? Number(adsetBudget) / 100 : null,
+        campaignStatus: activeCamps.length ? `${activeCamps.length} active` : "None active",
+        activeCampaigns: activeCamps.map((c: any) => c.name),
+        dailyBudget: activeBudget ? activeBudget / 100 : null,
         totals: { ...tot, ctr: tot.impressions ? (tot.clicks / tot.impressions) * 100 : 0, cpc: tot.clicks ? tot.spend / tot.clicks : 0 },
         rows,
       };
