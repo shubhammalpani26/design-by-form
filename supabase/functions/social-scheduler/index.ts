@@ -646,7 +646,7 @@ function carouselSlides(post: Post): string[] {
   return urls;
 }
 
-async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
+async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }, dryRun = false) {
   const caption = composeCaption(post);
 
   if (post.slot_type === "carousel") {
@@ -663,6 +663,8 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
     const parent = (await fb(`/${creds.igUserId}/media?${p.toString()}`, creds.pageToken, { method: "POST" })) as { id?: string };
     if (!parent.id) throw new Error("carousel container creation failed");
     await waitForContainer(parent.id, creds.pageToken, false);
+    // Dry run: Meta accepted every slide and the carousel; stop before anything goes live.
+    if (dryRun) return `dry-run:${parent.id}`;
     const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${parent.id}`, creds.pageToken, {
       method: "POST",
     })) as { id?: string };
@@ -689,6 +691,7 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
   })) as { id?: string };
   if (!container.id) throw new Error("media container creation failed");
   await waitForContainer(container.id, creds.pageToken, isVideo);
+  if (dryRun) return `dry-run:${container.id}`;
 
   const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${container.id}`, creds.pageToken, {
     method: "POST",
@@ -865,7 +868,7 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (action === "publish_now") {
+    if (action === "publish_now" || action === "dry_run") {
       const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
       const { data: userData } = await admin.auth.getUser(token);
       const uid = userData?.user?.id;
@@ -889,6 +892,15 @@ Deno.serve(async (req) => {
         creds = await metaCreds();
       } catch (e) {
         return json({ error: (e as Error).message }, 400);
+      }
+
+      if (action === "dry_run") {
+        // Builds Meta containers without publishing, to prove a post will be accepted.
+        try {
+          return json({ ok: true, dry_run: await publishOne(post, creds, true) });
+        } catch (e) {
+          return json({ error: (e as Error).message.slice(0, 500) }, 500);
+        }
       }
 
       try {
