@@ -707,7 +707,7 @@ async function publishDue() {
 
   const { data } = await admin
     .from("social_scheduled_posts")
-    .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
+    .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts")
     .eq("status", "ready")
     .in("engineering_status", ["pass", "skipped", "advisory_fail"])
     .not("image_url", "is", null)
@@ -784,7 +784,7 @@ async function publishFacebookDue() {
   const now = new Date().toISOString();
   const { data } = await admin
     .from("social_scheduled_posts")
-    .select("id, slot_type, caption, fb_caption, image_prompt, image_url, is_render, engineering_status, attempts, fb_attempts, fb_scheduled_at, status, scheduled_at")
+    .select("id, slot_type, caption, fb_caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts, fb_attempts, fb_scheduled_at, status, scheduled_at")
     .eq("fb_status", "pending")
     .neq("slot_type", "story")
     .not("image_url", "is", null)
@@ -876,7 +876,7 @@ Deno.serve(async (req) => {
 
       const { data: row } = await admin
         .from("social_scheduled_posts")
-        .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, is_render, engineering_status, attempts")
+        .select("id, scheduled_at, slot_type, caption, image_prompt, image_url, media_urls, is_render, engineering_status, attempts")
         .eq("id", postId)
         .maybeSingle();
       const post = row as Post | null;
