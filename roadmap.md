@@ -28,7 +28,8 @@
 
 ## Open tasks
 - [x] Growth plan delivered 2026-10-15; research + plan saved in /mnt/documents/marketing/
-- [ ] Finish activating the five GitHub content skills (onetake, collage b-roll, lemo-opuscar, character-animation-base, hyperframes sub-skills)
-- [ ] Fix "server error" when saving skills (likely oversized media inside the downloaded skills)
-- [ ] Fix admin dashboard Meta ads card (expired token) by switching it to the linked Meta Ads connection
-- [ ] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
+- [x] Finish activating the five GitHub content skills (onetake, collage b-roll, lemo-opuscar, character-animation-base, hyperframes sub-skills)
+- [x] Fix "server error" when saving skills (removed oversized demo videos/GIFs; saving works)
+- [x] Fix admin dashboard Meta ads card (expired token) by switching it to the linked Meta Ads connection
+- [x] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
+- [ ] Optional extra skills still saved as drafts (figma, pr-to-video, remotion-to-hyperframes, nyzora-mcp-tool-builder, nyzora-partner-outreach, nyzora-product-review) — waiting on user's choice
