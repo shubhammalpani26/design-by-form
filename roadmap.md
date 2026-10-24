@@ -36,3 +36,4 @@
 - [x] Mixed posting plan Oct 25–Nov 1 (10 carousels, 2 Reels, 5 single photos, 2–3/day); carousel publishing added to the scheduler; scheduler runs 3x daily
 - [x] Re-cut first Reel with "Bone White" dog label; scheduled Oct 31 13:00 UTC
 - [ ] Holiday gift ads (Meta): goal = free previews, whole US, two audiences — next: research offer, creative, copy, budget; blocked on adding funds + raising spend limit in Meta
+- [ ] Holiday "Secret gift" Kling videos: creator version done (secret_gift_creator_ad_portrait.mp4; captions not yet added), then story showcase and launch film; use the workspace video skills where they fit
