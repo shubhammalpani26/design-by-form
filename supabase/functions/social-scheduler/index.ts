@@ -624,9 +624,52 @@ function composeCaption(post: Post): string {
   return `${story}\n\n${base}`;
 }
 
+/** Wait until an Instagram media container has finished processing. */
+async function waitForContainer(id: string, token: string, isVideo: boolean) {
+  let status = "IN_PROGRESS";
+  // Video transcoding on Meta's side is much slower than image ingestion.
+  const maxAttempts = isVideo ? 60 : 20;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : isVideo ? 5000 : 3000));
+    const s = (await fb(`/${id}?fields=status_code,status`, token)) as { status_code?: string; status?: string };
+    status = s.status_code ?? "IN_PROGRESS";
+    if (status === "FINISHED") return;
+    if (status === "ERROR" || status === "EXPIRED") throw new Error(`media processing ${status}: ${s.status ?? ""}`);
+  }
+  throw new Error(`media still processing (${status})`);
+}
+
+/** Carousel slides in order; Instagram accepts 2-10 items. */
+function carouselSlides(post: Post): string[] {
+  const urls = Array.isArray(post.media_urls) ? post.media_urls.filter((u) => typeof u === "string" && u) : [];
+  if (urls.length < 2 || urls.length > 10) throw new Error(`carousel needs 2-10 slides, has ${urls.length}`);
+  return urls;
+}
+
 async function publishOne(post: Post, creds: { pageToken: string; igUserId: string }) {
-  const mediaUrl = await resolveMediaUrl(post.image_url!);
   const caption = composeCaption(post);
+
+  if (post.slot_type === "carousel") {
+    const children: string[] = [];
+    for (const raw of carouselSlides(post)) {
+      const url = await resolveMediaUrl(raw);
+      const p = new URLSearchParams({ image_url: url, is_carousel_item: "true" });
+      const child = (await fb(`/${creds.igUserId}/media?${p.toString()}`, creds.pageToken, { method: "POST" })) as { id?: string };
+      if (!child.id) throw new Error("carousel slide container creation failed");
+      await waitForContainer(child.id, creds.pageToken, false);
+      children.push(child.id);
+    }
+    const p = new URLSearchParams({ media_type: "CAROUSEL", children: children.join(","), caption });
+    const parent = (await fb(`/${creds.igUserId}/media?${p.toString()}`, creds.pageToken, { method: "POST" })) as { id?: string };
+    if (!parent.id) throw new Error("carousel container creation failed");
+    await waitForContainer(parent.id, creds.pageToken, false);
+    const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${parent.id}`, creds.pageToken, {
+      method: "POST",
+    })) as { id?: string };
+    return published.id ?? null;
+  }
+
+  const mediaUrl = await resolveMediaUrl(post.image_url!);
   const isVideo = post.slot_type === "reel" || /\.(mp4|mov)(\?|$)/i.test(mediaUrl.split("?")[0]);
   const params = new URLSearchParams();
   if (isVideo) {
@@ -639,31 +682,13 @@ async function publishOne(post: Post, creds: { pageToken: string; igUserId: stri
     params.set("image_url", mediaUrl);
     if (post.slot_type === "story") params.set("media_type", "STORIES");
     else params.set("caption", caption);
-
   }
-
 
   const container = (await fb(`/${creds.igUserId}/media?${params.toString()}`, creds.pageToken, {
     method: "POST",
   })) as { id?: string };
   if (!container.id) throw new Error("media container creation failed");
-
-
-  let status = "IN_PROGRESS";
-  // Video transcoding on Meta's side is much slower than image ingestion.
-  const maxAttempts = isVideo ? 60 : 20;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    await new Promise((r) => setTimeout(r, attempt === 0 ? 2000 : isVideo ? 5000 : 3000));
-
-    const s = (await fb(`/${container.id}?fields=status_code,status`, creds.pageToken)) as {
-      status_code?: string;
-      status?: string;
-    };
-    status = s.status_code ?? "IN_PROGRESS";
-    if (status === "FINISHED") break;
-    if (status === "ERROR" || status === "EXPIRED") throw new Error(`media processing ${status}: ${s.status ?? ""}`);
-  }
-  if (status !== "FINISHED") throw new Error(`media still processing (${status})`);
+  await waitForContainer(container.id, creds.pageToken, isVideo);
 
   const published = (await fb(`/${creds.igUserId}/media_publish?creation_id=${container.id}`, creds.pageToken, {
     method: "POST",
