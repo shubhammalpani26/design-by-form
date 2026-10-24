@@ -9,12 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 interface ScheduledPost {
   id: string;
   scheduled_at: string;
-  slot_type: "feed" | "story";
+  slot_type: "feed" | "story" | "reel" | "carousel";
   day_index: number;
   theme: string | null;
   caption: string;
   image_prompt: string;
   image_url: string | null;
+  media_urls: string[] | null;
   engineering: { pass?: boolean; confidence?: number; issues?: string[] } | null;
   engineering_status: string;
   status: string;
@@ -69,7 +70,7 @@ export const SocialScheduleManagement = () => {
       supabase
         .from("social_scheduled_posts" as any)
         .select(
-          "id, scheduled_at, slot_type, day_index, theme, caption, image_prompt, image_url, engineering, engineering_status, status, last_error, fb_status, fb_scheduled_at, fb_post_id, fb_caption, fb_error",
+          "id, scheduled_at, slot_type, day_index, theme, caption, image_prompt, image_url, media_urls, engineering, engineering_status, status, last_error, fb_status, fb_scheduled_at, fb_post_id, fb_caption, fb_error",
         )
         .order("scheduled_at", { ascending: true }),
       supabase
@@ -193,7 +194,9 @@ export const SocialScheduleManagement = () => {
                 <div className="min-w-0 flex-1 space-y-2">
                   <div className="flex flex-wrap items-center gap-2">
                     <Badge variant={(statusTone[p.status] ?? "outline") as never}>{p.status}</Badge>
-                    <Badge variant="outline">{p.slot_type}</Badge>
+                    <Badge variant="outline">
+                      {p.slot_type === "carousel" ? `carousel · ${p.media_urls?.length ?? 0} slides` : p.slot_type}
+                    </Badge>
                     {p.engineering_status === "fail" ? (
                       <Badge variant="destructive">engineering: needs a new render</Badge>
                     ) : p.engineering_status === "pass" ? (
