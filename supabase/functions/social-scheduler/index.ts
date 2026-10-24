@@ -805,12 +805,25 @@ async function publishFacebookDue() {
       .select("id");
     if (!claimed?.length) continue;
     try {
-      const mediaUrl = await resolveMediaUrl(row.image_url!);
       const caption = (row.fb_caption ?? "").trim() || composeCaption(row);
-      const isVideo = row.slot_type === "reel" || /\.(mp4|mov)$/i.test(mediaUrl.split("?")[0]);
-      const res = isVideo
-        ? await fbForm(`/${FB_PAGE_ID}/videos`, pageToken, { file_url: mediaUrl, description: caption })
-        : await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: mediaUrl, caption, published: "true" });
+      let res: { id?: string; post_id?: string };
+      if (row.slot_type === "carousel") {
+        // Facebook's equivalent of a carousel: unpublished photos attached to one Page post.
+        const form: Record<string, string> = { message: caption };
+        const slides = carouselSlides(row);
+        for (let i = 0; i < slides.length; i++) {
+          const photo = await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: await resolveMediaUrl(slides[i]), published: "false" });
+          if (!photo.id) throw new Error("facebook slide upload failed");
+          form[`attached_media[${i}]`] = JSON.stringify({ media_fbid: photo.id });
+        }
+        res = await fbForm(`/${FB_PAGE_ID}/feed`, pageToken, form);
+      } else {
+        const mediaUrl = await resolveMediaUrl(row.image_url!);
+        const isVideo = row.slot_type === "reel" || /\.(mp4|mov)$/i.test(mediaUrl.split("?")[0]);
+        res = isVideo
+          ? await fbForm(`/${FB_PAGE_ID}/videos`, pageToken, { file_url: mediaUrl, description: caption })
+          : await fbForm(`/${FB_PAGE_ID}/photos`, pageToken, { url: mediaUrl, caption, published: "true" });
+      }
       await admin
         .from("social_scheduled_posts")
         .update({ fb_status: "published", fb_post_id: res.post_id ?? res.id ?? null, fb_error: null })
