@@ -33,3 +33,6 @@
 - [x] Fix admin dashboard Meta ads card — now uses the linked Meta Ads connection (no expiring token)
 - [x] Drop LovaPaws (competitor) from gift-guide outreach; keep Memorial Merits
 - [x] Replace the two AI-room composite posts (Oct 25 pug, Oct 27 white dog) with real, unaltered photos — user found them cartoonish (2026-10-24)
+- [x] Mixed posting plan Oct 25–Nov 1 (10 carousels, 2 Reels, 5 single photos, 2–3/day); carousel publishing added to the scheduler; scheduler runs 3x daily
+- [ ] Re-cut first Reel with "Bone White" dog label, then schedule it (re-cut running)
+- [ ] Holiday gift ads (Meta): goal = free previews, whole US, two audiences — next: research offer, creative, copy, budget; blocked on adding funds + raising spend limit in Meta
