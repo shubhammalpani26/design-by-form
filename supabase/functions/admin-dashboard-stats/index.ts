@@ -15,7 +15,7 @@ const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
 const AD_ACCOUNT = "act_2036145687783794";
-const CAMPAIGN_ID = "120249343361350499";
+const META_GATEWAY = "https://connector-gateway.lovable.dev/meta_ads/v26.0";
 const REAL_PROVIDERS = ["razorpay", "cashfree"];
 
 Deno.serve(async (req) => {
@@ -151,15 +151,15 @@ Deno.serve(async (req) => {
         }),
         { spend: 0, impressions: 0, clicks: 0, landings: 0, purchases: 0 },
       );
-      const adsetBudget = camp.adsets?.data?.[0]?.daily_budget ?? camp.daily_budget;
       ads = {
         currency: acct.currency,
         // Meta reports balance/amount_spent/budget in the smallest currency unit.
         balance: Number(acct.balance ?? 0) / 100,
         fundsText: acct.funding_source_details?.display_string ?? null,
         spendCapLeft: acct.spend_cap ? (Number(acct.spend_cap) - Number(acct.amount_spent)) / 100 : null,
-        campaignStatus: camp.effective_status,
-        dailyBudget: adsetBudget ? Number(adsetBudget) / 100 : null,
+        campaignStatus: activeCamps.length ? `${activeCamps.length} active` : "None active",
+        activeCampaigns: activeCamps.map((c: any) => c.name),
+        dailyBudget: activeBudget ? activeBudget / 100 : null,
         totals: { ...tot, ctr: tot.impressions ? (tot.clicks / tot.impressions) * 100 : 0, cpc: tot.clicks ? tot.spend / tot.clicks : 0 },
         rows,
       };
