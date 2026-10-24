@@ -27,5 +27,5 @@
 - [ ] Flag to user: cap headroom ~₹3,242, balance ₹3,826 — raise cap/add funds in Meta before activation.
 
 ## Open tasks
-- [ ] Growth plan: research audience + recommend where to start for more visitors (asked 2026-10-15)
+- [x] Growth plan delivered 2026-10-15; research + plan saved in /mnt/documents/marketing/
 - [ ] Finish activating the five GitHub content skills (onetake, collage b-roll, lemo-opuscar, character-animation-base, hyperframes sub-skills)
