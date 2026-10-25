@@ -38,4 +38,4 @@
 - [ ] Holiday gift ads (Meta): created PAUSED 2026-10-24 (campaign 120250403223140499, 3 video ads, ₹3,000/day) — activation needs owner approval; funds + higher spending limit still needed in Meta; city campaign pause decision open
 - [ ] Holiday "Secret gift" Kling videos: creator v3 done + queued; next = one more video with the 230 Kling credits left (plan after the campaign setup), launch film after top-up
 - [ ] Longer cinematic Kling video ad (suspense, high-end look, ends on a clear buy prompt); owner OK to spend more Kling credits (2026-10-25) — plan + references for approval first
-- [ ] New emotional video concepts (owner idea 2026-10-25: grieving pet parent dreams of their pet, wakes, sees the sculpture, smiles) — pick concept, then plan + Kling top-up; also owner asked whether to show $59 in ads (answered: keep it)
+- [ ] New emotional video concepts (owner idea 2026-10-25: grieving pet parent dreams of their pet, wakes, sees the sculpture, smiles) — pick concept, then plan + Kling top-up; also owner asked whether to show $59 in ads (answered: keep it) Every concept must hook in the first 3 s (owner 2026-10-25).
