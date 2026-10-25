@@ -15,7 +15,7 @@ import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 import { ensurePrintFile, uploadStl, US_MAX_MM } from "../_shared/printFile.ts";
 import { analyseStl, repairStl, type MeshReport } from "../_shared/meshCheck.ts";
 import { estimateLandedUnitCost, partnerCostToMbpUsd, startPartnerBudget } from "../_shared/slant3d.ts";
-import { PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES } from "../_shared/originalsPricing.ts";
+import { FIXED_PRICE_SKUS, PRICE_BOOK, RETAIL_MULTIPLE, SKU_NAMES, retailFor } from "../_shared/originalsPricing.ts";
 import { sizeMm } from "../_shared/originalsSizes.ts";
 
 const json = (body: unknown, status = 200) =>
@@ -178,7 +178,7 @@ async function priceSizes(
         landed = await slice(repairedUrl);
       }
 
-      const retail = Math.max(entry.usd, roundUpTo5(landed.landedUsd * RETAIL_MULTIPLE));
+      const retail = retailFor(skuSlug, sizeKey, landed.landedUsd);
       const mbpUsd = partnerCostToMbpUsd(landed.landedUsd);
 
       files[sizeKey] = usedUrl;
@@ -280,9 +280,15 @@ async function priceSizes(
 }
 
 
-function publicShape(feasibility: Record<string, unknown> | null) {
+function publicShape(feasibility: Record<string, unknown> | null, skuSlug: string) {
   const sizes = Array.isArray(feasibility?.sizes) ? (feasibility!.sizes as SizeOutcome[]) : [];
-  return sizes.map((s) => ({ sizeKey: s.sizeKey, unitUsd: s.retailUsd, feasible: !s.error }));
+  return sizes.map((s) => {
+    // Fixed-price SKUs always show the list price, even for checks stored
+    // before prices were locked.
+    const list = PRICE_BOOK[skuSlug]?.[s.sizeKey]?.usd;
+    const unitUsd = FIXED_PRICE_SKUS.has(skuSlug) && typeof list === "number" ? list : s.retailUsd;
+    return { sizeKey: s.sizeKey, unitUsd, feasible: !s.error };
+  });
 }
 
 Deno.serve(async (req) => {
@@ -321,11 +327,11 @@ Deno.serve(async (req) => {
     if (!currentGeometry) delete files[sizeKey];
     // This size has already been proven and priced.
     if (checked.some((s) => s.sizeKey === sizeKey)) {
-      return json({ status: "ready", sizes: publicShape(existing) });
+      return json({ status: "ready", sizes: publicShape(existing, preview.sku_slug) });
     }
     const blockedGeometry = existing?.geometry as (MeshReport & { sizeKey?: string }) | undefined;
     if (currentGeometry && existing?.geometryBlocked && blockedGeometry?.sizeKey === sizeKey) {
-      return json({ status: "unprintable", reasons: blockedGeometry.blockers, score: blockedGeometry.score, metrics: blockedGeometry.metrics, sizes: publicShape(existing) });
+      return json({ status: "unprintable", reasons: blockedGeometry.blockers, score: blockedGeometry.score, metrics: blockedGeometry.metrics, sizes: publicShape(existing, preview.sku_slug) });
     }
 
 
@@ -503,7 +509,7 @@ Deno.serve(async (req) => {
             reasons: report.blockers,
             score: report.score,
             metrics: report.metrics,
-            sizes: publicShape({ sizes: checked }),
+            sizes: publicShape({ sizes: checked }, preview.sku_slug),
           });
         }
       }
@@ -540,7 +546,7 @@ Deno.serve(async (req) => {
 
     return json({
       status: "ready",
-      sizes: publicShape(feasibility),
+      sizes: publicShape(feasibility, preview.sku_slug),
       score: geometry?.score ?? null,
       metrics: geometry?.metrics ?? [],
       repaired: geometry?.repaired ?? false,
