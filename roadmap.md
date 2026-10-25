@@ -39,4 +39,4 @@
 - [ ] Holiday "Secret gift" Kling videos: creator v3 done + queued; next = one more video with the 230 Kling credits left (plan after the campaign setup), launch film after top-up
 - [ ] Longer cinematic Kling video ad (suspense, high-end look, ends on a clear buy prompt); owner OK to spend more Kling credits (2026-10-25) — plan + references for approval first
 - [ ] New emotional video concepts (owner idea 2026-10-25: grieving pet parent dreams of their pet, wakes, sees the sculpture, smiles) — pick concept, then plan + Kling top-up; also owner asked whether to show $59 in ads (answered: keep it) Every concept must hook in the first 3 s (owner 2026-10-25).
-- [ ] The dream video (2026-10-25): references, plan, stills approved; Kling topped up (3,140 credits). Animate on Kling 4.0, real-looking footage (owner: no slideshow look), stitch, captions, check, deliver.
+- [x] The dream video delivered 2026-10-25 (ads/videos/the_dream_video_ad_portrait.mp4, 23 s, Kling 4.0). Not posted or added to ads yet — needs owner go-ahead.
