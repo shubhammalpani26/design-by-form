@@ -178,7 +178,7 @@ async function priceSizes(
         landed = await slice(repairedUrl);
       }
 
-      const retail = Math.max(entry.usd, roundUpTo5(landed.landedUsd * RETAIL_MULTIPLE));
+      const retail = retailFor(skuSlug, sizeKey, landed.landedUsd);
       const mbpUsd = partnerCostToMbpUsd(landed.landedUsd);
 
       files[sizeKey] = usedUrl;
@@ -280,9 +280,15 @@ async function priceSizes(
 }
 
 
-function publicShape(feasibility: Record<string, unknown> | null) {
+function publicShape(feasibility: Record<string, unknown> | null, skuSlug: string) {
   const sizes = Array.isArray(feasibility?.sizes) ? (feasibility!.sizes as SizeOutcome[]) : [];
-  return sizes.map((s) => ({ sizeKey: s.sizeKey, unitUsd: s.retailUsd, feasible: !s.error }));
+  return sizes.map((s) => {
+    // Fixed-price SKUs always show the list price, even for checks stored
+    // before prices were locked.
+    const list = PRICE_BOOK[skuSlug]?.[s.sizeKey]?.usd;
+    const unitUsd = FIXED_PRICE_SKUS.has(skuSlug) && typeof list === "number" ? list : s.retailUsd;
+    return { sizeKey: s.sizeKey, unitUsd, feasible: !s.error };
+  });
 }
 
 Deno.serve(async (req) => {

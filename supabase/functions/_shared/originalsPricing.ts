@@ -70,10 +70,29 @@ export async function isMasterPrintFile(admin: any, url: string): Promise<boolea
  */
 export const RETAIL_MULTIPLE = 3.5;
 
+/**
+ * SKUs sold at their fixed list price whatever the partner quote says, so the
+ * "From $59" promise in ads and on the page always holds after the preview.
+ * The partner slice still proves printability and records true cost.
+ */
+export const FIXED_PRICE_SKUS = new Set([
+  "pet-silhouette-keepsake",
+  "pet-portrait-sculpture",
+]);
+
 /** Quotes are stable for a day — the partner's slicer output does not move. */
 const CACHE_MS = 24 * 60 * 60 * 1000;
 
 const roundUpTo5 = (n: number) => Math.ceil(n / 5) * 5;
+
+/** Buyer-facing unit price for a size, given the partner's landed cost when known. */
+export function retailFor(skuSlug: string, sizeKey: string, landedUsd: number | null): number {
+  const list = PRICE_BOOK[skuSlug]?.[sizeKey]?.usd;
+  if (typeof list !== "number") throw new Error("unknown_sku_size");
+  if (FIXED_PRICE_SKUS.has(skuSlug)) return list;
+  if (typeof landedUsd !== "number" || !(landedUsd > 0)) return list;
+  return Math.max(list, roundUpTo5(landedUsd * RETAIL_MULTIPLE));
+}
 
 export interface QuoteInput {
   skuSlug: string;
@@ -181,7 +200,9 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
     if (cached && cached.feasible && Number(cached.retail_usd) > 0) {
       return {
         ...base,
-        unitUsd: Number(cached.retail_usd),
+        unitUsd: FIXED_PRICE_SKUS.has(input.skuSlug)
+          ? size.usd
+          : Number(cached.retail_usd),
         source: "cache",
         partnerCostUsd: Number(cached.landed_usd),
         grams: Number(cached.grams) > 0 ? Number(cached.grams) : null,
@@ -199,7 +220,7 @@ export async function quoteLine(admin: any, input: QuoteInput): Promise<QuoteRes
       file.filament ?? "PLA BLACK",
     );
     const mbpUsd = partnerCostToMbpUsd(landed.landedUsd);
-    const retail = Math.max(size.usd, roundUpTo5(landed.landedUsd * RETAIL_MULTIPLE));
+    const retail = retailFor(input.skuSlug, input.sizeKey, landed.landedUsd);
 
     await admin.from("originals_quotes").insert({
       sku_slug: input.skuSlug,
