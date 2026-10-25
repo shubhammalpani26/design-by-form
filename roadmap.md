@@ -37,3 +37,4 @@
 - [x] Re-cut first Reel with "Bone White" dog label; scheduled Oct 31 13:00 UTC
 - [ ] Holiday gift ads (Meta): created PAUSED 2026-10-24 (campaign 120250403223140499, 3 video ads, ₹3,000/day) — activation needs owner approval; funds + higher spending limit still needed in Meta; city campaign pause decision open
 - [ ] Holiday "Secret gift" Kling videos: creator v3 done + queued; next = one more video with the 230 Kling credits left (plan after the campaign setup), launch film after top-up
+- [ ] Longer cinematic Kling video ad (suspense, high-end look, ends on a clear buy prompt); owner OK to spend more Kling credits (2026-10-25) — plan + references for approval first
