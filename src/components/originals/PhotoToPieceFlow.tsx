@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
@@ -106,13 +106,22 @@ async function readFnError(error: unknown, fallback: string) {
 
 interface Props {
   sku: OriginalSku;
+  /** Tells the page whether a photo is chosen, so it can hide its own upload button. */
+  onPhotoChange?: (hasPhoto: boolean) => void;
 }
 
-export const PhotoToPieceFlow = ({ sku }: Props) => {
+export interface PhotoToPieceFlowHandle {
+  /** Opens the phone's photo picker. Call from a tap handler. */
+  openPicker: () => void;
+}
+
+export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku, onPhotoChange }, ref) => {
   const { toast } = useToast();
   const cart = useOriginalsCart();
   const fileRef = useRef<HTMLInputElement>(null);
+  const goRef = useRef<HTMLButtonElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  useImperativeHandle(ref, () => ({ openPicker: () => fileRef.current?.click() }), []);
   const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
   const topReview = reviews[0];
 
@@ -1365,4 +1374,5 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       </Dialog>
     </div>
   );
-};
+});
+PhotoToPieceFlow.displayName = "PhotoToPieceFlow";
