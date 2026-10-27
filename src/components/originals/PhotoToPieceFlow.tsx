@@ -292,6 +292,13 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     }
     const dataUrl = await preparePhotoDataUrl(file);
     setPhoto({ dataUrl, name: file.name });
+    // Bring the "See it made" button into view, e.g. after picking from the page's top button.
+    requestAnimationFrame(() => {
+      const btn = goRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     // Default the colour to the pet's coat unless the shopper already chose one.
     if (!colorPickedRef.current) {
       const suggested = await suggestColorFromPhoto(dataUrl);
@@ -741,13 +748,23 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
 
 
           <Button
+            ref={goRef}
             size="lg"
             className="mt-5 w-full rounded-none h-12"
-            disabled={loading || (mode === "photo" && !photo)}
-            onClick={() => void generate()}
+            disabled={loading}
+            onClick={() => {
+              // No photo yet: this button opens the photo picker instead of doing nothing.
+              if (mode === "photo" && !photo) {
+                fileRef.current?.click();
+                return;
+              }
+              void generate();
+            }}
           >
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
+            ) : mode === "photo" && !photo ? (
+              <><Camera className="mr-2 h-4 w-4" /> Choose a photo to start</>
             ) : (
               <>See {displayName || "it"} made — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
