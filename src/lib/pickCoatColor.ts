@@ -21,33 +21,41 @@ function toHsv(r: number, g: number, b: number) {
   return { h, s: max === 0 ? 0 : d / max, v: max };
 }
 
-export function classifyCoatPixel(r: number, g: number, b: number): CoatColorKey | null {
+type CoatGroup = "sand" | "blush" | "charcoal" | "neutral";
+
+/** Sorts one pixel into a coat group; null for background greenery/sky. */
+export function classifyCoatPixel(r: number, g: number, b: number): { group: CoatGroup; v: number } | null {
   const { h, s, v } = toHsv(r, g, b);
   // Grass, leaves, sky, blue walls: not the pet.
   if (s > 0.18 && h >= 70 && h <= 260) return null;
-  if (v < 0.2) return "charcoal";
+  if (v < 0.22) return { group: "charcoal", v };
   if (s >= 0.28 && (h < 50 || h >= 330)) {
-    if ((h >= 330 || h < 12) && v > 0.75 && s < 0.5) return "blush";
-    return "sand";
+    if ((h >= 330 || h < 12) && v > 0.75 && s < 0.5) return { group: "blush", v };
+    return { group: "sand", v };
   }
-  if (v > 0.82) return "bone";
-  if (v > 0.62) return "marble";
-  if (v > 0.33) return "slate";
-  return "charcoal";
+  return { group: "neutral", v };
 }
 
 export function pickCoatColor(data: ArrayLike<number>): CoatColorKey | null {
-  const votes: Partial<Record<CoatColorKey, number>> = {};
+  const votes: Record<CoatGroup, number> = { sand: 0, blush: 0, charcoal: 0, neutral: 0 };
+  const neutralV: number[] = [];
   let counted = 0;
   for (let i = 0; i + 2 < data.length; i += 4) {
-    const key = classifyCoatPixel(data[i], data[i + 1], data[i + 2]);
-    if (!key) continue;
-    votes[key] = (votes[key] ?? 0) + 1;
+    const px = classifyCoatPixel(data[i], data[i + 1], data[i + 2]);
+    if (!px) continue;
+    votes[px.group]++;
+    if (px.group === "neutral") neutralV.push(px.v);
     counted++;
   }
   if (!counted) return null;
   // Blush only wins with a clear majority: pink tongues and blankets are common, pink coats aren't.
-  if (votes.blush && votes.blush < counted * 0.5) delete votes.blush;
-  const winner = (Object.entries(votes) as [CoatColorKey, number][]).sort((a, b) => b[1] - a[1])[0];
-  return winner ? winner[0] : null;
+  if (votes.blush < counted * 0.5) votes.blush = 0;
+  const winner = (Object.entries(votes) as [CoatGroup, number][]).sort((a, b) => b[1] - a[1])[0][0];
+  if (winner !== "neutral") return winner;
+  // White fur photographs grey in shade, so judge the coat by its lighter pixels.
+  neutralV.sort((a, b) => a - b);
+  const light = neutralV[Math.floor(neutralV.length * 0.75)];
+  if (light > 0.8) return "bone";
+  if (light > 0.62) return "marble";
+  return "slate";
 }
