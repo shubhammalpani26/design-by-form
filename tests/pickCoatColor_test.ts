@@ -1,6 +1,6 @@
-// Run: deno test src/lib/pickCoatColor_test.ts
+// Run: deno test --no-check tests/pickCoatColor_test.ts
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { pickCoatColor } from "./pickCoatColor.ts";
+import { pickCoatColor } from "../src/lib/pickCoatColor.ts";
 
 function pixels(parts: Array<[number, [number, number, number]]>): number[] {
   const out: number[] = [];
