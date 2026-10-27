@@ -1,7 +1,6 @@
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
-import { Skeleton } from "@/components/ui/skeleton";
-import { BadgeCheck, ShieldCheck } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 
 interface Props {
   skuSlug: string;
@@ -10,46 +9,21 @@ interface Props {
 export const ReviewsSection = ({ skuSlug }: Props) => {
   const { reviews, count, average, isLoading } = useOriginalsReviews(skuSlug);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        <Skeleton className="h-6 w-40" />
-        <Skeleton className="h-24 w-full" />
-      </div>
-    );
-  }
+  // Nothing to show until real reviews exist — never announce that there are none.
+  if (isLoading || count === 0) return null;
 
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-xl font-light tracking-tight">What buyers say</h2>
-        {count > 0 && (
-          <div className="flex items-center gap-2">
-            <StarRating value={average} size={15} />
-            <span className="text-sm tabular-nums">{average.toFixed(1)}</span>
-            <span className="text-xs text-muted-foreground">({count})</span>
-          </div>
-        )}
+        <div className="flex items-center gap-2">
+          <StarRating value={average} size={15} />
+          <span className="text-sm tabular-nums">{average.toFixed(1)}</span>
+          <span className="text-xs text-muted-foreground">({count})</span>
+        </div>
       </div>
 
-      {count === 0 ? (
-        <div className="mt-5 border border-border p-5">
-          <p className="text-sm text-muted-foreground">
-            This piece is newly released, so there are no customer reviews yet — we only publish reviews from
-            people who actually received one.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2 text-sm">
-            <div className="flex items-start gap-2">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>You approve the sculpture before we make anything — nothing is charged until you do.</span>
-            </div>
-            <div className="flex items-start gap-2">
-              <BadgeCheck className="mt-0.5 h-4 w-4 shrink-0" />
-              <span>If it arrives damaged, broken or clearly not your pet, we remake it and reship it free.</span>
-            </div>
-          </div>
-        </div>
-      ) : (
+      {(
         <ul className="mt-6 divide-y divide-border border-t border-border">
           {reviews.map((r) => (
             <li key={r.id} className="py-5">

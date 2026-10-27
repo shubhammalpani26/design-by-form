@@ -353,7 +353,7 @@ const Reviews = () => {
             ) : count === 0 ? (
               <div className="border border-border p-8 text-center">
                 <p className="text-muted-foreground">
-                  No reviews yet — be the first to share your experience.
+                  Received your piece? We'd love to hear how it looks at home.
                 </p>
               </div>
             ) : (

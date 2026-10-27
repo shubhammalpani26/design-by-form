@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { getStripeEnvironment } from "@/lib/stripe";
 import { Button } from "@/components/ui/button";
@@ -106,13 +106,22 @@ async function readFnError(error: unknown, fallback: string) {
 
 interface Props {
   sku: OriginalSku;
+  /** Tells the page whether a photo is chosen, so it can hide its own upload button. */
+  onPhotoChange?: (hasPhoto: boolean) => void;
 }
 
-export const PhotoToPieceFlow = ({ sku }: Props) => {
+export interface PhotoToPieceFlowHandle {
+  /** Opens the phone's photo picker. Call from a tap handler. */
+  openPicker: () => void;
+}
+
+export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku, onPhotoChange }, ref) => {
   const { toast } = useToast();
   const cart = useOriginalsCart();
   const fileRef = useRef<HTMLInputElement>(null);
+  const goRef = useRef<HTMLButtonElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  useImperativeHandle(ref, () => ({ openPicker: () => fileRef.current?.click() }), []);
   const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
   const topReview = reviews[0];
 
@@ -122,6 +131,7 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
   const reveal = EXPERIMENTS.reveal_screen[revealVariant];
 
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
+  useEffect(() => { onPhotoChange?.(Boolean(photo)); }, [photo, onPhotoChange]);
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
@@ -283,6 +293,13 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
     }
     const dataUrl = await preparePhotoDataUrl(file);
     setPhoto({ dataUrl, name: file.name });
+    // Bring the "See it made" button into view, e.g. after picking from the page's top button.
+    requestAnimationFrame(() => {
+      const btn = goRef.current;
+      if (!btn) return;
+      const r = btn.getBoundingClientRect();
+      if (r.top < 0 || r.bottom > window.innerHeight) btn.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
     // Default the colour to the pet's coat unless the shopper already chose one.
     if (!colorPickedRef.current) {
       const suggested = await suggestColorFromPhoto(dataUrl);
@@ -732,13 +749,23 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
 
 
           <Button
+            ref={goRef}
             size="lg"
             className="mt-5 w-full rounded-none h-12"
-            disabled={loading || (mode === "photo" && !photo)}
-            onClick={() => void generate()}
+            disabled={loading}
+            onClick={() => {
+              // No photo yet: this button opens the photo picker instead of doing nothing.
+              if (mode === "photo" && !photo) {
+                fileRef.current?.click();
+                return;
+              }
+              void generate();
+            }}
           >
             {loading ? (
               <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> {waitingLines[lineIndex]}</>
+            ) : mode === "photo" && !photo ? (
+              <><Camera className="mr-2 h-4 w-4" /> Choose a photo to start</>
             ) : (
               <>See {displayName || "it"} made — free <ArrowRight className="ml-2 h-4 w-4" /></>
             )}
@@ -1365,4 +1392,5 @@ export const PhotoToPieceFlow = ({ sku }: Props) => {
       </Dialog>
     </div>
   );
-};
+});
+PhotoToPieceFlow.displayName = "PhotoToPieceFlow";

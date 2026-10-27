@@ -1,4 +1,6 @@
-import { loadStripe, Stripe } from "@stripe/stripe-js";
+// "/pure" loads Stripe's script only when checkout actually asks for it, not on every page.
+import { loadStripe } from "@stripe/stripe-js/pure";
+import type { Stripe } from "@stripe/stripe-js";
 
 type StripeEnv = "sandbox" | "live";
 
