@@ -29,7 +29,7 @@ export function classifyCoatPixel(r: number, g: number, b: number): { group: Coa
   // Grass, leaves, sky, blue walls: not the pet.
   if (s > 0.18 && h >= 70 && h <= 260) return null;
   if (v < 0.22) return { group: "charcoal", v };
-  if ((s >= 0.28 && (h < 50 || h >= 330)) || (s >= 0.2 && h >= 20 && h < 50 && v < 0.9)) {
+  if (s >= 0.28 && (h < 50 || h >= 330)) {
     if ((h >= 330 || h < 12) && v > 0.75 && s < 0.5) return { group: "blush", v };
     return { group: "sand", v };
   }
