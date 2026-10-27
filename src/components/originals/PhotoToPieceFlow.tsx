@@ -131,6 +131,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   const reveal = EXPERIMENTS.reveal_screen[revealVariant];
 
   const [photo, setPhoto] = useState<{ dataUrl: string; name: string } | null>(null);
+  useEffect(() => { onPhotoChange?.(Boolean(photo)); }, [photo, onPhotoChange]);
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
