@@ -40,3 +40,7 @@
 - [ ] Longer cinematic Kling video ad (suspense, high-end look, ends on a clear buy prompt); owner OK to spend more Kling credits (2026-10-25) — plan + references for approval first
 - [ ] New emotional video concepts (owner idea 2026-10-25: grieving pet parent dreams of their pet, wakes, sees the sculpture, smiles) — pick concept, then plan + Kling top-up; also owner asked whether to show $59 in ads (answered: keep it) Every concept must hook in the first 3 s (owner 2026-10-25).
 - [x] The dream video delivered 2026-10-25 (ads/videos/the_dream_video_ad_portrait.mp4, 23 s, Kling 4.0). Not posted or added to ads yet — needs owner go-ahead.
+
+- [x] Pet pages: big upload button on first phone screen, slim cookie strip, photos shrunk (4.7 MB -> ~60 KB), grey button opens photo picker, real-piece photo gallery, no 'no reviews' text (2026-10-27)
+- [ ] Point the 4 holiday ads at the gift page (Custom Pet Portrait Sculpture) — waiting on owner approval card
+- [ ] Publish the site so the pet page fixes reach nyzora.ai — owner action
