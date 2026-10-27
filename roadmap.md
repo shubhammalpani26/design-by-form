@@ -43,4 +43,5 @@
 
 - [x] Pet pages: big upload button on first phone screen, slim cookie strip, photos shrunk (4.7 MB -> ~60 KB), grey button opens photo picker, real-piece photo gallery, no 'no reviews' text (2026-10-27)
 - [x] Point the 4 holiday ads at the gift page (Custom Pet Portrait Sculpture) — done 2026-10-27, back in Meta review
-- [ ] Publish the site so the pet page fixes reach nyzora.ai — owner action
+- [x] Publish the site so the pet page fixes reach nyzora.ai (live 2026-10-27)
+- [x] Full retest 2026-10-27: live gift page, ads, preview, sizes, checkout, tracking. Fixed photo colour pick (golden dogs were defaulting to Slate Grey) — needs publish
