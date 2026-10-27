@@ -1,16 +1,19 @@
+import { useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
-import { ArrowLeft, ShieldCheck, Truck, Factory } from "lucide-react";
+import { ArrowLeft, Camera, ShieldCheck, Truck, Factory } from "lucide-react";
 import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
-import { PhotoToPieceFlow } from "@/components/originals/PhotoToPieceFlow";
+import { PhotoToPieceFlow, type PhotoToPieceFlowHandle } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
 import { FounderNote } from "@/components/originals/FounderNote";
 import { ReviewsSection } from "@/components/originals/ReviewsSection";
 import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
+import { RealPiecesGallery } from "@/components/originals/RealPiecesGallery";
+import { getVariant, trackExperiment } from "@/lib/experiments";
 import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
 import nalaaPhoto from "@/assets/pet-action-photo.jpeg.asset.json";
 
@@ -19,6 +22,8 @@ const OriginalDetail = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const sku = getSku(slug);
+  const flowRef = useRef<PhotoToPieceFlowHandle>(null);
+  const [hasPhoto, setHasPhoto] = useState(false);
 
   if (!sku) {
     return (
@@ -104,17 +109,34 @@ const OriginalDetail = () => {
         </div>
 
         <div>
-          <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">Nyzora Originals</p>
-          <h1 className="mt-3 text-3xl md:text-4xl font-light tracking-tight">{sku.name}</h1>
-          <p className="mt-2 text-lg tabular-nums">
+          <p className="hidden text-[11px] tracking-[0.3em] uppercase text-muted-foreground md:block">Nyzora Originals</p>
+          <h1 className="text-2xl md:mt-3 md:text-4xl font-light tracking-tight">{sku.name}</h1>
+          <p className="mt-1 text-lg tabular-nums md:mt-2">
             {sku.sizes.length > 1 ? `From $${Math.min(...sku.sizes.map((s) => s.price))}` : `$${sku.price}`}
             <span className="ml-2 text-xs uppercase tracking-[0.15em] text-muted-foreground">Free US shipping</span>
           </p>
+          {sku.photo && !hasPhoto && (
+            <div className="mt-3">
+              <Button
+                size="lg"
+                className="h-14 w-full rounded-none text-base"
+                onClick={() => {
+                  trackExperiment("render_progress", getVariant("render_progress"), "top_upload_tap", { skuSlug: sku.slug });
+                  flowRef.current?.openPicker();
+                }}
+              >
+                <Camera className="mr-2 h-5 w-5" /> Upload your pet's photo
+              </Button>
+              <p className="mt-1.5 text-center text-xs text-muted-foreground">
+                Free preview in about a minute · no card needed
+              </p>
+            </div>
+          )}
           <p className="mt-2 hidden text-xs text-muted-foreground md:block">
             Ordering more than one piece? Add each to your order — one payment, one shipment.
           </p>
           <div className="mt-4">
-            <PhotoToPieceFlow sku={sku} />
+            <PhotoToPieceFlow ref={flowRef} sku={sku} onPhotoChange={setHasPhoto} />
           </div>
 
           <p className="mt-6 text-sm text-muted-foreground leading-relaxed">{sku.description}</p>
@@ -138,6 +160,7 @@ const OriginalDetail = () => {
 
       <section className="border-t border-border">
         <div className="container mx-auto px-4 py-14 space-y-14">
+          {sku.photo && <RealPiecesGallery />}
           <BuyerPhotoStrip />
           <ReviewsSection skuSlug={sku.slug} />
         </div>
