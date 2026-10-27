@@ -4,10 +4,11 @@ import { Link } from "react-router-dom";
 import { resolveConsent, setConsent } from "@/lib/consent";
 
 /**
- * Cookie/tracking consent banner.
+ * Cookie/tracking consent strip.
  *
  * Only renders for visitors in regions that require consent. Everyone else
- * never sees it. Accepting and declining are equally easy.
+ * never sees it. Accepting and declining are equally easy. Kept to one slim
+ * row so it never hides the page's main action on a phone.
  */
 export const ConsentBanner = () => {
   const [visible, setVisible] = useState(false);
@@ -28,7 +29,7 @@ export const ConsentBanner = () => {
     return () => window.removeEventListener("nyzora:open-consent", open);
   }, []);
 
-  // Reserve the banner's height so other fixed bottom bars (e.g. the order
+  // Reserve the strip's height so other fixed bottom bars (e.g. the order
   // bar) sit above it instead of being covered.
   useEffect(() => {
     const root = document.documentElement;
@@ -37,7 +38,7 @@ export const ConsentBanner = () => {
       return;
     }
     const el = document.querySelector<HTMLElement>("[data-consent-banner]");
-    root.style.setProperty("--bottom-banner-h", `${el?.offsetHeight ?? 96}px`);
+    root.style.setProperty("--bottom-banner-h", `${el?.offsetHeight ?? 44}px`);
     return () => root.style.setProperty("--bottom-banner-h", "0px");
   }, [visible]);
 
@@ -53,22 +54,20 @@ export const ConsentBanner = () => {
       role="dialog"
       data-consent-banner
       aria-label="Cookie preferences"
-      className="fixed inset-x-0 bottom-0 z-[100] border-t border-border bg-background/95 backdrop-blur px-4 py-4 md:px-6"
+      className="fixed inset-x-0 bottom-0 z-[100] border-t border-border bg-background/95 backdrop-blur px-3 py-1.5 md:px-6"
     >
-      <div className="container flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <p className="text-sm text-muted-foreground leading-relaxed max-w-2xl">
-          We use cookies to measure how our ads and site perform. Nothing is
-          tracked unless you accept. See our{" "}
+      <div className="container flex items-center justify-between gap-3 px-0">
+        <p className="min-w-0 text-[11px] leading-snug text-muted-foreground">
+          Cookies help us measure our ads. Nothing is tracked unless you accept.{" "}
           <Link to="/privacy-policy" className="underline underline-offset-2 hover:text-foreground">
-            Privacy Policy
+            Privacy
           </Link>
-          .
         </p>
-        <div className="flex gap-3 shrink-0">
-          <Button variant="outline" size="sm" onClick={() => choose("denied")}>
+        <div className="flex shrink-0 gap-1.5">
+          <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" onClick={() => choose("denied")}>
             Decline
           </Button>
-          <Button size="sm" onClick={() => choose("granted")}>
+          <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => choose("granted")}>
             Accept
           </Button>
         </div>

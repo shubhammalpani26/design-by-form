@@ -1,7 +1,6 @@
 import { StarRating } from "./StarRating";
 import { useOriginalsReviews } from "./useOriginalsReviews";
-import { Skeleton } from "@/components/ui/skeleton";
-import { BadgeCheck, ShieldCheck } from "lucide-react";
+import { BadgeCheck } from "lucide-react";
 
 interface Props {
   skuSlug: string;
