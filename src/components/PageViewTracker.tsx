@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { getSessionId } from "@/lib/experiments";
+import { getAdTouch } from "@/lib/adAttribution";
 
 /** Logs one anonymous page view per route change for the admin Dashboard tab. */
 export const PageViewTracker = () => {
@@ -18,6 +19,8 @@ export const PageViewTracker = () => {
         source = ref && !ref.includes("nyzora") && !ref.includes("lovable") ? ref.replace(/^www\./, "") : "direct";
       } catch { source = "direct"; }
     }
+    // Which ad campaign brought this visitor (remembered for 30 days).
+    const { touch, fresh } = getAdTouch(location.search, location.pathname);
     void fetch(`${url}/rest/v1/experiment_events`, {
       method: "POST",
       keepalive: true,
@@ -27,7 +30,11 @@ export const PageViewTracker = () => {
         variant: "a",
         event: "page_view",
         session_id: getSessionId(),
-        metadata: { path: location.pathname.slice(0, 200), source: source.slice(0, 60) },
+        metadata: {
+          path: location.pathname.slice(0, 200),
+          source: source.slice(0, 60),
+          ...(touch ? { campaign: touch.campaign, landing: touch.landing, ad_click: fresh } : {}),
+        },
       }),
     }).catch(() => undefined);
   }, [location.pathname]);
