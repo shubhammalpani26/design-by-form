@@ -14,7 +14,8 @@ export function touchFromUrl(search: string, pathname: string, now = Date.now())
   const utmCampaign = (p.get("utm_campaign") ?? "").trim();
   const utmSource = (p.get("utm_source") ?? "").trim();
   let campaign = utmCampaign;
-  if (!campaign && p.get("fbclid")) campaign = "meta_untagged";
+  const metaSource = /^(fb|ig|facebook|instagram|meta)$/i.test(utmSource);
+  if (!campaign && (p.get("fbclid") || metaSource)) campaign = "meta_untagged";
   if (!campaign && p.get("gclid")) campaign = "google_untagged";
   if (!campaign) return null;
   return {
