@@ -89,6 +89,44 @@ export function AdminDashboard() {
             </div>
           </Section>
 
+          <Section title="By ad campaign (unique people)">
+            <div className="overflow-x-auto border border-border">
+              <table className="w-full text-sm">
+                <thead className="text-left text-xs uppercase text-muted-foreground">
+                  <tr>
+                    {["Campaign", "Visitors", "Photo", "Previews", "Size", "Checkout", "Payment", "Spend", "Per preview"].map((h) => (
+                      <th key={h} className="whitespace-nowrap px-3 py-2">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {(data.campaigns ?? []).length === 0 && (
+                    <tr><td colSpan={9} className="px-3 py-3 text-muted-foreground">No visitors in this period.</td></tr>
+                  )}
+                  {(data.campaigns ?? []).map((c: any) => (
+                    <tr key={c.key} className="border-t border-border text-foreground">
+                      <td className="px-3 py-2">{c.label}</td>
+                      <td className="px-3 py-2">{c.visitors}</td>
+                      <td className="px-3 py-2">{c.photo}</td>
+                      <td className="px-3 py-2 font-medium">{c.preview}</td>
+                      <td className="px-3 py-2">{c.size}</td>
+                      <td className="px-3 py-2 font-medium">{c.checkout}</td>
+                      <td className="px-3 py-2">{c.payment}</td>
+                      <td className="whitespace-nowrap px-3 py-2">{c.spend != null ? money(c.spend, ads?.currency) : "—"}</td>
+                      <td className="whitespace-nowrap px-3 py-2">
+                        {c.spend != null && c.preview > 0 ? money(c.spend / c.preview, ads?.currency) : "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Each visitor counts once, under the last campaign they clicked. The city ad's link has no campaign tag, so it's
+              recognised by its landing page. Spend comes from Meta for its matching period, which leaves out today.
+            </p>
+          </Section>
+
           <Section title="Ads (Meta)">
             {ads?.error ? (
               <div className="text-sm text-destructive">Couldn't load ads: {ads.error}</div>
