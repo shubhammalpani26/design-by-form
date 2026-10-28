@@ -124,6 +124,7 @@ Deno.serve(async (req) => {
 
     // --- Meta ads (via the linked Meta Ads connection; no expiring tokens) ---
     let ads: any = null;
+    let campaignSpend: { name: string; spend: number }[] | null = null;
     try {
       const lovableKey = Deno.env.get("LOVABLE_API_KEY");
       const metaKey = Deno.env.get("META_ADS_API_KEY");
@@ -143,11 +144,13 @@ Deno.serve(async (req) => {
         return j;
       };
       const fields = "ad_name,spend,impressions,clicks,ctr,cpc,actions";
-      const [acct, byAd, camps] = await Promise.all([
+      const [acct, byAd, camps, byCamp] = await Promise.all([
         g(`/${AD_ACCOUNT}?fields=currency,balance,amount_spent,spend_cap,account_status,funding_source_details`),
         g(`/${AD_ACCOUNT}/insights?level=ad&date_preset=${preset}&fields=${fields}&limit=50`),
         g(`/${AD_ACCOUNT}/campaigns?fields=name,effective_status,daily_budget,adsets.limit(20){daily_budget,effective_status}&limit=50`),
+        g(`/${AD_ACCOUNT}/insights?level=campaign&date_preset=${preset}&fields=campaign_name,spend&limit=50`),
       ]);
+      campaignSpend = (byCamp.data ?? []).map((r: any) => ({ name: String(r.campaign_name ?? ""), spend: Number(r.spend ?? 0) }));
       const activeCamps = (camps.data ?? []).filter((c: any) => c.effective_status === "ACTIVE");
       const activeBudget = activeCamps.reduce((s: number, c: any) => {
         if (c.daily_budget) return s + Number(c.daily_budget);
@@ -189,6 +192,21 @@ Deno.serve(async (req) => {
       ads = { error: (e as Error).message };
     }
 
+    const campaigns = [...byCampaign.entries()]
+      .map(([key, b]) => {
+        const known = KNOWN_CAMPAIGNS[key];
+        const spend = known && campaignSpend
+          ? campaignSpend.filter((c) => c.name.includes(known.metaName)).reduce((s, c) => s + c.spend, 0)
+          : null;
+        return {
+          key,
+          label: campaignLabel(key),
+          ...Object.fromEntries(steps.map(([s]) => [s, b[s].size])),
+          spend,
+        };
+      })
+      .sort((a: any, b: any) => (a.key === NOT_FROM_AD ? 1 : b.key === NOT_FROM_AD ? -1 : b.visitors - a.visitors));
+
     return json({
       generatedAt: new Date().toISOString(),
       days,
@@ -201,6 +219,7 @@ Deno.serve(async (req) => {
         .sort((a, b) => b.visitors - a.visitors).slice(0, 15),
       sources: [...sources.entries()].map(([source, s]) => ({ source, visitors: s.size })).sort((a, b) => b.visitors - a.visitors),
       funnel,
+      campaigns,
       previewAttempts: count("render_progress", "generate_start"),
       previewFailures: count("render_progress", "generate_error"),
       renders: renders ?? 0,
