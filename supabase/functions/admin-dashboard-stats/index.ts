@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { attributeSessions, campaignLabel, KNOWN_CAMPAIGNS, NOT_FROM_AD } from "../_shared/adCampaigns.ts";
 
 /**
  * Admin-only snapshot for the "Dashboard" tab: visitors, top pages, preview
@@ -81,6 +82,27 @@ Deno.serve(async (req) => {
       { label: "Clicked checkout", people: uniq("reveal_screen", "checkout_click") },
       { label: "Reached payment", people: uniq("reveal_screen", "payment_reached") },
     ];
+
+    // --- Previews and checkouts per ad campaign (one campaign per visitor) ---
+    const sessionCampaign = attributeSessions(pageViews);
+    const byCampaign = new Map<string, Record<string, Set<string>>>();
+    const steps: [string, string, string][] = [
+      ["visitors", "", ""],
+      ["photo", "render_progress", "photo_selected"],
+      ["preview", "reveal_screen", "reveal_view"],
+      ["size", "reveal_screen", "size_select"],
+      ["checkout", "reveal_screen", "checkout_click"],
+      ["payment", "reveal_screen", "payment_reached"],
+    ];
+    const bucket = (k: string) => {
+      if (!byCampaign.has(k)) byCampaign.set(k, Object.fromEntries(steps.map(([s]) => [s, new Set<string>()])));
+      return byCampaign.get(k)!;
+    };
+    for (const e of events) {
+      const b = bucket(sessionCampaign.get(e.session_id) ?? NOT_FROM_AD);
+      b.visitors.add(e.session_id);
+      for (const [s, exp, ev] of steps) if (exp && e.experiment === exp && e.event === ev) b[s].add(e.session_id);
+    }
 
     // --- Renders ---
     const { count: renders } = await admin
