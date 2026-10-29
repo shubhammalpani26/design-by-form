@@ -775,6 +775,10 @@ export type Database = {
           slant3d_quoted_at: string | null
           slug: string | null
           status: string
+          studio_image_at: string | null
+          studio_image_error: string | null
+          studio_image_url: string | null
+          studio_shopify_media_id: string | null
           total_sales: number
           updated_at: string
           weight: number | null
@@ -819,6 +823,10 @@ export type Database = {
           slant3d_quoted_at?: string | null
           slug?: string | null
           status?: string
+          studio_image_at?: string | null
+          studio_image_error?: string | null
+          studio_image_url?: string | null
+          studio_shopify_media_id?: string | null
           total_sales?: number
           updated_at?: string
           weight?: number | null
@@ -863,6 +871,10 @@ export type Database = {
           slant3d_quoted_at?: string | null
           slug?: string | null
           status?: string
+          studio_image_at?: string | null
+          studio_image_error?: string | null
+          studio_image_url?: string | null
+          studio_shopify_media_id?: string | null
           total_sales?: number
           updated_at?: string
           weight?: number | null

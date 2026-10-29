@@ -138,7 +138,8 @@ const ProductDetailInner = () => {
         } catch (error) { console.error('Error calculating weight:', error); }
       }
 
-      setMainImage(data.image_url || '');
+      // Clean studio photo leads when one exists; the original stays in the gallery.
+      setMainImage(data.studio_image_url || data.image_url || '');
 
       const dimensionsStr = dims && typeof dims === 'object' && dims.width && dims.depth && dims.height
         ? `${dims.width}"W × ${dims.depth}"D × ${dims.height}"H`
@@ -162,8 +163,9 @@ const ProductDetailInner = () => {
         designerSlug: (data.designer_profiles as any)?.slug || slugify(data.designer_profiles?.name || ''),
         price: Number(data.designer_price),
         weight: productWeight,
-        image: data.image_url || '',
+        image: data.studio_image_url || data.image_url || '',
         image_url: data.image_url || '',
+        studio_image_url: data.studio_image_url || '',
         description: data.description || 'Beautiful piece crafted with sustainable materials.',
         dimensions: dimensionsStr,
         dimensionsObj: dims,
@@ -327,7 +329,7 @@ const ProductDetailInner = () => {
       <SEOHead
         title={product.name}
         description={product.description || `${product.name} by ${product.designer}. Premium furniture.`}
-        image={product.image_url}
+        image={product.image}
         url={canonicalUrl}
         canonical={canonicalUrl}
         type="product"
@@ -343,7 +345,7 @@ const ProductDetailInner = () => {
           name: product.name,
           url: canonicalUrl,
           description: product.description || `${product.name} by ${product.designer}`,
-          image: product.image_url ? [product.image_url] : undefined,
+          image: [product.studio_image_url, product.image_url].filter(Boolean).length ? [product.studio_image_url, product.image_url].filter(Boolean) : undefined,
           sku: `NYZ-${String(product.id).slice(0, 8).toUpperCase()}`,
           category: product.category,
           brand: { "@type": "Brand", name: "Nyzora" },
@@ -389,7 +391,8 @@ const ProductDetailInner = () => {
               <TabsContent value="image" className="mt-2">
                 {(() => {
                   const allImages: { url: string; label: string }[] = [];
-                  if (product.image_url) allImages.push({ url: product.image_url, label: 'Main' });
+                  if (product.studio_image_url) allImages.push({ url: product.studio_image_url, label: 'Studio' });
+                  if (product.image_url) allImages.push({ url: product.image_url, label: product.studio_image_url ? 'Original' : 'Main' });
                   if (product.angle_views && Array.isArray(product.angle_views)) {
                     product.angle_views.forEach((view: any, i: number) => {
                       const url = view.url || view;

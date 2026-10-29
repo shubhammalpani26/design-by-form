@@ -78,6 +78,13 @@
       "when": 1792845542018,
       "tag": "0010_social_carousel_posts",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793305813859,
+      "tag": "0011_product_studio_photos",
+      "breakpoints": true
     }
   ]
 }

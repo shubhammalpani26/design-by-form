@@ -21,6 +21,7 @@ import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
 import { OriginalsPreviewGallery } from "@/components/admin/OriginalsPreviewGallery";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { ImageTo3D } from "@/components/admin/ImageTo3D";
+import { StudioPhotos } from "@/components/admin/StudioPhotos";
 import { SEOHead } from "@/components/SEOHead";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -28,6 +29,7 @@ const TABS = [
   { value: "dashboard", label: "Dashboard" },
   { value: "designers", label: "Creators" },
   { value: "products", label: "Products" },
+  { value: "studio-photos", label: "Studio Photos" },
   { value: "users", label: "Users" },
   { value: "credits", label: "Credits" },
   { value: "orders", label: "Orders" },
@@ -154,6 +156,10 @@ export default function AdminPanel() {
 
           <TabsContent value="products">
             <ProductsManagement />
+          </TabsContent>
+
+          <TabsContent value="studio-photos">
+            <StudioPhotos />
           </TabsContent>
 
           <TabsContent value="users">
