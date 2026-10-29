@@ -126,6 +126,28 @@ Deno.serve(async (req) => {
       product = data;
     }
 
+    // Re-send an existing studio photo to the Shopify checkout (e.g. after the store connection is fixed).
+    if (action === "shopify") {
+      if (!product.studio_image_url) return json({ ok: false, error: "No studio photo yet." }, 400);
+      if (!product.shopify_product_id) return json({ ok: false, error: "Not in the store yet." }, 400);
+      try {
+        await removeShopifyMedia(product.shopify_product_id, product.studio_shopify_media_id).catch(() => {});
+        const mediaId = await putStudioFirstInShopify(product.shopify_product_id, product.studio_image_url, product.name);
+        await admin
+          .from("designer_products")
+          .update({ studio_shopify_media_id: mediaId, studio_image_error: null })
+          .eq("id", product.id);
+        return json({ ok: true, productId: product.id });
+      } catch (e) {
+        const msg = (e as Error).message;
+        await admin
+          .from("designer_products")
+          .update({ studio_image_error: `Checkout image not updated: ${msg}`.slice(0, 300) })
+          .eq("id", product.id);
+        return json({ ok: false, productId: product.id, error: msg }, 502);
+      }
+    }
+
     if (action === "remove") {
       let shopifyError: string | null = null;
       try {
