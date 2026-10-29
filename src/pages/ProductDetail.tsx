@@ -329,7 +329,7 @@ const ProductDetailInner = () => {
       <SEOHead
         title={product.name}
         description={product.description || `${product.name} by ${product.designer}. Premium furniture.`}
-        image={product.image_url}
+        image={product.image}
         url={canonicalUrl}
         canonical={canonicalUrl}
         type="product"
@@ -345,7 +345,7 @@ const ProductDetailInner = () => {
           name: product.name,
           url: canonicalUrl,
           description: product.description || `${product.name} by ${product.designer}`,
-          image: product.image_url ? [product.image_url] : undefined,
+          image: [product.studio_image_url, product.image_url].filter(Boolean).length ? [product.studio_image_url, product.image_url].filter(Boolean) : undefined,
           sku: `NYZ-${String(product.id).slice(0, 8).toUpperCase()}`,
           category: product.category,
           brand: { "@type": "Brand", name: "Nyzora" },

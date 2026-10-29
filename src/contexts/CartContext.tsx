@@ -47,7 +47,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
       const { data: product, error } = await supabase
         .from('designer_products')
-        .select('id, name, designer_price, image_url, status, shopify_variant_id')
+        .select('id, name, designer_price, image_url, studio_image_url, status, shopify_variant_id')
         .eq('id', productId)
         .maybeSingle();
 
@@ -78,7 +78,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         product: {
           name: product.name,
           designer_price: Number(product.designer_price),
-          image_url: product.image_url || '',
+          image_url: product.studio_image_url || product.image_url || '',
         },
       });
 
