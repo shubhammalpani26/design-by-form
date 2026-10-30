@@ -15,6 +15,7 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
+import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
 import { preservedSourcePrintFile, reusableOrderPrintFile } from "../_shared/engravingState.ts";
@@ -265,12 +266,15 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
     // Files cached before the stacked-plinth fix can carry two bases. Never
-    // reuse one — rebuild this size from the generator's mesh instead.
+    // reuse one — rebuild it from the cached file itself (light, and works
+    // after generator tasks expire), falling back to the generator's mesh.
     const cachedIsStacked = perSize[row.size_key]
       ? await printFileHasStackedPlinth(perSize[row.size_key])
       : false;
     if (cachedIsStacked) {
       console.warn("originals-model: cached print file has a stacked plinth, rebuilding", row.id, perSize[row.size_key]);
+      const restacked = await restackCachedFile(perSize[row.size_key], row.size_key, `originals/${row.sku_slug}/${row.id}`);
+      if (restacked) return { url: restacked.url, status: "ready" };
     }
     if (perSize[row.size_key] && !cachedIsStacked && perSize[row.size_key] !== row.print_file_url) {
       // The feasibility pass builds the file without asking the generator for
