@@ -144,7 +144,9 @@ export function OriginalsPreviewGallery() {
           .select("originals_order_id, details")
           .in("originals_order_id", orderIds)
           .eq("event", "order_processed")
+          .order("created_at", { ascending: true })
       : { data: [] as any[] };
+    // Oldest first, so a re-placed order (cancel + new Slant order) shows its latest bill.
     const cost = new Map<string, any>();
     (ev ?? []).forEach((e: any) => cost.set(e.originals_order_id, e.details));
     const byPreview = new Map<string, OrderInfo[]>();
