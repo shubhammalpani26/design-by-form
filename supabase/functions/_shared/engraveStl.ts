@@ -603,12 +603,6 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
   }
   if (neck) return neck.z;
 
-  // A straight-sided generated plinth whose top is a soft fillet has no flat
-  // ledge to find below. Missing it is how a second base was slid underneath
-  // the generated one (Hampton order, Oct 2026) — detect it by its shape.
-  const prismatic = prismaticPlinthTop(tris, bounds);
-  if (prismatic !== null) return prismatic;
-
   // Simple slab models do not have a neck-and-chest silhouette. For those,
   // take the highest qualifying horizontal plane — but only where that plane
   // really is the solid top of a plinth. The tops of four slim legs also form
@@ -622,7 +616,12 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     if (!(spanBelow > 0) || up / spanBelow < 0.45) continue;
     if (!best || z > best.z) best = { z, area: up };
   }
-  return best?.z ?? null;
+  if (best) return best.z;
+
+  // A straight-sided generated plinth whose top is a soft fillet has no flat
+  // ledge to find above. Missing it is how a second base was slid underneath
+  // the generated one (Hampton order, Oct 2026) — detect it by its shape.
+  return prismaticPlinthTop(tris, bounds);
 
 }
 
