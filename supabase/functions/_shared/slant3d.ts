@@ -152,12 +152,23 @@ async function withPartnerRetry<T>(fn: () => Promise<T>, attempts = 3): Promise<
  * Uploads a printable file to the partner and returns its file record.
  * The partner only accepts STL; callers must convert first.
  */
+async function sha256Hex(bytes: Uint8Array): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", bytes as Uint8Array<ArrayBuffer>);
+  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+/** `name.stl` + content hash → `name-<10 hex>.stl`, so different bytes never share a partner file. */
+export function partnerFileName(rawName: string, contentHash: string): string {
+  const stem = rawName.replace(/\.stl$/i, "");
+  const tag = contentHash.slice(0, 10);
+  return tag ? `${stem}-${tag}.stl` : `${stem}.stl`;
+}
+
 export async function uploadPrintFile(
   fileUrl: string,
   opts: { name?: string; ownerId?: string } = {},
 ): Promise<PartnerFile> {
   const rawName = opts.name ?? fileUrl.split("/").pop()?.split("?")[0] ?? "model.stl";
-  const name = rawName.toLowerCase().endsWith(".stl") ? rawName : `${rawName}.stl`;
 
   const source = await fetch(fileUrl);
   if (!source.ok) {
@@ -167,6 +178,10 @@ export async function uploadPrintFile(
   if (bytes.byteLength < 200) {
     throw new PartnerApiError("The print file is empty or truncated", 400);
   }
+  // The partner keys files by name + owner and overwrites in place, so a
+  // re-upload under the same name would silently swap the geometry of any
+  // order already pointing at that file. Content-hash the name instead.
+  const name = partnerFileName(rawName, bytes.byteLength ? await sha256Hex(bytes) : "");
 
   return await withPartnerRetry(async () => {
     const presign = await request<{
