@@ -13,7 +13,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
-import { engraveStl } from "../_shared/engraveStl.ts";
+import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
+import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
 import { preservedSourcePrintFile, reusableOrderPrintFile } from "../_shared/engravingState.ts";
@@ -230,6 +231,17 @@ async function backfillPrintability(previewId: string | null, fallbackTask: stri
     .eq("id", previewId);
 }
 
+/** True when a stored print file shows a second block sitting on its base. */
+async function printFileHasStackedPlinth(url: string): Promise<boolean> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return false;
+    return findStackedPlinth(parseStl(new Uint8Array(await res.arrayBuffer()))).stacked;
+  } catch {
+    return false;
+  }
+}
+
 async function resolveFile(row: OrderRow): Promise<{ url: string | null; status: string; error?: string }> {
   await backfillPrintability(row.preview_id ?? null, row.model_task_id ?? null).catch(() => {});
   const expectedLabel = engravingLines(row.personalization).label;
@@ -252,7 +264,15 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // A pre-purchase feasibility check usually already built (and sliced) a
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
-    if (perSize[row.size_key] && perSize[row.size_key] !== row.print_file_url) {
+    // Files cached before the stacked-plinth fix can carry two bases. Never
+    // reuse one — rebuild this size from the generator's mesh instead.
+    const cachedIsStacked = perSize[row.size_key]
+      ? await printFileHasStackedPlinth(perSize[row.size_key])
+      : false;
+    if (cachedIsStacked) {
+      console.warn("originals-model: cached print file has a stacked plinth, rebuilding", row.id, perSize[row.size_key]);
+    }
+    if (perSize[row.size_key] && !cachedIsStacked && perSize[row.size_key] !== row.print_file_url) {
       // The feasibility pass builds the file without asking the generator for
       // its own printability report — fetch it once here so Ops always sees it.
       const existingEng = (preview?.engineering ?? {}) as Record<string, unknown>;
@@ -362,6 +382,21 @@ async function printabilityHold(rows: OrderRow[]): Promise<string | null> {
     }
   }
   return reasons.length ? [...new Set(reasons)].join(", ") : null;
+}
+
+/** Holds a group whose finished print file has a second base on top of ours. */
+async function stackedPlinthHold(groupKey: string): Promise<string | null> {
+  const { data } = await admin
+    .from("originals_orders")
+    .select("id, print_file_url")
+    .eq("status", "paid")
+    .or(`group_id.eq.${groupKey},id.eq.${groupKey}`);
+  for (const row of data ?? []) {
+    if (row.print_file_url && await printFileHasStackedPlinth(row.print_file_url as string)) {
+      return "two stacked plinths in the 3D file (the model's own base sits on top of ours)";
+    }
+  }
+  return null;
 }
 
 async function fulfilGroup(groupId: string | null, orderId: string) {
@@ -483,7 +518,9 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     if (pending?.length) continue;
 
     // Advisory report flags a messy mesh — park it in the review queue.
-    const hold = await printabilityHold(groupRows).catch(() => null);
+    // A finished file with two stacked bases is always held (any route).
+    const stackedHold = await stackedPlinthHold(key).catch(() => null);
+    const hold = stackedHold ?? await printabilityHold(groupRows).catch(() => null);
     if (hold) {
       await admin
         .from("originals_orders")

@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
+import { nameFromRevision } from "../_shared/revisionName.ts";
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), {
@@ -63,6 +64,13 @@ Deno.serve(async (req) => {
       if (typeof personalization[key] === "string") {
         personalization[key] = (personalization[key] as string).trim().slice(0, 40);
       }
+    }
+    // A revision that renames the pet ("Name is Hampton") must also change
+    // the stored name — the lettering on the print file is cut from it, and
+    // it must match the render the buyer approves.
+    const revisedName = nameFromRevision(tweak);
+    if (revisedName && "heading" in personalization) {
+      personalization.heading = revisedName;
     }
     const sourceImage: string | undefined = typeof body.sourceImage === "string" ? body.sourceImage : undefined;
     if (!skuSlug || !prompt) return json({ error: "Missing details." }, 400);
@@ -280,8 +288,14 @@ Deno.serve(async (req) => {
     const pz = personalization as Record<string, unknown>;
     const hasLettering = [pz.heading, pz.footnote, pz.petName, pz.date]
       .some((v) => typeof v === "string" && v.trim().length > 0);
+    const exactLines = [pz.heading, pz.footnote]
+      .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+      .map((v) => v.trim().toUpperCase());
+    const exactText = exactLines.length
+      ? ` The plinth lettering reads exactly ${exactLines.map((v) => `"${v}"`).join(" over ")} — letter for letter, nothing added, removed or respelled, whatever any other instruction says.`
+      : "";
     const letteringRule = hasLettering
-      ? " HARD CONSTRAINT — lettering: only the exact name/line the customer requested appears on the plinth, as RAISED lettering that physically protrudes outward from the flat front face, in bold sans-serif capitals, like a cast nameplate. The letters cast a tiny shadow because they stand proud of the face. Never engraved, carved, etched, debossed or recessed — sunken letters are a failed render. Never add any other word, name or date."
+      ? exactText + " HARD CONSTRAINT — lettering: only the exact name/line the customer requested appears on the plinth, as RAISED lettering that physically protrudes outward from the flat front face, in bold sans-serif capitals, like a cast nameplate. The letters cast a tiny shadow because they stand proud of the face. Never engraved, carved, etched, debossed or recessed — sunken letters are a failed render. Never add any other word, name or date."
       : " HARD CONSTRAINT — NO LETTERING: the customer requested no text. The plinth front face must be completely blank, smooth and unmarked — no name, no letters, no numbers, no date, no monogram, no nameplate, no plaque, no symbols anywhere on the piece. Never invent a name. Any text at all is a failed render.";
     const productionAppearance =
       " Mandatory physical appearance: show exactly one sculpture from one three-quarter camera angle, centered in one clean product photograph. Never create a triptych, contact sheet, turnaround, comparison, collage, multiple angles, repeated sculptures, or multiple products." + letteringRule + " Show this as a photographed FDM 3D print in satin PLA, not as carved stone, ceramic, resin, wax, marble, or a smooth CG sculpture. Fine, regular horizontal layer lines must be visibly readable across the pet and plinth, catching a subtle PLA sheen under broad studio light. Preserve the reference animal's coat character as sculpted printable form: for curly, shaggy, woolly, or long-haired pets, model the visible curls, locks, tufts, and furry volume clearly while avoiding loose individual hairs or fragile strands. The shoulders must flow directly into one compact rectangular plinth through a broad tapered and softly filleted transition: one continuous object, no separate slab, seam, gap, round pedestal, narrow neck, or pet sitting behind the base. People never become part of the sculpture: sculpt the animal only — no human head, face, hands or body anywhere in the piece.";
@@ -391,6 +405,8 @@ Deno.serve(async (req) => {
       previewUrl,
       sourceUrl,
       remaining: unlimited ? null : Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
+      // Lets the page show the name the render (and the lettering) now uses.
+      heading: typeof personalization.heading === "string" ? personalization.heading : null,
     });
   } catch (e) {
     console.error("originals-preview error", e);
