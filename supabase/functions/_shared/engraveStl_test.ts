@@ -1,5 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import { engraveStl, fitStlToLongestEdge, parseStl, reinforceKeepsakeStl, writeStl } from "./engraveStl.ts";
+import { findStackedPlinth } from "./plinthProfile.ts";
 
 type V3 = [number, number, number];
 type Tri = [V3, V3, V3];
@@ -261,4 +262,53 @@ Deno.test("shrinking to the sold size scales the new plinth evenly", () => {
   const lettered = engraveStl(shrunk.stl, { heading: "SUNNY" });
   assert(lettered.applied, lettered.reason ?? "");
   assertEquals(lettered.placementVerified, true);
+});
+
+function frustum(out: Tri[], lo: [number, number, number, number, number], hi: [number, number, number, number, number]) {
+  // [minX, minY, maxX, maxY, z]
+  const p: V3[] = [
+    [lo[0], lo[1], lo[4]], [lo[2], lo[1], lo[4]], [lo[2], lo[3], lo[4]], [lo[0], lo[3], lo[4]],
+    [hi[0], hi[1], hi[4]], [hi[2], hi[1], hi[4]], [hi[2], hi[3], hi[4]], [hi[0], hi[3], hi[4]],
+  ];
+  for (const [a, b, c, d] of [[0, 3, 2, 1], [4, 5, 6, 7], [0, 1, 5, 4], [1, 2, 6, 5], [2, 3, 7, 6], [3, 0, 4, 7]]) {
+    out.push([p[a], p[b], p[c]], [p[a], p[c], p[d]]);
+  }
+}
+
+Deno.test("replaces a generated plinth with a filleted top instead of stacking a second base under it", () => {
+  // Hampton order (Oct 2026): square generated plinth whose top slopes into
+  // the bust — no flat ledge — used to get a second block slid underneath.
+  const tris: Tri[] = [];
+  box(tris, [-40, -40, 0], [40, 40, 20]);
+  frustum(tris, [-40, -40, 40, 40, 20], [-25, -20, 25, 20, 26]);
+  box(tris, [-25, -20, 26], [25, 20, 70]);
+  box(tris, [-35, -30, 70], [35, 30, 110]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  assertEquals(findStackedPlinth(parseStl(result.stl)).stacked, false);
+  // The old 80 mm generated block is gone from above our base.
+  const points = parseStl(result.stl).flatMap((tri) => tri);
+  const oldBlock = points.filter((p) => p[2] > result.baseHeightMm + 1 && (Math.abs(p[0]) > 36 || Math.abs(p[1]) > 36) && p[2] < result.baseHeightMm + 20);
+  assertEquals(oldBlock.length, 0);
+});
+
+Deno.test("flags a print file with two stacked plinths and refuses to letter it", () => {
+  const tris: Tri[] = [];
+  box(tris, [-60, -60, 0], [60, 60, 25]);
+  box(tris, [-50, -50, 25], [50, 50, 50]);
+  box(tris, [-30, -25, 50], [30, 25, 130]);
+  const report = findStackedPlinth(tris);
+  assertEquals(report.stacked, true);
+  const result = engraveStl(writeStl(tris, "Nyzora integrated plinth v8"), { heading: "HAMPTON" });
+  assertEquals(result.applied, false);
+  assertEquals(result.reason, "stacked_plinth");
+});
+
+Deno.test("a single base with a straight bust above it is not mistaken for two plinths", () => {
+  const tris: Tri[] = [];
+  box(tris, [-30, -24, 0], [30, 24, 14]);
+  box(tris, [-18, -12, 14], [18, 12, 100]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  assertEquals(findStackedPlinth(parseStl(result.stl)).stacked, false);
 });
