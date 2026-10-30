@@ -628,7 +628,6 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
   const files = (preview.print_files ?? {}) as Record<string, string>;
   const current = files[sizeKey];
   if (!current) return { previewId, sizeKey, outcome: "no_file" };
-  if (!(await printFileHasStackedPlinth(current))) return { previewId, sizeKey, outcome: "already_single" };
   const target = SIZE_MAX_MM[sizeKey];
   if (!target) return { previewId, sizeKey, outcome: "unknown_size" };
   const key = `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`;
@@ -644,10 +643,12 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
     await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
   };
 
-  const restacked = await restackCachedFile(current, sizeKey, key);
-  if (restacked) {
-    await savePreviewFile(restacked.url);
-    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: restacked.url, size: restacked.size, previous: current };
+  const checked = await restackCachedFile(current, sizeKey, key);
+  if (checked.kind === "single") return { previewId, sizeKey, outcome: "already_single" };
+  if (checked.kind === "unavailable") return { previewId, sizeKey, outcome: "file_unavailable" };
+  if (checked.kind === "rebuilt") {
+    await savePreviewFile(checked.url);
+    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: checked.url, size: checked.size, previous: current };
   }
 
   if (!preview.model_task_id) return { previewId, sizeKey, outcome: "no_mesh_task" };
