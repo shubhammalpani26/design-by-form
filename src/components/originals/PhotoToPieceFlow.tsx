@@ -349,6 +349,11 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
         },
       });
       if (error) throw new Error(await readFnError(error, "We couldn't render that one. Try a clearer photo."));
+      // A revision like "Name is Hampton" renames the pet on the server; keep
+      // the name box in step so it matches the render and the lettering.
+      if (mode === "photo" && typeof data?.heading === "string" && data.heading !== heading) {
+        setHeading(data.heading);
+      }
       const next = { url: data.previewUrl, id: data.previewId ?? null, remaining: data.remaining ?? 0 };
       setPreview(next);
       setVersions((prev) => (isRefine ? [...prev, next] : [next]));

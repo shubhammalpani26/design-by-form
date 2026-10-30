@@ -405,6 +405,8 @@ Deno.serve(async (req) => {
       previewUrl,
       sourceUrl,
       remaining: unlimited ? null : Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
+      // Lets the page show the name the render (and the lettering) now uses.
+      heading: typeof personalization.heading === "string" ? personalization.heading : null,
     });
   } catch (e) {
     console.error("originals-preview error", e);
