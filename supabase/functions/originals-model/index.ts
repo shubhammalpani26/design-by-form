@@ -573,6 +573,8 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   // A group only goes to the partner once every piece in it has a file.
   const sent: string[] = [];
   for (const key of groups) {
+    // A piece in this shipment still needs its lettering — wait for that pass.
+    if (rebuiltGroups.has(key)) continue;
     const groupRows = (rows as OrderRow[]).filter((row) => (row.group_id ?? row.id) === key);
     if (groupRows.some((row) => row.payment_provider === "internal_test")) {
       await admin
