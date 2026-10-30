@@ -21,3 +21,29 @@ Deno.test("ignores revisions that only restyle the name", () => {
 Deno.test("never accepts a name longer than the lettering limit", () => {
   assertEquals(nameFromRevision("name is Supercalifragilisticexpialidocious"), null);
 });
+
+Deno.test("complaints about the lettering never become the name", () => {
+  for (const note of [
+    "the name is too small",
+    "name is not centered",
+    "name is hard to read",
+    "name is missing",
+    "the name is off center and crooked",
+    "name is a bit faint",
+    "name should be bigger",
+    "name should be more visible",
+    "change the name to a bigger font",
+    "name is spelled wrong",
+  ]) {
+    assertEquals(nameFromRevision(note), null, note);
+  }
+});
+
+Deno.test("reads the new name after a spelling complaint", () => {
+  assertEquals(nameFromRevision("name is spelled wrong, should be Bella"), "Bella");
+  assertEquals(nameFromRevision("the name is wrong, it should be Hampton"), "Hampton");
+});
+
+Deno.test("reads the name when the buyer also names the wrong one", () => {
+  assertEquals(nameFromRevision("name is Hampton not Hampt"), "Hampton");
+});
