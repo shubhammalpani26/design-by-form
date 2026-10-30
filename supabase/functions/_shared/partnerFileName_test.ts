@@ -1,4 +1,4 @@
-import { assertEquals, assertNotEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assertNotEquals } from "jsr:@std/assert@1";
 import { partnerFileName } from "./slant3d.ts";
 
 // Slant overwrites a file in place when the same name is re-uploaded, so a
