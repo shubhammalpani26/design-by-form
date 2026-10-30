@@ -13,7 +13,8 @@ import { findOriginalsColor } from "../_shared/originalsColors.ts";
 import { alertFulfillmentFailure } from "../_shared/fulfillmentAlert.ts";
 import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
-import { engravingLabel } from "../_shared/engraveStl.ts";
+import { engravingLabel, parseStl } from "../_shared/engraveStl.ts";
+import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 
 const corsHeaders = {
@@ -252,11 +253,12 @@ Deno.serve(async (req) => {
         });
         return json({ error: reason, needsFile: row.id }, 400);
       }
+      const fileResponse = await fetch(url!);
+      if (!fileResponse.ok) return json({ error: `Could not verify piece ${row.id.slice(0, 8)} print file` }, 400);
+      const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
       if (wanted) {
         const expectedHash = typeof engravingMeta.fileSha256 === "string" ? engravingMeta.fileSha256 : "";
-        const fileResponse = await fetch(url!);
-        if (!fileResponse.ok) return json({ error: `Could not verify piece ${row.id.slice(0, 8)} print file` }, 400);
-        const digest = await crypto.subtle.digest("SHA-256", await fileResponse.arrayBuffer());
+        const digest = await crypto.subtle.digest("SHA-256", fileBytes as Uint8Array<ArrayBuffer>);
         const actualHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
         if (!expectedHash || actualHash !== expectedHash) {
           const reason = "Print file changed after visible-front lettering verification";
@@ -266,6 +268,28 @@ Deno.serve(async (req) => {
             updated_at: new Date().toISOString(),
           }).eq("id", row.id);
           return json({ error: reason, needsFile: row.id }, 400);
+        }
+      }
+      // Hard stop on every route (automatic, admin approval, manual file):
+      // a file with a second block on our base ships two plinths and two names.
+      if (PHOTO_PERSONALIZED_SKUS.has(row.sku_slug)) {
+        const stacked = findStackedPlinth(parseStl(fileBytes));
+        if (stacked.stacked) {
+          const reason = "Two stacked plinths in the print file — rebuild it before sending to manufacturing";
+          await admin.from("originals_orders").update({
+            production_status: "needs_file",
+            fulfillment_error: reason,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          await alertFulfillmentFailure(admin, {
+            orderId: row.id,
+            groupId: row.group_id,
+            customerEmail: row.customer_email,
+            pieces: paid.length,
+            stage: "print file",
+            error: reason,
+          });
+          return json({ error: reason, needsFile: row.id, stacked }, 409);
         }
       }
       const uploaded = await uploadPrintFile(url!, {

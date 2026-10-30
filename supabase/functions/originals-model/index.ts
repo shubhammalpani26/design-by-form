@@ -15,6 +15,7 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
+import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
 import { preservedSourcePrintFile, reusableOrderPrintFile } from "../_shared/engravingState.ts";
@@ -232,6 +233,43 @@ async function backfillPrintability(previewId: string | null, fallbackTask: stri
 }
 
 /** True when a stored print file shows a second block sitting on its base. */
+type RestackOutcome =
+  | { kind: "single" }
+  | { kind: "unavailable" }
+  | { kind: "failed" }
+  | { kind: "rebuilt"; url: string; size: { x: number; y: number; z: number } };
+
+/**
+ * Checks a stored file and, when it carries two plinths, rebuilds it into a
+ * single-plinth file at the sold size stored under `key`. Downloads and
+ * parses the file once for the check; the rebuild is kept to this one step so
+ * it fits the worker's memory (lettering runs in the next pass).
+ */
+async function restackCachedFile(url: string, sizeKey: string, key: string): Promise<RestackOutcome> {
+  const target = SIZE_MAX_MM[sizeKey];
+  let bytes: Uint8Array;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return { kind: "unavailable" };
+    bytes = new Uint8Array(await res.arrayBuffer());
+    if (!findStackedPlinth(parseStl(bytes)).stacked) return { kind: "single" };
+  } catch {
+    return { kind: "unavailable" };
+  }
+  if (!target) return { kind: "failed" };
+  try {
+    const rebuilt = restackFromStackedStl(bytes, target);
+    if (!rebuilt) return { kind: "failed" };
+    const longest = Math.max(rebuilt.size.x, rebuilt.size.y, rebuilt.size.z);
+    if (Math.abs(longest - target) > 1.5) return { kind: "failed" };
+    const stored = await uploadStl(admin, key, rebuilt.stl);
+    return { kind: "rebuilt", url: stored.url, size: rebuilt.size };
+  } catch (e) {
+    console.error("originals-model: rebuild from cached file failed", url, e instanceof Error ? e.message : e);
+    return { kind: "failed" };
+  }
+}
+
 async function printFileHasStackedPlinth(url: string): Promise<boolean> {
   try {
     const res = await fetch(url);
@@ -251,7 +289,12 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   // Never append new geometry to an older engraved file. New v2 files retain
   // their clean source explicitly; legacy rows are rebuilt from the preview.
   const preservedSource = preservedSourcePrintFile(row);
-  if (preservedSource) return { url: preservedSource, status: "ready_source" };
+  if (preservedSource) {
+    // A preserved source made before the stacked-plinth fix can carry two bases.
+    const checked = await restackCachedFile(preservedSource, row.size_key, `originals/${row.sku_slug}/${row.id}`);
+    if (checked.kind === "rebuilt") return { url: checked.url, status: "rebuilt" };
+    return { url: preservedSource, status: "ready_source" };
+  }
 
   // Personalised piece: the buyer's render becomes their own mesh.
   if (row.preview_id) {
@@ -265,12 +308,16 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // file for this exact size — use it rather than regenerating the mesh.
     const perSize = (preview?.print_files ?? {}) as Record<string, string>;
     // Files cached before the stacked-plinth fix can carry two bases. Never
-    // reuse one — rebuild this size from the generator's mesh instead.
-    const cachedIsStacked = perSize[row.size_key]
-      ? await printFileHasStackedPlinth(perSize[row.size_key])
-      : false;
-    if (cachedIsStacked) {
-      console.warn("originals-model: cached print file has a stacked plinth, rebuilding", row.id, perSize[row.size_key]);
+    // reuse one — rebuild it from the cached file itself (light, and works
+    // after generator tasks expire), falling back to the generator's mesh.
+    let cachedIsStacked = false;
+    if (perSize[row.size_key]) {
+      const checked = await restackCachedFile(perSize[row.size_key], row.size_key, `originals/${row.sku_slug}/${row.id}`);
+      if (checked.kind === "rebuilt") {
+        console.warn("originals-model: cached print file had a stacked plinth, rebuilt", row.id, perSize[row.size_key]);
+        return { url: checked.url, status: "rebuilt" };
+      }
+      cachedIsStacked = checked.kind === "failed";
     }
     if (perSize[row.size_key] && !cachedIsStacked && perSize[row.size_key] !== row.print_file_url) {
       // The feasibility pass builds the file without asking the generator for
@@ -565,6 +612,68 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   return { pieces: rows.length, results, sent };
 }
 
+/**
+ * Admin maintenance: replace a preview's cached size file that still carries
+ * two plinths with a single-plinth rebuild from the generator's mesh, so a
+ * later order never has to do the heavy rebuild inside the order worker.
+ * The old file is kept (new storage key); nothing is sent to the partner.
+ */
+async function rebuildPreviewFile(previewId: string, sizeKey: string) {
+  const { data: preview } = await admin
+    .from("originals_previews")
+    .select("id, print_files, model_task_id")
+    .eq("id", previewId)
+    .maybeSingle();
+  if (!preview) return { previewId, sizeKey, outcome: "not_found" };
+  const files = (preview.print_files ?? {}) as Record<string, string>;
+  const current = files[sizeKey];
+  if (!current) return { previewId, sizeKey, outcome: "no_file" };
+  if (!(await printFileHasStackedPlinth(current))) return { previewId, sizeKey, outcome: "already_single" };
+  const target = SIZE_MAX_MM[sizeKey];
+  if (!target) return { previewId, sizeKey, outcome: "unknown_size" };
+  const key = `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`;
+
+  const savePreviewFile = async (url: string) => {
+    // Re-read so a concurrent size check on this preview is not overwritten.
+    const { data: fresh } = await admin
+      .from("originals_previews")
+      .select("print_files")
+      .eq("id", previewId)
+      .maybeSingle();
+    const merged = { ...((fresh?.print_files ?? {}) as Record<string, string>), [sizeKey]: url };
+    await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
+  };
+
+  const restacked = await restackCachedFile(current, sizeKey, key);
+  if (restacked) {
+    await savePreviewFile(restacked.url);
+    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: restacked.url, size: restacked.size, previous: current };
+  }
+
+  if (!preview.model_task_id) return { previewId, sizeKey, outcome: "no_mesh_task" };
+  const task = await pollModelTask(preview.model_task_id as string).catch((e) => ({
+    status: e instanceof Error ? e.message : "UNAVAILABLE",
+    glb: undefined,
+  }));
+  if (task.status !== "SUCCEEDED" || !task.glb) {
+    return { previewId, sizeKey, outcome: "mesh_unavailable", status: task.status };
+  }
+  const prepared = await ensurePrintFile(admin, {
+    modelUrl: task.glb,
+    key,
+    targetMaxMm: target,
+    reinforceBase: true,
+  });
+  if (!prepared.stl) return { previewId, sizeKey, outcome: "no_bytes" };
+  const stacked = findStackedPlinth(parseStl(prepared.stl));
+  const longest = Math.max(prepared.size.x, prepared.size.y, prepared.size.z);
+  if (stacked.stacked || Math.abs(longest - target) > 1.5) {
+    return { previewId, sizeKey, outcome: "rebuild_rejected", stacked: stacked.stacked, size: prepared.size };
+  }
+  await savePreviewFile(prepared.url);
+  return { previewId, sizeKey, outcome: "rebuilt", url: prepared.url, size: prepared.size, previous: current };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -572,6 +681,10 @@ Deno.serve(async (req) => {
   try {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
     const body = await req.json().catch(() => ({}));
+    if (body?.rebuild_preview && typeof body.rebuild_preview?.preview_id === "string") {
+      const { preview_id, size_key } = body.rebuild_preview;
+      return json(await rebuildPreviewFile(preview_id, String(size_key ?? "")));
+    }
     const out = await run({
       orderId: typeof body?.order_id === "string" ? body.order_id : null,
       groupId: typeof body?.group_id === "string" ? body.group_id : null,
