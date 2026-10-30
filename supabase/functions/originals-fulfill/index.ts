@@ -258,7 +258,7 @@ Deno.serve(async (req) => {
       const fileBytes = new Uint8Array(await fileResponse.arrayBuffer());
       if (wanted) {
         const expectedHash = typeof engravingMeta.fileSha256 === "string" ? engravingMeta.fileSha256 : "";
-        const digest = await crypto.subtle.digest("SHA-256", fileBytes);
+        const digest = await crypto.subtle.digest("SHA-256", fileBytes as Uint8Array<ArrayBuffer>);
         const actualHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
         if (!expectedHash || actualHash !== expectedHash) {
           const reason = "Print file changed after visible-front lettering verification";
