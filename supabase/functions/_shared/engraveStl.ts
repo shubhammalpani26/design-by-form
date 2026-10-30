@@ -12,6 +12,7 @@
  * on a 0.4 mm FDM nozzle.
  */
 import { ADVANCE, glyph, normalizeEngravingText, SPACE_ADVANCE, textWidth } from "./strokeFont.ts";
+import { findStackedPlinth, prismaticPlinthTop, type StackedPlinthReport } from "./plinthProfile.ts";
 
 export interface EngraveOptions {
   /** Large line, e.g. the pet's name. */
@@ -54,6 +55,8 @@ export interface EngraveResult {
   heftBaseHeightMm?: number;
   /** Estimated geometric volume added by the heft treatment. */
   heftVolumeAddedCm3?: number;
+  /** Set when the finished file shows a second block sitting on our base. */
+  stackedPlinth?: StackedPlinthReport;
 }
 
 
@@ -510,7 +513,8 @@ export interface HeftBaseResult {
   baseHeightMm: number;
   volumeAddedCm3: number;
   size: { x: number; y: number; z: number };
-  reason?: "already_reinforced" | "degenerate_mesh" | "no_existing_plinth";
+  reason?: "already_reinforced" | "degenerate_mesh" | "no_existing_plinth" | "stacked_plinth";
+  stackedPlinth?: StackedPlinthReport;
 }
 
 interface ReinforcedTris {
@@ -519,6 +523,7 @@ interface ReinforcedTris {
   baseHeightMm: number;
   volumeAddedCm3: number;
   size: { x: number; y: number; z: number };
+  stackedPlinth?: StackedPlinthReport;
 }
 
 /**
@@ -597,6 +602,12 @@ function existingPlinthTop(tris: Tri[], bounds: { min: V3; max: V3 }): number | 
     if (localMinimum && widened && pedestalBelow && (!neck || here.z > neck.z)) neck = here;
   }
   if (neck) return neck.z;
+
+  // A straight-sided generated plinth whose top is a soft fillet has no flat
+  // ledge to find below. Missing it is how a second base was slid underneath
+  // the generated one (Hampton order, Oct 2026) — detect it by its shape.
+  const prismatic = prismaticPlinthTop(tris, bounds);
+  if (prismatic !== null) return prismatic;
 
   // Simple slab models do not have a neck-and-chest silhouette. For those,
   // take the highest qualifying horizontal plane — but only where that plane
@@ -776,9 +787,13 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
 
 
   const next = boundsOf(out);
+  // Final check on our own output: nothing may sit on the new base looking
+  // like another block. Callers refuse the file when this is set.
+  const stacked = findStackedPlinth(out);
   return {
     tris: out,
     applied: true,
+    stackedPlinth: stacked.stacked ? stacked : undefined,
     baseHeightMm: Number(shoulderTop.toFixed(2)),
     volumeAddedCm3: Number((
       (baseWidth * baseDepth * flatTop +
@@ -816,6 +831,14 @@ export function reinforceKeepsakeStl(bytes: Uint8Array, maxDimensionMm?: number)
   let reinforced = reinforceTris(tris);
   if (!reinforced.applied) {
     return { stl: bytes, ...reinforced, reason: "no_existing_plinth" };
+  }
+  if (reinforced.stackedPlinth) {
+    // Never hand on a file with two bases — it would be quoted, cached and
+    // later printed. Callers treat this as a hard stop for review.
+    const b = reinforced.stackedPlinth.secondBlock;
+    throw new Error(
+      `Stacked plinth: the generated model kept its own base on top of ours (${b?.fromZ}–${b?.toZ} mm). Needs review before printing.`,
+    );
   }
   const longest = Math.max(reinforced.size.x, reinforced.size.y, reinforced.size.z);
   if (maxDimensionMm && longest > maxDimensionMm) {
@@ -1205,6 +1228,12 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
   const plinthTop = heft.applied
     ? heft.baseHeightMm
     : (existingPlinthTop(tris, reinforcedBounds) ?? undefined);
+  // Cached print files made before the stacked-plinth fix can still carry
+  // two bases. Refuse to letter them so the order stops for review.
+  const stacked = findStackedPlinth(tris);
+  if (stacked.stacked) {
+    return { stl: bytes, applied: false, text: label, reason: "stacked_plinth", stackedPlinth: stacked };
+  }
   const attempt = engraveTris(tris, heading, footnote, plinthTop);
   const addedPlinth = false;
   const baseCount = tris.length;
