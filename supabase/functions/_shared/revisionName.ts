@@ -9,7 +9,7 @@
  * Errs toward returning null: a missed rename leaves the buyer's own name box,
  * but a wrong "name" would be raised on the paid print (QA, Oct 2026).
  */
-const END = String.raw`["'”’]?\s*(?:[.,;!?)]|$|\s+(?:and|but|please|pls|instead|thanks|thank)\b)`;
+const END = String.raw`["'”’]?\s*(?:[.,;!?)]|$|\s+(?:and|but|please|pls|instead|not|thanks|thank)\b)`;
 const OPEN = String.raw`["'“‘]?`;
 const NAME = String.raw`([a-z][a-z' .-]{0,30}?)`;
 

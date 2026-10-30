@@ -43,3 +43,7 @@ Deno.test("reads the new name after a spelling complaint", () => {
   assertEquals(nameFromRevision("name is spelled wrong, should be Bella"), "Bella");
   assertEquals(nameFromRevision("the name is wrong, it should be Hampton"), "Hampton");
 });
+
+Deno.test("reads the name when the buyer also names the wrong one", () => {
+  assertEquals(nameFromRevision("name is Hampton not Hampt"), "Hampton");
+});
