@@ -195,7 +195,11 @@ export function findStackedPlinth(tris: Tri[]): StackedPlinthReport {
     ) e++;
     const run = prof[e].z - start.z;
     const minRun = square ? Math.max(8, height * 0.05) : Math.max(12, height * 0.07);
-    if (run >= minRun) {
+    // A plinth carries something narrower: the slices just above the block
+    // pull in. A straight body running on up is not a second base.
+    const after = prof.slice(e + 1, e + 1 + Math.ceil(0.08 / step));
+    const pullsIn = after.some((x) => x.area < start.area * 0.85);
+    if (run >= minRun && pullsIn) {
       return {
         stacked: true,
         baseTopZ,
