@@ -233,6 +233,32 @@ async function backfillPrintability(previewId: string | null, fallbackTask: stri
 }
 
 /** True when a stored print file shows a second block sitting on its base. */
+/**
+ * Rebuilds a stacked cached file into a single-plinth file at the sold size,
+ * stored under `key`. Null when the rebuild is not a clean single-base piece.
+ */
+async function restackCachedFile(
+  url: string,
+  sizeKey: string,
+  key: string,
+): Promise<{ url: string; size: { x: number; y: number; z: number } } | null> {
+  const target = SIZE_MAX_MM[sizeKey];
+  if (!target) return null;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const rebuilt = restackFromStackedStl(new Uint8Array(await res.arrayBuffer()), target);
+    if (!rebuilt) return null;
+    const longest = Math.max(rebuilt.size.x, rebuilt.size.y, rebuilt.size.z);
+    if (Math.abs(longest - target) > 1.5) return null;
+    const stored = await uploadStl(admin, key, rebuilt.stl);
+    return { url: stored.url, size: rebuilt.size };
+  } catch (e) {
+    console.error("originals-model: rebuild from cached file failed", url, e instanceof Error ? e.message : e);
+    return null;
+  }
+}
+
 async function printFileHasStackedPlinth(url: string): Promise<boolean> {
   try {
     const res = await fetch(url);
@@ -588,14 +614,36 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
   if (!(await printFileHasStackedPlinth(current))) return { previewId, sizeKey, outcome: "already_single" };
   const target = SIZE_MAX_MM[sizeKey];
   if (!target) return { previewId, sizeKey, outcome: "unknown_size" };
+  const key = `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`;
+
+  const savePreviewFile = async (url: string) => {
+    // Re-read so a concurrent size check on this preview is not overwritten.
+    const { data: fresh } = await admin
+      .from("originals_previews")
+      .select("print_files")
+      .eq("id", previewId)
+      .maybeSingle();
+    const merged = { ...((fresh?.print_files ?? {}) as Record<string, string>), [sizeKey]: url };
+    await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
+  };
+
+  const restacked = await restackCachedFile(current, sizeKey, key);
+  if (restacked) {
+    await savePreviewFile(restacked.url);
+    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: restacked.url, size: restacked.size, previous: current };
+  }
+
   if (!preview.model_task_id) return { previewId, sizeKey, outcome: "no_mesh_task" };
-  const task = await pollModelTask(preview.model_task_id as string);
+  const task = await pollModelTask(preview.model_task_id as string).catch((e) => ({
+    status: e instanceof Error ? e.message : "UNAVAILABLE",
+    glb: undefined,
+  }));
   if (task.status !== "SUCCEEDED" || !task.glb) {
     return { previewId, sizeKey, outcome: "mesh_unavailable", status: task.status };
   }
   const prepared = await ensurePrintFile(admin, {
     modelUrl: task.glb,
-    key: `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`,
+    key,
     targetMaxMm: target,
     reinforceBase: true,
   });
@@ -605,14 +653,7 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
   if (stacked.stacked || Math.abs(longest - target) > 1.5) {
     return { previewId, sizeKey, outcome: "rebuild_rejected", stacked: stacked.stacked, size: prepared.size };
   }
-  // Re-read so a concurrent size check on this preview is not overwritten.
-  const { data: fresh } = await admin
-    .from("originals_previews")
-    .select("print_files")
-    .eq("id", previewId)
-    .maybeSingle();
-  const merged = { ...((fresh?.print_files ?? {}) as Record<string, string>), [sizeKey]: prepared.url };
-  await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
+  await savePreviewFile(prepared.url);
   return { previewId, sizeKey, outcome: "rebuilt", url: prepared.url, size: prepared.size, previous: current };
 }
 
