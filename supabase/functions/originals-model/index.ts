@@ -496,11 +496,27 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
 
   const results: Array<Record<string, unknown>> = [];
   const groups = new Set<string>();
+  // Pieces whose base was just rebuilt: lettering and sending happen in the
+  // next pass so one worker never holds the rebuild and the engraving at once.
+  const rebuiltGroups = new Set<string>();
+  const rebuiltOrders: string[] = [];
 
   for (const row of rows as OrderRow[]) {
     try {
       const out = await resolveFile(row);
-      if (out.url) {
+      if (out.status === "rebuilt" && out.url) {
+        await admin.from("originals_orders").update({
+          print_file_url: out.url,
+          engraved_text: null,
+          engraved_at: null,
+          engraving_meta: null,
+          model_status: "ready",
+          fulfillment_error: null,
+          updated_at: new Date().toISOString(),
+        }).eq("id", row.id);
+        rebuiltGroups.add(row.group_id ?? row.id);
+        rebuiltOrders.push(row.id);
+      } else if (out.url) {
         const finalUrl = await applyEngraving(row, out.url);
         await admin.from("originals_orders").update({
           print_file_url: finalUrl,
@@ -538,6 +554,20 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
       });
       results.push({ id: row.id, status: "error", error: message });
     }
+  }
+
+  // Continue rebuilt pieces in a fresh worker right away (the 30-minute sweep
+  // is the backstop if this hand-off is lost).
+  for (const id of rebuiltOrders) {
+    const next = fetch(`${SUPABASE_URL}/functions/v1/originals-model`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-key": SERVICE_KEY },
+      body: JSON.stringify({ order_id: id }),
+    }).then(() => {}, (e) => console.error("originals-model hand-off failed", id, e));
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime?.waitUntil) runtime.waitUntil(next);
+    else await next;
   }
 
   // A group only goes to the partner once every piece in it has a file.
