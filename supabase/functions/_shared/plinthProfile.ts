@@ -138,8 +138,9 @@ export function prismaticPlinthTop(tris: Tri[], bounds = boundsOf(tris)): number
   let bottom = refIdx;
   while (bottom > 0 && inBlock(prof[bottom - 1])) bottom--;
   if (ratios[top] - ratios[bottom] < 0.04 || ratios[top] > 0.4) return null;
-  // And something must actually pull in above it (the sculpture).
-  const above = prof.slice(top, top + 6);
+  // And something must actually pull in above it (the sculpture). Rounded
+  // plinth tops pull in gradually, so look up to ~10% of the height.
+  const above = prof.slice(top, top + 20);
   if (!above.some((s) => s.area < ref!.area * 0.8)) return null;
   return prof[top].z;
 }
