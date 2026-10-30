@@ -289,7 +289,12 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
   // Never append new geometry to an older engraved file. New v2 files retain
   // their clean source explicitly; legacy rows are rebuilt from the preview.
   const preservedSource = preservedSourcePrintFile(row);
-  if (preservedSource) return { url: preservedSource, status: "ready_source" };
+  if (preservedSource) {
+    // A preserved source made before the stacked-plinth fix can carry two bases.
+    const checked = await restackCachedFile(preservedSource, row.size_key, `originals/${row.sku_slug}/${row.id}`);
+    if (checked.kind === "rebuilt") return { url: checked.url, status: "rebuilt" };
+    return { url: preservedSource, status: "ready_source" };
+  }
 
   // Personalised piece: the buyer's render becomes their own mesh.
   if (row.preview_id) {
@@ -305,13 +310,14 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
     // Files cached before the stacked-plinth fix can carry two bases. Never
     // reuse one — rebuild it from the cached file itself (light, and works
     // after generator tasks expire), falling back to the generator's mesh.
-    const cachedIsStacked = perSize[row.size_key]
-      ? await printFileHasStackedPlinth(perSize[row.size_key])
-      : false;
-    if (cachedIsStacked) {
-      console.warn("originals-model: cached print file has a stacked plinth, rebuilding", row.id, perSize[row.size_key]);
-      const restacked = await restackCachedFile(perSize[row.size_key], row.size_key, `originals/${row.sku_slug}/${row.id}`);
-      if (restacked) return { url: restacked.url, status: "ready" };
+    let cachedIsStacked = false;
+    if (perSize[row.size_key]) {
+      const checked = await restackCachedFile(perSize[row.size_key], row.size_key, `originals/${row.sku_slug}/${row.id}`);
+      if (checked.kind === "rebuilt") {
+        console.warn("originals-model: cached print file had a stacked plinth, rebuilt", row.id, perSize[row.size_key]);
+        return { url: checked.url, status: "rebuilt" };
+      }
+      cachedIsStacked = checked.kind === "failed";
     }
     if (perSize[row.size_key] && !cachedIsStacked && perSize[row.size_key] !== row.print_file_url) {
       // The feasibility pass builds the file without asking the generator for
