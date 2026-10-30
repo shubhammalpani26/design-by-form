@@ -37,7 +37,12 @@ async function authorize(req: Request): Promise<boolean> {
 }
 
 async function fetchOrder(orderId: string): Promise<unknown> {
-  const res = await fetch(`${BASE_URL}/orders/${encodeURIComponent(orderId)}`, {
+  return await fetchPath(`/orders/${encodeURIComponent(orderId)}`);
+}
+
+/** Read-only GET against the partner API (orders or files). */
+async function fetchPath(path: string): Promise<unknown> {
+  const res = await fetch(`${BASE_URL}${path}`, {
     headers: {
       Authorization: `Bearer ${Deno.env.get("SLANT3D_API_KEY")}`,
       "Content-Type": "application/json",
@@ -64,7 +69,8 @@ Deno.serve(async (req) => {
     ? [String(body.orderId)]
     : [];
 
-  if (!ids.length) return json({ error: "No order id supplied" }, 400);
+  const fileIds = Array.isArray(body?.fileIds) ? body.fileIds.map(String) : [];
+  if (!ids.length && !fileIds.length) return json({ error: "No order id supplied" }, 400);
 
   const out: Record<string, unknown> = {};
   for (const id of ids) {
@@ -74,5 +80,13 @@ Deno.serve(async (req) => {
       out[id] = { error: e instanceof Error ? e.message : String(e) };
     }
   }
-  return json({ orders: out });
+  const files: Record<string, unknown> = {};
+  for (const id of fileIds) {
+    try {
+      files[id] = await fetchPath(`/files/${encodeURIComponent(id)}`);
+    } catch (e) {
+      files[id] = { error: e instanceof Error ? e.message : String(e) };
+    }
+  }
+  return json({ orders: out, files });
 });
