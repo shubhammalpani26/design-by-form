@@ -174,20 +174,28 @@ export function findStackedPlinth(tris: Tri[]): StackedPlinthReport {
   // Look for a second block starting within the next 25% of the height:
   // a run whose footprint holds within ~2% and area within ~6%, at least
   // ~4% of the piece (and 6 mm) tall, and still a large share of the base.
+  // A square block fills its footprint (≥85%); an animal's chest does not
+  // (~75%). Round pedestals fill ~78%, so they must also be taller and
+  // straighter before they count — a chest never holds that long.
+  const fill = (x: SectionSample) => (x.width * x.depth > 0 ? x.area / (x.width * x.depth) : 0);
   const limit = ratios[i] + 0.25;
   for (let s = i; s < prof.length && ratios[s] <= limit; s++) {
     const start = prof[s];
     if (!(start.area >= base.area * 0.4)) continue;
-    if (start.area < start.width * start.depth * 0.7) continue;
+    const square = fill(start) >= 0.85;
+    if (!square && fill(start) < 0.72) continue;
+    const dimTol = square ? 0.02 : 0.012;
+    const areaTol = square ? 0.06 : 0.035;
     let e = s;
     while (
       e + 1 < prof.length &&
-      near(prof[e + 1].width, start.width, 0.02) &&
-      near(prof[e + 1].depth, start.depth, 0.02) &&
-      near(prof[e + 1].area, start.area, 0.06)
+      near(prof[e + 1].width, start.width, dimTol) &&
+      near(prof[e + 1].depth, start.depth, dimTol) &&
+      near(prof[e + 1].area, start.area, areaTol)
     ) e++;
     const run = prof[e].z - start.z;
-    if (run >= Math.max(6, height * 0.04)) {
+    const minRun = square ? Math.max(8, height * 0.05) : Math.max(12, height * 0.07);
+    if (run >= minRun) {
       return {
         stacked: true,
         baseTopZ,
