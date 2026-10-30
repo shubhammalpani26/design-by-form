@@ -233,29 +233,40 @@ async function backfillPrintability(previewId: string | null, fallbackTask: stri
 }
 
 /** True when a stored print file shows a second block sitting on its base. */
+type RestackOutcome =
+  | { kind: "single" }
+  | { kind: "unavailable" }
+  | { kind: "failed" }
+  | { kind: "rebuilt"; url: string; size: { x: number; y: number; z: number } };
+
 /**
- * Rebuilds a stacked cached file into a single-plinth file at the sold size,
- * stored under `key`. Null when the rebuild is not a clean single-base piece.
+ * Checks a stored file and, when it carries two plinths, rebuilds it into a
+ * single-plinth file at the sold size stored under `key`. Downloads and
+ * parses the file once for the check; the rebuild is kept to this one step so
+ * it fits the worker's memory (lettering runs in the next pass).
  */
-async function restackCachedFile(
-  url: string,
-  sizeKey: string,
-  key: string,
-): Promise<{ url: string; size: { x: number; y: number; z: number } } | null> {
+async function restackCachedFile(url: string, sizeKey: string, key: string): Promise<RestackOutcome> {
   const target = SIZE_MAX_MM[sizeKey];
-  if (!target) return null;
+  let bytes: Uint8Array;
   try {
     const res = await fetch(url);
-    if (!res.ok) return null;
-    const rebuilt = restackFromStackedStl(new Uint8Array(await res.arrayBuffer()), target);
-    if (!rebuilt) return null;
+    if (!res.ok) return { kind: "unavailable" };
+    bytes = new Uint8Array(await res.arrayBuffer());
+    if (!findStackedPlinth(parseStl(bytes)).stacked) return { kind: "single" };
+  } catch {
+    return { kind: "unavailable" };
+  }
+  if (!target) return { kind: "failed" };
+  try {
+    const rebuilt = restackFromStackedStl(bytes, target);
+    if (!rebuilt) return { kind: "failed" };
     const longest = Math.max(rebuilt.size.x, rebuilt.size.y, rebuilt.size.z);
-    if (Math.abs(longest - target) > 1.5) return null;
+    if (Math.abs(longest - target) > 1.5) return { kind: "failed" };
     const stored = await uploadStl(admin, key, rebuilt.stl);
-    return { url: stored.url, size: rebuilt.size };
+    return { kind: "rebuilt", url: stored.url, size: rebuilt.size };
   } catch (e) {
     console.error("originals-model: rebuild from cached file failed", url, e instanceof Error ? e.message : e);
-    return null;
+    return { kind: "failed" };
   }
 }
 
