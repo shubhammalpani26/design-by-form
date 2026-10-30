@@ -652,15 +652,22 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   // Last-resort safety: a plinth is a small part of the piece. If the detected
   // cut would destroy a large share of the sculpture, keep every bit of the
   // animal and simply slab underneath it.
-  if (cutZ > bounds.min[2]) {
+  const removedShare = (z: number) => {
     let total = 0;
     let removed = 0;
     for (const tri of tris) {
       const area = triArea(tri);
       total += area;
-      if (tri[0][2] < cutZ && tri[1][2] < cutZ && tri[2][2] < cutZ) removed += area;
+      if (tri[0][2] < z && tri[1][2] < z && tri[2][2] < z) removed += area;
     }
-    if (total > 0 && removed / total > 0.45) cutZ = bounds.min[2];
+    return total > 0 ? removed / total : 0;
+  };
+  if (cutZ > bounds.min[2] && removedShare(cutZ) > 0.45) {
+    // A tall straight-sided generated plinth can carry a large share of the
+    // surface. When its shape is confirmed, cutting it is safe; slabbing
+    // under it would ship two stacked bases.
+    const block = prismaticPlinthTop(tris, bounds);
+    cutZ = block !== null && removedShare(block) <= 0.65 ? block : bounds.min[2];
   }
 
   const currentVolume = signedVolumeMm3(tris);
