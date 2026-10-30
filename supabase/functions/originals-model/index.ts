@@ -496,11 +496,27 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
 
   const results: Array<Record<string, unknown>> = [];
   const groups = new Set<string>();
+  // Pieces whose base was just rebuilt: lettering and sending happen in the
+  // next pass so one worker never holds the rebuild and the engraving at once.
+  const rebuiltGroups = new Set<string>();
+  const rebuiltOrders: string[] = [];
 
   for (const row of rows as OrderRow[]) {
     try {
       const out = await resolveFile(row);
-      if (out.url) {
+      if (out.status === "rebuilt" && out.url) {
+        await admin.from("originals_orders").update({
+          print_file_url: out.url,
+          engraved_text: null,
+          engraved_at: null,
+          engraving_meta: null,
+          model_status: "ready",
+          fulfillment_error: null,
+          updated_at: new Date().toISOString(),
+        }).eq("id", row.id);
+        rebuiltGroups.add(row.group_id ?? row.id);
+        rebuiltOrders.push(row.id);
+      } else if (out.url) {
         const finalUrl = await applyEngraving(row, out.url);
         await admin.from("originals_orders").update({
           print_file_url: finalUrl,
@@ -540,9 +556,25 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
     }
   }
 
+  // Continue rebuilt pieces in a fresh worker right away (the 30-minute sweep
+  // is the backstop if this hand-off is lost).
+  for (const id of rebuiltOrders) {
+    const next = fetch(`${SUPABASE_URL}/functions/v1/originals-model`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-internal-key": SERVICE_KEY },
+      body: JSON.stringify({ order_id: id }),
+    }).then(() => {}, (e) => console.error("originals-model hand-off failed", id, e));
+    // deno-lint-ignore no-explicit-any
+    const runtime = (globalThis as any).EdgeRuntime;
+    if (runtime?.waitUntil) runtime.waitUntil(next);
+    else await next;
+  }
+
   // A group only goes to the partner once every piece in it has a file.
   const sent: string[] = [];
   for (const key of groups) {
+    // A piece in this shipment still needs its lettering — wait for that pass.
+    if (rebuiltGroups.has(key)) continue;
     const groupRows = (rows as OrderRow[]).filter((row) => (row.group_id ?? row.id) === key);
     if (groupRows.some((row) => row.payment_provider === "internal_test")) {
       await admin
@@ -628,7 +660,6 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
   const files = (preview.print_files ?? {}) as Record<string, string>;
   const current = files[sizeKey];
   if (!current) return { previewId, sizeKey, outcome: "no_file" };
-  if (!(await printFileHasStackedPlinth(current))) return { previewId, sizeKey, outcome: "already_single" };
   const target = SIZE_MAX_MM[sizeKey];
   if (!target) return { previewId, sizeKey, outcome: "unknown_size" };
   const key = `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`;
@@ -644,10 +675,12 @@ async function rebuildPreviewFile(previewId: string, sizeKey: string) {
     await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
   };
 
-  const restacked = await restackCachedFile(current, sizeKey, key);
-  if (restacked) {
-    await savePreviewFile(restacked.url);
-    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: restacked.url, size: restacked.size, previous: current };
+  const checked = await restackCachedFile(current, sizeKey, key);
+  if (checked.kind === "single") return { previewId, sizeKey, outcome: "already_single" };
+  if (checked.kind === "unavailable") return { previewId, sizeKey, outcome: "file_unavailable" };
+  if (checked.kind === "rebuilt") {
+    await savePreviewFile(checked.url);
+    return { previewId, sizeKey, outcome: "rebuilt_from_file", url: checked.url, size: checked.size, previous: current };
   }
 
   if (!preview.model_task_id) return { previewId, sizeKey, outcome: "no_mesh_task" };

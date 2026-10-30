@@ -58,18 +58,27 @@ function clipAbove(tris: Tri[], z: number): Tri[] {
  * plinth or the rebuild still is not a clean single-base piece.
  */
 export function restackFromStackedStl(bytes: Uint8Array, targetMaxMm: number): RestackResult | null {
-  const tris = parseStl(bytes) as Tri[];
+  let tris: Tri[] | null = parseStl(bytes) as Tri[];
   const report = findStackedPlinth(tris);
   if (!report.stacked || typeof report.baseTopZ !== "number") return null;
   // A hair above our base's top so none of its top face survives.
   const cutAtMm = report.baseTopZ + 0.2;
-  const sculpture = clipAbove(tris, cutAtMm);
+  let sculpture: Tri[] | null = clipAbove(tris, cutAtMm);
+  tris = null; // let the full mesh be collected before the heavy steps
   if (sculpture.length < 100) return null;
 
   // Same order as a fresh mesh: leave headroom for the new base, replace the
   // generator's plinth with ours, then bring the piece back to the sold size.
-  const headroom = fitStlToLongestEdge(writeStl(sculpture), Math.max(1, targetMaxMm - HEFT_SIZE_RESERVE_MM));
-  const reinforced = reinforceKeepsakeStl(headroom.stl, targetMaxMm);
+  let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const t of sculpture) for (const p of t) for (let i = 0; i < 3; i++) {
+    if (p[i] < lo[i]) lo[i] = p[i];
+    if (p[i] > hi[i]) hi[i] = p[i];
+  }
+  const longest = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]);
+  const k = Math.max(1, targetMaxMm - HEFT_SIZE_RESERVE_MM) / longest;
+  const scaled = writeStl(sculpture.map((t) => t.map(([x, y, z]) => [x * k, y * k, z * k] as V3) as Tri));
+  sculpture = null;
+  const reinforced = reinforceKeepsakeStl(scaled, targetMaxMm);
   if (!reinforced.applied) return null;
   const fitted = fitStlToLongestEdge(reinforced.stl, targetMaxMm);
 
