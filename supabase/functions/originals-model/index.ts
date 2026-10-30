@@ -565,6 +565,53 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   return { pieces: rows.length, results, sent };
 }
 
+/**
+ * Admin maintenance: replace a preview's cached size file that still carries
+ * two plinths with a single-plinth rebuild from the generator's mesh, so a
+ * later order never has to do the heavy rebuild inside the order worker.
+ * The old file is kept (new storage key); nothing is sent to the partner.
+ */
+async function rebuildPreviewFile(previewId: string, sizeKey: string) {
+  const { data: preview } = await admin
+    .from("originals_previews")
+    .select("id, print_files, model_task_id")
+    .eq("id", previewId)
+    .maybeSingle();
+  if (!preview) return { previewId, sizeKey, outcome: "not_found" };
+  const files = (preview.print_files ?? {}) as Record<string, string>;
+  const current = files[sizeKey];
+  if (!current) return { previewId, sizeKey, outcome: "no_file" };
+  if (!(await printFileHasStackedPlinth(current))) return { previewId, sizeKey, outcome: "already_single" };
+  const target = SIZE_MAX_MM[sizeKey];
+  if (!target) return { previewId, sizeKey, outcome: "unknown_size" };
+  if (!preview.model_task_id) return { previewId, sizeKey, outcome: "no_mesh_task" };
+  const task = await pollModelTask(preview.model_task_id as string);
+  if (task.status !== "SUCCEEDED" || !task.glb) {
+    return { previewId, sizeKey, outcome: "mesh_unavailable", status: task.status };
+  }
+  const prepared = await ensurePrintFile(admin, {
+    modelUrl: task.glb,
+    key: `originals/preview/${previewId}/${sizeKey}-single-plinth-v3`,
+    targetMaxMm: target,
+    reinforceBase: true,
+  });
+  if (!prepared.stl) return { previewId, sizeKey, outcome: "no_bytes" };
+  const stacked = findStackedPlinth(parseStl(prepared.stl));
+  const longest = Math.max(prepared.size.x, prepared.size.y, prepared.size.z);
+  if (stacked.stacked || Math.abs(longest - target) > 1.5) {
+    return { previewId, sizeKey, outcome: "rebuild_rejected", stacked: stacked.stacked, size: prepared.size };
+  }
+  // Re-read so a concurrent size check on this preview is not overwritten.
+  const { data: fresh } = await admin
+    .from("originals_previews")
+    .select("print_files")
+    .eq("id", previewId)
+    .maybeSingle();
+  const merged = { ...((fresh?.print_files ?? {}) as Record<string, string>), [sizeKey]: prepared.url };
+  await admin.from("originals_previews").update({ print_files: merged }).eq("id", previewId);
+  return { previewId, sizeKey, outcome: "rebuilt", url: prepared.url, size: prepared.size, previous: current };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -572,6 +619,10 @@ Deno.serve(async (req) => {
   try {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
     const body = await req.json().catch(() => ({}));
+    if (body?.rebuild_preview && typeof body.rebuild_preview?.preview_id === "string") {
+      const { preview_id, size_key } = body.rebuild_preview;
+      return json(await rebuildPreviewFile(preview_id, String(size_key ?? "")));
+    }
     const out = await run({
       orderId: typeof body?.order_id === "string" ? body.order_id : null,
       groupId: typeof body?.group_id === "string" ? body.group_id : null,
