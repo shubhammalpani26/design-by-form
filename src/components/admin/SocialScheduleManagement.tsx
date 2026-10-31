@@ -100,7 +100,7 @@ const POSTED_PAGE = 20;
 function PostMedia({ post, size }: { post: ScheduledPost; size: "hero" | "thumb" }) {
   const url = post.image_url;
   const hero = size === "hero";
-  const box = hero ? "aspect-[4/5] w-full sm:w-72" : "h-28 w-[5.6rem]";
+  const box = hero ? "mx-auto aspect-[4/5] w-full max-w-[17rem] sm:mx-0 sm:w-72" : "h-28 w-[5.6rem]";
 
   if (!url) {
     return (
@@ -143,10 +143,10 @@ function PostMedia({ post, size }: { post: ScheduledPost; size: "hero" | "thumb"
   const slides = slidesOf(post);
   if (hero && slides.length > 1) {
     return (
-      <div className="w-full shrink-0 sm:w-72">
+      <div className="mx-auto w-full max-w-[17rem] shrink-0 sm:mx-0 sm:w-72">
         <div className="flex snap-x snap-mandatory gap-2 overflow-x-auto">
           {slides.map((s, i) => (
-            <a key={s + i} href={s} target="_blank" rel="noreferrer" className="relative block aspect-[4/5] w-[85%] shrink-0 snap-start border border-border bg-muted sm:w-full">
+            <a key={s + i} href={s} target="_blank" rel="noreferrer" className="relative block aspect-[4/5] w-[88%] shrink-0 snap-start border border-border bg-muted sm:w-full">
               <img src={s} alt={`Slide ${i + 1}`} className="h-full w-full object-contain" loading="lazy" />
               <span className="absolute right-1.5 top-1.5 bg-background/85 px-1.5 py-0.5 text-[10px] text-foreground">
                 {i + 1}/{slides.length}
@@ -343,7 +343,7 @@ export const SocialScheduleManagement = () => {
     const open = p.status !== "published" && p.status !== "cancelled";
     const isPublic = p.image_url && !p.image_url.startsWith("storage://");
     return (
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5 [&_button]:h-8 [&_button]:px-3 [&_button]:text-xs">
         {p.status === "published" && p.fb_post_id && (
           <a href={`https://www.facebook.com/${p.fb_post_id}`} target="_blank" rel="noreferrer">
             <Button size="sm" variant="outline">View on Facebook</Button>
@@ -407,7 +407,7 @@ export const SocialScheduleManagement = () => {
     <div className="space-y-6">
       {groupByDay(items, LOCAL_TZ).map((g) => (
         <section key={g.key} className="space-y-2">
-          <h3 className="sticky top-0 z-10 border-b border-border bg-background py-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
+          <h3 className="border-b border-border py-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
             {dayHeading(g.posts[0].scheduled_at, now)}
             <span className="ml-2 normal-case tracking-normal">
               · {g.posts.length} post{g.posts.length === 1 ? "" : "s"}
