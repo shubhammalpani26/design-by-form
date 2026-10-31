@@ -479,18 +479,22 @@ export const SocialScheduleManagement = () => {
                 <Clock className="h-3.5 w-3.5" /> Up next
               </h3>
               <Card className="rounded-none border-foreground">
-                <CardContent className="flex flex-col gap-4 p-3 sm:flex-row sm:p-4">
-                  <PostMedia post={next} size="hero" />
-                  <div className="min-w-0 flex-1 space-y-2">
-                    <div className="text-2xl font-semibold tracking-tight">{countdown(next.scheduled_at, now)}</div>
+                <CardContent className="space-y-3 p-3 sm:p-4">
+                  <div>
+                    <div className="text-2xl font-semibold tracking-tight">Posts {countdown(next.scheduled_at, now)}</div>
                     <div className="text-sm text-muted-foreground">
                       {dayHeading(next.scheduled_at, now)} · {localTime(next.scheduled_at)} (US {etTime(next.scheduled_at)} ET)
                     </div>
-                    {next.theme && <p className="font-medium">{next.theme}</p>}
-                    {Badges({ p: next })}
-                    {Caption({ p: next, clamp: false })}
-                    {Errors({ p: next })}
-                    {Actions({ p: next })}
+                  </div>
+                  <div className="flex flex-col gap-4 sm:flex-row">
+                    <PostMedia post={next} size="hero" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      {next.theme && <p className="font-medium">{next.theme}</p>}
+                      {Badges({ p: next })}
+                      {Caption({ p: next, clamp: false })}
+                      {Errors({ p: next })}
+                      {Actions({ p: next })}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
