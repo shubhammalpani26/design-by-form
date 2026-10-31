@@ -47,6 +47,7 @@
 - [x] Full retest 2026-10-27: live gift page, ads, preview, sizes, checkout, tracking. Fixed photo colour pick (golden dogs were defaulting to Slate Grey) — needs publish
 
 ## Gift videos round 2 (2026-10-30)
-- [ ] Animate the 3 approved gift videos (Daisy, Milo, Biscuit) with Kling, soft music under voices, captions, end card
-- [ ] Save all the new stills in the social media library (storage) so they can be posted
-- [ ] Liven up Instagram: schedule the new videos (and other video content) as Reels alongside the existing posts
+- [x] Animate the 3 approved gift videos (Daisy, Milo, Biscuit) with Kling, soft music under voices, captions, end card — done 2026-10-31
+- [x] Save all the new stills in the social media library (storage) so they can be posted — 23 files in social/library/gift-videos-2026-10/
+- [x] Liven up Instagram: Daisy/Milo/Biscuit Reels scheduled Nov 2/3/4 13:00 UTC, Instagram dry-run accepted
+- [ ] Gift videos as Meta ads — not added; needs owner go-ahead (spend cap headroom low)
