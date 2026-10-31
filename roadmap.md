@@ -50,7 +50,7 @@
 - [x] Animate the 3 approved gift videos (Daisy, Milo, Biscuit) with Kling, soft music under voices, captions, end card — done 2026-10-31
 - [x] Save all the new stills in the social media library (storage) so they can be posted — 23 files in social/library/gift-videos-2026-10/
 - [x] Liven up Instagram: Daisy/Milo/Biscuit Reels scheduled Nov 2/3/4 13:00 UTC, Instagram dry-run accepted
-- [ ] Gift videos as Meta ads — not added; needs owner go-ahead (spend cap headroom low)
-- [ ] Add Daisy, Milo (v2), Biscuit (v2) gift videos as ads in the Holiday Gift ad set (owner go-ahead 2026-10-31); spending limit nearly used up, so owner must add funds/raise limit
-- [ ] Schedule the gift-video stills as organic posts (3 story carousels + 3 singles, Nov 5–10, 13:00 UTC), cropped to 4:5 for Instagram feed
-- [ ] Pause the two real-photo slideshow Reels (Holiday gift Reel, Every-angle Reel) in Holiday Gift: no checkouts, ~3% full watches (owner 2026-10-31)
+- [x] Gift videos as Meta ads — added 2026-10-31 (see below)
+- [x] Add Daisy, Milo (v2), Biscuit (v2) gift videos as ads in the Holiday Gift ad set (owner go-ahead 2026-10-31); spending limit nearly used up, so owner must add funds/raise limit
+- [x] Schedule the gift-video stills as organic posts (3 story carousels + 3 singles, Nov 5–10, 13:00 UTC), cropped to 4:5 for Instagram feed
+- [x] Pause the two real-photo slideshow Reels (Holiday gift Reel, Every-angle Reel) in Holiday Gift: no checkouts, ~3% full watches (owner 2026-10-31)
