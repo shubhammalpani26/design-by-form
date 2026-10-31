@@ -51,3 +51,5 @@
 - [x] Save all the new stills in the social media library (storage) so they can be posted — 23 files in social/library/gift-videos-2026-10/
 - [x] Liven up Instagram: Daisy/Milo/Biscuit Reels scheduled Nov 2/3/4 13:00 UTC, Instagram dry-run accepted
 - [ ] Gift videos as Meta ads — not added; needs owner go-ahead (spend cap headroom low)
+- [ ] Add Daisy, Milo (v2), Biscuit (v2) gift videos as ads in the Holiday Gift ad set (owner go-ahead 2026-10-31); spending limit nearly used up, so owner must add funds/raise limit
+- [ ] Schedule the gift-video stills as organic posts (3 story carousels + 3 singles, Nov 5–10, 13:00 UTC), cropped to 4:5 for Instagram feed
