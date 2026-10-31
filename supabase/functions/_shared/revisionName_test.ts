@@ -47,3 +47,15 @@ Deno.test("reads the new name after a spelling complaint", () => {
 Deno.test("reads the name when the buyer also names the wrong one", () => {
   assertEquals(nameFromRevision("name is Hampton not Hampt"), "Hampton");
 });
+
+Deno.test("other changes mentioned after the name never become the name", () => {
+  for (const note of [
+    "the name is fine but the background should be blue",
+    "keep the name, but the ears should be pointier",
+    "name looks good, the tail should be longer",
+    "the name is perfect and the fur should be lighter",
+    "name is spelled wrong, the background should be blue",
+  ]) {
+    assertEquals(nameFromRevision(note), null, note);
+  }
+});
