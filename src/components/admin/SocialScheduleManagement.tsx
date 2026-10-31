@@ -530,7 +530,7 @@ export const SocialScheduleManagement = () => {
           {skipped.length === 0 ? (
             <p className="border border-border p-6 text-center text-sm text-muted-foreground">No skipped posts.</p>
           ) : (
-            {DayList({ items: skipped })}
+            DayList({ items: skipped })
           )}
         </TabsContent>
       </Tabs>
