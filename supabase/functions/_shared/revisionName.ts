@@ -20,8 +20,15 @@ const PATTERNS: RegExp[] = [
   new RegExp(String.raw`\b(?:change|fix|update|correct|make)\s+(?:the\s+|his\s+|her\s+|their\s+)?name\s+(?:to|as|into)\s+` + OPEN + NAME + END, "i"),
   new RegExp(String.raw`\brename\s+(?:it\s+|him\s+|her\s+)?(?:to\s+)?` + OPEN + NAME + END, "i"),
   new RegExp(String.raw`\bspell(?:ed|t)?\s+(?:it|the\s+name|his\s+name|her\s+name)\s+(?:as\s+)?` + OPEN + NAME + END, "i"),
-  // "name is spelled wrong, it should be Bella"
-  new RegExp(String.raw`\bname\b[^.!?]*?\b(?:should\s+be|should\s+read|must\s+be)\s+` + OPEN + NAME + END, "i"),
+  // "name is spelled wrong, it should be Bella". Only a spelling complaint may
+  // sit between "name" and "should be" — a looser gap let "the name is fine but
+  // the background should be blue" letter BLUE on the print (QA, Oct 2026).
+  new RegExp(
+    String.raw`\bname\s+(?:is|was|'s|has)\s+(?:(?:spelled|spelt|written)\s+)?(?:wrong(?:ly)?|incorrect(?:ly)?|misspelled|misspelt|a\s+typo)` +
+      String.raw`\s*[,;:-]?\s*(?:(?:and|but|so)\s+)?(?:(?:it|the\s+name|his\s+name|her\s+name|its\s+name|their\s+name)\s+)?` +
+      String.raw`(?:should\s+be|should\s+read|must\s+be)\s+` + OPEN + NAME + END,
+    "i",
+  ),
 ];
 
 // Words that describe the lettering rather than name the pet. If any word of
