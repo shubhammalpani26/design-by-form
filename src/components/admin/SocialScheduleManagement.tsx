@@ -392,12 +392,12 @@ export const SocialScheduleManagement = () => {
       <CardContent className="flex gap-3 p-3">
         <PostMedia post={p} size="thumb" />
         <div className="min-w-0 flex-1 space-y-1.5">
-          <TimeLine p={p} />
+          {TimeLine({ p: p })}
           {p.theme && <p className="truncate text-sm font-medium">{p.theme}</p>}
-          <Badges p={p} />
-          <Caption p={p} clamp />
-          <Errors p={p} />
-          <Actions p={p} />
+          {Badges({ p: p })}
+          {Caption({ p: p, clamp: true })}
+          {Errors({ p: p })}
+          {Actions({ p: p })}
         </div>
       </CardContent>
     </Card>
@@ -414,7 +414,7 @@ export const SocialScheduleManagement = () => {
             </span>
           </h3>
           {g.posts.map((p) => (
-            <PostRow key={p.id} p={p} />
+            <div key={p.id}>{PostRow({ p })}</div>
           ))}
         </section>
       ))}
@@ -468,7 +468,7 @@ export const SocialScheduleManagement = () => {
                 <AlertTriangle className="h-3.5 w-3.5" /> Needs your attention ({attention.length})
               </h3>
               {attention.map((p) => (
-                <PostRow key={p.id} p={p} />
+                <div key={p.id}>{PostRow({ p })}</div>
               ))}
             </section>
           )}
@@ -487,10 +487,10 @@ export const SocialScheduleManagement = () => {
                       {dayHeading(next.scheduled_at, now)} · {localTime(next.scheduled_at)} (US {etTime(next.scheduled_at)} ET)
                     </div>
                     {next.theme && <p className="font-medium">{next.theme}</p>}
-                    <Badges p={next} />
-                    <Caption p={next} clamp={false} />
-                    <Errors p={next} />
-                    <Actions p={next} />
+                    {Badges({ p: next })}
+                    {Caption({ p: next, clamp: false })}
+                    {Errors({ p: next })}
+                    {Actions({ p: next })}
                   </div>
                 </CardContent>
               </Card>
@@ -504,7 +504,7 @@ export const SocialScheduleManagement = () => {
           {upcoming.length > 0 && (
             <div className="space-y-2">
               <h3 className="text-xs font-medium uppercase tracking-widest text-muted-foreground">After that</h3>
-              <DayList items={upcoming} />
+              {DayList({ items: upcoming })}
             </div>
           )}
         </TabsContent>
@@ -515,7 +515,7 @@ export const SocialScheduleManagement = () => {
             <p className="border border-border p-6 text-center text-sm text-muted-foreground">Nothing posted yet.</p>
           ) : (
             <>
-              <DayList items={posted.slice(0, postedShown)} />
+              {DayList({ items: posted.slice(0, postedShown) })}
               {postedShown < posted.length && (
                 <Button variant="outline" className="w-full" onClick={() => setPostedShown((n) => n + POSTED_PAGE)}>
                   Show older posts ({posted.length - postedShown} more)
@@ -530,7 +530,7 @@ export const SocialScheduleManagement = () => {
           {skipped.length === 0 ? (
             <p className="border border-border p-6 text-center text-sm text-muted-foreground">No skipped posts.</p>
           ) : (
-            <DayList items={skipped} />
+            {DayList({ items: skipped })}
           )}
         </TabsContent>
       </Tabs>
