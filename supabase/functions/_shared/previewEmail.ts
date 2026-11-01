@@ -5,6 +5,7 @@
  * A shopper who opts in gets the preview now and exactly ONE gentle reminder
  * two days later — never more, and never after they have paid.
  */
+import { PHOTO_PERSONALIZED_SKUS, SKU_NAMES } from "./originalsPricing.ts";
 
 export const REMINDER_DELAY_MS = 2 * 24 * 60 * 60 * 1000;
 /** Previews older than this can't be emailed (they're stale by then). */
