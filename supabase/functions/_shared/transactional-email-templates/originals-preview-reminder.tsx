@@ -15,7 +15,10 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 interface Props {
+  /** "pet" for pet sculptures; "piece" for baby/wedding pieces (no pet wording). */
+  kind?: 'pet' | 'piece'
   petName?: string
+  pieceName?: string
   previewUrl?: string
   link?: string
 }
@@ -25,11 +28,23 @@ const clean = (v: unknown, max = 60) => {
   const s = v.replace(/[<>\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
   return /[\p{L}\p{N}]/u.test(s) ? s.slice(0, max).trim() : ''
 }
+/** Heading-style label: "Nyra's preview", "Your Wedding Coordinates Piece preview", or "Your preview". */
+const labelsFor = (d: Record<string, any>) => {
+  const isPet = d?.kind !== 'piece'
+  const name = isPet ? clean(d?.petName) : ''
+  const piece = isPet ? '' : clean(d?.pieceName)
+  return {
+    isPet,
+    name,
+    title: name ? `${name}'s preview` : piece ? `Your ${piece} preview` : 'Your preview',
+    alt: name ? `${name} sculpture preview` : piece ? `${piece} preview` : 'Your sculpture preview',
+  }
+}
 const safeUrl = (u: unknown, prefix: string) =>
   typeof u === 'string' && u.startsWith(prefix) ? u : ''
 
 const Email = (props: Props) => {
-  const name = clean(props.petName)
+  const { isPet, name, title, alt } = labelsFor(props)
   const img = safeUrl(props.previewUrl, 'https://')
   const link = safeUrl(props.link, 'https://nyzora.ai/') || 'https://nyzora.ai/originals/pet-silhouette-keepsake'
 
@@ -40,8 +55,8 @@ const Email = (props: Props) => {
       <Body style={main}>
         <Container style={container}>
           <Text style={eyebrow}>NYZORA</Text>
-          <Heading style={h1}>{name ? `${name}'s preview is still here` : 'Your preview is still here'}</Heading>
-          {img ? <Img src={img} alt={name ? `${name} sculpture preview` : 'Your sculpture preview'} style={hero} /> : null}
+          <Heading style={h1}>{title} is still here</Heading>
+          {img ? <Img src={img} alt={alt} style={hero} /> : null}
           <Text style={body}>
             Just a gentle note in case it got buried — your preview is saved exactly as you left it.
             No rush at all. Whenever it feels right, it's one tap away.
@@ -50,8 +65,9 @@ const Email = (props: Props) => {
             <Button href={link} style={button}>Open my preview</Button>
           </Section>
           <Text style={body}>
-            Want a different pose or a clearer likeness? You can make a fresh preview from another
-            photo for free.
+            {isPet
+              ? 'Want a different pose or a clearer likeness? You can make a fresh preview from another photo for free.'
+              : 'Want different lettering or another colour? You can make a fresh preview for free.'}
           </Text>
           <Hr style={hr} />
           <Text style={muted}>
@@ -67,11 +83,12 @@ const Email = (props: Props) => {
 export const template = {
   component: Email,
   subject: (d: Record<string, any>) => {
-    const name = clean(d?.petName)
-    return name ? `${name}'s preview is still saved` : 'Your Nyzora preview is still saved'
+    const { name, title } = labelsFor(d)
+    return name || d?.kind === 'piece' ? `${title} is still saved` : 'Your Nyzora preview is still saved'
   },
   displayName: 'Originals preview reminder',
   previewData: {
+    kind: 'pet',
     petName: 'Nyra',
     previewUrl: 'https://nyzora.ai/og-image.jpg',
     link: 'https://nyzora.ai/originals/pet-silhouette-keepsake?saved=example',

@@ -1,5 +1,5 @@
 import { assertEquals } from "jsr:@std/assert@1";
-import { decideReminder, normalizeEmail, reminderDueAt } from "./previewEmail.ts";
+import { decideReminder, normalizeEmail, previewEmailSubject, reminderDueAt } from "./previewEmail.ts";
 
 const optIn = new Date("2026-11-02T10:00:00Z");
 
@@ -55,4 +55,19 @@ Deno.test("email addresses are checked and lower-cased", () => {
   assertEquals(normalizeEmail("  Jane.Doe@Example.com "), "jane.doe@example.com");
   assertEquals(normalizeEmail("not-an-email"), null);
   assertEquals(normalizeEmail("a@b"), null);
+});
+
+Deno.test("pet previews are emailed with the pet's name and pet wording", () => {
+  assertEquals(previewEmailSubject("pet-portrait-sculpture", { heading: " Nyra " }), {
+    kind: "pet", petName: "Nyra", pieceName: "",
+  });
+});
+
+Deno.test("baby and wedding previews are named by the piece, never as a pet", () => {
+  assertEquals(previewEmailSubject("nursery-name-date", { heading: "OLIVER" }), {
+    kind: "piece", petName: "", pieceName: "Baby Name & Date Piece",
+  });
+  assertEquals(previewEmailSubject("wedding-coordinates", { heading: "40.7128° N, 74.0060° W" }), {
+    kind: "piece", petName: "", pieceName: "Wedding Coordinates Piece",
+  });
 });

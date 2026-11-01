@@ -15,7 +15,10 @@ import {
 import type { TemplateEntry } from './registry.ts'
 
 interface Props {
+  /** "pet" for pet sculptures; "piece" for baby/wedding pieces (no pet wording). */
+  kind?: 'pet' | 'piece'
   petName?: string
+  pieceName?: string
   previewUrl?: string
   link?: string
   fromPrice?: number
@@ -26,11 +29,23 @@ const clean = (v: unknown, max = 60) => {
   const s = v.replace(/[<>\r\n\t]+/g, ' ').replace(/\s{2,}/g, ' ').trim()
   return /[\p{L}\p{N}]/u.test(s) ? s.slice(0, max).trim() : ''
 }
+/** Heading-style label: "Nyra's preview", "Your Wedding Coordinates Piece preview", or "Your preview". */
+const labelsFor = (d: Record<string, any>) => {
+  const isPet = d?.kind !== 'piece'
+  const name = isPet ? clean(d?.petName) : ''
+  const piece = isPet ? '' : clean(d?.pieceName)
+  return {
+    isPet,
+    name,
+    title: name ? `${name}'s preview` : piece ? `Your ${piece} preview` : 'Your preview',
+    alt: name ? `${name} sculpture preview` : piece ? `${piece} preview` : 'Your sculpture preview',
+  }
+}
 const safeUrl = (u: unknown, prefix: string) =>
   typeof u === 'string' && u.startsWith(prefix) ? u : ''
 
 const Email = (props: Props) => {
-  const name = clean(props.petName)
+  const { isPet, name, title, alt } = labelsFor(props)
   const img = safeUrl(props.previewUrl, 'https://')
   const link = safeUrl(props.link, 'https://nyzora.ai/') || 'https://nyzora.ai/originals/pet-silhouette-keepsake'
   const from = typeof props.fromPrice === 'number' && props.fromPrice > 0 ? props.fromPrice : 59
@@ -42,8 +57,8 @@ const Email = (props: Props) => {
       <Body style={main}>
         <Container style={container}>
           <Text style={eyebrow}>NYZORA</Text>
-          <Heading style={h1}>{name ? `${name}'s preview` : 'Your preview'}</Heading>
-          {img ? <Img src={img} alt={name ? `${name} sculpture preview` : 'Your sculpture preview'} style={hero} /> : null}
+          <Heading style={h1}>{title}</Heading>
+          {img ? <Img src={img} alt={alt} style={hero} /> : null}
           <Text style={body}>
             Here it is, saved so you can come back to it whenever you like. The button below opens
             this exact preview again — sizes, colour and price included.
@@ -52,8 +67,10 @@ const Email = (props: Props) => {
             <Button href={link} style={button}>Open my preview</Button>
           </Section>
           <Text style={body}>
-            From ${from} · free US shipping · ships in 7–8 business days. If the finished piece
-            doesn't look like your pet, we remake it free.
+            From ${from} · free US shipping · ships in 7–8 business days.{' '}
+            {isPet
+              ? "If the finished piece doesn't look like your pet, we remake it free."
+              : "If the finished piece doesn't match the preview you approved, we remake it free."}
           </Text>
           <Hr style={hr} />
           <Text style={muted}>
@@ -69,11 +86,12 @@ const Email = (props: Props) => {
 export const template = {
   component: Email,
   subject: (d: Record<string, any>) => {
-    const name = clean(d?.petName)
-    return name ? `${name}'s preview, saved for you` : 'Your Nyzora preview, saved for you'
+    const { name, title } = labelsFor(d)
+    return name || d?.kind === 'piece' ? `${title}, saved for you` : 'Your Nyzora preview, saved for you'
   },
   displayName: 'Originals preview saved',
   previewData: {
+    kind: 'pet',
     petName: 'Nyra',
     previewUrl: 'https://nyzora.ai/og-image.jpg',
     link: 'https://nyzora.ai/originals/pet-silhouette-keepsake?saved=example',
