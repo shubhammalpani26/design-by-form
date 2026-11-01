@@ -4,7 +4,7 @@ import { act, bands, biggestDrop, buildAlerts, istWindow, purchasesOf, type Aler
 const base: AlertInput = {
   currencySymbol: "₹", accountActive: true, activeAds: 5, dailyBudget: 3000, capLeft: 50000, prepaid: 20000,
   adIssues: [], pixelPageViews24h: 600, spend: 10000, metaPurchases: 0, paidOrders: 0,
-  adPreviews: 0, adCheckouts: 0, adPayments: 0, drop: null, ageBands: [], stateBands: [], ads: [],
+  adPreviews: 0, adSizes: 0, adCheckouts: 0, adPayments: 0, drop: null, ageBands: [], stateBands: [], ads: [],
 };
 const titles = (i: Partial<AlertInput>) => buildAlerts({ ...base, ...i }).map((a) => a.title);
 
@@ -45,11 +45,15 @@ Deno.test("spending limit under one day of budget is urgent; under three is a wa
   assertEquals(titles({ capLeft: 50000 }).some((t) => t.startsWith("Ads stop")), false);
 });
 
-Deno.test("previews with no paid orders are called out", () => {
-  const a = buildAlerts({ ...base, adPreviews: 33, adCheckouts: 0 }).find((x) => x.title.includes("saw their preview"));
-  assertEquals(a?.title, "33 people from ads saw their preview — nobody paid");
-  assertEquals(a?.detail.startsWith("Nobody clicked checkout"), true);
-  assertEquals(titles({ adPreviews: 33, paidOrders: 1 }).some((t) => t.includes("saw their preview")), false);
+Deno.test("what happens after the preview is always summarised once 3+ people saw one", () => {
+  const none = buildAlerts({ ...base, adPreviews: 22, adSizes: 7, adCheckouts: 0 }).find((x) => x.title.includes("saw their preview"));
+  assertEquals(none?.title, "0 of 22 ad visitors who saw their preview paid");
+  assertEquals(none?.detail.includes("nobody clicked checkout"), true);
+  const one = buildAlerts({ ...base, adPreviews: 22, adSizes: 7, adCheckouts: 3, adPayments: 1, paidOrders: 1 }).find((x) => x.title.includes("saw their preview"));
+  assertEquals(one?.title, "1 of 22 ad visitors who saw their preview paid");
+  assertEquals(one?.level, "warn");
+  assertEquals(one?.detail, "After the preview: 7 tapped a size, 3 clicked checkout, 1 reached the payment step.");
+  assertEquals(titles({ adPreviews: 2 }).some((t) => t.includes("saw their preview")), false);
 });
 
 Deno.test("40%+ of spend on one age band with no checkouts is flagged", () => {
@@ -62,6 +66,15 @@ Deno.test("40%+ of spend on one age band with no checkouts is flagged", () => {
   assertEquals(titles({ ageBands: ages }).includes("50% of spend went to ages 55-64"), true);
   const fine = bands([{ key: "55-64", spend: 390, clicks: 1, checkouts: 0, purchases: 0 }, { key: "35-44", spend: 610, clicks: 1, checkouts: 1, purchases: 0 }]);
   assertEquals(titles({ ageBands: fine }).some((t) => t.includes("55-64")), false);
+});
+
+Deno.test("55+ together taking 40%+ of spend with no checkouts is flagged", () => {
+  const ages = bands([
+    { key: "55-64", spend: 310, clicks: 5, checkouts: 0, purchases: 0 },
+    { key: "65+", spend: 240, clicks: 2, checkouts: 0, purchases: 0 },
+    { key: "35-44", spend: 450, clicks: 5, checkouts: 2, purchases: 1 },
+  ]);
+  assertEquals(titles({ ageBands: ages }).includes("55% of spend went to people 55 and over"), true);
 });
 
 Deno.test("an active ad with 500+ views and under 0.6% site clicks is flagged; small ones are not", () => {

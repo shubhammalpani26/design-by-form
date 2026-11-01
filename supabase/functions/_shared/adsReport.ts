@@ -75,6 +75,7 @@ export type AlertInput = {
   metaPurchases: number;
   paidOrders: number;
   adPreviews: number;
+  adSizes: number;
   adCheckouts: number;
   adPayments: number;
   drop: { from: string; to: string; rate: number; lost: number } | null;
@@ -109,13 +110,14 @@ export function buildAlerts(i: AlertInput): Alert[] {
     out.push({ level: "bad", title: "Meta hasn't seen any site visits in 24 hours", detail: "Ads are running but the tracking code reported nothing. Sales may not be credited to ads." });
   }
 
-  if (i.adPreviews > 0 && i.paidOrders === 0) {
+  if (i.adPreviews >= 3) {
+    const paid = Math.min(i.paidOrders, i.adPreviews);
     out.push({
-      level: "warn",
-      title: `${i.adPreviews} ${i.adPreviews === 1 ? "person" : "people"} from ads saw their preview — nobody paid`,
+      level: paid === 0 ? "warn" : paid / i.adPreviews < 0.1 ? "warn" : "good",
+      title: `${paid} of ${i.adPreviews} ad visitors who saw their preview paid`,
       detail: i.adCheckouts === 0
-        ? "Nobody clicked checkout after seeing their sculpture, so the size/price screen is where they leave."
-        : `${i.adCheckouts} clicked checkout and ${i.adPayments} reached the payment step.`,
+        ? `${i.adSizes} tapped a size and nobody clicked checkout, so the size/price screen is where they leave.`
+        : `After the preview: ${i.adSizes} tapped a size, ${i.adCheckouts} clicked checkout, ${i.adPayments} reached the payment step.`,
     });
   }
   if (i.drop && i.drop.lost > 0) {
@@ -124,6 +126,11 @@ export function buildAlerts(i: AlertInput): Alert[] {
 
   const skew = i.ageBands.filter((b) => b.share >= 0.4 && b.checkouts + b.purchases === 0).sort((a, b) => b.share - a.share)[0];
   if (skew) out.push({ level: "warn", title: `${pct(skew.share)} of spend went to ages ${skew.key}`, detail: "That age group has no checkouts in this period." });
+  const older = i.ageBands.filter((b) => /^(55|65)/.test(b.key));
+  const olderShare = older.reduce((s, b) => s + b.share, 0);
+  if (!skew && olderShare >= 0.4 && older.every((b) => b.checkouts + b.purchases === 0)) {
+    out.push({ level: "warn", title: `${pct(olderShare)} of spend went to people 55 and over`, detail: "They have no checkouts in this period." });
+  }
   const st = [...i.stateBands].sort((a, b) => b.share - a.share)[0];
   if (st && st.share >= 0.4) out.push({ level: "warn", title: `${pct(st.share)} of spend went to ${st.key}`, detail: "One state is taking most of the budget." });
 
