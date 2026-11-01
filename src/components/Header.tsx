@@ -23,7 +23,7 @@ import { GlobalSearch } from "@/components/GlobalSearch";
 import { useCart } from "@/contexts/CartContext";
 import { CurrencySelector } from "@/components/CurrencySelector";
 import { NotificationBell } from "@/components/NotificationBell";
-import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut, Sparkles, TrendingUp, Users, Trophy, BookOpen, Package } from "lucide-react";
+import { Menu, ShoppingCart, User as UserIcon, Wand2, LayoutDashboard, LogOut, Sparkles, TrendingUp, Users, Trophy, BookOpen, Package, Images } from "lucide-react";
 import wordmark from "@/assets/nyzora-wordmark.png";
 
 export const Header = () => {
@@ -122,6 +122,14 @@ export const Header = () => {
                      >
                        <Package className="h-5 w-5" />
                        My Orders
+                     </Link>
+                     <Link
+                       to="/my-previews"
+                       onClick={() => setMobileMenuOpen(false)}
+                       className="flex items-center gap-3 text-base font-medium text-foreground hover:text-primary transition-colors py-2.5 px-2 rounded-lg hover:bg-accent"
+                     >
+                       <Images className="h-5 w-5" />
+                       My Previews
                      </Link>
                      <Link
                        to="/cart"
@@ -398,6 +406,12 @@ export const Header = () => {
                   <Link to="/orders" className="cursor-pointer hover:bg-accent">
                     <Package className="w-4 h-4 mr-2" />
                     My Orders
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/my-previews" className="cursor-pointer hover:bg-accent">
+                    <Images className="w-4 h-4 mr-2" />
+                    My Previews
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>

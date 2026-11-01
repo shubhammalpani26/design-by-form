@@ -21,6 +21,7 @@ import OriginalsHome from "./pages/OriginalsHome";
 const OriginalDetail = lazyWithRetry(() => import("./pages/OriginalDetail"));
 const OriginalsReturn = lazyWithRetry(() => import("./pages/OriginalsReturn"));
 const MyOrders = lazyWithRetry(() => import("./pages/MyOrders"));
+const MyPreviews = lazyWithRetry(() => import("./pages/MyPreviews"));
 const Reviews = lazyWithRetry(() => import("./pages/Reviews"));
 const Unsubscribe = lazyWithRetry(() => import("./pages/Unsubscribe"));
 
@@ -145,6 +146,7 @@ const App = () => (
               <Route path="/originals/:slug" element={<OriginalDetail />} />
               <Route path="/originals/checkout/return" element={<OriginalsReturn />} />
               <Route path="/orders" element={<MyOrders />} />
+              <Route path="/my-previews" element={<MyPreviews />} />
               <Route path="/reviews" element={<Reviews />} />
               <Route path="/unsubscribe" element={<Unsubscribe />} />
               {/* Existing platform homepage preserved verbatim at its own route */}
