@@ -28,8 +28,9 @@ Deno.test("biggest drop ignores steps with too few people", () => {
     { label: "Landed", people: 100 }, { label: "Photo", people: 40 }, { label: "Preview", people: 33 },
     { label: "Size", people: 10 }, { label: "Checkout", people: 6 }, { label: "Payment", people: 2 }, { label: "Paid", people: 0 },
   ]);
-  assertEquals(d?.from, "Size"); // 6/10 = 60%? no: Size→Checkout 60%, Preview→Size 30%, Payment→Paid ignored (2 < 3)
-  // Preview→Size (30%) is worse than Landed→Photo (40%) and Checkout→Payment (33%)
+  // Preview→Size keeps 30%: worse than Landed→Photo (40%) and Checkout→Payment (33%);
+  // Payment→Paid is ignored because only 2 people reached payment.
+  assertEquals([d?.from, d?.to, d?.lost], ["Preview", "Size", 23]);
 });
 
 Deno.test("biggest drop picks the lowest pass-through rate", () => {
