@@ -229,7 +229,7 @@ Deno.serve(async (req) => {
       adIssues: ads.filter((a) => a.active && a.problem).map((a) => ({ name: a.name, reason: a.problem })),
       pixelPageViews24h: tracking ? tracking.PageView ?? 0 : null,
       spend: totals.spend, metaPurchases: totals.purchases, paidOrders: paid.length,
-      adPreviews: site.preview, adCheckouts: site.checkout, adPayments: site.payment,
+      adPreviews: site.preview, adSizes: site.size, adCheckouts: site.checkout, adPayments: site.payment,
       drop, ageBands, stateBands,
       ads: ads.map((a) => ({ name: a.name, active: a.active, impressions: a.impressions, linkClicks: a.linkClicks })),
     });
@@ -240,7 +240,8 @@ Deno.serve(async (req) => {
       currency, symbol: sym,
       account: {
         active: acct ? Number(acct.account_status) === 1 : null,
-        activeCampaigns: activeCamps.map((c: any) => c.name),
+        // A campaign switched on with every ad set paused isn't running anything.
+        activeCampaigns: [...new Set(ads.filter((a) => a.active).map((a) => a.campaign).filter(Boolean))],
         activeAds: ads.filter((a) => a.active).length,
         dailyBudget, capLeft, prepaid,
         daysLeft: capLeft != null && dailyBudget > 0 ? capLeft / dailyBudget : null,
