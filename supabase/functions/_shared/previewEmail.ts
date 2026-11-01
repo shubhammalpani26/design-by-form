@@ -1,0 +1,49 @@
+/**
+ * Rules for the opt-in "Email me my preview" feature on the Originals reveal
+ * screen. Kept pure so the timing and stop conditions are tested.
+ *
+ * A shopper who opts in gets the preview now and exactly ONE gentle reminder
+ * two days later — never more, and never after they have paid.
+ */
+
+export const REMINDER_DELAY_MS = 2 * 24 * 60 * 60 * 1000;
+/** Previews older than this can't be emailed (they're stale by then). */
+export const MAX_PREVIEW_AGE_MS = 7 * 24 * 60 * 60 * 1000;
+/** Abuse caps: a network / a recipient can only opt in a few times a day. */
+export const MAX_OPTINS_PER_NETWORK_PER_DAY = 4;
+export const MAX_OPTINS_PER_EMAIL_PER_DAY = 3;
+
+export function normalizeEmail(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const email = raw.trim().toLowerCase();
+  if (email.length < 6 || email.length > 254) return null;
+  if (!/^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[a-z]{2,}$/i.test(email)) return null;
+  return email;
+}
+
+export function reminderDueAt(optedInAt: Date): Date {
+  return new Date(optedInAt.getTime() + REMINDER_DELAY_MS);
+}
+
+export type ReminderDecision =
+  | { send: true }
+  | { send: false; reason: "already_sent" | "not_due" | "paid" | "preview_gone" };
+
+export function decideReminder(input: {
+  now: Date;
+  dueAt: Date;
+  reminderSentAt: Date | null;
+  previewExists: boolean;
+  hasPaidOrder: boolean;
+}): ReminderDecision {
+  if (input.reminderSentAt) return { send: false, reason: "already_sent" };
+  if (input.now.getTime() < input.dueAt.getTime()) return { send: false, reason: "not_due" };
+  if (!input.previewExists) return { send: false, reason: "preview_gone" };
+  if (input.hasPaidOrder) return { send: false, reason: "paid" };
+  return { send: true };
+}
+
+/** Public link that reopens this exact preview on the product page. */
+export function savedPreviewLink(skuSlug: string, token: string): string {
+  return `https://nyzora.ai/originals/${encodeURIComponent(skuSlug)}?saved=${encodeURIComponent(token)}`;
+}
