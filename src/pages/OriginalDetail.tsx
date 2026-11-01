@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { SEOHead } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ArrowLeft, Camera, ShieldCheck, Truck, Factory } from "lucide-react";
-import { getSku, MAX_ENVELOPE_MM, ORIGINALS_SKUS } from "@/data/originalsSkus";
+import { getSku, MAX_ENVELOPE_MM } from "@/data/originalsSkus";
+import { YouMayAlsoLike } from "@/components/YouMayAlsoLike";
 import { PhotoToPieceFlow, type PhotoToPieceFlowHandle } from "@/components/originals/PhotoToPieceFlow";
 import { MadeToOrderPolicy } from "@/components/originals/MadeToOrderPolicy";
 import { FounderNote } from "@/components/originals/FounderNote";
@@ -173,24 +174,9 @@ const OriginalDetail = () => {
         </div>
       </section>
 
-      <section className="border-t border-border">
-        <div className="container mx-auto px-4 py-14">
-
-          <h2 className="text-xl font-light tracking-tight mb-6">More Originals</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-            {ORIGINALS_SKUS.filter((s) => s.slug !== sku.slug).map((s) => (
-              <Link key={s.slug} to={`/originals/${s.slug}`} className="group">
-                <div className="aspect-[4/5] overflow-hidden bg-muted/30 border border-border">
-                  <img src={s.image} alt={s.name} loading="lazy" width={1024} height={1280}
-                    className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
-                </div>
-                <p className="mt-3 text-sm font-light">{s.name}</p>
-                <p className="text-xs text-muted-foreground tabular-nums">${s.price}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <div className="border-t border-border pt-10">
+        <YouMayAlsoLike giftSlug={sku.slug} />
+      </div>
 
       <Footer />
     </div>

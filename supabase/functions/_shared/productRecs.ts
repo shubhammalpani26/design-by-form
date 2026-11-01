@@ -73,3 +73,46 @@ export function isFresh(generatedAt: Date, source: string, now: Date): boolean {
   const ttl = source === "ai" ? AI_TTL_MS : FALLBACK_TTL_MS;
   return now.getTime() - generatedAt.getTime() < ttl;
 }
+
+/**
+ * The only items "You may also like" may show: Nyzora's US-made gift pieces.
+ * Keep in step with src/data/originalsSkus.ts (slugs must match).
+ * Furniture is never recommended — it isn't made in the USA.
+ */
+export const GIFT_ITEMS: CatalogItem[] = [
+  {
+    id: "pet-silhouette-keepsake",
+    name: "Custom Pet Memorial Sculpture",
+    category: "pet gifts",
+    description: "Pet's head sculpted in 3D from a photo, name and dates on the plinth. Remembrance / pet-loss gift. From $59.",
+    price: 59,
+    designerId: "nyzora",
+  },
+  {
+    id: "pet-portrait-sculpture",
+    name: "Custom Pet Portrait Sculpture",
+    category: "pet gifts",
+    description: "Happy, celebratory 3D bust of a living pet from a photo, with their name. Gift for pet lovers. From $59.",
+    price: 59,
+    designerId: "nyzora",
+  },
+  {
+    id: "nursery-name-date",
+    name: "Baby Name & Date Piece",
+    category: "milestone gifts",
+    description: "Sculptural nursery keepsake with a baby's name and birth date. New baby / baby shower gift. $60.",
+    price: 60,
+    designerId: "nyzora",
+  },
+  {
+    id: "wedding-coordinates",
+    name: "Wedding Coordinates Piece",
+    category: "milestone gifts",
+    description: "Sculpture carrying the coordinates and date of a wedding or special place. Wedding / anniversary gift. $85.",
+    price: 85,
+    designerId: "nyzora",
+  },
+];
+
+export const isGiftSlug = (slug: unknown): slug is string =>
+  typeof slug === "string" && GIFT_ITEMS.some((g) => g.id === slug);

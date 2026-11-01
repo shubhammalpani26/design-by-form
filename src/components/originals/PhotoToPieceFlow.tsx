@@ -176,7 +176,9 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   // ---- Draft persistence: never lose an upload or a render on reload/back ----
   useEffect(() => {
     let cancelled = false;
-    const savedToken = new URLSearchParams(window.location.search).get("saved");
+    const qs = new URLSearchParams(window.location.search);
+    const savedToken = qs.get("saved");
+    const accountPreviewId = qs.get("preview");
     void loadDraft(sku.slug).then(async (d) => {
       if (cancelled) return;
       if (d) {
@@ -192,15 +194,20 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
         if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
         if (d.preview) { setPreview(d.preview); setVersions([d.preview]); }
       }
-      // Opened from the "Email me my preview" link: reopen that exact preview.
-      if (savedToken) {
+      // Opened from the "Email me my preview" link or "Your previews": reopen that exact preview.
+      if (savedToken || accountPreviewId) {
         const url = new URL(window.location.href);
         url.searchParams.delete("saved");
+        url.searchParams.delete("preview");
         window.history.replaceState(window.history.state, "", url.toString());
         try {
-          const { data } = await supabase.functions.invoke("originals-preview-email", {
-            body: { action: "restore", token: savedToken },
-          });
+          const { data } = savedToken
+            ? await supabase.functions.invoke("originals-preview-email", {
+                body: { action: "restore", token: savedToken },
+              })
+            : await supabase.functions.invoke("originals-my-previews", {
+                body: { action: "restore", previewId: accountPreviewId },
+              });
           if (!cancelled && data?.previewId && data.skuSlug === sku.slug && d?.preview?.id !== data.previewId) {
             const p = { url: String(data.previewUrl), id: String(data.previewId), remaining: 0 };
             setPhoto(null);
@@ -217,7 +224,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             setVersions([p]);
           }
           if (!cancelled && data?.previewId) {
-            trackExperiment("reveal_screen", getVariant("reveal_screen"), "email_return", { skuSlug: sku.slug });
+            trackExperiment("reveal_screen", getVariant("reveal_screen"), savedToken ? "email_return" : "account_return", { skuSlug: sku.slug });
             window.setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
           }
         } catch { /* fall back to whatever the draft had */ }

@@ -1210,6 +1210,30 @@ export type Database = {
           },
         ]
       }
+      gift_recommendations: {
+        Row: {
+          generated_at: string
+          model: string | null
+          page_key: string
+          slugs: string[]
+          source: string
+        }
+        Insert: {
+          generated_at?: string
+          model?: string | null
+          page_key: string
+          slugs?: string[]
+          source: string
+        }
+        Update: {
+          generated_at?: string
+          model?: string | null
+          page_key?: string
+          slugs?: string[]
+          source?: string
+        }
+        Relationships: []
+      }
       manufacturing_intelligence: {
         Row: {
           captured_at: string

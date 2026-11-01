@@ -1,73 +1,78 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useCurrency } from "@/contexts/CurrencyContext";
 import { Skeleton } from "@/components/ui/skeleton";
-import { slugify } from "@/lib/slugify";
+import { ORIGINALS_SKUS, type OriginalSku } from "@/data/originalsSkus";
 
-interface RecCard {
-  id: string;
-  slug: string | null;
-  name: string;
-  category: string;
-  price: number;
-  image: string;
-  creator: string | null;
-}
+type Props = { productId: string; giftSlug?: never } | { giftSlug: string; productId?: never };
 
-/** AI-picked related pieces from the live catalog, shown under a product. */
-export const YouMayAlsoLike = ({ productId }: { productId: string }) => {
-  const { formatPrice } = useCurrency();
-  const [items, setItems] = useState<RecCard[] | null>(null);
+/**
+ * "You may also like": Lovable AI orders our US-made gift pieces for the page
+ * being viewed. Only gift items are shown — never furniture.
+ */
+export const YouMayAlsoLike = (props: Props) => {
+  const key = props.productId ?? props.giftSlug;
+  const [items, setItems] = useState<OriginalSku[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     setItems(null);
+    const exclude = props.giftSlug;
+    const defaults = ORIGINALS_SKUS.filter((s) => s.slug !== exclude);
     supabase.functions
-      .invoke("product-recommendations", { body: { productId } })
+      .invoke("product-recommendations", {
+        body: props.productId ? { productId: props.productId } : { giftSlug: props.giftSlug },
+      })
       .then(({ data, error }) => {
         if (cancelled) return;
-        setItems(error || !Array.isArray(data?.products) ? [] : (data.products as RecCard[]));
+        const slugs: string[] = !error && Array.isArray(data?.slugs) ? data.slugs : [];
+        const picked = slugs
+          .map((slug) => ORIGINALS_SKUS.find((s) => s.slug === slug))
+          .filter((s): s is OriginalSku => Boolean(s) && s!.slug !== exclude);
+        setItems(picked.length ? picked : defaults);
       });
     return () => { cancelled = true; };
-  }, [productId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key]);
 
-  if (items && items.length === 0) return null;
+  const count = props.giftSlug ? 3 : 4;
 
   return (
-    <section aria-labelledby="you-may-also-like" className="container mx-auto px-4 md:px-8 pb-16 pt-4">
+    <section aria-labelledby="you-may-also-like" className="container mx-auto px-4 pb-16 pt-4">
       <h2 id="you-may-also-like" className="text-xl md:text-2xl font-light tracking-tight">
         You may also like
       </h2>
-      <div className="mt-5 grid grid-cols-2 gap-px border border-border bg-border md:grid-cols-4">
+      <p className="mt-1 text-xs text-muted-foreground">Personalised gifts, made in the USA · free US shipping</p>
+      <div className={`mt-5 grid grid-cols-2 gap-px border border-border bg-border ${count === 3 ? "md:grid-cols-3" : "md:grid-cols-4"}`}>
         {items === null
-          ? Array.from({ length: 4 }).map((_, i) => (
+          ? Array.from({ length: count }).map((_, i) => (
               <div key={i} className="bg-background p-3">
-                <Skeleton className="aspect-square w-full" />
+                <Skeleton className="aspect-[4/5] w-full" />
                 <Skeleton className="mt-3 h-4 w-3/4" />
                 <Skeleton className="mt-2 h-3 w-1/3" />
               </div>
             ))
-          : items.map((p) => (
+          : items.map((s) => (
               <Link
-                key={p.id}
-                to={`/product/${p.slug || slugify(p.name)}`}
+                key={s.slug}
+                to={`/originals/${s.slug}`}
                 className="group bg-background p-3 transition-colors hover:bg-muted/30"
               >
-                <div className="aspect-square w-full overflow-hidden bg-muted/20">
+                <div className="aspect-[4/5] w-full overflow-hidden bg-muted/20">
                   <img
-                    src={p.image}
-                    alt={p.name}
+                    src={s.image}
+                    alt={s.name}
                     loading="lazy"
                     decoding="async"
+                    width={1024}
+                    height={1280}
                     className="h-full w-full object-contain transition-transform duration-500 group-hover:scale-[1.03]"
                   />
                 </div>
-                <p className="mt-3 line-clamp-2 text-sm leading-snug">{p.name}</p>
-                {p.creator && (
-                  <p className="mt-0.5 truncate text-[11px] text-muted-foreground">by {p.creator}</p>
-                )}
-                <p className="mt-1 text-sm tabular-nums">{formatPrice(p.price)}</p>
+                <p className="mt-3 line-clamp-2 text-sm leading-snug">{s.name}</p>
+                <p className="mt-1 text-sm tabular-nums">
+                  {s.sizes.length > 1 ? "From " : ""}${Math.min(...s.sizes.map((z) => z.price))}
+                </p>
               </Link>
             ))}
       </div>
