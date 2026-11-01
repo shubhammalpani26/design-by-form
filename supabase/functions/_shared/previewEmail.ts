@@ -5,6 +5,7 @@
  * A shopper who opts in gets the preview now and exactly ONE gentle reminder
  * two days later — never more, and never after they have paid.
  */
+import { PHOTO_PERSONALIZED_SKUS, SKU_NAMES } from "./originalsPricing.ts";
 
 export const REMINDER_DELAY_MS = 2 * 24 * 60 * 60 * 1000;
 /** Previews older than this can't be emailed (they're stale by then). */
@@ -46,4 +47,24 @@ export function decideReminder(input: {
 /** Public link that reopens this exact preview on the product page. */
 export function savedPreviewLink(skuSlug: string, token: string): string {
   return `https://nyzora.ai/originals/${encodeURIComponent(skuSlug)}?saved=${encodeURIComponent(token)}`;
+}
+
+/**
+ * What the preview emails call this piece. Only pet pieces get the pet's name
+ * and pet-specific wording ("doesn't look like your pet", "another photo");
+ * baby and wedding pieces are named by the piece itself, because their heading
+ * is lettering (a baby's name, coordinates), not who the piece is of.
+ */
+export function previewEmailSubject(
+  skuSlug: string,
+  personalization: unknown,
+): { kind: "pet" | "piece"; petName: string; pieceName: string } {
+  const isPet = PHOTO_PERSONALIZED_SKUS.has(skuSlug);
+  const p = (personalization ?? {}) as Record<string, unknown>;
+  const raw = typeof p.heading === "string" ? p.heading : typeof p.petName === "string" ? p.petName : "";
+  return {
+    kind: isPet ? "pet" : "piece",
+    petName: isPet ? raw.trim().slice(0, 40) : "",
+    pieceName: isPet ? "" : SKU_NAMES[skuSlug] ?? "Nyzora piece",
+  };
 }

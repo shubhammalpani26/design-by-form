@@ -9,6 +9,7 @@ import {
   MAX_PREVIEW_AGE_MS,
   normalizeEmail,
   reminderDueAt,
+  previewEmailSubject,
   savedPreviewLink,
 } from "../_shared/previewEmail.ts";
 
@@ -45,11 +46,6 @@ function fromPrice(skuSlug: string): number | undefined {
   return sizes.length ? Math.min(...sizes.map((s) => s.usd)) : undefined;
 }
 
-const petNameOf = (personalization: unknown) => {
-  const p = (personalization ?? {}) as Record<string, unknown>;
-  const n = typeof p.heading === "string" ? p.heading : typeof p.petName === "string" ? p.petName : "";
-  return n.trim().slice(0, 40);
-};
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -139,7 +135,7 @@ Deno.serve(async (req) => {
 
       const result = await sendAppEmail("originals-preview-saved", email, {
         templateData: {
-          petName: petNameOf(preview.personalization),
+          ...previewEmailSubject(preview.sku_slug, preview.personalization),
           previewUrl: preview.preview_image_url,
           link: savedPreviewLink(preview.sku_slug, row.token),
           fromPrice: fromPrice(preview.sku_slug),
@@ -243,7 +239,7 @@ Deno.serve(async (req) => {
 
         const result = await sendAppEmail("originals-preview-reminder", r.email, {
           templateData: {
-            petName: petNameOf(preview!.personalization),
+            ...previewEmailSubject(r.sku_slug, preview!.personalization),
             previewUrl: preview!.preview_image_url,
             link: savedPreviewLink(r.sku_slug, r.token),
           },
