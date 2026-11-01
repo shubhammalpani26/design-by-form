@@ -74,8 +74,10 @@ Deno.serve(async (req) => {
   try {
     const { data: rows, error } = await admin
       .from("designer_products")
-      .select("id, slug, name, category, description, designer_price, designer_id, image_url, studio_image_url, created_at, designer_profiles(name)")
+      .select("id, slug, name, category, description, designer_price, designer_id, image_url, studio_image_url, created_at, designer_profiles!inner(name, status)")
       .eq("status", "approved")
+      // Only pieces whose page is publicly viewable (creator approved too).
+      .eq("designer_profiles.status", "approved")
       .order("created_at", { ascending: false })
       .limit(300);
     if (error) throw error;
