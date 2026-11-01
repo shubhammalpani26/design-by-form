@@ -140,3 +140,6 @@ verify_jwt = false
 
 [functions.product-recommendations]
 verify_jwt = false
+
+[functions.originals-my-previews]
+verify_jwt = false
