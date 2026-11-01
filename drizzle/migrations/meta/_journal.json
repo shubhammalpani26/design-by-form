@@ -99,6 +99,13 @@
       "when": 1793559817808,
       "tag": "0013_migration",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1793560565978,
+      "tag": "0014_gift_recommendations",
+      "breakpoints": true
     }
   ]
 }
