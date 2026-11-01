@@ -956,7 +956,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 );
               })}
             </div>
-
+            <RealPieceInColour colorKey={colorKey} sizeLabel={selectedSize.label} price={selectedPrice} />
           </div>
 
           {unprintable && (
@@ -1145,6 +1145,17 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               </>
             )}
           </div>
+
+          <PreviewHelpActions
+            previewId={preview.id}
+            skuSlug={sku.slug}
+            petName={displayName}
+            colorKey={colorKey}
+            colorLabel={findOriginalsColor(colorKey).label}
+            sizeKey={sizeKey}
+            sizeLabel={selectedSize.label}
+            onEvent={(event) => trackExperiment("reveal_screen", revealVariant, event, { skuSlug: sku.slug })}
+          />
 
           {/* ---- Not quite right? inline tweaks ---- */}
           <div className="mt-5">
