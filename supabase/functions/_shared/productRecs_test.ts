@@ -39,3 +39,18 @@ Deno.test("AI picks refresh weekly, fallbacks daily", () => {
   assertEquals(isFresh(new Date("2026-11-09T12:00:00Z"), "fallback", now), true);
   assertEquals(isFresh(new Date("2026-11-08T23:00:00Z"), "fallback", now), false);
 });
+
+import { GIFT_ITEMS } from "./productRecs.ts";
+
+Deno.test("recommendations only ever contain gift items", () => {
+  const giftIds = GIFT_ITEMS.map((g) => g.id);
+  const ids = resolvePicks([1, 2, 3, 4], GIFT_ITEMS, { id: "sofa-123", category: "sofas", designerId: "d9" });
+  assertEquals(ids.every((id) => giftIds.includes(id)), true);
+  assertEquals(ids.length, 4);
+});
+
+Deno.test("a gift page never recommends itself", () => {
+  const ids = resolvePicks([1, 2, 3, 4], GIFT_ITEMS, { id: "pet-portrait-sculpture", category: "pet gifts", designerId: "nyzora" });
+  assertEquals(ids.includes("pet-portrait-sculpture"), false);
+  assertEquals(ids.length, 3);
+});
