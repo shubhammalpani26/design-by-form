@@ -598,6 +598,73 @@ async function metaCreds() {
   throw new Error("No Meta page token available — connect Instagram via meta_me first.");
 }
 
+/** Read-only: totals across every Instagram post plus account/Page follower counts. */
+async function organicInsights(creds: { pageToken: string; igUserId: string }) {
+  const G = "https://graph.facebook.com/v23.0";
+  const get = async (path: string, params: Record<string, string> = {}) => {
+    const qs = new URLSearchParams({ ...params, access_token: creds.pageToken });
+    const res = await fetch(`${G}${path}?${qs}`);
+    const j = await res.json();
+    if (!res.ok) throw new Error(JSON.stringify(j?.error ?? j).slice(0, 300));
+    return j;
+  };
+  const out: Record<string, unknown> = {};
+  try {
+    out.instagram_account = await get(`/${creds.igUserId}`, { fields: "username,followers_count,follows_count,media_count" });
+  } catch (e) { out.instagram_account_error = (e as Error).message; }
+  try {
+    out.facebook_page = await get(`/${FB_PAGE_ID}`, { fields: "name,followers_count,fan_count" });
+  } catch (e) { out.facebook_page_error = (e as Error).message; }
+
+  // Every media item (paged).
+  const media: Array<Record<string, unknown>> = [];
+  try {
+    let page = await get(`/${creds.igUserId}/media`, { fields: "id,timestamp,media_type,media_product_type,like_count,comments_count", limit: "100" });
+    media.push(...(page.data ?? []));
+    while (page.paging?.next && media.length < 1000) {
+      const res = await fetch(page.paging.next);
+      page = await res.json();
+      media.push(...(page.data ?? []));
+    }
+  } catch (e) { out.media_error = (e as Error).message; }
+
+  const totals: Record<string, number> = { posts: media.length, likes: 0, comments: 0, reach: 0, views: 0, shares: 0, saved: 0, total_interactions: 0, insights_ok: 0, insights_failed: 0 };
+  const byType: Record<string, { posts: number; reach: number; views: number }> = {};
+  let firstError: string | undefined;
+  for (const m of media) {
+    totals.likes += Number(m.like_count ?? 0);
+    totals.comments += Number(m.comments_count ?? 0);
+  }
+  for (let i = 0; i < media.length; i += 10) {
+    await Promise.all(media.slice(i, i + 10).map(async (m) => {
+      const type = String(m.media_product_type ?? m.media_type ?? "OTHER");
+      byType[type] ??= { posts: 0, reach: 0, views: 0 };
+      byType[type].posts++;
+      const tries = ["reach,views,shares,saved,total_interactions", "reach,views", "reach"];
+      for (const metric of tries) {
+        try {
+          const j = await get(`/${m.id}/insights`, { metric });
+          for (const row of j.data ?? []) {
+            const v = Number(row.values?.[0]?.value ?? row.total_value?.value ?? 0);
+            if (row.name in totals) totals[row.name] += v;
+            if (row.name === "reach") byType[type].reach += v;
+            if (row.name === "views") byType[type].views += v;
+          }
+          totals.insights_ok++;
+          return;
+        } catch (e) { firstError ??= (e as Error).message; }
+      }
+      totals.insights_failed++;
+    }));
+  }
+  out.instagram_totals = totals;
+  out.instagram_by_type = byType;
+  if (firstError) out.first_insights_error = firstError;
+  out.first_post = media.length ? media[media.length - 1].timestamp : null;
+  out.last_post = media.length ? media[0].timestamp : null;
+  return out;
+}
+
 /** `storage://bucket/path` media lives in a private bucket; Meta needs a temporary fetchable URL. */
 async function resolveMediaUrl(raw: string): Promise<string> {
   if (!raw.startsWith("storage://")) return raw;
@@ -866,6 +933,23 @@ Deno.serve(async (req) => {
       } catch {
         // cron calls send no body
       }
+    }
+
+    // Read-only organic stats (Instagram + Facebook Page) for admin reporting. Never posts.
+    if (action === "insights") {
+      const token = req.headers.get("Authorization")?.replace("Bearer ", "") ?? "";
+      const { data: userData } = await admin.auth.getUser(token);
+      const uid = userData?.user?.id;
+      if (!uid) return json({ error: "Unauthorized" }, 401);
+      const { data: isAdmin } = await admin.rpc("has_role", { _user_id: uid, _role: "admin" });
+      if (isAdmin !== true) return json({ error: "Forbidden" }, 403);
+      let creds: { pageToken: string; igUserId: string };
+      try {
+        creds = await metaCreds();
+      } catch (e) {
+        return json({ error: (e as Error).message }, 400);
+      }
+      return json(await organicInsights(creds));
     }
 
     if (action === "publish_now" || action === "dry_run") {
