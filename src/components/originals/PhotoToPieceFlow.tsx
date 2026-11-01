@@ -963,7 +963,10 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 );
               })}
             </div>
-            <RealPieceInColour colorKey={colorKey} sizeLabel={selectedSize.label} price={selectedPrice} />
+            {/* Real finished-piece photos are all pet busts — only show them on pet (photo-based) pieces. */}
+            {sku.photo && (
+              <RealPieceInColour colorKey={colorKey} sizeLabel={selectedSize.label} price={selectedPrice} />
+            )}
           </div>
 
           {unprintable && (
@@ -1157,6 +1160,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             previewId={preview.id}
             skuSlug={sku.slug}
             petName={displayName}
+            pieceName={sku.photo ? undefined : sku.name}
             colorKey={colorKey}
             colorLabel={findOriginalsColor(colorKey).label}
             sizeKey={sizeKey}

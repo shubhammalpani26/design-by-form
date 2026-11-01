@@ -11,6 +11,8 @@ interface Props {
   previewId: string | null;
   skuSlug: string;
   petName: string;
+  /** Set for non-pet pieces (e.g. baby, wedding) so the message names the piece, not a pet. */
+  pieceName?: string;
   colorKey: string;
   colorLabel: string;
   sizeKey: string | null;
@@ -35,7 +37,7 @@ async function readFnError(error: unknown, fallback: string) {
  *  - "Questions? Message us on WhatsApp": opens a chat they start themselves.
  */
 export const PreviewHelpActions = ({
-  previewId, skuSlug, petName, colorKey, colorLabel, sizeKey, sizeLabel, onEvent,
+  previewId, skuSlug, petName, pieceName, colorKey, colorLabel, sizeKey, sizeLabel, onEvent,
 }: Props) => {
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -77,7 +79,10 @@ export const PreviewHelpActions = ({
   };
 
   const ref = previewId ? ` (ref ${previewId.slice(0, 8)})` : "";
-  const waText = `Hi Nyzora! I have a question about my ${petName || "pet"} sculpture preview — ${sizeLabel}, ${colorLabel}${ref}.`;
+  const subject = pieceName
+    ? `${pieceName}${petName ? ` (${petName})` : ""}`
+    : `${petName || "pet"} sculpture`;
+  const waText = `Hi Nyzora! I have a question about my ${subject} preview — ${sizeLabel}, ${colorLabel}${ref}.`;
   const waHref = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(waText)}`;
 
   return (
