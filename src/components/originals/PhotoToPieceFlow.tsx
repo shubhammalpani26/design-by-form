@@ -15,6 +15,8 @@ import { useOriginalsReviews } from "./useOriginalsReviews";
 import { PhotoPrivacyNotice } from "./PhotoPrivacyNotice";
 import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { PreviewShareButton } from "./PreviewShareButton";
+import { RealPieceInColour } from "./RealPieceInColour";
+import { PreviewHelpActions } from "./PreviewHelpActions";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
@@ -174,20 +176,53 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   // ---- Draft persistence: never lose an upload or a render on reload/back ----
   useEffect(() => {
     let cancelled = false;
-    void loadDraft(sku.slug).then((d) => {
-      if (cancelled || !d) { setRestored(true); return; }
-      if (d.photo) setPhoto(d.photo);
-      if (d.mode) setMode(d.mode);
-      if (d.heading) setHeading(d.heading);
-      if (d.footnote) setFootnote(d.footnote);
-      if (d.values) setValues(d.values);
-      if (d.colorKey) { setColorKey(d.colorKey); colorPickedRef.current = true; }
-      // A returning visitor who saved a name/date should see those fields
-      // expanded, not hidden behind the "+ Add" toggle.
-      if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
-      if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
-      if (d.preview) { setPreview(d.preview); setVersions([d.preview]); }
-      setRestored(true);
+    const savedToken = new URLSearchParams(window.location.search).get("saved");
+    void loadDraft(sku.slug).then(async (d) => {
+      if (cancelled) return;
+      if (d) {
+        if (d.photo) setPhoto(d.photo);
+        if (d.mode) setMode(d.mode);
+        if (d.heading) setHeading(d.heading);
+        if (d.footnote) setFootnote(d.footnote);
+        if (d.values) setValues(d.values);
+        if (d.colorKey) { setColorKey(d.colorKey); colorPickedRef.current = true; }
+        // A returning visitor who saved a name/date should see those fields
+        // expanded, not hidden behind the "+ Add" toggle.
+        if (d.heading || d.footnote || (d.values && Object.keys(d.values).length)) setShowOptions(true);
+        if (d.sizeKey && sku.sizes.some((s) => s.key === d.sizeKey)) setSizeKey(d.sizeKey);
+        if (d.preview) { setPreview(d.preview); setVersions([d.preview]); }
+      }
+      // Opened from the "Email me my preview" link: reopen that exact preview.
+      if (savedToken) {
+        const url = new URL(window.location.href);
+        url.searchParams.delete("saved");
+        window.history.replaceState(window.history.state, "", url.toString());
+        try {
+          const { data } = await supabase.functions.invoke("originals-preview-email", {
+            body: { action: "restore", token: savedToken },
+          });
+          if (!cancelled && data?.previewId && data.skuSlug === sku.slug && d?.preview?.id !== data.previewId) {
+            const p = { url: String(data.previewUrl), id: String(data.previewId), remaining: 0 };
+            setPhoto(null);
+            setMode(data.mode === "template" ? "template" : "photo");
+            setHeading(data.heading || "");
+            setFootnote(data.footnote || "");
+            if (data.heading || data.footnote) setShowOptions(true);
+            if (data.colorKey && COLORS.some((c) => c.key === data.colorKey)) {
+              setColorKey(data.colorKey);
+              colorPickedRef.current = true;
+            }
+            if (data.sizeKey && sku.sizes.some((s) => s.key === data.sizeKey)) setSizeKey(data.sizeKey);
+            setPreview(p);
+            setVersions([p]);
+          }
+          if (!cancelled && data?.previewId) {
+            trackExperiment("reveal_screen", getVariant("reveal_screen"), "email_return", { skuSlug: sku.slug });
+            requestAnimationFrame(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+          }
+        } catch { /* fall back to whatever the draft had */ }
+      }
+      if (!cancelled) setRestored(true);
     });
     return () => { cancelled = true; };
   }, [sku.slug]);
