@@ -2237,6 +2237,38 @@ export type Database = {
           },
         ]
       }
+      product_recommendations: {
+        Row: {
+          generated_at: string
+          model: string | null
+          product_id: string
+          recommended_ids: string[]
+          source: string
+        }
+        Insert: {
+          generated_at?: string
+          model?: string | null
+          product_id: string
+          recommended_ids?: string[]
+          source: string
+        }
+        Update: {
+          generated_at?: string
+          model?: string | null
+          product_id?: string
+          recommended_ids?: string[]
+          source?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_recommendations_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "designer_products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_sales: {
         Row: {
           base_price: number
