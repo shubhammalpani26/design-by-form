@@ -93,6 +93,9 @@ verify_jwt = false
 [functions.originals-preview]
 verify_jwt = false
 
+[functions.originals-preview-email]
+verify_jwt = false
+
 [functions.originals-checkout]
 verify_jwt = false
 

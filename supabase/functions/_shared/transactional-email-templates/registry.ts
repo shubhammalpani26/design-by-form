@@ -10,6 +10,8 @@ import { template as orderHeldForReview } from './order-held-for-review.tsx'
 import { template as partnerOrderCancelled } from './partner-order-cancelled.tsx'
 import { template as orderWatchDigest } from './order-watch-digest.tsx'
 import { template as generationFailing } from './generation-failing.tsx'
+import { template as originalsPreviewSaved } from './originals-preview-saved.tsx'
+import { template as originalsPreviewReminder } from './originals-preview-reminder.tsx'
 
 export interface TemplateEntry {
   component: (props: any) => React.ReactElement
@@ -31,4 +33,6 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'partner-order-cancelled': partnerOrderCancelled,
   'order-watch-digest': orderWatchDigest,
   'generation-failing': generationFailing,
+  'originals-preview-saved': originalsPreviewSaved,
+  'originals-preview-reminder': originalsPreviewReminder,
 }

@@ -1645,6 +1645,65 @@ export type Database = {
           },
         ]
       }
+      originals_preview_emails: {
+        Row: {
+          color_key: string | null
+          created_at: string
+          email: string
+          id: string
+          ip_hash: string | null
+          preview_id: string
+          reminder_due_at: string
+          reminder_sent_at: string | null
+          reminder_skipped_reason: string | null
+          sent_at: string | null
+          size_key: string | null
+          sku_slug: string
+          token: string
+          user_id: string | null
+        }
+        Insert: {
+          color_key?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          ip_hash?: string | null
+          preview_id: string
+          reminder_due_at: string
+          reminder_sent_at?: string | null
+          reminder_skipped_reason?: string | null
+          sent_at?: string | null
+          size_key?: string | null
+          sku_slug: string
+          token?: string
+          user_id?: string | null
+        }
+        Update: {
+          color_key?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          ip_hash?: string | null
+          preview_id?: string
+          reminder_due_at?: string
+          reminder_sent_at?: string | null
+          reminder_skipped_reason?: string | null
+          sent_at?: string | null
+          size_key?: string | null
+          sku_slug?: string
+          token?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "originals_preview_emails_preview_id_fkey"
+            columns: ["preview_id"]
+            isOneToOne: false
+            referencedRelation: "originals_previews"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       originals_previews: {
         Row: {
           created_at: string
