@@ -226,9 +226,9 @@ export function AdsDashboard() {
             {data.ads.length === 0 ? (
               <p className="text-sm text-muted-foreground">No ads ran in this period.</p>
             ) : (
-              <div className="grid gap-2 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
                 {data.ads.map((a: any) => (
-                  <div key={a.id} className={`border p-3 ${a.problem ? "border-destructive" : "border-border"}`}>
+                  <div key={a.id} className={`min-w-0 border p-3 ${a.problem ? "border-destructive" : "border-border"}`}>
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="truncate text-sm font-medium text-foreground">{a.name}</div>
@@ -244,20 +244,20 @@ export function AdsDashboard() {
                       </div>
                     </div>
                     {a.problem && <p className="mt-2 text-xs text-destructive">{a.problem}</p>}
-                    <div className="mt-3 grid grid-cols-4 gap-2 text-center">
+                    <div className="mt-3 grid grid-cols-4 gap-x-1 gap-y-2 text-center">
                       {[
                         ["Spent", m(a.spend)],
-                        ["Site clicks", n(a.linkClicks)],
+                        ["Clicks", n(a.linkClicks)],
                         ["Click rate", `${a.ctr.toFixed(1)}%`],
                         ["Per click", m(a.cpc)],
-                        ["Pages loaded", n(a.landed)],
+                        ["Loaded", n(a.landed)],
                         ["Checkouts", n(a.checkouts)],
                         ["Sales", n(a.purchases)],
-                        ["Watched fully", a.fullWatchRate != null ? `${a.fullWatchRate.toFixed(0)}%` : "—"],
+                        ["Full watch", a.fullWatchRate != null ? `${a.fullWatchRate.toFixed(0)}%` : "—"],
                       ].map(([k, v]) => (
-                        <div key={k as string}>
-                          <div className="text-sm font-semibold text-foreground">{v}</div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{k}</div>
+                        <div key={k as string} className="min-w-0">
+                          <div className="truncate text-sm font-semibold text-foreground">{v}</div>
+                          <div className="truncate text-[9px] uppercase tracking-wide text-muted-foreground sm:text-[10px]">{k}</div>
                         </div>
                       ))}
                     </div>
@@ -269,7 +269,7 @@ export function AdsDashboard() {
 
           {/* Audience */}
           <Section title="Who saw the ads" note="Share of spend, with site clicks and checkouts from each group.">
-            <div className="grid gap-4 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
               {[
                 ["Age", data.ageBands],
                 ["Gender", data.genderBands],
