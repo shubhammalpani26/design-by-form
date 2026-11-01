@@ -82,21 +82,21 @@ export const PreviewHelpActions = ({
 
   return (
     <div className="mt-5 border-t border-border pt-4">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <Button
           type="button"
           variant="outline"
-          className="h-11 rounded-none px-2 text-xs"
+          className="h-11 rounded-none px-3 text-xs"
           disabled={!previewId || Boolean(sentTo)}
           onClick={() => { setOpen((v) => !v); if (!open) onEvent?.("email_open"); }}
         >
           {sentTo ? <Check className="mr-1.5 h-4 w-4 shrink-0" /> : <Mail className="mr-1.5 h-4 w-4 shrink-0" />}
           {sentTo ? "Preview emailed" : "Email me my preview"}
         </Button>
-        <Button asChild variant="outline" className="h-11 rounded-none px-2 text-xs">
+        <Button asChild variant="outline" className="h-11 rounded-none px-3 text-xs">
           <a href={waHref} target="_blank" rel="noopener noreferrer" onClick={() => onEvent?.("whatsapp_click")}>
             <MessageCircle className="mr-1.5 h-4 w-4 shrink-0" />
-            <span className="truncate">Questions? WhatsApp us</span>
+            <span className="truncate">Questions? Message us on WhatsApp</span>
           </a>
         </Button>
       </div>
