@@ -9,6 +9,7 @@ import {
   MAX_PREVIEW_AGE_MS,
   normalizeEmail,
   reminderDueAt,
+  previewEmailSubject,
   savedPreviewLink,
 } from "../_shared/previewEmail.ts";
 
@@ -134,7 +135,7 @@ Deno.serve(async (req) => {
 
       const result = await sendAppEmail("originals-preview-saved", email, {
         templateData: {
-          petName: petNameOf(preview.personalization),
+          ...previewEmailSubject(preview.sku_slug, preview.personalization),
           previewUrl: preview.preview_image_url,
           link: savedPreviewLink(preview.sku_slug, row.token),
           fromPrice: fromPrice(preview.sku_slug),
@@ -238,7 +239,7 @@ Deno.serve(async (req) => {
 
         const result = await sendAppEmail("originals-preview-reminder", r.email, {
           templateData: {
-            petName: petNameOf(preview!.personalization),
+            ...previewEmailSubject(r.sku_slug, preview!.personalization),
             previewUrl: preview!.preview_image_url,
             link: savedPreviewLink(r.sku_slug, r.token),
           },
