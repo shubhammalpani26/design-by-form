@@ -22,6 +22,7 @@ import { Share2 } from "lucide-react";
 import { SEOHead, getCanonicalUrl } from "@/components/SEOHead";
 import { JsonLd } from "@/components/JsonLd";
 import { ProductChat } from "@/components/ProductChat";
+import { YouMayAlsoLike } from "@/components/YouMayAlsoLike";
 import { slugify } from "@/lib/slugify";
 import { isOriginal } from "@/lib/originals";
 import { normalizeFinishes, type FinishOption } from "@/lib/finishes";
@@ -623,6 +624,8 @@ const ProductDetailInner = () => {
           </div>
         </div>
       </main>
+
+      <YouMayAlsoLike productId={product.id} />
 
       {/* Product Chat */}
       <ProductChat
