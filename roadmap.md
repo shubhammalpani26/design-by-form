@@ -54,3 +54,6 @@
 - [x] Add Daisy, Milo (v2), Biscuit (v2) gift videos as ads in the Holiday Gift ad set (owner go-ahead 2026-10-31); spending limit nearly used up, so owner must add funds/raise limit
 - [x] Schedule the gift-video stills as organic posts (3 story carousels + 3 singles, Nov 5–10, 13:00 UTC), cropped to 4:5 for Instagram feed
 - [x] Pause the two real-photo slideshow Reels (Holiday gift Reel, Every-angle Reel) in Holiday Gift: no checkouts, ~3% full watches (owner 2026-10-31)
+
+## Ads dashboard (2026-11-01)
+- [x] Admin "Ads" tab: one Refresh pulls money left, warnings, ad-to-payment drop-off, each ad, age/gender/state, day by day, tracking (read-only)
