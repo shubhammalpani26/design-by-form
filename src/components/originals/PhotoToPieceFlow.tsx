@@ -218,7 +218,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
           }
           if (!cancelled && data?.previewId) {
             trackExperiment("reveal_screen", getVariant("reveal_screen"), "email_return", { skuSlug: sku.slug });
-            requestAnimationFrame(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+            window.setTimeout(() => revealRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 350);
           }
         } catch { /* fall back to whatever the draft had */ }
       }
