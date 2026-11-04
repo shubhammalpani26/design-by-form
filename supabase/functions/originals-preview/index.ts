@@ -305,7 +305,12 @@ Deno.serve(async (req) => {
       ? ` Final customer revision: apply only this change while preserving the same animal, likeness, single sculpture, single camera angle, plinth, lettering, colour, material, and composition: ${tweak}`
       : "";
     const photoIsolation = " Reference isolation: the upload may be a phone screenshot or search-results page. Use ONLY the main real pet photo as a likeness reference. Ignore and completely remove phone status bars, browser/search controls, buttons, icons, watermarks, captions, frames, thumbnails and all existing text. Do not edit the screenshot in place: create an entirely new clean studio product photo containing only one pet sculpture and its plinth. " + (hasLettering ? "The only text allowed is the customer's requested plinth lettering." : "No text of any kind is allowed anywhere in the image.");
-    const effectivePrompt = `${prompt}${productionAppearance}${printability}${revision}${photoIsolation}`;
+    // Server truth for expression: older browser prompts asked for an open-mouthed
+    // smile, which made previews look unlike the shopper's photo.
+    const expressionRule = sourceUrl
+      ? " Expression rule (overrides any earlier expression wording): copy the pet's real expression from the reference photo exactly — same mouth open or closed, tongue only if visible in the photo, same ear position, eyes and brow. Never add a smile, grin or tongue that isn't in the photo, and never make the face sad, droopy or solemn. A faithful likeness beats an idealised look."
+      : " Expression rule (overrides any earlier expression wording): a natural, relaxed, attentive face with a soft closed or gently open mouth — neither grinning nor sad.";
+    const effectivePrompt = `${prompt}${productionAppearance}${expressionRule}${printability}${revision}${photoIsolation}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 

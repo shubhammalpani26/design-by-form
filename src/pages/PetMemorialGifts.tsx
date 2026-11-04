@@ -148,7 +148,7 @@ const PetMemorialGifts = () => {
                   {[
                     "Made from your photo — their breed, ear shape, muzzle and markings modelled in full three dimensions, not a flat cut-out.",
                     "Their name and dates engraved in raised lettering on the plinth — or leave it clean.",
-                    "A warm, happy expression: perked ears, lifted cheeks, a gentle smile. A celebration of them, not a sombre object.",
+                    "Their own expression, taken from your photo: the same ears, eyes and mouth you know. A celebration of them, not a sombre object.",
                     "One solid piece in plant-based PLA, with the fine layer lines that are the honest signature of precision 3D printing.",
                     "Checked by our engineering system for strength and print feasibility before it's made.",
                     "Made in the USA. Free shipping, ships in 7–8 business days.",
