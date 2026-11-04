@@ -195,7 +195,7 @@ const CustomPetSculpture = () => {
               {[
                 "Sculpted in the round — cheeks, muzzle, brow and ears shaped all the way around, not a flat cut-out or relief panel.",
                 "Sculpted eyes with defined lids and a raised iris dome, so they read as eyes in any light — no paint, no glued-in parts.",
-                "A warm, happy expression as the default: perked ears, lifted cheeks, a gentle smile.",
+                "Their own expression, taken from your photo: the same ears, eyes and mouth you know.",
                 "Engineering-checked for wall thickness, stability and print feasibility before anything is made.",
                 "Plant-based PLA in six curated colours, printed as one solid part in the USA.",
                 "Free US shipping on every size, ships in 7–8 business days.",
