@@ -452,7 +452,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       </p>
       {!promo?.internalTest && (
         <p className="text-center text-xs text-muted-foreground">
-          You approve the final preview before we make it · free remake if it's not right
+          You see the preview before you pay · free remake if it's not right
         </p>
       )}
     </div>

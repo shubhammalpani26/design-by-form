@@ -631,7 +631,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             Free, in about a minute. No account, no card — you only pay if you love it.
           </p>
           <p className="mt-3 border border-border bg-background px-3 py-2 text-xs leading-relaxed text-muted-foreground">
-            <span className="text-foreground">From ${Math.min(...sku.sizes.map((s) => s.price))}</span> · free US shipping · ships in 7–8 business days · you approve the final preview before we make it
+            <span className="text-foreground">From ${Math.min(...sku.sizes.map((s) => s.price))}</span> · free US shipping · ships in 7–8 business days · you see the preview before you pay
           </p>
 
           {reviewCount > 0 && (
@@ -915,7 +915,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               )}
             </div>
               <div className="mt-3 border border-border bg-background p-2 text-xs text-muted-foreground">
-                <span>Your piece is made from this preview, in the colour you choose. {sku.photo ? "If it doesn't look like your pet, we remake it free." : "If it doesn't match this preview, we remake it free."}</span>
+                <span>Your piece is made to order from this preview, in the colour you choose. Small differences from the preview are normal. {sku.photo ? "If it arrives damaged, or clearly isn't your pet, we remake it free." : "If it arrives damaged, or clearly isn't right, we remake it free."}</span>
               </div>
           <div className="mt-3">
             {!showTweak ? (
@@ -1226,7 +1226,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                         : reveal.cta(selectedPrice)}
                 </Button>
                 <p className="mt-2 text-center text-xs text-muted-foreground">
-                  You approve the final preview before we make it · free remake if it's not right · Ships in 7–8 business days
+                  You see the preview before you pay · free remake if it's not right · Ships in 7–8 business days
                 </p>
 
                 <Button
