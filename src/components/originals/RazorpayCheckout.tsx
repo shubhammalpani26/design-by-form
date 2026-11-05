@@ -428,6 +428,8 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
             toast({ title: "Apple Pay failed", description, variant: "destructive" })
           }
           disabled={busy}
+          ready={!missingLabel()}
+          orderKey={JSON.stringify({ values, promo: promo?.code ?? null, items, totalUsd })}
         />
       )}
 
