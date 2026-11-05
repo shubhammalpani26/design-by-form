@@ -278,6 +278,15 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
 
   return (
     <div className="space-y-4">
+      {!promo?.internalTest && (
+        <div className="flex items-start gap-3 border-y border-border bg-muted/40 px-3 py-4 text-foreground">
+          <ShieldCheck className="mt-0.5 h-6 w-6 shrink-0" aria-hidden="true" />
+          <div className="min-w-0">
+            <p className="text-base font-semibold">Secure, encrypted checkout</p>
+            <p className="mt-1 text-sm">Visa · Mastercard · Amex · PayPal</p>
+          </div>
+        </div>
+      )}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <Label htmlFor="rp-email" className="text-xs text-muted-foreground">Email</Label>
@@ -444,12 +453,14 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
       </Button>
 
 
-      <p className="flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <ShieldCheck className="h-3.5 w-3.5" />
-        {promo?.internalTest
-          ? "Admin test: no charge and no manufacturing until manual approval."
-          : "Secure, encrypted checkout. Visa, Mastercard and Amex accepted."}
-      </p>
+      <div className="flex items-start justify-center gap-2 text-sm font-medium text-foreground">
+        <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+        <p className="min-w-0 text-center">
+          {promo?.internalTest
+            ? "Admin test: no charge and no manufacturing until manual approval."
+            : "Secure, encrypted checkout"}
+        </p>
+      </div>
       {!promo?.internalTest && (
         <p className="text-center text-xs text-muted-foreground">
           You see the preview before you pay · free remake if it's not right
