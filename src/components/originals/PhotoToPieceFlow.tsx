@@ -983,18 +983,18 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   value={tweak}
                   onChange={(e) => setTweak(e.target.value)}
                 />
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
                   <Button
-                    className="flex-1 rounded-none"
+                    className="h-auto min-h-10 flex-1 whitespace-normal rounded-none py-2.5"
                     disabled={!tweak.trim() || refining}
                     onClick={() => void generate(tweak)}
                   >
-                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    {refining ? <Loader2 className="mr-2 h-4 w-4 shrink-0 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4 shrink-0" />}
                     {refining ? "Adjusting…" : "Re-render with this change"}
                   </Button>
                   <Button
                     variant="outline"
-                    className="rounded-none"
+                    className="shrink-0 rounded-none"
                     disabled={refining}
                     onClick={() => { setShowTweak(false); setTweak(""); }}
                   >
@@ -1129,10 +1129,10 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   type="button"
                   variant="outline"
                   size="lg"
-                  className="mt-4 w-full rounded-none h-12"
+                  className="mt-4 h-auto min-h-12 w-full whitespace-normal rounded-none py-2.5"
                   onClick={addAnother}
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 h-4 w-4 shrink-0" />
                   Add this piece & make another before paying
                 </Button>
 
@@ -1239,9 +1239,9 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   size="lg"
                   onClick={addAnother}
                   disabled={!sizeKey || !!unprintable}
-                  className="mt-3 w-full rounded-none h-12"
+                  className="mt-3 h-auto min-h-12 w-full whitespace-normal rounded-none py-2.5"
                 >
-                  <Plus className="mr-2 h-4 w-4" />
+                  <Plus className="mr-2 h-4 w-4 shrink-0" />
                   Add this piece & make another
                 </Button>
                 <p className="mt-2 text-xs text-center text-muted-foreground">
