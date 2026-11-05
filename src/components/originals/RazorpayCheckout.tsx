@@ -91,6 +91,11 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   const [promo, setPromo] = useState<{ code: string; discountUsd: number; internalTest: boolean } | null>(null);
   const [promoBusy, setPromoBusy] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
+  // Optional bits stay folded away so the form reads as five fields, not nine.
+  const [showApt, setShowApt] = useState(false);
+  const [showPromo, setShowPromo] = useState(false);
+  const [editPlace, setEditPlace] = useState(false);
+  const [lookupFailed, setLookupFailed] = useState(false);
 
 
   const set = (key: keyof typeof values, v: string) => setValues((p) => ({ ...p, [key]: v }));
@@ -98,13 +103,15 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   // ZIP drives city + state so the buyer types five digits instead of three fields.
   useEffect(() => {
     const zip = values.postalCode.replace(/\D/g, "").slice(0, 5);
-    if (zip.length !== 5) return;
+    if (zip.length !== 5) { setLookupFailed(false); return; }
     let cancelled = false;
     setLookingUp(true);
+    setLookupFailed(false);
     fetch(`https://api.zippopotam.us/us/${zip}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (cancelled || !d?.places?.length) return;
+        if (cancelled) return;
+        if (!d?.places?.length) { setLookupFailed(true); return; }
         const place = d.places[0];
         setValues((p) => ({
           ...p,
@@ -112,7 +119,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
           state: place["state abbreviation"] ?? p.state,
         }));
       })
-      .catch(() => {})
+      .catch(() => { if (!cancelled) setLookupFailed(true); })
       .finally(() => { if (!cancelled) setLookingUp(false); });
     return () => { cancelled = true; };
   }, [values.postalCode]);
