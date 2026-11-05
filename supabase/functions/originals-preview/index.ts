@@ -308,7 +308,7 @@ Deno.serve(async (req) => {
     // Server truth for expression: older browser prompts asked for an open-mouthed
     // smile, which made previews look unlike the shopper's photo.
     const expressionRule = sourceUrl
-      ? " Expression rule (overrides any earlier expression wording): copy the pet's real expression from the reference photo exactly — same mouth open or closed, tongue only if visible in the photo, same ear position, eyes and brow. Never add a smile, grin or tongue that isn't in the photo, and never make the face sad, droopy or solemn. A faithful likeness beats an idealised look."
+      ? " HARD CONSTRAINT — expression (overrides any earlier expression wording): copy the pet's real expression from the reference photo exactly. Look at the mouth in the photo first: if it is closed, the sculpture's mouth is fully closed, lips together, with no gap, teeth or tongue showing; only if the photo shows an open mouth or tongue may the sculpture show one, matching how open it is. Keep the same ear position, eyes and brow as the photo. Never add a smile, grin, panting mouth or tongue that isn't in the photo, and never make the face sad, droopy or solemn. A faithful likeness of the photo beats a cheerful idealised look — an invented smile is a failed render."
       : " Expression rule (overrides any earlier expression wording): a natural, relaxed, attentive face with a soft closed or gently open mouth — neither grinning nor sad.";
     const effectivePrompt = `${prompt}${productionAppearance}${expressionRule}${printability}${revision}${photoIsolation}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];

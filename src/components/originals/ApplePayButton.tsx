@@ -46,16 +46,77 @@ interface Props {
   onError: (message: string) => void;
   onPaying?: () => void;
   disabled?: boolean;
+  /** True once every required field is filled, so an order can be prepared ahead of the tap. */
+  ready?: boolean;
+  /** Changes whenever the buyer's details or promo change; a prepared order is only reused for the same key. */
+  orderKey?: string;
 }
 
 /**
  * Apple Pay lives alongside the card flow: we only render the sheet when the
  * device is eligible, and the whole thing collapses silently otherwise.
  */
-export function ApplePayButton({ createOrder, buildReturnUrl, onError, onPaying, disabled }: Props) {
+export function ApplePayButton({ createOrder, buildReturnUrl, onError, onPaying, disabled, ready, orderKey }: Props) {
   const [eligible, setEligible] = useState(false);
   const [busy, setBusy] = useState(false);
   const probeRef = useRef<any>(null);
+  // Safari only opens the Apple Pay sheet if it starts straight from the tap.
+  // Waiting for our server to create the order first can lose that tap, so on
+  // eligible devices we prepare the order as soon as the form is complete.
+  const preparedRef = useRef<{ key: string; order: ApplePayOrder } | null>(null);
+  const createOrderRef = useRef(createOrder);
+  createOrderRef.current = createOrder;
+
+  useEffect(() => {
+    if (!eligible || !ready || !orderKey || disabled) return;
+    if (preparedRef.current?.key === orderKey) return;
+    let cancelled = false;
+    const t = window.setTimeout(async () => {
+      try {
+        const order = await createOrderRef.current();
+        if (!cancelled && order) preparedRef.current = { key: orderKey, order };
+      } catch {
+        /* fall back to creating the order on tap */
+      }
+    }, 900);
+    return () => { cancelled = true; window.clearTimeout(t); };
+  }, [eligible, ready, orderKey, disabled]);
+
+  const startSheet = (order: ApplePayOrder, Ctor: any) => {
+    const rzp = new Ctor({
+      key: order.keyId,
+      order_id: order.providerOrderId,
+      email: order.prefill?.email,
+      contact: order.prefill?.contact,
+    });
+
+    rzp.on("payment.success", (response: any) => {
+      onPaying?.();
+      window.location.href = buildReturnUrl(
+        order,
+        response?.razorpay_payment_id ?? "",
+        response?.razorpay_signature ?? "",
+      );
+    });
+
+    rzp.on("payment.error", (response: any) => {
+      setBusy(false);
+      // A used or expired order can't be paid twice; prepare a fresh one next time.
+      preparedRef.current = null;
+      const reason = response?.error?.reason;
+      if (reason !== "payment_cancelled") {
+        onError(response?.error?.description ?? "Apple Pay didn't go through.");
+      }
+    });
+
+    rzp.createPayment({
+      method: "card",
+      app: { name: "apple_pay" },
+      order_id: order.providerOrderId,
+      email: order.prefill?.email,
+      contact: order.prefill?.contact,
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -83,43 +144,22 @@ export function ApplePayButton({ createOrder, buildReturnUrl, onError, onPaying,
   const pay = async () => {
     if (busy || disabled) return;
     setBusy(true);
+    const prepared = preparedRef.current;
+    if (prepared && prepared.key === orderKey && customCtor) {
+      // Synchronous path: the sheet opens inside the tap.
+      try {
+        startSheet(prepared.order, customCtor);
+      } catch (e) {
+        setBusy(false);
+        onError((e as Error).message || "Apple Pay didn't start.");
+      }
+      return;
+    }
     try {
       const order = await createOrder();
-      if (!order) return;
-
+      if (!order) { setBusy(false); return; }
       const Ctor = await loadCustomCheckout();
-      const rzp = new Ctor({
-        key: order.keyId,
-        order_id: order.providerOrderId,
-        email: order.prefill?.email,
-        contact: order.prefill?.contact,
-      });
-
-      rzp.on("payment.success", (response: any) => {
-        onPaying?.();
-        window.location.href = buildReturnUrl(
-          order,
-          response?.razorpay_payment_id ?? "",
-          response?.razorpay_signature ?? "",
-        );
-      });
-
-      rzp.on("payment.error", (response: any) => {
-        setBusy(false);
-        const reason = response?.error?.reason;
-        if (reason !== "payment_cancelled") {
-          onError(response?.error?.description ?? "Apple Pay didn't go through.");
-        }
-      });
-
-      // Must run inside the user gesture chain — Apple requires it.
-      rzp.createPayment({
-        method: "card",
-        app: { name: "apple_pay" },
-        order_id: order.providerOrderId,
-        email: order.prefill?.email,
-        contact: order.prefill?.contact,
-      });
+      startSheet(order, Ctor);
     } catch (e) {
       setBusy(false);
       onError((e as Error).message || "Apple Pay didn't start.");

@@ -863,6 +863,14 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   alt="Your personalized piece"
                   className={`w-full object-contain transition ${refining || renderRejected ? "opacity-30 blur-[3px]" : ""}`}
                 />
+                {mode === "photo" && photo && (
+                  <figure className="absolute left-2 top-2 w-[30%] max-w-[140px] border border-border bg-background p-1 shadow-sm">
+                    <img src={photo.dataUrl} alt="Your original photo" className="aspect-square w-full object-cover" />
+                    <figcaption className="mt-1 text-center text-[10px] tracking-[0.15em] uppercase text-muted-foreground">
+                      Your photo
+                    </figcaption>
+                  </figure>
+                )}
                 {refining && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-xs text-foreground">
                     <Loader2 className="h-5 w-5 animate-spin" />
@@ -906,15 +914,98 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 </div>
               )}
             </div>
-              {mode === "photo" && photo && (
-                <div className="mt-3 flex items-center gap-3 text-xs text-muted-foreground">
-                  <img src={photo.dataUrl} alt="Your original photo" className="h-12 w-12 shrink-0 border border-border object-cover" />
-                  <span>Your original photo</span>
-                </div>
-              )}
               <div className="mt-3 border border-border bg-background p-2 text-xs text-muted-foreground">
-                <span>Your piece is made from this preview, in the colour you choose. If it doesn't look like your pet, we remake it free.</span>
+                <span>Your piece is made from this preview, in the colour you choose. {sku.photo ? "If it doesn't look like your pet, we remake it free." : "If it doesn't match this preview, we remake it free."}</span>
               </div>
+          <div className="mt-3">
+            {!showTweak ? (
+              <div className="flex flex-col gap-2">
+                {unprintable ? null : (tweakCount < MAX_TWEAKS) ? (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => {
+                      setShowTweak(true);
+                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
+                    }}
+                    className="flex-1 border border-foreground/40 px-3 py-2.5 text-left text-sm hover:border-foreground disabled:opacity-50"
+                  >
+                    <span className="flex items-center gap-2">
+                      <Wand2 className="h-4 w-4 shrink-0" />
+                      Not quite right? Change something — free
+                    </span>
+                    <span className="mt-0.5 block pl-6 text-xs text-muted-foreground">
+                      {sku.photo ? "Ears, pose, fur, the name" : "The lettering, layout, details"} — tell us and we'll redo it{tweakCount > 0 ? ` (${MAX_TWEAKS - tweakCount} left)` : ""}.
+                    </span>
+                  </button>
+                ) : (
+                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
+                    This is the one
+                  </p>
+                )}
+                {mode === "photo" && (
+                  <button
+                    type="button"
+                    disabled={refining}
+                    onClick={() => changePhoto("reveal_link")}
+                    className="self-start text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
+                  >
+                    Use a different photo
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className="border border-border p-4">
+                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+                  Tell us what to change
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {TWEAK_CHIPS[mode === "photo" ? "photo" : "template"].map((chip) => (
+                    <button
+                      key={chip}
+                      type="button"
+                      onClick={() => setTweak((t) => (t.trim() ? `${t.trim()} ${chip}` : chip))}
+                      className="border border-border px-3 py-1.5 text-xs hover:border-foreground/50"
+                    >
+                      {chip}
+                    </button>
+                  ))}
+                </div>
+                <Textarea
+                  className="mt-3 rounded-none"
+                  rows={2}
+                  maxLength={300}
+                  placeholder="e.g. turn the head slightly to the left and make the name larger"
+                  value={tweak}
+                  onChange={(e) => setTweak(e.target.value)}
+                />
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    className="flex-1 rounded-none"
+                    disabled={!tweak.trim() || refining}
+                    onClick={() => void generate(tweak)}
+                  >
+                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
+                    {refining ? "Adjusting…" : "Re-render with this change"}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="rounded-none"
+                    disabled={refining}
+                    onClick={() => { setShowTweak(false); setTweak(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+                <p className="mt-2 text-[11px] text-muted-foreground">
+                  Keeps your photo and details — only the change you describe is applied.
+                </p>
+                <p className="mt-1 text-[11px] text-muted-foreground/80">
+                  Your current preview is kept — you can flip back to it anytime.
+                </p>
+              </div>
+            )}
+          </div>
           </div>
 
           <div className="mt-3 flex items-center justify-between gap-3">
@@ -1197,96 +1288,6 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             </div>
           </div>
 
-          <div className="mt-4">
-            {!showTweak ? (
-              <div className="flex items-center justify-between gap-3">
-                {unprintable ? (
-                  <span />
-                ) : tweakCount < MAX_TWEAKS ? (
-                  <button
-                    type="button"
-                    disabled={refining}
-                    onClick={() => {
-                      setShowTweak(true);
-                      trackExperiment("reveal_screen", revealVariant, "tweak_open", { skuSlug: sku.slug });
-                    }}
-                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
-                  >
-                    Adjust one thing
-                    {tweakCount > 0 && (
-                      <span className="ml-2 normal-case tracking-normal text-muted-foreground/70">
-                        ({MAX_TWEAKS - tweakCount} left)
-                      </span>
-                    )}
-                  </button>
-                ) : (
-                  <p className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70">
-                    This is the one
-                  </p>
-                )}
-                {mode === "photo" && (
-                  <button
-                    type="button"
-                    disabled={refining}
-                    onClick={() => changePhoto("reveal_link")}
-                    className="text-xs tracking-[0.15em] uppercase text-muted-foreground/70 hover:text-foreground underline underline-offset-4"
-                  >
-                    Use a different photo
-                  </button>
-                )}
-              </div>
-            ) : (
-              <div className="border border-border p-4">
-                <p className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-                  Tell us what to change
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {TWEAK_CHIPS[mode === "photo" ? "photo" : "template"].map((chip) => (
-                    <button
-                      key={chip}
-                      type="button"
-                      onClick={() => setTweak((t) => (t.trim() ? `${t.trim()} ${chip}` : chip))}
-                      className="border border-border px-3 py-1.5 text-xs hover:border-foreground/50"
-                    >
-                      {chip}
-                    </button>
-                  ))}
-                </div>
-                <Textarea
-                  className="mt-3 rounded-none"
-                  rows={2}
-                  maxLength={300}
-                  placeholder="e.g. turn the head slightly to the left and make the name larger"
-                  value={tweak}
-                  onChange={(e) => setTweak(e.target.value)}
-                />
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    className="flex-1 rounded-none"
-                    disabled={!tweak.trim() || refining}
-                    onClick={() => void generate(tweak)}
-                  >
-                    {refining ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Wand2 className="mr-2 h-4 w-4" />}
-                    {refining ? "Adjusting…" : "Re-render with this change"}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="rounded-none"
-                    disabled={refining}
-                    onClick={() => { setShowTweak(false); setTweak(""); }}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Keeps your photo and details — only the change you describe is applied.
-                </p>
-                <p className="mt-1 text-[11px] text-muted-foreground/80">
-                  Your current preview is kept — you can flip back to it anytime.
-                </p>
-              </div>
-            )}
-          </div>
 
 
           {topReview ? (
