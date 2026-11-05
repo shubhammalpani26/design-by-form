@@ -59,6 +59,7 @@
 - [x] Admin "Ads" tab: one Refresh pulls money left, warnings, ad-to-payment drop-off, each ad, age/gender/state, day by day, tracking (read-only)
 
 ## Preview → payment (2026-11-04)
+- [ ] Prepare new Kling concepts combining entertainment, value and emotion, surprise in first 3 seconds — concept approval before credits (owner, 2026-11-05).
 - [x] Publish The Dream on Nyzora Instagram and Facebook — caption A approved; both published and read back 2026-11-05.
 - [x] Previews copy the pet's real expression (no forced smile)
 - [x] Shorter checkout form (ZIP fills city/state, optional fields tucked away)
