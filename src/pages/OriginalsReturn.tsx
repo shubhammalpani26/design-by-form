@@ -223,7 +223,7 @@ export default function OriginalsReturn() {
                 <ShieldCheck className="h-4 w-4" /> Our remake guarantee
               </p>
               <p className="mt-2 text-sm text-muted-foreground">
-                You approve the final preview before we make anything. If your piece arrives damaged, defective or doesn't match the preview you approved, we remake and reship it free.
+                You saw the preview before ordering. The finished piece is made to order, so small differences from the preview are normal. If it arrives damaged, defective, or clearly isn't right, we remake and reship it free.
               </p>
             </div>
           )}

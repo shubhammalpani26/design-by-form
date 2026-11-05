@@ -59,7 +59,7 @@ export function savedPreviewLink(skuSlug: string, token: string): string {
 
 /**
  * What the preview emails call this piece. Only pet pieces get the pet's name
- * and pet-specific wording ("doesn't look like your pet", "another photo");
+ * and pet-specific wording ("clearly isn't your pet", "another photo");
  * baby and wedding pieces are named by the piece itself, because their heading
  * is lettering (a baby's name, coordinates), not who the piece is of.
  */

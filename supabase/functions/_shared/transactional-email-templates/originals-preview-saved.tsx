@@ -69,8 +69,8 @@ const Email = (props: Props) => {
           <Text style={body}>
             From ${from} · free US shipping · ships in 7–8 business days.{' '}
             {isPet
-              ? "If the finished piece doesn't look like your pet, we remake it free."
-              : "If the finished piece doesn't match the preview you approved, we remake it free."}
+              ? "If it arrives damaged, or clearly isn't your pet, we remake it free."
+              : "If it arrives damaged, or clearly isn't right, we remake it free."}
           </Text>
           <Hr style={hr} />
           <Text style={muted}>
