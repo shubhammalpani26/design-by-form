@@ -71,3 +71,9 @@ Deno.test("baby and wedding previews are named by the piece, never as a pet", ()
     kind: "piece", petName: "", pieceName: "Wedding Coordinates Piece",
   });
 });
+
+import { checkoutReminderDueAt } from "./previewEmail.ts";
+Deno.test("checkout leavers get their one reminder 3 hours later", () => {
+  const start = new Date("2026-11-05T08:00:00Z");
+  if (checkoutReminderDueAt(start).toISOString() !== "2026-11-05T11:00:00.000Z") throw new Error("wrong due time");
+});

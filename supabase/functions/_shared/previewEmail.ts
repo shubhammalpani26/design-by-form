@@ -22,6 +22,14 @@ export function normalizeEmail(raw: unknown): string | null {
   return email;
 }
 
+/** Shoppers who reach checkout and enter their email but don't pay get the
+ *  same single reminder, sooner (they were told under the email field). */
+export const CHECKOUT_REMINDER_DELAY_MS = 3 * 60 * 60 * 1000;
+
+export function checkoutReminderDueAt(startedAt: Date): Date {
+  return new Date(startedAt.getTime() + CHECKOUT_REMINDER_DELAY_MS);
+}
+
 export function reminderDueAt(optedInAt: Date): Date {
   return new Date(optedInAt.getTime() + REMINDER_DELAY_MS);
 }

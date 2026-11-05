@@ -6,6 +6,7 @@ import {
   razorpayKeyId,
   razorpayMode,
 } from "../_shared/razorpay.ts";
+import { checkoutReminderDueAt } from "../_shared/previewEmail.ts";
 import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
 import { isPromoError, resolvePromo } from "../_shared/originalsPromo.ts";
 
@@ -206,6 +207,21 @@ Deno.serve(async (req) => {
     if (orderErr || !orders?.length) {
       console.error("order insert failed", orderErr);
       return json({ error: "We couldn't start your order. Please try again." }, 500);
+    }
+
+    // One "finish your order" reminder if they leave without paying (disclosed
+    // under the email field). Reuses the preview-reminder queue, which skips
+    // anyone who has paid and never sends twice for the same preview + email.
+    if (!internalTest) {
+      const dueAt = checkoutReminderDueAt(new Date()).toISOString();
+      const reminderRows = rows
+        .filter((r) => r.preview_id)
+        .map((r) => ({ preview_id: r.preview_id, email: customer.email, sku_slug: r.sku_slug, reminder_due_at: dueAt }));
+      if (reminderRows.length) {
+        const { error: remErr } = await admin.from("originals_preview_emails")
+          .upsert(reminderRows, { onConflict: "preview_id,email", ignoreDuplicates: true });
+        if (remErr) console.error("checkout reminder queue failed", remErr);
+      }
     }
 
     if (internalTest) {

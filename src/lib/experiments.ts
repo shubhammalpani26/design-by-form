@@ -46,13 +46,13 @@ export const EXPERIMENTS = {
       eyebrow: "Your piece",
       headline: (name: string) => `Here's ${name}.`,
       sizePrompt: "Choose a size",
-      cta: (price: number) => `Make it real — $${price}`,
+      cta: (price: number) => `Buy now — $${price}`,
     },
     b: {
       eyebrow: "First look",
       headline: (name: string) => `This is ${name}, sculpted.`,
       sizePrompt: "How big should they be?",
-      cta: (price: number) => `Make this one — $${price}`,
+      cta: (price: number) => `Buy now — $${price}`,
     },
   },
 } as const;
