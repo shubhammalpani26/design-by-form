@@ -234,14 +234,16 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         prefill: { ...data.prefill, method: "card" },
         notes: { group_id: data.groupId },
         theme: { color: "#111111" },
-        // International storefront: cards only, no India-specific rails.
-        method: { card: true, upi: false, netbanking: false, wallet: false, paylater: false, emi: false },
+        // International storefront: cards + PayPal (shown only if PayPal is
+        // activated on the Razorpay account), no India-specific rails.
+        method: { card: true, upi: false, netbanking: false, wallet: true, paylater: false, emi: false },
         config: {
           display: {
             blocks: {
               card: { name: "Pay by card", instruments: [{ method: "card" }] },
+              paypal: { name: "Pay with PayPal", instruments: [{ method: "wallet", wallets: ["paypal"] }] },
             },
-            sequence: ["block.card"],
+            sequence: ["block.card", "block.paypal"],
             preferences: { show_default_blocks: false },
           },
         },
@@ -446,8 +448,13 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         <ShieldCheck className="h-3.5 w-3.5" />
         {promo?.internalTest
           ? "Admin test: no charge and no manufacturing until manual approval."
-          : "Card details are entered in the secure payment window. Visa, Mastercard and Amex accepted."}
+          : "Secure, encrypted checkout. Visa, Mastercard and Amex accepted."}
       </p>
+      {!promo?.internalTest && (
+        <p className="text-center text-xs text-muted-foreground">
+          You approve the final preview before we make it · free remake if it's not right
+        </p>
+      )}
     </div>
   );
 }
