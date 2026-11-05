@@ -278,92 +278,124 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <div className="sm:col-span-2">
-          <Label htmlFor="rp-name" className="text-xs text-muted-foreground">Full name</Label>
-          <Input id="rp-name" autoComplete="name" value={values.name}
-            onChange={(e) => set("name", e.target.value)} className="mt-1 rounded-none" />
-        </div>
-        <div>
           <Label htmlFor="rp-email" className="text-xs text-muted-foreground">Email</Label>
-          <Input id="rp-email" type="email" autoComplete="email" value={values.email}
+          <Input id="rp-email" type="email" inputMode="email" autoComplete="email" value={values.email}
             onChange={(e) => set("email", e.target.value)} className="mt-1 rounded-none" />
         </div>
         <div>
-          <Label htmlFor="rp-phone" className="text-xs text-muted-foreground">Phone</Label>
+          <Label htmlFor="rp-name" className="text-xs text-muted-foreground">Full name</Label>
+          <Input id="rp-name" autoComplete="shipping name" value={values.name}
+            onChange={(e) => set("name", e.target.value)} className="mt-1 rounded-none" />
+        </div>
+        <div>
+          <Label htmlFor="rp-phone" className="text-xs text-muted-foreground">Phone (for delivery)</Label>
           <Input id="rp-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+1 (315) 555-0134"
             value={values.phone} onChange={(e) => set("phone", formatUsPhone(e.target.value))}
             className="mt-1 rounded-none" />
         </div>
         <div className="sm:col-span-2">
-          <Label htmlFor="rp-line1" className="text-xs text-muted-foreground">Address</Label>
-          <Input id="rp-line1" autoComplete="address-line1" value={values.line1}
+          <Label htmlFor="rp-zip" className="text-xs text-muted-foreground">ZIP code</Label>
+          <div className="mt-1 flex items-center gap-3">
+            <Input id="rp-zip" inputMode="numeric" autoComplete="shipping postal-code" placeholder="10001"
+              value={values.postalCode}
+              onChange={(e) => set("postalCode", e.target.value.replace(/[^\d-]/g, "").slice(0, 10))}
+              className="w-32 shrink-0 rounded-none" />
+            <span className="min-w-0 text-sm text-muted-foreground" aria-live="polite">
+              {lookingUp ? (
+                "Finding your town…"
+              ) : values.city && values.state && !editPlace && !lookupFailed ? (
+                <>
+                  <span className="text-foreground">{values.city}, {values.state}</span>
+                  <button type="button" onClick={() => setEditPlace(true)}
+                    className="ml-2 text-xs underline underline-offset-4 hover:text-foreground">
+                    Change
+                  </button>
+                </>
+              ) : null}
+            </span>
+          </div>
+        </div>
+        {(editPlace || lookupFailed) && (
+          <>
+            <div>
+              <Label htmlFor="rp-city" className="text-xs text-muted-foreground">City</Label>
+              <Input id="rp-city" autoComplete="shipping address-level2" value={values.city}
+                onChange={(e) => set("city", e.target.value)} className="mt-1 rounded-none" />
+            </div>
+            <div>
+              <Label className="text-xs text-muted-foreground">State</Label>
+              <Select value={values.state} onValueChange={(v) => set("state", v)}>
+                <SelectTrigger className="mt-1 rounded-none" aria-label="State">
+                  <SelectValue placeholder="Select state" />
+                </SelectTrigger>
+                <SelectContent className="max-h-72">
+                  {US_STATES.map((s) => (
+                    <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        )}
+        <div className="sm:col-span-2">
+          <Label htmlFor="rp-line1" className="text-xs text-muted-foreground">Street address</Label>
+          <Input id="rp-line1" autoComplete="shipping address-line1" value={values.line1}
             onChange={(e) => set("line1", e.target.value)} className="mt-1 rounded-none" />
-        </div>
-        <div className="sm:col-span-2">
-          <Label htmlFor="rp-line2" className="text-xs text-muted-foreground">Apartment, suite (optional)</Label>
-          <Input id="rp-line2" autoComplete="address-line2" value={values.line2}
-            onChange={(e) => set("line2", e.target.value)} className="mt-1 rounded-none" />
-        </div>
-        <div>
-          <Label htmlFor="rp-zip" className="text-xs text-muted-foreground">
-            ZIP code {lookingUp && <span className="ml-1">looking up…</span>}
-          </Label>
-          <Input id="rp-zip" inputMode="numeric" autoComplete="postal-code" placeholder="10001"
-            value={values.postalCode}
-            onChange={(e) => set("postalCode", e.target.value.replace(/[^\d-]/g, "").slice(0, 10))}
-            className="mt-1 rounded-none" />
-        </div>
-        <div>
-          <Label htmlFor="rp-city" className="text-xs text-muted-foreground">City</Label>
-          <Input id="rp-city" autoComplete="address-level2" value={values.city}
-            onChange={(e) => set("city", e.target.value)} className="mt-1 rounded-none" />
-        </div>
-        <div className="sm:col-span-2">
-          <Label className="text-xs text-muted-foreground">State</Label>
-          <Select value={values.state} onValueChange={(v) => set("state", v)}>
-            <SelectTrigger className="mt-1 rounded-none" aria-label="State">
-              <SelectValue placeholder="Select state" />
-            </SelectTrigger>
-            <SelectContent className="max-h-72">
-              {US_STATES.map((s) => (
-                <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {/* ---- Promo code ---- */}
-      <div className="border border-border p-3">
-        <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-          Promo code
-        </Label>
-        <div className="mt-2 flex gap-2">
-          <Input
-            id="rp-promo"
-            value={promoInput}
-            placeholder="Enter code"
-            onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
-            className="rounded-none uppercase"
-          />
-          {promo ? (
-            <Button type="button" variant="outline" className="rounded-none"
-              onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
-              Remove
-            </Button>
-          ) : (
-            <Button type="button" variant="outline" className="rounded-none"
-              disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
-              {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-            </Button>
+          {!showApt && !values.line2 && (
+            <button type="button" onClick={() => setShowApt(true)}
+              className="mt-2 text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
+              + Apartment or suite
+            </button>
           )}
         </div>
-        {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
-        {promo && (
-          <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-            {promo.code} applied — −${promo.discountUsd.toFixed(2)}
-          </p>
+        {(showApt || values.line2) && (
+          <div className="sm:col-span-2">
+            <Label htmlFor="rp-line2" className="text-xs text-muted-foreground">Apartment, suite</Label>
+            <Input id="rp-line2" autoComplete="shipping address-line2" value={values.line2}
+              onChange={(e) => set("line2", e.target.value)} className="mt-1 rounded-none" autoFocus={showApt} />
+          </div>
         )}
       </div>
+
+      {/* ---- Promo code (folded away; most buyers don't have one) ---- */}
+      {!showPromo && !promo ? (
+        <button type="button" onClick={() => setShowPromo(true)}
+          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
+          Have a promo code?
+        </button>
+      ) : (
+        <div className="border border-border p-3">
+          <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+            Promo code
+          </Label>
+          <div className="mt-2 flex gap-2">
+            <Input
+              id="rp-promo"
+              value={promoInput}
+              placeholder="Enter code"
+              onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
+              className="rounded-none uppercase"
+            />
+            {promo ? (
+              <Button type="button" variant="outline" className="rounded-none"
+                onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
+                Remove
+              </Button>
+            ) : (
+              <Button type="button" variant="outline" className="rounded-none"
+                disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
+                {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+              </Button>
+            )}
+          </div>
+          {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
+          {promo && (
+            <p className="mt-2 text-xs text-muted-foreground tabular-nums">
+              {promo.code} applied — −${promo.discountUsd.toFixed(2)}
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="space-y-1 text-sm tabular-nums">
         <div className="flex justify-between text-muted-foreground">
