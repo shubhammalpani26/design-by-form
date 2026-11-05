@@ -137,7 +137,11 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   const [heading, setHeading] = useState("");
   const [footnote, setFootnote] = useState("");
   const [mode, setMode] = useState<"photo" | "template">(sku.photo ? "photo" : "template");
-  const [showOptions, setShowOptions] = useState(!sku.photo);
+  const [optionsOpened, setOptionsOpened] = useState(!sku.photo);
+  // Name, date and colour stay open once a photo is uploaded — shoppers
+  // shouldn't have to hunt for them.
+  const showOptions = optionsOpened || !!photo;
+  const setShowOptions = setOptionsOpened;
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [lineIndex, setLineIndex] = useState(0);
