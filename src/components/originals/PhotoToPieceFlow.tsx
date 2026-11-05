@@ -915,7 +915,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               )}
             </div>
               <div className="mt-3 border border-border bg-background p-2 text-xs text-muted-foreground">
-                <span>Your piece is made from this preview, in the colour you choose. If it doesn't look like your pet, we remake it free.</span>
+                <span>Your piece is made from this preview, in the colour you choose. {sku.photo ? "If it doesn't look like your pet, we remake it free." : "If it doesn't match this preview, we remake it free."}</span>
               </div>
           <div className="mt-3">
             {!showTweak ? (
@@ -935,7 +935,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                       Not quite right? Change something — free
                     </span>
                     <span className="mt-0.5 block pl-6 text-xs text-muted-foreground">
-                      Ears, pose, fur, the name — tell us and we'll redo it{tweakCount > 0 ? ` (${MAX_TWEAKS - tweakCount} left)` : ""}.
+                      {sku.photo ? "Ears, pose, fur, the name" : "The lettering, layout, details"} — tell us and we'll redo it{tweakCount > 0 ? ` (${MAX_TWEAKS - tweakCount} left)` : ""}.
                     </span>
                   </button>
                 ) : (
