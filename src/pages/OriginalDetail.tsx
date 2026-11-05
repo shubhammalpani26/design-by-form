@@ -155,7 +155,7 @@ const OriginalDetail = () => {
             <div className="flex flex-col gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 
-          <MadeToOrderPolicy className="mt-8" />
+          <MadeToOrderPolicy className="mt-8" isPet={!!sku.photo} />
         </div>
       </div>
 

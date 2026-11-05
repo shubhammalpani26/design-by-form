@@ -1310,7 +1310,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             </p>
           )}
 
-          <MadeToOrderPolicy className="mt-5" />
+          <MadeToOrderPolicy className="mt-5" isPet={!!sku.photo} />
 
           <button
             type="button"
