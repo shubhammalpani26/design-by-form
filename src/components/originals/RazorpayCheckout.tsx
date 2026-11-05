@@ -281,6 +281,9 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
           <Label htmlFor="rp-email" className="text-xs text-muted-foreground">Email</Label>
           <Input id="rp-email" type="email" inputMode="email" autoComplete="email" value={values.email}
             onChange={(e) => set("email", e.target.value)} className="mt-1 rounded-none" />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            If you get interrupted, we'll email you one link to finish. That's it.
+          </p>
         </div>
         <div>
           <Label htmlFor="rp-name" className="text-xs text-muted-foreground">Full name</Label>
