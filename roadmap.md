@@ -57,3 +57,10 @@
 
 ## Ads dashboard (2026-11-01)
 - [x] Admin "Ads" tab: one Refresh pulls money left, warnings, ad-to-payment drop-off, each ad, age/gender/state, day by day, tracking (read-only)
+
+## Preview → payment (2026-11-04)
+- [x] Previews copy the pet's real expression (no forced smile)
+- [ ] Shorter checkout form (ZIP fills city/state, optional fields tucked away)
+- [ ] Apple Pay: start the Apple Pay sheet instantly on tap (order prepared beforehand); Google Pay not offered by Razorpay for US cards
+- [ ] Show the shopper's photo clearly next to the preview
+- [ ] Make the free "change something" redo easy to find on the preview
