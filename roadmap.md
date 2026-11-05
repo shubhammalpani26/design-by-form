@@ -59,7 +59,7 @@
 - [x] Admin "Ads" tab: one Refresh pulls money left, warnings, ad-to-payment drop-off, each ad, age/gender/state, day by day, tracking (read-only)
 
 ## Preview → payment (2026-11-04)
-- [ ] Publish The Dream on Nyzora Instagram and Facebook — caption approval and duplicate check before publishing (owner, 2026-11-05).
+- [x] Publish The Dream on Nyzora Instagram and Facebook — caption A approved; both published and read back 2026-11-05.
 - [x] Previews copy the pet's real expression (no forced smile)
 - [x] Shorter checkout form (ZIP fills city/state, optional fields tucked away)
 - [x] Apple Pay: start the Apple Pay sheet instantly on tap (order prepared beforehand); Google Pay not offered by Razorpay for US cards
