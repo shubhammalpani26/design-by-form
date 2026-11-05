@@ -97,12 +97,18 @@ Deno.serve(async (req) => {
       // Same preview + same address: already sent, don't send twice.
       const { data: existing } = await admin
         .from("originals_preview_emails")
-        .select("id")
+        .select("id, token, sent_at")
         .eq("preview_id", previewId)
         .eq("email", email)
         .maybeSingle();
-      if (existing) return json({ ok: true, alreadySent: true });
+      if (existing?.sent_at) return json({ ok: true, alreadySent: true });
+      // A checkout-reminder row (queued at checkout, never emailed) must not
+      // block the saved-preview email: send it on that same row.
+      let row: { id: string; token: string } | null = existing
+        ? { id: existing.id, token: existing.token }
+        : null;
 
+      if (!row) {
       const since = new Date(Date.now() - DAY).toISOString();
       const [{ count: byNet }, { count: byEmail }] = await Promise.all([
         admin.from("originals_preview_emails").select("id", { count: "exact", head: true }).eq("ip_hash", ipHash).gte("created_at", since),
@@ -113,7 +119,7 @@ Deno.serve(async (req) => {
       }
 
       const now = new Date();
-      const { data: row, error: insErr } = await admin
+      const { data: inserted, error: insErr } = await admin
         .from("originals_preview_emails")
         .insert({
           preview_id: previewId,
@@ -127,10 +133,12 @@ Deno.serve(async (req) => {
         })
         .select("id, token")
         .single();
-      if (insErr || !row) {
+      if (insErr || !inserted) {
         if (insErr?.code === "23505") return json({ ok: true, alreadySent: true });
         console.error("preview email insert failed", insErr);
         return json({ error: "Something went wrong. Please try again." }, 500);
+      }
+      row = inserted;
       }
 
       const result = await sendAppEmail("originals-preview-saved", email, {
@@ -199,7 +207,6 @@ Deno.serve(async (req) => {
         .select("id, preview_id, email, token, sku_slug, reminder_due_at, reminder_sent_at, created_at")
         .is("reminder_sent_at", null)
         .is("reminder_skipped_reason", null)
-        .not("sent_at", "is", null)
         .lte("reminder_due_at", nowIso)
         .order("reminder_due_at", { ascending: true })
         .limit(50);
