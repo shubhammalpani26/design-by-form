@@ -920,8 +920,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
           <div className="mt-3">
             {!showTweak ? (
               <div className="flex flex-col gap-2">
-                {unprintable ? null
-                ) : tweakCount < MAX_TWEAKS ? (
+                {unprintable ? null : tweakCount < MAX_TWEAKS ? (
                   <button
                     type="button"
                     disabled={refining}
