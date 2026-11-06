@@ -81,6 +81,13 @@ Deno.serve(async (req) => {
     if (!(await authorize(req))) return json({ error: "Unauthorized" }, 401);
 
     const body = await req.json().catch(() => ({}));
+    // Read-only: report the partner's own record for given order ids. Never changes anything.
+    if (body?.action === "partner_status" && Array.isArray(body?.partner_order_ids)) {
+      const ids = new Set((body.partner_order_ids as unknown[]).map(String));
+      const all = await listPartnerOrders();
+      const found = all.filter((o) => ids.has(String(o.publicId ?? o.publicOrderId ?? o.orderId ?? o.id ?? "")));
+      return json({ orders: found, totalOnAccount: all.length });
+    }
     const groupId = typeof body?.group_id === "string" ? body.group_id : null;
     const orderId = typeof body?.order_id === "string" ? body.order_id : null;
     scopeGroupId = groupId;
