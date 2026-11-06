@@ -176,8 +176,20 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
-  const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, result.stl);
-  const digest = await crypto.subtle.digest("SHA-256", result.stl);
+  // Close cracks/holes before the file is fingerprinted: fulfilment refuses
+  // any file that is not fully closed, and the hash must match what ships.
+  let finalStl = result.stl;
+  let openEdges = countOpenEdges(finalStl);
+  if (openEdges > 0) {
+    const repaired = repairStl(finalStl).stl;
+    const after = countOpenEdges(repaired);
+    if (after < openEdges) {
+      finalStl = repaired;
+      openEdges = after;
+    }
+  }
+  const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, finalStl);
+  const digest = await crypto.subtle.digest("SHA-256", finalStl);
   const fileSha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   await admin
     .from("originals_orders")
@@ -200,6 +212,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         heftBaseHeightMm: result.heftBaseHeightMm ?? null,
         heftVolumeAddedCm3: result.heftVolumeAddedCm3 ?? null,
         sourcePrintFileUrl: url,
+        openEdges,
         fileSha256,
       },
 

@@ -600,7 +600,7 @@ function fillBoundaryLoops(tris: V3[][]): number {
  * Best-effort mesh repair for meshes that fail validation or slicing.
  *
  * Works purely on triangle soup, which is all a binary STL carries:
- *  - welds vertices onto a 10 µm grid so hairline cracks close (watertightness)
+ *  - welds vertices onto a 50 µm grid so hairline cracks close (watertightness)
  *  - drops degenerate (zero-area) and duplicated facets that break slicers
  *  - recomputes outward normals and re-seats the solid on Z=0
  *
@@ -610,7 +610,7 @@ function fillBoundaryLoops(tris: V3[][]): number {
 export function repairStl(bytes: Uint8Array): { stl: Uint8Array; summary: RepairSummary } {
   const tris = parseBinaryStl(bytes);
   const trianglesBefore = tris.length;
-  const WELD = 100; // grid steps per mm -> 10 µm
+  const WELD = 20; // grid steps per mm -> 50 µm (well under print resolution; closes generator cracks)
 
   const snap = (v: V3): V3 => [
     Math.round(v[0] * WELD) / WELD,
