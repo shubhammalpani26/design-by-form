@@ -184,7 +184,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (openEdges > 0) {
     const repaired = repairStl(finalStl).stl;
     const after = countOpenEdges(repaired);
-    if (after < openEdges) {
+    // Never trade bulk for tidiness: a repair that slims the piece is discarded.
+    if (after < openEdges && repairKeepsBulk(finalStl, repaired)) {
       finalStl = repaired;
       openEdges = after;
     }

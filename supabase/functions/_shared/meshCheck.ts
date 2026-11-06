@@ -540,6 +540,26 @@ export function countOpenEdges(bytes: Uint8Array): number {
   return open;
 }
 
+/** Enclosed volume (cm³) and size (mm) — used to prove a repair didn't slim the piece. */
+export function stlBulk(bytes: Uint8Array): { volumeCm3: number; size: [number, number, number] } {
+  let vol = 0;
+  const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const [a, b, c] of parseBinaryStl(bytes)) {
+    vol += (a[0] * (b[1] * c[2] - b[2] * c[1]) - a[1] * (b[0] * c[2] - b[2] * c[0]) + a[2] * (b[0] * c[1] - b[1] * c[0])) / 6;
+    for (const p of [a, b, c]) for (let i = 0; i < 3; i++) { if (p[i] < lo[i]) lo[i] = p[i]; if (p[i] > hi[i]) hi[i] = p[i]; }
+  }
+  return { volumeCm3: Math.abs(vol) / 1000, size: [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]] };
+}
+
+/** Repairs may close cracks but never make the piece noticeably smaller or lighter. */
+export const REPAIR_MAX_VOLUME_LOSS = 0.02;
+export const REPAIR_MAX_SIZE_CHANGE_MM = 0.5;
+export function repairKeepsBulk(before: Uint8Array, after: Uint8Array): boolean {
+  const b = stlBulk(before), a = stlBulk(after);
+  if (a.volumeCm3 < b.volumeCm3 * (1 - REPAIR_MAX_VOLUME_LOSS)) return false;
+  return a.size.every((s, i) => Math.abs(s - b.size[i]) <= REPAIR_MAX_SIZE_CHANGE_MM);
+}
+
 export interface CrackReport {
   openEdges: number;
   totalEdges: number;

@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { analyseStl, countOpenEdges, crackReport, repairStl } from "./meshCheck.ts";
+import { analyseStl, countOpenEdges, crackReport, repairKeepsBulk, repairStl, stlBulk } from "./meshCheck.ts";
 
 type V = [number, number, number];
 function stl(tris: V[][]): Uint8Array {
@@ -58,4 +58,15 @@ Deno.test("a hairline crack (0.2 mm wide seam) in a detailed mesh does not hold"
 
 Deno.test("a closed solid never holds", () => {
   assertEquals(crackReport(stl(cube)).hold, false);
+});
+
+Deno.test("cube bulk is 8 cm³ at 20 mm", () => {
+  const b = stlBulk(stl(cube));
+  assertEquals(Math.round(b.volumeCm3 * 100) / 100, 8);
+});
+
+Deno.test("a repair that shrinks the piece is refused, an equal one kept", () => {
+  const smaller = cube.map((t) => t.map(([x, y, z]) => [x * 0.95, y * 0.95, z * 0.95] as V));
+  assertEquals(repairKeepsBulk(stl(cube), stl(smaller)), false);
+  assertEquals(repairKeepsBulk(stl(cube), stl(cube)), true);
 });
