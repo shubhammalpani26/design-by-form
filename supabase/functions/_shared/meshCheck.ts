@@ -373,8 +373,8 @@ export function analyseStl(
 
   if (openEdges > 0) {
     const msg = `Mesh is not watertight (${openEdges} open edges).`;
-    if (openEdges > tris.length * 0.01) blockers.push(msg);
-    else warnings.push(msg);
+    // Owner rule (Chente, Nov 2026): no hole count is "small enough" to ship.
+    blockers.push(msg);
   }
 
   if (meanWallMm < FDM.hardMinMeanWallMm) {
@@ -425,7 +425,7 @@ export function analyseStl(
       key: "watertight",
       label: "Watertight solid",
       value: openEdges === 0 ? "Closed" : `${openEdges} open edges`,
-      status: openEdges === 0 ? "pass" : openEdges > tris.length * 0.01 ? "fail" : "warn",
+      status: openEdges === 0 ? "pass" : "fail",
       target: "0 open edges",
     },
     {
@@ -520,14 +520,87 @@ export interface RepairSummary {
   trianglesBefore: number;
   trianglesAfter: number;
   reseated: boolean;
+  holesFilled: number;
   changed: boolean;
+}
+
+/** Counts edges not shared by exactly two faces (holes + non-manifold). */
+export function countOpenEdges(bytes: Uint8Array): number {
+  const edges = new Map<string, number>();
+  for (const tri of parseBinaryStl(bytes)) {
+    const ks = tri.map(key);
+    for (let i = 0; i < 3; i++) {
+      const p1 = ks[i], p2 = ks[(i + 1) % 3];
+      const e = p1 < p2 ? `${p1}|${p2}` : `${p2}|${p1}`;
+      edges.set(e, (edges.get(e) ?? 0) + 1);
+    }
+  }
+  let open = 0;
+  for (const n of edges.values()) if (n !== 2) open++;
+  return open;
+}
+
+/**
+ * Caps every closed boundary loop (a hole) with a fan around its centroid,
+ * wound opposite to the existing border so normals stay outward. Mutates
+ * `tris`; returns the number of holes capped. Non-manifold edges (3+ faces)
+ * are left alone — the validator still blocks those.
+ */
+function fillBoundaryLoops(tris: V3[][]): number {
+  const count = new Map<string, number>();
+  const verts = new Map<string, V3>();
+  const ekey = (a: string, b: string) => (a < b ? `${a}|${b}` : `${b}|${a}`);
+  for (const t of tris) {
+    const ks = t.map(key);
+    ks.forEach((k, i) => verts.set(k, t[i]));
+    for (let i = 0; i < 3; i++) {
+      const e = ekey(ks[i], ks[(i + 1) % 3]);
+      count.set(e, (count.get(e) ?? 0) + 1);
+    }
+  }
+  // For a border half-edge a->b the hole runs b->a.
+  const next = new Map<string, string[]>();
+  for (const t of tris) {
+    const ks = t.map(key);
+    for (let i = 0; i < 3; i++) {
+      const a = ks[i], b = ks[(i + 1) % 3];
+      if (count.get(ekey(a, b)) !== 1) continue;
+      const list = next.get(b) ?? [];
+      list.push(a);
+      next.set(b, list);
+    }
+  }
+  let filled = 0;
+  for (const start of [...next.keys()]) {
+    while ((next.get(start)?.length ?? 0) > 0) {
+      const loop: string[] = [start];
+      let cur = next.get(start)!.pop()!;
+      let ok = true;
+      while (cur !== start) {
+        if (loop.length > 20000) { ok = false; break; }
+        loop.push(cur);
+        const outs = next.get(cur);
+        if (!outs || !outs.length) { ok = false; break; }
+        cur = outs.pop()!;
+      }
+      if (!ok || loop.length < 3) continue;
+      const pts = loop.map((k) => verts.get(k)!);
+      const c: V3 = [0, 0, 0];
+      for (const p of pts) { c[0] += p[0]; c[1] += p[1]; c[2] += p[2]; }
+      c[0] /= pts.length; c[1] /= pts.length; c[2] /= pts.length;
+      if (pts.length === 3) tris.push([pts[0], pts[1], pts[2]]);
+      else for (let i = 0; i < pts.length; i++) tris.push([pts[i], pts[(i + 1) % pts.length], c]);
+      filled++;
+    }
+  }
+  return filled;
 }
 
 /**
  * Best-effort mesh repair for meshes that fail validation or slicing.
  *
  * Works purely on triangle soup, which is all a binary STL carries:
- *  - welds vertices onto a 10 µm grid so hairline cracks close (watertightness)
+ *  - welds vertices onto a 50 µm grid so hairline cracks close (watertightness)
  *  - drops degenerate (zero-area) and duplicated facets that break slicers
  *  - recomputes outward normals and re-seats the solid on Z=0
  *
@@ -537,7 +610,7 @@ export interface RepairSummary {
 export function repairStl(bytes: Uint8Array): { stl: Uint8Array; summary: RepairSummary } {
   const tris = parseBinaryStl(bytes);
   const trianglesBefore = tris.length;
-  const WELD = 100; // grid steps per mm -> 10 µm
+  const WELD = 20; // grid steps per mm -> 50 µm (well under print resolution; closes generator cracks)
 
   const snap = (v: V3): V3 => [
     Math.round(v[0] * WELD) / WELD,
@@ -587,6 +660,8 @@ export function repairStl(bytes: Uint8Array): { stl: Uint8Array; summary: Repair
     for (const v of snapped) if (v[2] < minZ) minZ = v[2];
   }
 
+  const holesFilled = fillBoundaryLoops(kept);
+
   const reseated = Number.isFinite(minZ) && Math.abs(minZ) > 1e-4;
   const buffer = new ArrayBuffer(84 + kept.length * 50);
   const view = new DataView(buffer);
@@ -622,8 +697,9 @@ export function repairStl(bytes: Uint8Array): { stl: Uint8Array; summary: Repair
     trianglesBefore,
     trianglesAfter: kept.length,
     reseated,
+    holesFilled,
     changed:
-      weldedVertices > 0 || removedDegenerates > 0 || removedDuplicates > 0 || reseated,
+      weldedVertices > 0 || removedDegenerates > 0 || removedDuplicates > 0 || reseated || holesFilled > 0,
   };
 
   return { stl: new Uint8Array(buffer), summary };
