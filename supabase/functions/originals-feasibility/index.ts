@@ -481,6 +481,15 @@ Deno.serve(async (req) => {
           }
         }
 
+        // Shoppers are not refused over a few leftover cracks: the order is
+        // held before manufacturing until the file is fully closed by hand.
+        const minorHolesOnly = !report.printable &&
+          report.blockers.every((b) => b.startsWith("Mesh is not watertight")) &&
+          report.openEdges <= report.triangleCount * 0.01;
+        if (minorHolesOnly) {
+          report = { ...report, printable: true, warnings: [...report.warnings, ...report.blockers], blockers: [] };
+        }
+
         geometry = { ...report, sizeKey: key, repaired };
 
         if (!report.printable) {
