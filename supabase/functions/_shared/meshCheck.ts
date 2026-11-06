@@ -595,8 +595,7 @@ export function crackReport(bytes: Uint8Array): CrackReport {
         const d = pointSegDist(m, t.p, t.q);
         if (d < best) best = d;
       }
-      // An isolated loop with nothing facing it is an open hole: use its edge length.
-      const w = Number.isFinite(best) ? Math.min(best, Math.hypot(s.p[0]-s.q[0], s.p[1]-s.q[1], s.p[2]-s.q[2]) * 10) : Infinity;
+      const w = best; // Infinity when nothing faces it (an open hole)
       if (w > gap) gap = w;
     }
   } else if (segs.length > 6000) gap = Infinity;
@@ -610,9 +609,6 @@ function pointSegDist(m: V3, a: V3, b: V3): number {
   let t = l2 > 0 ? ((m[0]-a[0])*ab[0] + (m[1]-a[1])*ab[1] + (m[2]-a[2])*ab[2]) / l2 : 0;
   t = Math.max(0, Math.min(1, t));
   return Math.hypot(m[0]-a[0]-t*ab[0], m[1]-a[1]-t*ab[1], m[2]-a[2]-t*ab[2]);
-}
-function _unused() {
-  return null;
 }
 
 /**

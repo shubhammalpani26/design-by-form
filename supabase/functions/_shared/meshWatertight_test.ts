@@ -42,7 +42,7 @@ Deno.test("a real gap (20 mm missing face) holds the order", () => {
   assertEquals(crackReport(stl(cube.slice(0, 11))).hold, true);
 });
 
-Deno.test("hairline cracks under 1 mm in a detailed mesh do not hold", () => {
+Deno.test("hairline cracks (0.05 mm wide) in a detailed mesh do not hold", () => {
   // Fine closed grid surface (many edges) plus one tiny 0.05 mm sliver open.
   const tris: V[][] = [...cube];
   for (let i = 0; i < 400; i++) {
