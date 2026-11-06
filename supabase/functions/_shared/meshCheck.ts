@@ -545,16 +545,18 @@ export interface CrackReport {
   totalEdges: number;
   /** Longest single open/broken edge, in file units (mm). */
   longestOpenEdge: number;
+  /** Widest crack opening found, mm (Infinity for an unfaced open hole). */
+  widestGap: number;
   /** True when the file has a real gap or a big cluster worth holding for. */
   hold: boolean;
 }
 
 /** Hairline cracks pass (slicers close them); real gaps or clusters hold. */
-export const CRACK_MAX_EDGE_MM = 1.0;
+export const CRACK_MAX_GAP_MM = 0.3;
 export const CRACK_MAX_RATIO = 0.01;
 
 export function crackReport(bytes: Uint8Array): CrackReport {
-  const edges = new Map<string, { n: number; len: number }>();
+  const edges = new Map<string, { n: number; len: number; p: V3; q: V3 }>();
   for (const tri of parseBinaryStl(bytes)) {
     const ks = tri.map(key);
     for (let i = 0; i < 3; i++) {
@@ -564,17 +566,53 @@ export function crackReport(bytes: Uint8Array): CrackReport {
       if (cur) cur.n++;
       else {
         const a = tri[i], b = tri[j];
-        edges.set(e, { n: 1, len: Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) });
+        edges.set(e, { n: 1, len: Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]), p: a, q: b });
       }
     }
   }
   let open = 0, longest = 0;
-  for (const v of edges.values()) {
-    if (v.n !== 2) { open++; if (v.len > longest) longest = v.len; }
+  const segs: { a: string; b: string; p: V3; q: V3 }[] = [];
+  for (const [k, v] of edges) {
+    if (v.n !== 2) {
+      open++;
+      if (v.len > longest) longest = v.len;
+      if (v.n === 1) {
+        const [a, b] = k.split("|");
+        segs.push({ a, b, p: v.p, q: v.q });
+      }
+    }
   }
   const total = edges.size;
-  const hold = open > 0 && (longest > CRACK_MAX_EDGE_MM || open / Math.max(1, total) > CRACK_MAX_RATIO);
-  return { openEdges: open, totalEdges: total, longestOpenEdge: longest, hold };
+  // Crack width: how far each open edge's midpoint is from the facing side of
+  // the crack (nearest open edge not sharing a vertex). Hairline = tiny width.
+  let gap = 0;
+  if (segs.length > 0 && segs.length <= 6000) {
+    for (const s of segs) {
+      const m: V3 = [(s.p[0] + s.q[0]) / 2, (s.p[1] + s.q[1]) / 2, (s.p[2] + s.q[2]) / 2];
+      let best = Infinity;
+      for (const t of segs) {
+        if (t === s || t.a === s.a || t.a === s.b || t.b === s.a || t.b === s.b) continue;
+        const d = pointSegDist(m, t.p, t.q);
+        if (d < best) best = d;
+      }
+      // An isolated loop with nothing facing it is an open hole: use its edge length.
+      const w = Number.isFinite(best) ? Math.min(best, Math.hypot(s.p[0]-s.q[0], s.p[1]-s.q[1], s.p[2]-s.q[2]) * 10) : Infinity;
+      if (w > gap) gap = w;
+    }
+  } else if (segs.length > 6000) gap = Infinity;
+  const hold = open > 0 && (gap > CRACK_MAX_GAP_MM || open / Math.max(1, total) > CRACK_MAX_RATIO);
+  return { openEdges: open, totalEdges: total, longestOpenEdge: longest, widestGap: gap, hold };
+}
+
+function pointSegDist(m: V3, a: V3, b: V3): number {
+  const ab = [b[0]-a[0], b[1]-a[1], b[2]-a[2]];
+  const l2 = ab[0]*ab[0] + ab[1]*ab[1] + ab[2]*ab[2];
+  let t = l2 > 0 ? ((m[0]-a[0])*ab[0] + (m[1]-a[1])*ab[1] + (m[2]-a[2])*ab[2]) / l2 : 0;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(m[0]-a[0]-t*ab[0], m[1]-a[1]-t*ab[1], m[2]-a[2]-t*ab[2]);
+}
+function _unused() {
+  return null;
 }
 
 /**
