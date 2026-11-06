@@ -16,6 +16,7 @@ import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originals
 import { engravingLabel, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { sendAppEmail } from "../_shared/appEmail.ts";
+import { giftConfirmationData, giftConfirmationAdminCopyKey } from "../_shared/giftConfirmation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -102,6 +103,23 @@ Deno.serve(async (req) => {
       : await base.eq("id", orderId!);
     if (error) throw error;
     if (!rows?.length) return json({ error: "Order not found" }, 404);
+
+    // Notification-only recovery: never re-enter partner placement or alter the order.
+    if (body?.action === "send_confirmation_admin_copy") {
+      if (rows.some((row) => !row.partner_order_id || row.status !== "fulfilled" || row.payment_provider !== "internal_test")) {
+        return json({ error: "Only placed free admin orders can send this confirmation copy" }, 409);
+      }
+      const { data: previewRows, error: previewError } = await admin
+        .from("originals_orders")
+        .select("id, sku_slug, size_label, quantity, preview_image_url")
+        .in("id", rows.map((row) => row.id));
+      if (previewError) throw previewError;
+      const result = await sendAppEmail("originals-order-confirmation", "contact@nyzora.ai", {
+        idempotencyKey: giftConfirmationAdminCopyKey(rows[0].id),
+        templateData: giftConfirmationData(rows[0].id, previewRows ?? []),
+      });
+      return json({ confirmationCopy: result }, result.sent ? 200 : 409);
+    }
 
     const paid = rows.filter((r) => r.status === "paid" || r.status === "fulfilled");
     if (!paid.length) return json({ error: "Order is not paid yet" }, 400);
@@ -391,18 +409,14 @@ Deno.serve(async (req) => {
           .from("originals_orders")
           .select("id, sku_slug, size_label, quantity, preview_image_url")
           .in("id", usedFiles.map((f) => f.id));
+        const templateData = giftConfirmationData(paid[0].id, previewRows ?? []);
         await sendAppEmail("originals-order-confirmation", paid[0].customer_email, {
           idempotencyKey: `originals-confirmation-${paid[0].id}`,
-          templateData: {
-            orderId: paid[0].id,
-            items: (previewRows ?? []).map((r) => ({
-              productName: r.sku_slug === "pet-portrait-sculpture" ? "Pet Portrait Sculpture" : "Pet Memorial Sculpture",
-              sizeLabel: r.size_label ?? "",
-              previewImageUrl: r.preview_image_url ?? "",
-              skuSlug: r.sku_slug ?? "",
-              quantity: Math.max(1, Number(r.quantity ?? 1)),
-            })),
-          },
+          templateData,
+        });
+        await sendAppEmail("originals-order-confirmation", "contact@nyzora.ai", {
+          idempotencyKey: giftConfirmationAdminCopyKey(paid[0].id),
+          templateData,
         });
       } catch (mailError) {
         console.error("customer order-placed email failed", mailError);
