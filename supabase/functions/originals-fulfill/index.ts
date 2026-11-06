@@ -383,6 +383,32 @@ Deno.serve(async (req) => {
       console.error("manufacturing-order-placed email failed", mailError);
     }
 
+    // Free admin orders (gifts) skip checkout, so no receipt went out. An admin
+    // can ask for the "order placed" email with the preview — no price shown.
+    if (body?.notify_customer === true && paid[0].customer_email) {
+      try {
+        const { data: previewRows } = await admin
+          .from("originals_orders")
+          .select("id, sku_slug, size_label, quantity, preview_image_url")
+          .in("id", usedFiles.map((f) => f.id));
+        await sendAppEmail("originals-order-confirmation", paid[0].customer_email, {
+          idempotencyKey: `originals-confirmation-${paid[0].id}`,
+          templateData: {
+            orderId: paid[0].id,
+            items: (previewRows ?? []).map((r) => ({
+              productName: r.sku_slug === "pet-portrait-sculpture" ? "Pet Portrait Sculpture" : "Pet Memorial Sculpture",
+              sizeLabel: r.size_label ?? "",
+              previewImageUrl: r.preview_image_url ?? "",
+              skuSlug: r.sku_slug ?? "",
+              quantity: Math.max(1, Number(r.quantity ?? 1)),
+            })),
+          },
+        });
+      } catch (mailError) {
+        console.error("customer order-placed email failed", mailError);
+      }
+    }
+
     return json({ partnerOrderId: placed.orderId, pieces: usedFiles.length, cost: placed.draft.total });
   } catch (e) {
     const message = e instanceof Error ? e.message : String(e);
