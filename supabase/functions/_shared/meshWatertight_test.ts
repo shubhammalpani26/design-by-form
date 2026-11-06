@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { analyseStl, countOpenEdges, repairStl } from "./meshCheck.ts";
+import { analyseStl, countOpenEdges, crackReport, repairStl } from "./meshCheck.ts";
 
 type V = [number, number, number];
 function stl(tris: V[][]): Uint8Array {
@@ -36,4 +36,26 @@ Deno.test("repair caps a hole so the file becomes fully closed", () => {
 
 Deno.test("a closed solid has zero open edges", () => {
   assertEquals(countOpenEdges(stl(cube)), 0);
+});
+
+Deno.test("a real gap (20 mm missing face) holds the order", () => {
+  assertEquals(crackReport(stl(cube.slice(0, 11))).hold, true);
+});
+
+Deno.test("hairline cracks under 1 mm in a detailed mesh do not hold", () => {
+  // Fine closed grid surface (many edges) plus one tiny 0.05 mm sliver open.
+  const tris: V[][] = [...cube];
+  for (let i = 0; i < 400; i++) {
+    const x = 100 + i * 2;
+    const a: V = [x, 0, 0], b: V = [x + 1, 0, 0], c: V = [x, 1, 0], d: V = [x, 0, 1];
+    tris.push([a, c, b], [a, b, d], [a, d, c], [b, c, d]);
+  }
+  tris.push([[50, 0, 0], [50.05, 0, 0], [50, 0.05, 0]]);
+  const r = crackReport(stl(tris));
+  assertEquals(r.openEdges, 3);
+  assertEquals(r.hold, false);
+});
+
+Deno.test("a closed solid never holds", () => {
+  assertEquals(crackReport(stl(cube)).hold, false);
 });

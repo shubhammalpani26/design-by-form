@@ -15,7 +15,7 @@ import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
 import { engravingLabel, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
-import { countOpenEdges } from "../_shared/meshCheck.ts";
+import { crackReport } from "../_shared/meshCheck.ts";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 import { giftConfirmationData, giftConfirmationAdminCopyKey } from "../_shared/giftConfirmation.ts";
 
