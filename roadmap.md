@@ -67,4 +67,5 @@
 - [x] Show the shopper's photo clearly next to the preview
 - [x] Make the free "change something" redo easy to find on the preview
 
-- [ ] Chente order: user rechecks 3D model (A), picks size, then place held order with updates to customer email
+- [x] Chente order: approved Petite Sand file placed with Slant; customer confirmation sent.
+- [x] Send the owner the same Chente customer confirmation with preview, without placing or charging again; managed send confirmed 2026-11-06 10:33 UTC.
