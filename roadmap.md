@@ -66,3 +66,5 @@
 - [x] Apple Pay: start the Apple Pay sheet instantly on tap (order prepared beforehand); Google Pay not offered by Razorpay for US cards
 - [x] Show the shopper's photo clearly next to the preview
 - [x] Make the free "change something" redo easy to find on the preview
+
+- [ ] Chente order: user rechecks 3D model (A), picks size, then place held order with updates to customer email
