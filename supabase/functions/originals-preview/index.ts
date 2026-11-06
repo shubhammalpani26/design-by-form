@@ -310,7 +310,17 @@ Deno.serve(async (req) => {
     const expressionRule = sourceUrl
       ? " HARD CONSTRAINT — expression (overrides any earlier expression wording): copy the pet's real expression from the reference photo exactly. Look at the mouth in the photo first: if it is closed, the sculpture's mouth is fully closed, lips together, with no gap, teeth or tongue showing; only if the photo shows an open mouth or tongue may the sculpture show one, matching how open it is. Keep the same ear position, eyes and brow as the photo. Never add a smile, grin, panting mouth or tongue that isn't in the photo, and never make the face sad, droopy or solemn. A faithful likeness of the photo beats a cheerful idealised look — an invented smile is a failed render."
       : " Expression rule (overrides any earlier expression wording): a natural, relaxed, attentive face with a soft closed or gently open mouth — neither grinning nor sad.";
-    const effectivePrompt = `${prompt}${productionAppearance}${expressionRule}${printability}${revision}${photoIsolation}`;
+    // Server truth for colour: every piece is printed from ONE filament. The
+    // model otherwise copies fur colours from the photo (grey muzzle, white
+    // chest, dark eyes) — a two-tone render we physically cannot make.
+    const COLOUR_WORDS: Record<string, string> = {
+      "Bone White": "warm bone white", "Charcoal": "deep matte charcoal black",
+      "Marble": "pale speckled marble grey", "Slate Grey": "cool slate grey",
+      "Sand": "soft sand tan", "Blush": "muted blush pink",
+    };
+    const colourWord = COLOUR_WORDS[String(pz.colorLabel ?? "")] ?? "one single";
+    const singleColourRule = ` HARD CONSTRAINT — ONE COLOUR (overrides everything above, including the photo): the whole piece is printed from a single ${colourWord} PLA filament. Sculpture, face, eyes, nose, muzzle, fur markings, plinth and lettering are all exactly the same ${colourWord} colour. Do NOT copy any colours or markings from the photo — no grey or white muzzle, no darker eyes or nose, no patches, no two-tone, no gradient, no paint, no contrasting base. Markings and eyes may appear only as sculpted shape and shadow, never as a different colour. Any second colour is a failed render.`;
+    const effectivePrompt = `${prompt}${productionAppearance}${expressionRule}${printability}${revision}${photoIsolation}${singleColourRule}`;
     const content: unknown[] = [{ type: "text", text: effectivePrompt }];
     if (sourceUrl) content.unshift({ type: "image_url", image_url: { url: sourceUrl } });
 
