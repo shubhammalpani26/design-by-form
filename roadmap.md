@@ -68,4 +68,4 @@
 - [x] Make the free "change something" redo easy to find on the preview
 
 - [x] Chente order: approved Petite Sand file placed with Slant; customer confirmation sent.
-- [ ] Send the owner the same Chente customer confirmation with preview, without placing or charging again.
+- [x] Send the owner the same Chente customer confirmation with preview, without placing or charging again; managed send confirmed 2026-11-06 10:33 UTC.
