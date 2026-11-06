@@ -540,6 +540,43 @@ export function countOpenEdges(bytes: Uint8Array): number {
   return open;
 }
 
+export interface CrackReport {
+  openEdges: number;
+  totalEdges: number;
+  /** Longest single open/broken edge, in file units (mm). */
+  longestOpenEdge: number;
+  /** True when the file has a real gap or a big cluster worth holding for. */
+  hold: boolean;
+}
+
+/** Hairline cracks pass (slicers close them); real gaps or clusters hold. */
+export const CRACK_MAX_EDGE_MM = 1.0;
+export const CRACK_MAX_RATIO = 0.01;
+
+export function crackReport(bytes: Uint8Array): CrackReport {
+  const edges = new Map<string, { n: number; len: number }>();
+  for (const tri of parseBinaryStl(bytes)) {
+    const ks = tri.map(key);
+    for (let i = 0; i < 3; i++) {
+      const j = (i + 1) % 3;
+      const e = ks[i] < ks[j] ? `${ks[i]}|${ks[j]}` : `${ks[j]}|${ks[i]}`;
+      const cur = edges.get(e);
+      if (cur) cur.n++;
+      else {
+        const a = tri[i], b = tri[j];
+        edges.set(e, { n: 1, len: Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]) });
+      }
+    }
+  }
+  let open = 0, longest = 0;
+  for (const v of edges.values()) {
+    if (v.n !== 2) { open++; if (v.len > longest) longest = v.len; }
+  }
+  const total = edges.size;
+  const hold = open > 0 && (longest > CRACK_MAX_EDGE_MM || open / Math.max(1, total) > CRACK_MAX_RATIO);
+  return { openEdges: open, totalEdges: total, longestOpenEdge: longest, hold };
+}
+
 /**
  * Caps every closed boundary loop (a hole) with a fan around its centroid,
  * wound opposite to the existing border so normals stay outward. Mutates
