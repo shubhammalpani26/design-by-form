@@ -15,7 +15,7 @@ import { logPartnerEvent, logPartnerEvents } from "../_shared/partnerEvents.ts";
 import { PHOTO_PERSONALIZED_SKUS, isMasterPrintFile } from "../_shared/originalsPricing.ts";
 import { engravingLabel, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
-import { countOpenEdges } from "../_shared/meshCheck.ts";
+import { crackReport } from "../_shared/meshCheck.ts";
 import { sendAppEmail } from "../_shared/appEmail.ts";
 import { giftConfirmationData, giftConfirmationAdminCopyKey } from "../_shared/giftConfirmation.ts";
 
@@ -311,11 +311,12 @@ Deno.serve(async (req) => {
           return json({ error: reason, needsFile: row.id, stacked }, 409);
         }
       }
-      // Hard stop: no hole or broken edge is "small enough" to send. We do not
-      // rely on the partner's slicer to guess how to close it.
-      const openEdges = countOpenEdges(fileBytes);
-      if (openEdges > 0) {
-        const reason = `Print file is not a closed solid (${openEdges} open or broken edges) — repair it before sending to manufacturing`;
+      // Hairline cracks (short edges, ≤1% of edges) pass; a real gap or a big
+      // cluster of broken edges holds the order for a manual fix.
+      const cracks = crackReport(fileBytes);
+      const openEdges = cracks.openEdges;
+      if (cracks.hold) {
+        const reason = `Print file has a real gap or large crack cluster (${openEdges} of ${cracks.totalEdges} edges open, longest ${cracks.longestOpenEdge.toFixed(2)} mm) — repair it before sending to manufacturing`;
         await admin.from("originals_orders").update({
           production_status: "needs_file",
           fulfillment_error: reason,
