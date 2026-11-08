@@ -75,7 +75,6 @@ export type AlertInput = {
   metaPurchases: number;
   paidOrders: number;
   adPreviews: number;
-  adSizes: number;
   adCheckouts: number;
   adPayments: number;
   drop: { from: string; to: string; rate: number; lost: number } | null;
@@ -116,8 +115,8 @@ export function buildAlerts(i: AlertInput): Alert[] {
       level: paid === 0 ? "warn" : paid / i.adPreviews < 0.1 ? "warn" : "good",
       title: `${paid} of ${i.adPreviews} ad visitors who saw their preview paid`,
       detail: i.adCheckouts === 0
-        ? `${i.adSizes} tapped a size and nobody clicked checkout, so the size/price screen is where they leave.`
-        : `After the preview: ${i.adSizes} tapped a size, ${i.adCheckouts} clicked checkout, ${i.adPayments} reached the payment step.`,
+        ? "Nobody clicked checkout after seeing their preview (a size is already picked for them), so the preview screen is where they leave."
+        : `After the preview: ${i.adCheckouts} clicked checkout, ${i.adPayments} reached the payment step.`,
     });
   }
   if (i.drop && i.drop.lost > 0) {

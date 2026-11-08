@@ -28,3 +28,4 @@
 - Free admin order confirmations share one preview payload for customer and fixed admin copies; notification recovery returns before partner actions, with separate stable send keys, so a missing copy never repeats manufacturing or charges.
 - Originals print files reach the partner only if leftover cracks after repair are hairline (`crackReport` in `_shared/meshCheck.ts`: crack width ≤0.3 mm and ≤1% of edges); real gaps or big clusters set needs_file + email in `originals-fulfill`; why: slicers close hairline cracks but may fill real gaps wrongly, and a zero-crack rule would hold nearly every order.
 - Automatic print-file repairs are kept only if they preserve the piece's volume (≤2% loss) and size (±0.5 mm) (`repairKeepsBulk` in `_shared/meshCheck.ts`); why: tidying the mesh must never make a paid piece lighter or smaller.
+- Funnels skip "size_select" (size is pre-picked); holdback answers store no personal data; why: size is optional, answers stay anonymous.

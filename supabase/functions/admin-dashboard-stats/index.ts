@@ -18,6 +18,14 @@ const json = (b: unknown, status = 200) =>
 const AD_ACCOUNT = "act_2036145687783794";
 const META_GATEWAY = "https://connector-gateway.lovable.dev/meta_ads/v26.0";
 const REAL_PROVIDERS = ["razorpay", "cashfree"];
+const HOLDBACK_LABELS: [string, string][] = [
+  ["price", "Price"],
+  ["unsure_look", "Not sure how the real piece will look"],
+  ["just_curious", "Just curious"],
+  ["buying_later", "Buying later"],
+  ["unsure_new_site", "Not sure about paying a new website"],
+  ["other", "Other"],
+];
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -78,7 +86,6 @@ Deno.serve(async (req) => {
       { label: "Opened a pet page", people: uniq("render_progress", "flow_view") },
       { label: "Picked a photo", people: uniq("render_progress", "photo_selected") },
       { label: "Saw their preview", people: uniq("reveal_screen", "reveal_view") },
-      { label: "Tapped a size", people: uniq("reveal_screen", "size_select") },
       { label: "Clicked checkout", people: uniq("reveal_screen", "checkout_click") },
       { label: "Reached payment", people: uniq("reveal_screen", "payment_reached") },
     ];
@@ -90,7 +97,6 @@ Deno.serve(async (req) => {
       ["visitors", "", ""],
       ["photo", "render_progress", "photo_selected"],
       ["preview", "reveal_screen", "reveal_view"],
-      ["size", "reveal_screen", "size_select"],
       ["checkout", "reveal_screen", "checkout_click"],
       ["payment", "reveal_screen", "payment_reached"],
     ];
@@ -103,6 +109,25 @@ Deno.serve(async (req) => {
       b.visitors.add(e.session_id);
       for (const [s, exp, ev] of steps) if (exp && e.experiment === exp && e.event === ev) b[s].add(e.session_id);
     }
+
+    // --- "What's holding you back?" answers (anonymous) ---
+    const { data: holdRows } = await admin
+      .from("originals_holdback_answers")
+      .select("reason, other_text, campaign, created_at")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+    const holdCounts = new Map<string, number>();
+    for (const r of holdRows ?? []) holdCounts.set(r.reason, (holdCounts.get(r.reason) ?? 0) + 1);
+    const holdback = {
+      total: (holdRows ?? []).length,
+      shown: uniq("reveal_screen", "holdback_shown"),
+      reasons: HOLDBACK_LABELS.map(([key, label]) => ({ key, label, count: holdCounts.get(key) ?? 0 })),
+      otherTexts: (holdRows ?? [])
+        .filter((r) => r.other_text)
+        .slice(0, 20)
+        .map((r) => ({ text: r.other_text, at: r.created_at, campaign: r.campaign ? campaignLabel(r.campaign) : null })),
+    };
 
     // --- Renders ---
     const { count: renders } = await admin
@@ -220,6 +245,7 @@ Deno.serve(async (req) => {
       sources: [...sources.entries()].map(([source, s]) => ({ source, visitors: s.size })).sort((a, b) => b.visitors - a.visitors),
       funnel,
       campaigns,
+      holdback,
       previewAttempts: count("render_progress", "generate_start"),
       previewFailures: count("render_progress", "generate_error"),
       renders: renders ?? 0,

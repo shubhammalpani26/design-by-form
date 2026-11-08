@@ -17,6 +17,7 @@ import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { PreviewShareButton } from "./PreviewShareButton";
 import { RealPieceInColour } from "./RealPieceInColour";
 import { PreviewHelpActions } from "./PreviewHelpActions";
+import { HoldbackQuestion } from "./HoldbackQuestion";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
@@ -1247,6 +1248,11 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 <p className="mt-2 text-xs text-center text-muted-foreground">
                   Want more than one pet? Add each piece to your order — one payment, one shipment.
                 </p>
+                <HoldbackQuestion
+                  key={sku.slug}
+                  skuSlug={sku.slug}
+                  onEvent={(event) => trackExperiment("reveal_screen", revealVariant, event, { skuSlug: sku.slug })}
+                />
               </>
             )}
           </div>

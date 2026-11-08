@@ -89,19 +89,63 @@ export function AdminDashboard() {
             </div>
           </Section>
 
+          <Section title="What's holding you back? (anonymous answers)">
+            {data.holdback ? (
+              <>
+                <p className="text-xs text-muted-foreground">
+                  Asked of people who've had their preview up for 20 seconds without going to checkout.{" "}
+                  {data.holdback.total} answered · {data.holdback.shown} were asked in this period.
+                </p>
+                <div className="border border-border">
+                  {data.holdback.reasons.map((r: any) => {
+                    const share = data.holdback.total ? Math.round((r.count / data.holdback.total) * 100) : 0;
+                    return (
+                      <div key={r.key} className="border-b border-border px-4 py-2 text-sm last:border-b-0">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-foreground">{r.label}</span>
+                          <span className="shrink-0 font-medium text-foreground">
+                            {r.count} <span className="text-xs text-muted-foreground">({share}%)</span>
+                          </span>
+                        </div>
+                        <div className="mt-1 h-1 bg-muted">
+                          <div className="h-1 bg-foreground" style={{ width: `${share}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                {data.holdback.otherTexts.length > 0 && (
+                  <div className="border border-border">
+                    <p className="border-b border-border px-4 py-2 text-xs uppercase tracking-wider text-muted-foreground">In their words</p>
+                    {data.holdback.otherTexts.map((o: any, i: number) => (
+                      <div key={i} className="border-b border-border px-4 py-2 text-sm last:border-b-0">
+                        <span className="text-foreground">“{o.text}”</span>
+                        <span className="ml-2 text-xs text-muted-foreground">
+                          {new Date(o.at).toLocaleDateString()}{o.campaign ? ` · ${o.campaign}` : ""}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">No answers yet.</p>
+            )}
+          </Section>
+
           <Section title="By ad campaign (unique people)">
             <div className="overflow-x-auto border border-border">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    {["Campaign", "Visitors", "Photo", "Previews", "Size", "Checkout", "Payment", "Spend", "Per preview"].map((h) => (
+                    {["Campaign", "Visitors", "Photo", "Previews", "Checkout", "Payment", "Spend", "Per preview"].map((h) => (
                       <th key={h} className="whitespace-nowrap px-3 py-2">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {(data.campaigns ?? []).length === 0 && (
-                    <tr><td colSpan={9} className="px-3 py-3 text-muted-foreground">No visitors in this period.</td></tr>
+                    <tr><td colSpan={8} className="px-3 py-3 text-muted-foreground">No visitors in this period.</td></tr>
                   )}
                   {(data.campaigns ?? []).map((c: any) => (
                     <tr key={c.key} className="border-t border-border text-foreground">
@@ -109,7 +153,6 @@ export function AdminDashboard() {
                       <td className="px-3 py-2">{c.visitors}</td>
                       <td className="px-3 py-2">{c.photo}</td>
                       <td className="px-3 py-2 font-medium">{c.preview}</td>
-                      <td className="px-3 py-2">{c.size}</td>
                       <td className="px-3 py-2 font-medium">{c.checkout}</td>
                       <td className="px-3 py-2">{c.payment}</td>
                       <td className="whitespace-nowrap px-3 py-2">{c.spend != null ? money(c.spend, ads?.currency) : "—"}</td>
