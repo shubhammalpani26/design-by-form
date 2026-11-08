@@ -8,7 +8,7 @@ import {
  * Admin-only, read-only snapshot for the "Ads" tab: everything about the
  * Facebook/Instagram ads in one refresh — account money left, each ad's
  * results, who saw them, day by day, tracking health, and what ad visitors
- * did on the site (photo → preview → size → checkout → payment).
+ * did on the site (photo → preview → checkout → payment; a size is pre-picked, so it is not a step).
  * Meta reads go through the linked Meta Ads connection. Nothing is changed.
  */
 
@@ -180,7 +180,6 @@ Deno.serve(async (req) => {
       opened: people("render_progress", "flow_view"),
       photo: people("render_progress", "photo_selected"),
       preview: people("reveal_screen", "reveal_view"),
-      size: people("reveal_screen", "size_select"),
       checkout: people("reveal_screen", "checkout_click"),
       payment: people("reveal_screen", "payment_reached"),
     };
@@ -213,7 +212,6 @@ Deno.serve(async (req) => {
       { label: "Page loaded", people: totals.landed, source: "meta" },
       { label: "Picked a photo", people: site.photo, source: "site" },
       { label: "Saw their preview", people: site.preview, source: "site" },
-      { label: "Tapped a size", people: site.size, source: "site" },
       { label: "Clicked checkout", people: site.checkout, source: "site" },
       { label: "Reached payment", people: site.payment, source: "site" },
       { label: "Paid", people: totals.purchases, source: "meta" },
@@ -229,7 +227,7 @@ Deno.serve(async (req) => {
       adIssues: ads.filter((a) => a.active && a.problem).map((a) => ({ name: a.name, reason: a.problem })),
       pixelPageViews24h: tracking ? tracking.PageView ?? 0 : null,
       spend: totals.spend, metaPurchases: totals.purchases, paidOrders: paid.length,
-      adPreviews: site.preview, adSizes: site.size, adCheckouts: site.checkout, adPayments: site.payment,
+      adPreviews: site.preview, adCheckouts: site.checkout, adPayments: site.payment,
       drop, ageBands, stateBands,
       ads: ads.map((a) => ({ name: a.name, active: a.active, impressions: a.impressions, linkClicks: a.linkClicks })),
     });

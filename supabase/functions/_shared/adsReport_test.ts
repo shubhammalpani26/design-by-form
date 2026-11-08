@@ -4,7 +4,7 @@ import { act, bands, biggestDrop, buildAlerts, istWindow, purchasesOf, type Aler
 const base: AlertInput = {
   currencySymbol: "₹", accountActive: true, activeAds: 5, dailyBudget: 3000, capLeft: 50000, prepaid: 20000,
   adIssues: [], pixelPageViews24h: 600, spend: 10000, metaPurchases: 0, paidOrders: 0,
-  adPreviews: 0, adSizes: 0, adCheckouts: 0, adPayments: 0, drop: null, ageBands: [], stateBands: [], ads: [],
+  adPreviews: 0, adCheckouts: 0, adPayments: 0, drop: null, ageBands: [], stateBands: [], ads: [],
 };
 const titles = (i: Partial<AlertInput>) => buildAlerts({ ...base, ...i }).map((a) => a.title);
 
@@ -46,13 +46,13 @@ Deno.test("spending limit under one day of budget is urgent; under three is a wa
 });
 
 Deno.test("what happens after the preview is always summarised once 3+ people saw one", () => {
-  const none = buildAlerts({ ...base, adPreviews: 22, adSizes: 7, adCheckouts: 0 }).find((x) => x.title.includes("saw their preview"));
+  const none = buildAlerts({ ...base, adPreviews: 22, adCheckouts: 0 }).find((x) => x.title.includes("saw their preview"));
   assertEquals(none?.title, "0 of 22 ad visitors who saw their preview paid");
   assertEquals(none?.detail.includes("nobody clicked checkout"), true);
-  const one = buildAlerts({ ...base, adPreviews: 22, adSizes: 7, adCheckouts: 3, adPayments: 1, paidOrders: 1 }).find((x) => x.title.includes("saw their preview"));
+  const one = buildAlerts({ ...base, adPreviews: 22, adCheckouts: 3, adPayments: 1, paidOrders: 1 }).find((x) => x.title.includes("saw their preview"));
   assertEquals(one?.title, "1 of 22 ad visitors who saw their preview paid");
   assertEquals(one?.level, "warn");
-  assertEquals(one?.detail, "After the preview: 7 tapped a size, 3 clicked checkout, 1 reached the payment step.");
+  assertEquals(one?.detail, "After the preview: 3 clicked checkout, 1 reached the payment step.");
   assertEquals(titles({ adPreviews: 2 }).some((t) => t.includes("saw their preview")), false);
 });
 
