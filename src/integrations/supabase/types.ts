@@ -1526,6 +1526,33 @@ export type Database = {
         }
         Relationships: []
       }
+      originals_holdback_answers: {
+        Row: {
+          campaign: string | null
+          created_at: string
+          id: string
+          other_text: string | null
+          reason: string
+          sku_slug: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          created_at?: string
+          id?: string
+          other_text?: string | null
+          reason: string
+          sku_slug?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          created_at?: string
+          id?: string
+          other_text?: string | null
+          reason?: string
+          sku_slug?: string | null
+        }
+        Relationships: []
+      }
       originals_orders: {
         Row: {
           amount_usd: number
