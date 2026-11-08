@@ -48,7 +48,7 @@ Deno.test("spending limit under one day of budget is urgent; under three is a wa
 Deno.test("what happens after the preview is always summarised once 3+ people saw one", () => {
   const none = buildAlerts({ ...base, adPreviews: 22, adCheckouts: 0 }).find((x) => x.title.includes("saw their preview"));
   assertEquals(none?.title, "0 of 22 ad visitors who saw their preview paid");
-  assertEquals(none?.detail.includes("nobody clicked checkout"), true);
+  assertEquals(none?.detail.includes("Nobody clicked checkout"), true);
   const one = buildAlerts({ ...base, adPreviews: 22, adCheckouts: 3, adPayments: 1, paidOrders: 1 }).find((x) => x.title.includes("saw their preview"));
   assertEquals(one?.title, "1 of 22 ad visitors who saw their preview paid");
   assertEquals(one?.level, "warn");
