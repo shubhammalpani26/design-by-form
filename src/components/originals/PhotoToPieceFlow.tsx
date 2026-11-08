@@ -17,7 +17,7 @@ import { MadeToOrderPolicy } from "./MadeToOrderPolicy";
 import { PreviewShareButton } from "./PreviewShareButton";
 import { RealPieceInColour } from "./RealPieceInColour";
 import { PreviewHelpActions } from "./PreviewHelpActions";
-import { HoldbackQuestion } from "./HoldbackQuestion";
+import { HoldbackLeaveDialog, HoldbackQuestion, holdbackDone, markHoldbackDone } from "./HoldbackQuestion";
 import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
@@ -161,8 +161,8 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   const [refining, setRefining] = useState(false);
   const [colorKey, setColorKey] = useState<string>(COLORS[0].key);
   const colorPickedRef = useRef(false);
-  // Nobody buys until they have consciously picked a size — that click is also
-  // what triggers the real manufacturing check for that size.
+  // Petite is pre-picked the moment a preview appears (see below); shoppers can
+  // change it but never have to.
   const [sizeKey, setSizeKey] = useState<string | null>(null);
   const sizeRef = useRef<HTMLDivElement | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
@@ -278,6 +278,37 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     };
 
   }, [razorpayOpen, clientSecret]);
+
+  // Pressing Back after seeing a preview asks the optional "What's holding
+  // you back?" question once, instead of leaving straight away. A second
+  // Back (or "Leave") goes on as normal. Closing the tab is never blocked.
+  const [leaveAskOpen, setLeaveAskOpen] = useState(false);
+  const [leaveAsked, setLeaveAsked] = useState(false);
+  const previewRef = useRef(preview);
+  previewRef.current = preview;
+  const leaveGuardRef = useRef(false);
+  useEffect(() => {
+    if (!preview || leaveGuardRef.current || holdbackDone()) return;
+    leaveGuardRef.current = true;
+    window.history.pushState({ nyzoraHoldback: true }, "");
+    const onPop = () => {
+      const st = window.history.state;
+      // Still on our own entries (e.g. Back just closed the payment panel).
+      if (st?.nyzoraHoldback || st?.nyzoraCheckout) return;
+      window.removeEventListener("popstate", onPop);
+      if (!previewRef.current || holdbackDone() || payingRef.current) {
+        window.history.back();
+        return;
+      }
+      markHoldbackDone();
+      setLeaveAsked(true);
+      setLeaveAskOpen(true);
+      trackExperiment("reveal_screen", revealVariant, "holdback_shown", { skuSlug: sku.slug, metadata: { via: "back" } });
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preview]);
 
 
 
@@ -1251,7 +1282,15 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 <HoldbackQuestion
                   key={sku.slug}
                   skuSlug={sku.slug}
-                  onEvent={(event) => trackExperiment("reveal_screen", revealVariant, event, { skuSlug: sku.slug })}
+                  hidden={leaveAsked}
+                  onEvent={(event, metadata) => trackExperiment("reveal_screen", revealVariant, event, { skuSlug: sku.slug, metadata })}
+                />
+                <HoldbackLeaveDialog
+                  open={leaveAskOpen}
+                  skuSlug={sku.slug}
+                  onEvent={(event, metadata) => trackExperiment("reveal_screen", revealVariant, event, { skuSlug: sku.slug, metadata })}
+                  onStay={() => setLeaveAskOpen(false)}
+                  onLeave={() => { setLeaveAskOpen(false); window.history.back(); }}
                 />
               </>
             )}
