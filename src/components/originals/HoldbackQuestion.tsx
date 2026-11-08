@@ -145,7 +145,7 @@ export function HoldbackLeaveDialog({
   const [sent, setSent] = useState(false);
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) onStay(); }}>
-      <DialogContent className="w-[95vw] max-w-md rounded-none">
+      <DialogContent className="w-[95vw] max-w-md rounded-none" onOpenAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle className="text-left text-base font-normal">
             {sent ? "Thank you — that really helps us." : "Before you go — what's holding you back?"}
