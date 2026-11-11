@@ -287,8 +287,10 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   const previewRef = useRef(preview);
   previewRef.current = preview;
   const leaveGuardRef = useRef(false);
+  const [hasPreview, setHasPreview] = useState(false);
+  useEffect(() => { if (preview) setHasPreview(true); }, [preview]);
   useEffect(() => {
-    if (!preview || leaveGuardRef.current || holdbackDone()) return;
+    if (!hasPreview || leaveGuardRef.current || holdbackDone()) return;
     leaveGuardRef.current = true;
     window.history.pushState({ nyzoraHoldback: true }, "");
     const onPop = () => {
@@ -306,9 +308,14 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
       trackExperiment("reveal_screen", revealVariant, "holdback_shown", { skuSlug: sku.slug, metadata: { via: "back" } });
     };
     window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
+    // Listener lives until it fires or the page unmounts; refining, flipping
+    // versions or starting over must not drop it (the dummy entry stays).
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      leaveGuardRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [preview]);
+  }, [hasPreview]);
 
 
 
