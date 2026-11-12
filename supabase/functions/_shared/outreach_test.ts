@@ -74,6 +74,15 @@ Deno.test("replies are sorted into bounce, opt-out, reply", () => {
   assertEquals(classifyReply("Jen <jen@shop.com>", "Re: hi", "Sounds lovely! Here is a photo"), "replied");
 });
 
+Deno.test("creator emails always carry the first-30 line; businesses never do", () => {
+  const creator = ensureFirst30("Hi Liz,\n\nLovely post about Rosebud.", true);
+  assert(creator.includes(FIRST30_LINE));
+  const already = ensureFirst30(`Hi Liz,\n\n${FIRST30_LINE}`, true);
+  assertEquals(already.split("first 30").length - 1, 1);
+  const biz = ensureFirst30("Hi team,\n\nA free display piece for your shop.", false);
+  assert(!biz.includes("first 30"));
+});
+
 Deno.test("emails are validated and lower-cased", () => {
   assertEquals(normalizeEmail("  Jill@HealingWithAnimals.com "), "jill@healingwithanimals.com");
   assertEquals(normalizeEmail("not an email"), null);
