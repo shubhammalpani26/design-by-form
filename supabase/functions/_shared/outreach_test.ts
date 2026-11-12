@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
   classifyReply, ensureFirst30, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
-  remainingToday, splitBatch, waveTimes,
+  remainingToday, splitBatch, waveTimes, findTargets, isCheckableUrl, emailOnPage,
 } from "./outreach.ts";
 
 const etHour = (d: Date) =>
@@ -89,4 +89,28 @@ Deno.test("creator emails always carry the first-30 line; businesses never do", 
 Deno.test("emails are validated and lower-cased", () => {
   assertEquals(normalizeEmail("  Jill@HealingWithAnimals.com "), "jill@healingwithanimals.com");
   assertEquals(normalizeEmail("not an email"), null);
+});
+
+Deno.test("finding people tops each category up to its share of the batch", () => {
+  const cats = [{ slug: "petfluencers", share: 10 }, { slug: "pet_boutiques", share: 5 }, { slug: "vet_groomers", share: 5 }, { slug: "memorial_stores", share: 5 }];
+  const t = findTargets(cats, 25, { petfluencers: 4, pet_boutiques: 9 });
+  assertEquals(t, { petfluencers: 6, pet_boutiques: 0, vet_groomers: 5, memorial_stores: 5 });
+});
+
+Deno.test("only public web pages can prove an email; social sites and internal hosts can't", () => {
+  assert(isCheckableUrl("https://www.pinkpoodlespa.com/contact"));
+  assert(isCheckableUrl("https://linktr.ee/gusthedachshund"));
+  assertEquals(isCheckableUrl("https://www.instagram.com/gus/"), null);
+  assertEquals(isCheckableUrl("http://169.254.169.254/latest"), null);
+  assertEquals(isCheckableUrl("http://localhost:54321/"), null);
+  assertEquals(isCheckableUrl("ftp://shop.com/x"), null);
+  assertEquals(isCheckableUrl("not a url"), null);
+});
+
+Deno.test("an email counts only if the page really shows it", () => {
+  assert(emailOnPage('<a href="mailto:Hello@Shop.com">Email us</a>', "hello@shop.com"));
+  assert(emailOnPage("write to hello [at] shop [dot] com", "hello@shop.com"));
+  assert(emailOnPage("hello&#64;shop&#46;com", "hello@shop.com"));
+  assertEquals(emailOnPage("contact info@shop.com", "hello@shop.com"), false);
+  assertEquals(emailOnPage("hello@shop.co", "hello@shop.com"), false);
 });
