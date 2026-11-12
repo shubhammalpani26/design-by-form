@@ -1992,6 +1992,170 @@ export type Database = {
         }
         Relationships: []
       }
+      outreach_categories: {
+        Row: {
+          active: boolean
+          daily_share: number
+          kind: string
+          name: string
+          offer: string
+          slug: string
+          sort: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          daily_share?: number
+          kind?: string
+          name: string
+          offer?: string
+          slug: string
+          sort?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          daily_share?: number
+          kind?: string
+          name?: string
+          offer?: string
+          slug?: string
+          sort?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      outreach_contacts: {
+        Row: {
+          batch_id: string | null
+          body: string | null
+          category_slug: string
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          drafted_at: string | null
+          email: string
+          followers: number | null
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
+          id: string
+          instagram: string | null
+          last_error: string | null
+          org_name: string | null
+          outcome: string | null
+          personal_detail: string | null
+          replied_at: string | null
+          reply_snippet: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          source: string
+          source_url: string | null
+          state: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          batch_id?: string | null
+          body?: string | null
+          category_slug: string
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          drafted_at?: string | null
+          email: string
+          followers?: number | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          id?: string
+          instagram?: string | null
+          last_error?: string | null
+          org_name?: string | null
+          outcome?: string | null
+          personal_detail?: string | null
+          replied_at?: string | null
+          reply_snippet?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          source?: string
+          source_url?: string | null
+          state?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          batch_id?: string | null
+          body?: string | null
+          category_slug?: string
+          city?: string | null
+          contact_name?: string | null
+          created_at?: string
+          drafted_at?: string | null
+          email?: string
+          followers?: number | null
+          gmail_message_id?: string | null
+          gmail_thread_id?: string | null
+          id?: string
+          instagram?: string | null
+          last_error?: string | null
+          org_name?: string | null
+          outcome?: string | null
+          personal_detail?: string | null
+          replied_at?: string | null
+          reply_snippet?: string | null
+          scheduled_for?: string | null
+          sent_at?: string | null
+          source?: string
+          source_url?: string | null
+          state?: string | null
+          status?: string
+          subject?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "outreach_contacts_category_slug_fkey"
+            columns: ["category_slug"]
+            isOneToOne: false
+            referencedRelation: "outreach_categories"
+            referencedColumns: ["slug"]
+          },
+        ]
+      }
+      outreach_settings: {
+        Row: {
+          daily_total: number
+          id: number
+          last_sync_at: string | null
+          pause_reason: string | null
+          paused: boolean
+          updated_at: string
+          wave_size: number
+        }
+        Insert: {
+          daily_total?: number
+          id?: number
+          last_sync_at?: string | null
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+          wave_size?: number
+        }
+        Update: {
+          daily_total?: number
+          id?: number
+          last_sync_at?: string | null
+          pause_reason?: string | null
+          paused?: boolean
+          updated_at?: string
+          wave_size?: number
+        }
+        Relationships: []
+      }
       partner_order_events: {
         Row: {
           created_at: string
@@ -2916,6 +3080,45 @@ export type Database = {
           verified_purchase: boolean
           video_url: string
         }[]
+      }
+      claim_outreach_due: {
+        Args: { p_limit: number }
+        Returns: {
+          batch_id: string | null
+          body: string | null
+          category_slug: string
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          drafted_at: string | null
+          email: string
+          followers: number | null
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
+          id: string
+          instagram: string | null
+          last_error: string | null
+          org_name: string | null
+          outcome: string | null
+          personal_detail: string | null
+          replied_at: string | null
+          reply_snippet: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          source: string
+          source_url: string | null
+          state: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          website: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "outreach_contacts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
       }
       claim_social_scheduler_lease: {
         Args: { p_lease_seconds?: number }
