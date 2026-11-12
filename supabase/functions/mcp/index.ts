@@ -3,10 +3,10 @@
 // supabase function: mcp
 // Bundled from src/lib/mcp/index.ts by @lovable.dev/mcp-js.
 // src/lib/mcp/index.ts
-import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.26.3";
 
 // src/lib/mcp/tools/search-products.ts
-import { defineTool, ToolError } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool, ToolError } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z } from "npm:zod@^4.4.3";
 
 // src/lib/mcp/supabase.ts
@@ -81,7 +81,7 @@ var search_products_default = defineTool({
 });
 
 // src/lib/mcp/tools/get-product.ts
-import { defineTool as defineTool2, ToolError as ToolError2 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool2, ToolError as ToolError2 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z2 } from "npm:zod@^4.4.3";
 var get_product_default = defineTool2({
   name: "get_product",
@@ -106,7 +106,7 @@ var get_product_default = defineTool2({
 });
 
 // src/lib/mcp/tools/list-my-designs.ts
-import { defineTool as defineTool3, ToolError as ToolError3 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool3, ToolError as ToolError3 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z3 } from "npm:zod@^4.4.3";
 var list_my_designs_default = defineTool3({
   name: "list_my_designs",
@@ -142,7 +142,7 @@ var list_my_designs_default = defineTool3({
 });
 
 // src/lib/mcp/tools/get-my-credits.ts
-import { defineTool as defineTool4, ToolError as ToolError4 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool4, ToolError as ToolError4 } from "npm:@lovable.dev/mcp-js@0.26.3";
 var get_my_credits_default = defineTool4({
   name: "get_my_credits",
   title: "Get my AI credit balance",
@@ -166,7 +166,7 @@ var get_my_credits_default = defineTool4({
 });
 
 // src/lib/mcp/tools/meta-me.ts
-import { defineTool as defineTool5, ToolError as ToolError5 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool5, ToolError as ToolError5 } from "npm:@lovable.dev/mcp-js@0.26.3";
 
 // src/lib/mcp/tools/meta-token.ts
 import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.58.0";
@@ -384,7 +384,7 @@ var meta_me_default = defineTool5({
 });
 
 // src/lib/mcp/tools/meta-ig-post.ts
-import { defineTool as defineTool6, ToolError as ToolError6 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool6, ToolError as ToolError6 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z4 } from "npm:zod@^4.4.3";
 var FB_API3 = "https://graph.facebook.com/v18.0";
 async function fb2(path, token, init = {}) {
@@ -462,11 +462,11 @@ var meta_ig_post_default = defineTool6({
 });
 
 // src/lib/mcp/tools/meta-ads-accounts.ts
-import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool7 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z5 } from "npm:zod@^4.4.3";
 
 // src/lib/mcp/tools/meta-ads-api.ts
-import { ToolError as ToolError7 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { ToolError as ToolError7 } from "npm:@lovable.dev/mcp-js@0.26.3";
 var ADS_API = "https://graph.facebook.com/v21.0";
 var MAX_DAILY_BUDGET_USD = 200;
 async function graph(path, token, init = {}) {
@@ -575,7 +575,7 @@ var meta_ads_accounts_default = defineTool7({
 });
 
 // src/lib/mcp/tools/meta-ads-insights.ts
-import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool8 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z6 } from "npm:zod@^4.4.3";
 var meta_ads_insights_default = defineTool8({
   name: "meta_ads_insights",
@@ -601,7 +601,7 @@ var meta_ads_insights_default = defineTool8({
 });
 
 // src/lib/mcp/tools/meta-ads-manage.ts
-import { defineTool as defineTool9, ToolError as ToolError8 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool9, ToolError as ToolError8 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z7 } from "npm:zod@^4.4.3";
 var meta_ads_manage_default = defineTool9({
   name: "meta_ads_manage",
@@ -636,7 +636,7 @@ var meta_ads_manage_default = defineTool9({
 });
 
 // src/lib/mcp/tools/meta-ads-create.ts
-import { defineTool as defineTool10, ToolError as ToolError9 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool10, ToolError as ToolError9 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z8 } from "npm:zod@^4.4.3";
 var meta_ads_create_default = defineTool10({
   name: "meta_ads_create_campaign",
@@ -793,7 +793,7 @@ var meta_ads_create_default = defineTool10({
 });
 
 // src/lib/mcp/tools/meta-ads-audiences.ts
-import { defineTool as defineTool11, ToolError as ToolError10 } from "npm:@lovable.dev/mcp-js@0.26.1";
+import { defineTool as defineTool11, ToolError as ToolError10 } from "npm:@lovable.dev/mcp-js@0.26.3";
 import { z as z9 } from "npm:zod@^4.4.3";
 var EVENT_AUDIENCES = {
   customizers: {
@@ -912,5 +912,5 @@ var mcp_default = defineMcp({
 });
 
 // lovable-mcp-supabase-entry.ts
-import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.26.1/stacks/supabase";
+import { createSupabaseHandler } from "npm:@lovable.dev/mcp-js@0.26.3/stacks/supabase";
 Deno.serve(createSupabaseHandler(mcp_default, { functionName: "mcp" }));
