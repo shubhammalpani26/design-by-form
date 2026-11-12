@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
-  classifyReply, etToUtc, finalizeBody, nextSendSlot, normalizeEmail, OPT_OUT_LINE, remainingToday,
-  splitBatch, waveTimes,
+  classifyReply, ensureFirst30, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
+  remainingToday, splitBatch, waveTimes,
 } from "./outreach.ts";
 
 const etHour = (d: Date) =>

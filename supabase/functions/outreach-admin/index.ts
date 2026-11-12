@@ -4,7 +4,7 @@ import { generateStructured } from "../_shared/responses.ts";
 import { requireCaller } from "../_shared/requireCaller.ts";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 import {
-  classifyReply, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
+  classifyReply, ensureFirst30, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
   remainingToday, splitBatch, trackedLink, waveTimes,
 } from "../_shared/outreach.ts";
 
@@ -218,6 +218,7 @@ async function draftChunk(req: Request, admin: Admin) {
     let body = e.body.trim();
     const link = trackedLink(c.category_slug);
     if (!body.includes(link)) body = `${body}\n\nYou can see the pieces here:\n${link}`;
+    body = ensureFirst30(body, catBy.get(c.category_slug)?.kind === "creator");
     await admin.from("outreach_contacts").update({
       status: "drafted", subject: e.subject.trim().slice(0, 120), body: finalizeBody(body),
       drafted_at: new Date().toISOString(), last_error: null,
