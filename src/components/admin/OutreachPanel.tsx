@@ -328,7 +328,7 @@ export function OutreachPanel() {
               {Object.entries(drafted.reduce((a, c) => ({ ...a, [c.category_slug]: (a[c.category_slug] ?? 0) + 1 }), {} as Record<string, number>))
                 .map(([k, v]) => `${v} ${catName(k)}`).join(" · ")}. Tap any one to read or change it.
             </p>
-            <div className="grid gap-2 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
               {drafted.map((c) => <DraftCard key={c.id} c={c} catName={catName(c.category_slug)} onChanged={load} />)}
             </div>
           </div>
