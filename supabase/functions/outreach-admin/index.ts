@@ -237,7 +237,7 @@ const FIND_PER_CALL = 8;
 const US_STATES = ["Alabama","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","Tennessee","Texas","Utah","Vermont","Virginia","Washington","Wisconsin"];
 
 const WHO_TO_FIND: Record<string, string> = {
-  petfluencers: "US-based pet content creators (Instagram/TikTok accounts about one or more pets) with roughly 2,000–30,000 followers, active in the last month, family-friendly, who publish a contact or collaboration email on a public web page you can open (their own website, Linktree/Beacons/Stan page, media kit, blog contact page). Skip celebrity accounts, agencies, breeders, rescues asking for donations, and accounts about a pet that recently died.",
+  petfluencers: "US-based pet content creators (Instagram/TikTok accounts about one or more pets) with roughly 2,000–30,000 followers, family-friendly, who publish a contact or collaboration email on a public web page you can open: their own website or blog contact page, a media kit, or a Linktree/Beacons/Stan/Carrd page. Good searches: \"dog\" OR \"cat\" \"collabs\" \"email\" site:linktr.ee; \"pet influencer\" \"media kit\" \"@gmail.com\"; \"my dog\" blog \"contact me\" \"brand collaborations\". Skip celebrity accounts, agencies, breeders, rescues asking for donations, and accounts about a pet that recently died.",
   pet_boutiques: "independent US pet boutiques, pet bakeries and pet gift shops (not chains like Petco/PetSmart) that publish a contact email on their own website.",
   vet_groomers: "independent US veterinary clinics, dog groomers and pet spas (not chains like Banfield/VCA/Petco Grooming) that publish a contact email on their own website.",
   memorial_stores: "US businesses that sell pet memorial products or keepsakes (urns, memorial jewellery, portraits, memorial gift shops) and publish a contact email on their own website. Contact them as a business, never as grieving customers.",
@@ -257,6 +257,10 @@ const FoundSchema = z.object({
     source_url: z.string(),
   })),
 });
+
+/** Web search answers end sentences with "([site](url))"; the email writer only needs the fact. */
+const stripCitations = (t: string | null | undefined) =>
+  (t ?? "").replace(/\s*\(\[[^\]]*\]\([^)]*\)\)/g, "").replace(/\s*\[[^\]]*\]\(https?:[^)]*\)/g, "").replace(/\s+/g, " ").trim();
 
 const FREE_MAIL = /@(gmail|yahoo|hotmail|outlook|icloud|aol|live|msn|me|proton|protonmail)\./i;
 
@@ -359,7 +363,7 @@ Do NOT include any of these (already contacted): ${avoid.slice(0, 250).join("; "
       website: p.website || null, instagram: p.instagram ? p.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "") : null,
       city: p.city || null, state: p.state || null,
       followers: p.followers && p.followers > 0 ? Math.round(p.followers) : null,
-      personal_detail: p.personal_detail?.slice(0, 400) || null, source_url: proof.slice(0, 400), source: "research",
+      personal_detail: stripCitations(p.personal_detail).slice(0, 400) || null, source_url: proof.slice(0, 400), source: "research",
     };
   });
   // Another category may already hold the same address: never email anyone twice.
