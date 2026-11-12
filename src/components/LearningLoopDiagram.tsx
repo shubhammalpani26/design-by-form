@@ -54,7 +54,7 @@ const LearningLoopDiagram = () => {
     if (!isVisible) return;
 
     // Animate steps sequentially
-    const timers: NodeJS.Timeout[] = [];
+    const timers: ReturnType<typeof setTimeout>[] = [];
     steps.forEach((_, i) => {
       timers.push(setTimeout(() => setActiveStep(i), 400 + i * 500));
     });
@@ -63,7 +63,7 @@ const LearningLoopDiagram = () => {
     const interval = setInterval(() => {
       setActiveStep((prev) => (prev + 1) % steps.length);
     }, 2500);
-    timers.push(interval as unknown as NodeJS.Timeout);
+    timers.push(interval as unknown as ReturnType<typeof setTimeout>);
 
     return () => timers.forEach(clearTimeout);
   }, [isVisible]);

@@ -68,7 +68,7 @@ export const ReviewsManagement = () => {
       status: ReviewStatus;
       verified?: boolean;
     }) => {
-      const patch: Record<string, unknown> = { status };
+      const patch: { status: ReviewStatus; verified_purchase?: boolean } = { status };
       if (verified !== undefined) patch.verified_purchase = verified;
       const { error } = await supabase
         .from("brand_reviews")
