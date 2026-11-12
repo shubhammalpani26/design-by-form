@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCsv, toContactRow } from "@/lib/csv";
-import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload } from "lucide-react";
+import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload, Search } from "lucide-react";
 
 /**
  * Admin "Outreach" tab: personal cold emails from Shubham's Gmail, split
