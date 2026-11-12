@@ -174,7 +174,7 @@ For CREATORS (petfluencers), use this shape:
   2. "I'd love to send you a free sculpture of [pet], made from your favourite photo of them."
   3. One sentence: if they love it, all we'd ask is one honest photo or video shared as a Collab post with @nyzora (with #gifted), and that we can reshare it with credit.
   4. One sentence: they'd also get their own code, 10% off for their followers and 10% commission to them on every order.
-  5. You may add: "We're choosing our first 30 creator partners this month." (true; no other urgency).
+  5. You MUST include this sentence, worded naturally: "We're choosing our first 30 creator partners this month." (true; no other urgency).
   6. Ask: reply with a favourite photo of [pet].
   Do NOT mention "organic only", "no paid ads", "while live", the 10-order bonus, or other fine print — that comes later when they reply.
 
