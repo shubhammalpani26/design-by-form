@@ -91,8 +91,8 @@ export function waveTimes(now: Date, count: number, waveSize: number): Date[] {
       inWave = 0;
       slot = nextSendSlot(new Date(slot.getTime() + WAVE_GAP_HOURS * 3_600_000));
     }
-    // Spread a wave over its first few minutes so it doesn't look like a blast.
-    out.push(new Date(slot.getTime() + inWave * 45_000));
+    // The whole wave is due together; the sender spaces each email a few seconds apart.
+    out.push(new Date(slot.getTime()));
     inWave++;
   }
   return out;
@@ -187,4 +187,56 @@ export function classifyReply(from: string, subject: string, snippet: string): R
     return "opted_out";
   }
   return "replied";
+}
+
+// ------------------------------------------------------------ finding people
+
+/**
+ * How many new people to find per category so the next batch can be full:
+ * the category's share of `total`, minus whoever is already waiting there.
+ */
+export function findTargets(
+  cats: { slug: string; share: number }[], total: number, waiting: Record<string, number>,
+): Record<string, number> {
+  const split = splitBatch(cats.map((c) => ({ ...c, available: total })), total);
+  const out: Record<string, number> = {};
+  for (const c of cats) out[c.slug] = Math.max(0, (split[c.slug] ?? 0) - (waiting[c.slug] ?? 0));
+  return out;
+}
+
+/** Social sites hide emails behind logins, so a page there can never prove an address. */
+const UNFETCHABLE = /(^|\.)(instagram|facebook|tiktok|x|twitter|threads|linkedin|youtube)\.com$/i;
+
+/** Only public http(s) pages on real domain names (no IPs, localhost or internal hosts). */
+export function isCheckableUrl(raw: unknown): URL | null {
+  if (typeof raw !== "string") return null;
+  let u: URL;
+  try { u = new URL(raw.trim()); } catch { return null; }
+  if (u.protocol !== "https:" && u.protocol !== "http:") return null;
+  const h = u.hostname.toLowerCase();
+  if (!h.includes(".") || h.endsWith(".local") || h.endsWith(".internal") || h === "localhost") return null;
+  if (/^[\d.]+$/.test(h) || h.includes(":")) return null; // bare IPv4 / IPv6
+  if (UNFETCHABLE.test(h)) return null;
+  return u;
+}
+
+/**
+ * True when `email` is genuinely published on the page, including common
+ * spellings like "name [at] shop [dot] com" and HTML-escaped characters.
+ */
+export function emailOnPage(html: string, email: string): boolean {
+  const target = email.toLowerCase();
+  const text = html
+    .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(Number(n)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+    .replace(/&commat;/gi, "@").replace(/&period;/gi, ".").replace(/&amp;/gi, "&")
+    .toLowerCase();
+  if (text.includes(target)) return true;
+  if (text.includes(encodeURIComponent(target).toLowerCase())) return true;
+  const [local, domain] = target.split("@");
+  const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const dot = String.raw`\s*(?:\.|\[\s*dot\s*\]|\(\s*dot\s*\)|\s+dot\s+)\s*`;
+  const at = String.raw`\s*(?:@|\[\s*at\s*\]|\(\s*at\s*\)|\s+at\s+)\s*`;
+  const re = new RegExp(esc(local) + at + domain.split(".").map(esc).join(dot));
+  return re.test(text);
 }

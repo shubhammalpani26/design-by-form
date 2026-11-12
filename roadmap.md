@@ -74,3 +74,6 @@
 - [x] Outreach tab: show each whole email (first-30 line was hidden below the fold on phone)
 - [ ] Chat helper inside the Social tab (owner request 2026-11-13) — scope questions asked
 - [ ] Chat helper inside the Ads tab (owner request 2026-11-13) — scope questions asked
+- [x] Outreach: confirm today's 15 queued emails go out (scheduled Thu Nov 12, 1:58–2:08 PM ET = today)
+- [x] Outreach: show "Today/Tomorrow" instead of weekday; add "Send now" for queued emails
+- [x] Outreach: one button that finds new people (public emails, checked against their source page), writes their emails, and readies the next batch

@@ -8,7 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCsv, toContactRow } from "@/lib/csv";
-import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload } from "lucide-react";
+import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload, Search } from "lucide-react";
 
 /**
  * Admin "Outreach" tab: personal cold emails from Shubham's Gmail, split
@@ -71,8 +71,18 @@ const who = (c: Contact) =>
 const when = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
 
-const eastern = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }) + " ET";
+const etDay = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+/** "Today 2:05 PM ET" / "Tomorrow 9:00 AM ET" / "Mon 17 Nov, 9:00 AM ET" — never a bare weekday. */
+const eastern = (iso: string) => {
+  const d = new Date(iso);
+  const time = d.toLocaleString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
+  const today = etDay(new Date());
+  const tomorrow = etDay(new Date(Date.now() + 86_400_000));
+  const day = etDay(d) === today ? "Today"
+    : etDay(d) === tomorrow ? "Tomorrow"
+    : d.toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "short", day: "numeric", month: "short" });
+  return `${day} ${time} ET`;
+};
 
 async function call(action: string, extra: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke("outreach-admin", { body: { action, ...extra } });
@@ -107,7 +117,7 @@ function DraftCard({ c, catName, onChanged }: { c: Contact; catName: string; onC
   };
   const skip = async () => { setBusy(true); try { await call("skip", { id: c.id }); onChanged(); } finally { setBusy(false); } };
   return (
-    <div className="border border-border">
+    <div className="min-w-0 border border-border">
       <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-start justify-between gap-3 p-3 text-left">
         <div className="min-w-0">
           <div className="truncate text-sm font-medium text-foreground">{who(c)}</div>
@@ -137,6 +147,7 @@ export function OutreachPanel() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [writing, setWriting] = useState<{ done: number; total: number } | null>(null);
+  const [finding, setFinding] = useState<{ found: number; total: number; active: string[] } | null>(null);
   const [filterCat, setFilterCat] = useState("all");
   const [filterStatus, setFilterStatus] = useState("sent");
   const [importCat, setImportCat] = useState("petfluencers");
@@ -187,6 +198,37 @@ export function OutreachPanel() {
     const r = await call("prepare");
     if (!r.selected && r.note) { toast({ title: r.note }); }
     if (!r.selected && !r.note) { toast({ title: "Nobody new to email", description: "Add more people below first." }); return; }
+    await load();
+    await writeAll();
+  });
+
+  // One tap: find new people where a category is short, then write the whole batch.
+  const findAndPrepare = () => run("find", async () => {
+    const { need, names } = await call("find_targets") as { need: Record<string, number>; names: Record<string, string> };
+    const todo = Object.entries(need).filter(([, n]) => n > 0);
+    const total = todo.reduce((a, [, n]) => a + n, 0);
+    let found = 0;
+    const errors: string[] = [];
+    if (total > 0) {
+      setFinding({ found: 0, total, active: todo.map(([k]) => names[k] ?? k) });
+      await Promise.all(todo.map(async ([slug, n]) => {
+        let left = n;
+        for (let round = 0; round < 3 && left > 0; round++) {
+          try {
+            const r = await call("find_people", { category: slug, count: Math.min(8, left) });
+            left -= r.added ?? 0;
+            found += r.added ?? 0;
+            setFinding((f) => f && { ...f, found });
+            if (!r.added && round > 0) break;
+          } catch (e) { errors.push(`${names[slug] ?? slug}: ${(e as Error).message}`); break; }
+        }
+        setFinding((f) => f && { ...f, active: f.active.filter((a) => a !== (names[slug] ?? slug)) });
+      }));
+      setFinding(null);
+      toast({ title: `Found ${found} new ${found === 1 ? "person" : "people"}`, description: errors.length ? errors.join(" · ") : "Each email was checked on their own page." });
+    }
+    const r = await call("prepare");
+    if (!r.selected) { toast({ title: r.note ?? "Nobody new to email yet", description: r.note ? undefined : "Try again in a minute." }); return; }
     await load();
     await writeAll();
   });
@@ -254,7 +296,13 @@ export function OutreachPanel() {
         title="Next batch"
         note={<>Each email is written for that person from what we know about them. Sends go out {s.wave_size} at a time, every 2 hours, between 9am and 6pm US Eastern{nextIsNow ? " — starting right away" : `, starting ${eastern(data.nextSlot)}`}.</>}
       >
-        {writing ? (
+        {finding ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Finding new people… {finding.found} of {finding.total}</div>
+            <Progress value={(finding.found / Math.max(1, finding.total)) * 100} />
+            {finding.active.length > 0 && <p className="text-xs text-muted-foreground">Searching: {finding.active.join(" · ")}. Keep this page open — about a minute.</p>}
+          </div>
+        ) : writing ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm text-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Writing emails… {writing.done} of {writing.total}</div>
             <Progress value={(writing.done / writing.total) * 100} />
@@ -280,7 +328,7 @@ export function OutreachPanel() {
               {Object.entries(drafted.reduce((a, c) => ({ ...a, [c.category_slug]: (a[c.category_slug] ?? 0) + 1 }), {} as Record<string, number>))
                 .map(([k, v]) => `${v} ${catName(k)}`).join(" · ")}. Tap any one to read or change it.
             </p>
-            <div className="grid gap-2 lg:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 lg:grid-cols-2">
               {drafted.map((c) => <DraftCard key={c.id} c={c} catName={catName(c.category_slug)} onChanged={load} />)}
             </div>
           </div>
@@ -296,18 +344,35 @@ export function OutreachPanel() {
                 </div>
               ))}
             </div>
-            <Button onClick={prepare} disabled={!!busy || !totals.new}>
-              {busy === "prepare" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-              Prepare next {Math.min(s.daily_total, totals.new ?? 0)} emails
-            </Button>
-            {!totals.new && <p className="text-xs text-muted-foreground">Nobody new is waiting. Add people below.</p>}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={findAndPrepare} disabled={!!busy}>
+                {busy === "find" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                Find people &amp; write next {s.daily_total}
+              </Button>
+              {(totals.new ?? 0) > 0 && (
+                <Button variant="outline" onClick={prepare} disabled={!!busy}>
+                  {busy === "prepare" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                  Just use the {Math.min(s.daily_total, totals.new ?? 0)} waiting
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Finds new people for any category that's short (only emails published on their own page), then writes each email. You review, then tap Send.</p>
           </div>
         )}
       </Section>
 
       {data.scheduled.length > 0 && (
         <Section title="Going out" note="Queued emails send on their own. Stop anytime; they'll come back as ready-to-send."
-          right={<Button size="sm" variant="outline" onClick={() => run("unschedule", async () => { await call("unschedule"); })} disabled={!!busy}>Stop sending</Button>}>
+          right={<div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => run("send_now", async () => {
+              const r = await call("send_now");
+              toast({ title: r.sent ? `${r.sent} sent just now` : "Nothing sent yet", description: r.note });
+            })} disabled={!!busy || s.paused}>
+              {busy === "send_now" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              Send now
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => run("unschedule", async () => { await call("unschedule"); })} disabled={!!busy}>Stop sending</Button>
+          </div>}>
           <div className="divide-y divide-border border border-border">
             {data.scheduled.slice(0, 40).map((c) => (
               <div key={c.id} className="flex items-center justify-between gap-3 p-2 text-sm">
