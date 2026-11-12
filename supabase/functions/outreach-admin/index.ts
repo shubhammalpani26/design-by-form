@@ -409,12 +409,15 @@ Deno.serve(async (req) => {
 
     if (action === "schedule") {
       const s = await settingsOf(admin);
-      const { data: rows } = await admin.from("outreach_contacts").select("id").eq("status", "drafted")
+      const { data: rows } = await admin.from("outreach_contacts").select("id, category_slug").eq("status", "drafted")
         .order("category_slug").order("created_at").limit(MAX_DAILY_TOTAL);
-      const ids = (rows ?? []).map((r) => r.id);
-      // Interleave categories so each wave mixes them.
+      // Round-robin categories so each wave mixes them.
+      const groups = new Map<string, string[]>();
+      for (const r of rows ?? []) groups.set(r.category_slug, [...(groups.get(r.category_slug) ?? []), r.id]);
+      const order: { id: string }[] = [];
+      while ([...groups.values()].some((g) => g.length)) for (const g of groups.values()) if (g.length) order.push({ id: g.shift()! });
+      const ids = order.map((o) => o.id);
       const times = waveTimes(new Date(), ids.length, s.wave_size);
-      const order = ids.map((id, i) => ({ id, i })).sort((a, b) => (a.i % 4) - (b.i % 4) || a.i - b.i);
       for (let k = 0; k < order.length; k++) {
         await admin.from("outreach_contacts").update({ status: "scheduled", scheduled_for: times[k].toISOString() })
           .eq("id", order[k].id).eq("status", "drafted");
