@@ -11,6 +11,14 @@ export const WAVE_GAP_HOURS = 2;
 export const MAX_DAILY_TOTAL = 150; // hard ceiling regardless of settings
 export const SIGNATURE = "Shubham\nFounder, Nyzora";
 export const OPT_OUT_LINE = `Reply "no thanks" and I won't email again.`;
+// Real, expandable cap — stated only in creator emails, never to businesses.
+export const FIRST30_LINE = "We're choosing our first 30 creator partners this month.";
+
+/** Creator emails must carry the first-30 line; add it if the writer forgot. */
+export function ensureFirst30(body: string, isCreator: boolean): string {
+  if (!isCreator || body.toLowerCase().includes("first 30")) return body;
+  return `${body.trim()}\n\n${FIRST30_LINE}`;
+}
 export const PET_PAGE = "https://nyzora.ai/originals/pet-portrait-sculpture";
 
 const EMAIL_RE = /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[a-z]{2,}$/i;

@@ -1,7 +1,7 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
-  classifyReply, etToUtc, finalizeBody, nextSendSlot, normalizeEmail, OPT_OUT_LINE, remainingToday,
-  splitBatch, waveTimes,
+  classifyReply, ensureFirst30, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
+  remainingToday, splitBatch, waveTimes,
 } from "./outreach.ts";
 
 const etHour = (d: Date) =>
@@ -72,6 +72,15 @@ Deno.test("replies are sorted into bounce, opt-out, reply", () => {
   assertEquals(classifyReply("Mail Delivery Subsystem <mailer-daemon@googlemail.com>", "Delivery Status Notification (Failure)", ""), "bounced");
   assertEquals(classifyReply("Jen <jen@shop.com>", "Re: hi", "No thanks, we're all set"), "opted_out");
   assertEquals(classifyReply("Jen <jen@shop.com>", "Re: hi", "Sounds lovely! Here is a photo"), "replied");
+});
+
+Deno.test("creator emails always carry the first-30 line; businesses never do", () => {
+  const creator = ensureFirst30("Hi Liz,\n\nLovely post about Rosebud.", true);
+  assert(creator.includes(FIRST30_LINE));
+  const already = ensureFirst30(`Hi Liz,\n\n${FIRST30_LINE}`, true);
+  assertEquals(already.split("first 30").length - 1, 1);
+  const biz = ensureFirst30("Hi team,\n\nA free display piece for your shop.", false);
+  assert(!biz.includes("first 30"));
 });
 
 Deno.test("emails are validated and lower-cased", () => {
