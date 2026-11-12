@@ -147,6 +147,7 @@ export function OutreachPanel() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState<string | null>(null);
   const [writing, setWriting] = useState<{ done: number; total: number } | null>(null);
+  const [finding, setFinding] = useState<{ found: number; total: number; active: string[] } | null>(null);
   const [filterCat, setFilterCat] = useState("all");
   const [filterStatus, setFilterStatus] = useState("sent");
   const [importCat, setImportCat] = useState("petfluencers");
@@ -197,6 +198,37 @@ export function OutreachPanel() {
     const r = await call("prepare");
     if (!r.selected && r.note) { toast({ title: r.note }); }
     if (!r.selected && !r.note) { toast({ title: "Nobody new to email", description: "Add more people below first." }); return; }
+    await load();
+    await writeAll();
+  });
+
+  // One tap: find new people where a category is short, then write the whole batch.
+  const findAndPrepare = () => run("find", async () => {
+    const { need, names } = await call("find_targets") as { need: Record<string, number>; names: Record<string, string> };
+    const todo = Object.entries(need).filter(([, n]) => n > 0);
+    const total = todo.reduce((a, [, n]) => a + n, 0);
+    let found = 0;
+    const errors: string[] = [];
+    if (total > 0) {
+      setFinding({ found: 0, total, active: todo.map(([k]) => names[k] ?? k) });
+      await Promise.all(todo.map(async ([slug, n]) => {
+        let left = n;
+        for (let round = 0; round < 3 && left > 0; round++) {
+          try {
+            const r = await call("find_people", { category: slug, count: Math.min(8, left) });
+            left -= r.added ?? 0;
+            found += r.added ?? 0;
+            setFinding((f) => f && { ...f, found });
+            if (!r.added && round > 0) break;
+          } catch (e) { errors.push(`${names[slug] ?? slug}: ${(e as Error).message}`); break; }
+        }
+        setFinding((f) => f && { ...f, active: f.active.filter((a) => a !== (names[slug] ?? slug)) });
+      }));
+      setFinding(null);
+      toast({ title: `Found ${found} new ${found === 1 ? "person" : "people"}`, description: errors.length ? errors.join(" · ") : "Each email was checked on their own page." });
+    }
+    const r = await call("prepare");
+    if (!r.selected) { toast({ title: r.note ?? "Nobody new to email yet", description: r.note ? undefined : "Try again in a minute." }); return; }
     await load();
     await writeAll();
   });
@@ -264,7 +296,13 @@ export function OutreachPanel() {
         title="Next batch"
         note={<>Each email is written for that person from what we know about them. Sends go out {s.wave_size} at a time, every 2 hours, between 9am and 6pm US Eastern{nextIsNow ? " — starting right away" : `, starting ${eastern(data.nextSlot)}`}.</>}
       >
-        {writing ? (
+        {finding ? (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-sm text-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Finding new people… {finding.found} of {finding.total}</div>
+            <Progress value={(finding.found / Math.max(1, finding.total)) * 100} />
+            {finding.active.length > 0 && <p className="text-xs text-muted-foreground">Searching: {finding.active.join(" · ")}. Keep this page open — about a minute.</p>}
+          </div>
+        ) : writing ? (
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm text-foreground"><Loader2 className="h-4 w-4 animate-spin" /> Writing emails… {writing.done} of {writing.total}</div>
             <Progress value={(writing.done / writing.total) * 100} />
@@ -306,11 +344,19 @@ export function OutreachPanel() {
                 </div>
               ))}
             </div>
-            <Button onClick={prepare} disabled={!!busy || !totals.new}>
-              {busy === "prepare" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
-              Prepare next {Math.min(s.daily_total, totals.new ?? 0)} emails
-            </Button>
-            {!totals.new && <p className="text-xs text-muted-foreground">Nobody new is waiting. Add people below.</p>}
+            <div className="flex flex-wrap gap-2">
+              <Button onClick={findAndPrepare} disabled={!!busy}>
+                {busy === "find" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
+                Find people &amp; write next {s.daily_total}
+              </Button>
+              {(totals.new ?? 0) > 0 && (
+                <Button variant="outline" onClick={prepare} disabled={!!busy}>
+                  {busy === "prepare" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Mail className="mr-2 h-4 w-4" />}
+                  Just use the {Math.min(s.daily_total, totals.new ?? 0)} waiting
+                </Button>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Finds new people for any category that's short (only emails published on their own page), then writes each email. You review, then tap Send.</p>
           </div>
         )}
       </Section>

@@ -260,7 +260,7 @@ const FoundSchema = z.object({
 
 /** Web search answers end sentences with "([site](url))"; the email writer only needs the fact. */
 const stripCitations = (t: string | null | undefined) =>
-  (t ?? "").replace(/\s*\(\[[^\]]*\]\([^)]*\)\)/g, "").replace(/\s*\[[^\]]*\]\(https?:[^)]*\)/g, "").replace(/\s+/g, " ").trim();
+  (t ?? "").split(/(?<=[.!?])\s+/).filter((x) => !/(could not|couldn't|unable to) (be )?verif|unverified/i.test(x)).join(" ").replace(/\s*\(\[[^\]]*\]\([^)]*\)\)/g, "").replace(/\s*\[[^\]]*\]\(https?:[^)]*\)/g, "").replace(/\s+/g, " ").trim();
 
 const FREE_MAIL = /@(gmail|yahoo|hotmail|outlook|icloud|aol|live|msn|me|proton|protonmail)\./i;
 
@@ -329,7 +329,8 @@ Use web search. Return only real, currently operating people/businesses.
 STRICT: every email must be printed on the exact page you give as source_url (a normal website page, not Instagram/Facebook/TikTok). Never guess or construct an email (no "info@domain" unless the page shows it). If you can't find a published email, leave that person out.
 personal_detail: one short, true, specific thing from their page or posts (their pet's name and breed, what the shop is known for). No flattery, no invented facts.
 first_name: the real first name of the person who would read the email if the page shows it, else null.
-followers: approximate follower count for creators if shown, else null.`,
+followers: approximate follower count for creators if shown, else null.
+personal_detail is read by the email writer, so it holds only the fact itself — never research notes like "could not be verified" or follower caveats.`,
     messages: [{
       role: "user",
       content: `Find ${n} ${WHO_TO_FIND[slug] ?? cat.name}
