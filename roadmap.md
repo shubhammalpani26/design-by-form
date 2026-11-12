@@ -69,3 +69,8 @@
 
 - [x] Chente order: approved Petite Sand file placed with Slant; customer confirmation sent.
 - [x] Send the owner the same Chente customer confirmation with preview, without placing or charging again; managed send confirmed 2026-11-06 10:33 UTC.
+
+## Admin chat helpers (2026-11-13)
+- [x] Outreach tab: show each whole email (first-30 line was hidden below the fold on phone)
+- [ ] Chat helper inside the Social tab (owner request 2026-11-13) — scope questions asked
+- [ ] Chat helper inside the Ads tab (owner request 2026-11-13) — scope questions asked

@@ -91,6 +91,14 @@ function DraftCard({ c, catName, onChanged }: { c: Contact; catName: string; onC
   const [busy, setBusy] = useState(false);
   const { toast } = useToast();
   useEffect(() => { setSubject(c.subject ?? ""); setBody(c.body ?? ""); }, [c.subject, c.body]);
+  // Grow the message box to fit the whole email, so no line hides below the fold on a phone.
+  const bodyRef = useRef<HTMLTextAreaElement>(null);
+  useEffect(() => {
+    const el = bodyRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight + 2}px`;
+  }, [body, open]);
   const save = async () => {
     setBusy(true);
     try { await call("edit", { id: c.id, subject, body }); toast({ title: "Saved" }); onChanged(); }
@@ -112,7 +120,7 @@ function DraftCard({ c, catName, onChanged }: { c: Contact; catName: string; onC
         <div className="space-y-2 border-t border-border p-3">
           {c.personal_detail && <p className="text-xs text-muted-foreground">What we know: {c.personal_detail}</p>}
           <Input value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
-          <Textarea value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="text-sm" aria-label="Message" />
+          <Textarea ref={bodyRef} value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="resize-none overflow-hidden text-sm" aria-label="Message" />
           <p className="text-[11px] text-muted-foreground">Your signature and the “no thanks” line are always added at the end.</p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={save} disabled={busy}>Save changes</Button>
