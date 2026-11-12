@@ -50,6 +50,9 @@ Deno.test("waves of 20 go two hours apart, only 9am–6pm Eastern", () => {
   assertEquals(etHour(t[80]), 9);
   assert(t[80].getTime() - t[0].getTime() > 20 * 3_600_000);
   for (const d of t) { const h = etHour(d); assert(h >= 9 && h < 18, `hour ${h}`); }
+  // A whole wave is due at once, so tapping Send sends the first 20 right away.
+  assertEquals(t[19].getTime(), t[0].getTime());
+  assertEquals(t[0].getTime(), now.getTime());
 });
 
 Deno.test("clicking at night schedules the first wave for 9am Eastern", () => {

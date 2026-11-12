@@ -71,8 +71,18 @@ const who = (c: Contact) =>
 const when = (iso: string | null) =>
   iso ? new Date(iso).toLocaleString(undefined, { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" }) : "";
 
-const eastern = (iso: string) =>
-  new Date(iso).toLocaleString("en-US", { timeZone: "America/New_York", weekday: "short", hour: "numeric", minute: "2-digit" }) + " ET";
+const etDay = (d: Date) => d.toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+/** "Today 2:05 PM ET" / "Tomorrow 9:00 AM ET" / "Mon 17 Nov, 9:00 AM ET" — never a bare weekday. */
+const eastern = (iso: string) => {
+  const d = new Date(iso);
+  const time = d.toLocaleString("en-US", { timeZone: "America/New_York", hour: "numeric", minute: "2-digit" });
+  const today = etDay(new Date());
+  const tomorrow = etDay(new Date(Date.now() + 86_400_000));
+  const day = etDay(d) === today ? "Today"
+    : etDay(d) === tomorrow ? "Tomorrow"
+    : d.toLocaleDateString("en-US", { timeZone: "America/New_York", weekday: "short", day: "numeric", month: "short" });
+  return `${day} ${time} ET`;
+};
 
 async function call(action: string, extra: Record<string, unknown> = {}) {
   const { data, error } = await supabase.functions.invoke("outreach-admin", { body: { action, ...extra } });
@@ -307,7 +317,16 @@ export function OutreachPanel() {
 
       {data.scheduled.length > 0 && (
         <Section title="Going out" note="Queued emails send on their own. Stop anytime; they'll come back as ready-to-send."
-          right={<Button size="sm" variant="outline" onClick={() => run("unschedule", async () => { await call("unschedule"); })} disabled={!!busy}>Stop sending</Button>}>
+          right={<div className="flex flex-wrap gap-2">
+            <Button size="sm" onClick={() => run("send_now", async () => {
+              const r = await call("send_now");
+              toast({ title: r.sent ? `${r.sent} sent just now` : "Nothing sent yet", description: r.note });
+            })} disabled={!!busy || s.paused}>
+              {busy === "send_now" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+              Send now
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => run("unschedule", async () => { await call("unschedule"); })} disabled={!!busy}>Stop sending</Button>
+          </div>}>
           <div className="divide-y divide-border border border-border">
             {data.scheduled.slice(0, 40).map((c) => (
               <div key={c.id} className="flex items-center justify-between gap-3 p-2 text-sm">

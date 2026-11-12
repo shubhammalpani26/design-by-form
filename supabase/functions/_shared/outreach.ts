@@ -91,8 +91,8 @@ export function waveTimes(now: Date, count: number, waveSize: number): Date[] {
       inWave = 0;
       slot = nextSendSlot(new Date(slot.getTime() + WAVE_GAP_HOURS * 3_600_000));
     }
-    // Spread a wave over its first few minutes so it doesn't look like a blast.
-    out.push(new Date(slot.getTime() + inWave * 45_000));
+    // The whole wave is due together; the sender spaces each email a few seconds apart.
+    out.push(new Date(slot.getTime()));
     inWave++;
   }
   return out;

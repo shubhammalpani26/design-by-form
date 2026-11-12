@@ -450,6 +450,12 @@ Deno.serve(async (req) => {
       return json({ scheduled: ids.length, firstWave: first });
     }
 
+    if (action === "send_now") {
+      // Owner wants the queue out now: everything queued becomes due, then one send pass
+      // (still inside US daytime and the daily total).
+      await admin.from("outreach_contacts").update({ scheduled_for: new Date().toISOString() }).eq("status", "scheduled");
+      return json(await sendDue(admin));
+    }
     if (action === "unschedule") {
       await admin.from("outreach_contacts").update({ status: "drafted", scheduled_for: null }).eq("status", "scheduled");
       return json({ ok: true });
