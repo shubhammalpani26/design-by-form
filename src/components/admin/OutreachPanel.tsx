@@ -117,7 +117,7 @@ function DraftCard({ c, catName, onChanged }: { c: Contact; catName: string; onC
   };
   const skip = async () => { setBusy(true); try { await call("skip", { id: c.id }); onChanged(); } finally { setBusy(false); } };
   return (
-    <div className="border border-border">
+    <div className="min-w-0 border border-border">
       <button type="button" onClick={() => setOpen((o) => !o)} className="flex w-full items-start justify-between gap-3 p-3 text-left">
         <div className="min-w-0">
           <div className="truncate text-sm font-medium text-foreground">{who(c)}</div>
