@@ -1,11 +1,14 @@
 import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@4.4.3";
-import { generateStructured } from "../_shared/responses.ts";
+import { createOpenAI } from "npm:@ai-sdk/openai@4.0.106";
+import { Output, streamText } from "npm:ai@7.0.159";
+import { generateStructured, LOVABLE_AI_GATEWAY_URL } from "../_shared/responses.ts";
+import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "../_shared/run-id.ts";
 import { requireCaller } from "../_shared/requireCaller.ts";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 import {
   classifyReply, ensureFirst30, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
-  remainingToday, splitBatch, trackedLink, waveTimes,
+  remainingToday, splitBatch, trackedLink, waveTimes, emailOnPage, findTargets, isCheckableUrl,
 } from "../_shared/outreach.ts";
 
 /**
@@ -229,6 +232,151 @@ async function draftChunk(req: Request, admin: Admin) {
   return { drafted, remaining: count ?? 0 };
 }
 
+// ------------------------------------------------------------ finding people
+const FIND_PER_CALL = 8;
+const US_STATES = ["Alabama","Arizona","Arkansas","California","Colorado","Connecticut","Delaware","Florida","Georgia","Idaho","Illinois","Indiana","Iowa","Kansas","Kentucky","Louisiana","Maine","Maryland","Massachusetts","Michigan","Minnesota","Mississippi","Missouri","Montana","Nebraska","Nevada","New Hampshire","New Jersey","New Mexico","New York","North Carolina","Ohio","Oklahoma","Oregon","Pennsylvania","Rhode Island","South Carolina","Tennessee","Texas","Utah","Vermont","Virginia","Washington","Wisconsin"];
+
+const WHO_TO_FIND: Record<string, string> = {
+  petfluencers: "US-based pet content creators (Instagram/TikTok accounts about one or more pets) with roughly 2,000–30,000 followers, active in the last month, family-friendly, who publish a contact or collaboration email on a public web page you can open (their own website, Linktree/Beacons/Stan page, media kit, blog contact page). Skip celebrity accounts, agencies, breeders, rescues asking for donations, and accounts about a pet that recently died.",
+  pet_boutiques: "independent US pet boutiques, pet bakeries and pet gift shops (not chains like Petco/PetSmart) that publish a contact email on their own website.",
+  vet_groomers: "independent US veterinary clinics, dog groomers and pet spas (not chains like Banfield/VCA/Petco Grooming) that publish a contact email on their own website.",
+  memorial_stores: "US businesses that sell pet memorial products or keepsakes (urns, memorial jewellery, portraits, memorial gift shops) and publish a contact email on their own website. Contact them as a business, never as grieving customers.",
+};
+
+const FoundSchema = z.object({
+  people: z.array(z.object({
+    first_name: z.string().nullable(),
+    org_name: z.string().nullable(),
+    email: z.string(),
+    instagram: z.string().nullable(),
+    website: z.string().nullable(),
+    city: z.string().nullable(),
+    state: z.string().nullable(),
+    followers: z.number().nullable(),
+    personal_detail: z.string(),
+    source_url: z.string(),
+  })),
+});
+
+const FREE_MAIL = /@(gmail|yahoo|hotmail|outlook|icloud|aol|live|msn|me|proton|protonmail)\./i;
+
+async function fetchText(u: URL): Promise<string | null> {
+  try {
+    const r = await fetch(u, {
+      redirect: "follow", signal: AbortSignal.timeout(8000),
+      headers: { "User-Agent": "Mozilla/5.0 (compatible; NyzoraOutreach/1.0)", Accept: "text/html,*/*" },
+    });
+    if (!r.ok || !isCheckableUrl(r.url)) return null;
+    return (await r.text()).slice(0, 800_000);
+  } catch { return null; }
+}
+
+/** The address must be printed on the cited page (or the business site's contact page). */
+async function emailIsPublished(email: string, sourceUrl: string, website: string | null): Promise<string | null> {
+  const pages: URL[] = [];
+  const src = isCheckableUrl(sourceUrl);
+  if (src) pages.push(src);
+  const site = isCheckableUrl(website ?? "") ??
+    (!FREE_MAIL.test(email) ? isCheckableUrl(`https://${email.split("@")[1]}/`) : null);
+  if (site) for (const path of ["/", "/contact", "/contact-us", "/pages/contact"]) pages.push(new URL(path, site.origin));
+  const tried = new Set<string>();
+  for (const u of pages) {
+    if (tried.has(u.href) || tried.size >= 5) continue;
+    tried.add(u.href);
+    const html = await fetchText(u);
+    if (html && emailOnPage(html, email)) return u.href;
+  }
+  return null;
+}
+
+async function domainTakesMail(email: string): Promise<boolean> {
+  try {
+    const mx = await Deno.resolveDns(email.split("@")[1], "MX");
+    return mx.length > 0;
+  } catch (e) {
+    // NotFound = no mail server; anything else (DNS API unavailable) shouldn't block.
+    return !(e instanceof Deno.errors.NotFound);
+  }
+}
+
+async function findPeople(admin: Admin, req: Request, slug: string, want: number) {
+  const { data: cat } = await admin.from("outreach_categories").select("slug, name, kind").eq("slug", slug).maybeSingle();
+  if (!cat) throw new Error("Unknown category");
+  const apiKey = Deno.env.get("LOVABLE_API_KEY");
+  if (!apiKey) throw new Error("LOVABLE_API_KEY is not configured");
+  const n = Math.min(FIND_PER_CALL, Math.max(1, Math.floor(want)));
+
+  const { data: known } = await admin.from("outreach_contacts").select("email, org_name, contact_name, instagram")
+    .eq("category_slug", slug).order("created_at", { ascending: false }).limit(300);
+  const avoid = (known ?? []).map((k) => k.instagram ? `@${k.instagram}` : k.org_name || k.contact_name || k.email).filter(Boolean);
+  const states = [...US_STATES].sort(() => Math.random() - 0.5).slice(0, 3);
+
+  const runIdFetch = createLovableAiGatewayRunIdFetch(getLovableAiGatewayRunId(req));
+  const provider = createOpenAI({
+    baseURL: LOVABLE_AI_GATEWAY_URL, apiKey,
+    headers: { "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "vercel-ai-sdk" },
+    fetch: runIdFetch.fetch,
+  });
+  let streamError: unknown = null;
+  const result = streamText({
+    model: provider.responses(MODEL),
+    instructions: `You research outreach contacts for Nyzora, a small US brand that turns a pet photo into a personalised sculpture.
+Use web search. Return only real, currently operating people/businesses.
+STRICT: every email must be printed on the exact page you give as source_url (a normal website page, not Instagram/Facebook/TikTok). Never guess or construct an email (no "info@domain" unless the page shows it). If you can't find a published email, leave that person out.
+personal_detail: one short, true, specific thing from their page or posts (their pet's name and breed, what the shop is known for). No flattery, no invented facts.
+first_name: the real first name of the person who would read the email if the page shows it, else null.
+followers: approximate follower count for creators if shown, else null.`,
+    messages: [{
+      role: "user",
+      content: `Find ${n} ${WHO_TO_FIND[slug] ?? cat.name}
+Look mainly in ${states.join(", ")} (other US states are fine if needed).
+Do NOT include any of these (already contacted): ${avoid.slice(0, 250).join("; ") || "none yet"}.`,
+    }],
+    tools: { web_search: provider.tools.webSearch({ searchContextSize: "medium" }) },
+    output: Output.object({ schema: FoundSchema }),
+    abortSignal: req.signal,
+    onError: ({ error }) => { streamError = error; },
+    providerOptions: { openai: { store: false, forceReasoning: true, reasoningEffort: "low", reasoningSummary: "auto", include: ["reasoning.encrypted_content"] } },
+  });
+  let found: z.infer<typeof FoundSchema>;
+  try { found = (await result.output) as z.infer<typeof FoundSchema>; } catch (e) { throw streamError ?? e; }
+
+  const knownEmails = new Set((known ?? []).map((k) => String(k.email).toLowerCase()));
+  const candidates = found.people
+    .map((p) => ({ ...p, email: normalizeEmail(p.email) }))
+    .filter((p): p is typeof p & { email: string } => !!p.email && !knownEmails.has(p.email));
+  const unique = [...new Map(candidates.map((p) => [p.email, p])).values()];
+
+  const checked = await Promise.all(unique.map(async (p) => {
+    const proof = await emailIsPublished(p.email, p.source_url, p.website);
+    if (!proof || !(await domainTakesMail(p.email))) return null;
+    return { p, proof };
+  }));
+  const rows = checked.filter(Boolean).map((x) => {
+    const { p, proof } = x!;
+    return {
+      category_slug: slug, email: p.email, contact_name: cleanName(p.first_name), org_name: p.org_name?.trim() || null,
+      website: p.website || null, instagram: p.instagram ? p.instagram.replace(/^@/, "").replace(/^https?:\/\/(www\.)?instagram\.com\//, "").replace(/\/$/, "") : null,
+      city: p.city || null, state: p.state || null,
+      followers: p.followers && p.followers > 0 ? Math.round(p.followers) : null,
+      personal_detail: p.personal_detail?.slice(0, 400) || null, source_url: proof.slice(0, 400), source: "research",
+    };
+  });
+  // Another category may already hold the same address: never email anyone twice.
+  let added = 0;
+  if (rows.length) {
+    const { data: dup } = await admin.from("outreach_contacts").select("email").in("email", rows.map((r) => r.email));
+    const taken = new Set((dup ?? []).map((d) => String(d.email).toLowerCase()));
+    const fresh = rows.filter((r) => !taken.has(r.email));
+    if (fresh.length) {
+      const { error } = await admin.from("outreach_contacts").insert(fresh);
+      if (error) throw error;
+    }
+    added = fresh.length;
+  }
+  return { added, suggested: found.people.length, unverified: unique.length - rows.length };
+}
+
 // ------------------------------------------------------------------ handler
 const cleanName = (v: string | null | undefined) => {
   const t = (v ?? "").replace(/\s*[\(\[][^\)\]]*[\)\]]\s*/g, " ").replace(/\s+/g, " ").trim();
@@ -366,6 +514,25 @@ Deno.serve(async (req) => {
         if (error) throw error;
       }
       return json({ added: fresh.length, alreadyHad: prepared.length - fresh.length, invalid, noCategory });
+    }
+
+    if (action === "find_targets") {
+      // How many new people each category needs so the next batch is full.
+      const s = await settingsOf(admin);
+      const { data: cats } = await admin.from("outreach_categories").select("slug, name, daily_share, active").eq("active", true).order("sort");
+      const waiting: Record<string, number> = {};
+      for (const c of cats ?? []) {
+        const { count } = await admin.from("outreach_contacts").select("id", { count: "exact", head: true })
+          .eq("category_slug", c.slug).eq("status", "new");
+        waiting[c.slug] = count ?? 0;
+      }
+      const need = findTargets((cats ?? []).map((c) => ({ slug: c.slug, share: c.daily_share })), Math.min(s.daily_total, MAX_DAILY_TOTAL), waiting);
+      return json({ need, names: Object.fromEntries((cats ?? []).map((c) => [c.slug, c.name])) });
+    }
+    if (action === "find_people") {
+      const slug = String(body.category ?? "");
+      const want = Math.floor(Number(body.count) || FIND_PER_CALL);
+      return json(await findPeople(admin, req, slug, want));
     }
 
     if (action === "prepare") {
