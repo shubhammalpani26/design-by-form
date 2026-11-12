@@ -2,6 +2,7 @@ import { createClient, type SupabaseClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@4.4.3";
 import { generateStructured } from "../_shared/responses.ts";
 import { requireCaller } from "../_shared/requireCaller.ts";
+import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 import {
   classifyReply, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
   remainingToday, splitBatch, trackedLink, waveTimes,
@@ -256,8 +257,10 @@ Deno.serve(async (req) => {
 
   // Scheduler path: send due emails + read replies.
   if (action === "run") {
-    const caller = await requireCaller(req);
-    let ok = caller?.kind === "service";
+    // Managed hourly schedule signs with LOVABLE_CRON_SECRET; admins may also trigger it.
+    let ok = Deno.env.get("LOVABLE_CRON_SECRET") ? authenticateCronRequest(req) === null : false;
+    const caller = ok ? null : await requireCaller(req);
+    if (!ok) ok = caller?.kind === "service";
     if (!ok && caller?.userId) {
       const { data } = await admin.rpc("has_role", { _user_id: caller.userId, _role: "admin" });
       ok = !!data;
