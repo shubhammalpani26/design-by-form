@@ -65,10 +65,10 @@ export const ProfileImageUpload = ({
         .getPublicUrl(fileName);
 
       // Update designer profile
-      const updateField = isProfile ? "profile_picture_url" : "cover_image_url";
+      const update = isProfile ? { profile_picture_url: publicUrl } : { cover_image_url: publicUrl };
       const { error: updateError } = await supabase
         .from("designer_profiles")
-        .update({ [updateField]: publicUrl })
+        .update(update)
         .eq("id", profile.id);
 
       if (updateError) throw updateError;

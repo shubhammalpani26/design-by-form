@@ -456,7 +456,7 @@ export default function DesignStudioChat() {
 
   async function updateSessionActiveImage(sid: string, imageUrl: string, titleHint?: string) {
     setActiveImage(imageUrl);
-    const patch: Record<string, unknown> = { active_image_url: imageUrl };
+    const patch: { active_image_url: string; title?: string } = { active_image_url: imageUrl };
     if (titleHint) patch.title = titleHint.slice(0, 80);
     await supabase.from("design_sessions").update(patch).eq("id", sid);
     void refreshSessions();
