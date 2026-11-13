@@ -35,7 +35,7 @@ const Community = () => {
           comments_count,
           created_at,
           metadata,
-          designer_profiles (
+          designer_profiles!inner (
             id,
             name,
             profile_picture_url,
@@ -52,7 +52,9 @@ const Community = () => {
 
       const { data: posts, error } = await query;
       if (error) throw error;
-      return posts;
+      // Only approved creators' profiles are public; a post whose creator isn't visible
+      // has no profile to show, so it's left out rather than breaking the whole feed.
+      return (posts ?? []).filter((p) => p.designer_profiles?.id);
     },
   });
 
