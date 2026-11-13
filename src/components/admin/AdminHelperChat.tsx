@@ -142,7 +142,7 @@ function ChatWindow({ helper, initial, onCleared, onNotesChanged }: {
                         : <MessageResponse key={i}>{part.text}</MessageResponse>;
                     }
                     if (part.type.startsWith("tool-")) {
-                      const p = part as any;
+                      const p = part as unknown as ToolPart;
                       const name = part.type.slice(5);
                       return (
                         <Tool key={i} defaultOpen={false} className="w-full">
