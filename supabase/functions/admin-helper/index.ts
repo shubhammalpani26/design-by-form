@@ -172,7 +172,7 @@ function socialTools(admin: SupabaseClient, jwt: string) {
         if (type === "feed" && (media.length !== 1 || isVid(media[0]))) throw new Error("A single post needs exactly one photo");
         if (type === "carousel" && (media.length < 2 || media.some(isVid))) throw new Error("A carousel needs 2–10 photos");
         const { data, error } = await admin.from("social_scheduled_posts").insert({
-          scheduled_at: when.toISOString(), slot_type: type, theme: theme ?? "Drafted in chat", caption,
+          scheduled_at: when.toISOString(), slot_type: type, theme: theme ?? "Drafted in chat", caption, image_prompt: "",
           image_url: media[0], media_urls: type === "carousel" ? media : null, is_render: false,
           engineering_status: "skipped", status: "draft", fb_status: "skip", day_index: 0,
         }).select(POST_COLS).single();

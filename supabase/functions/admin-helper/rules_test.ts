@@ -8,6 +8,8 @@ Deno.test("captions can never mention AI, generation tools or 3D printing", () =
   assert(captionProblem("3D printed just for you"));
   assertEquals(captionProblem("Meet Milo, cast in Sand with his name on the front. From $59."), null);
   assertEquals(captionProblem("Said hi to Kaia today"), null); // "ai" inside words is fine
+  assertEquals(captionProblem("See yours at nyzora.ai or @nyzora.ai"), null); // our domain isn't an AI mention
+  assert(captionProblem("Visit nyzora.ai — sculpted by AI"));
 });
 
 Deno.test("posts never use urgency or countdown language", () => {

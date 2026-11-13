@@ -4,7 +4,9 @@ export const AD_ACCOUNT_ID = "2036145687783794";
 export const isOurAccount = (accountId: unknown) => String(accountId ?? "").replace(/^act_/, "") === AD_ACCOUNT_ID;
 
 /** Captions must never mention AI (owner's strict rule) or 3D printing (we say "high-grade resin"). */
-export function captionProblem(caption: string): string | null {
+export function captionProblem(raw: string): string | null {
+  // Our own domain (nyzora.ai), other links and handles aren't AI mentions.
+  const caption = raw.replace(/https?:\/\/\S+/gi, " ").replace(/[\w-]+\.ai\b/gi, " ").replace(/@[\w.]+/g, " ");
   if (/\bA\.?I\.?\b|artificial intelligence|ai[- ]generated|generated (with|by)|chatgpt|midjourney|\bkling\b/i.test(caption)) {
     return "Captions must never mention AI or how content was made";
   }
