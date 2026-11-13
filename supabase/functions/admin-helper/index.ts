@@ -190,7 +190,7 @@ function socialTools(admin: SupabaseClient, jwt: string) {
         });
         const t = await r.text();
         if (!r.ok) throw new Error(`Stats unavailable (${r.status}): ${t.slice(0, 200)}`);
-        return JSON.parse(t.slice(0, 40_000).length === t.length ? t : "{}") ?? { note: "Stats too large" };
+        return t.length > 40_000 ? { truncated: true, stats: t.slice(0, 40_000) } : JSON.parse(t);
       },
     }),
   };
