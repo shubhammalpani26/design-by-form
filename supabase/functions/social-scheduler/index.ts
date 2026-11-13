@@ -370,6 +370,10 @@ async function ensureQueue() {
     .from("social_scheduled_posts")
     .select("caption, image_prompt, theme, slot_type, is_render, day_index")
     .eq("slot_type", "feed")
+    // Recycle only real plan content: chat drafts (and posts the admin skipped) must never
+    // feed automatic slots, and a row with no image prompt can't produce a picture.
+    .not("status", "in", "(draft,cancelled)")
+    .neq("image_prompt", "")
     .order("day_index", { ascending: true })
     .order("scheduled_at", { ascending: true });
 
