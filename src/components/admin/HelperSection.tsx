@@ -12,7 +12,8 @@ const LABEL = {
 } as const;
 
 export function HelperSection({ helper }: { helper: "social" | "ads" }) {
-  const [open, setOpen] = useState(false);
+  // Open by default: the chat is the point of the section, and a collapsed bar was easy to miss.
+  const [open, setOpen] = useState(true);
   const l = LABEL[helper];
   return (
     <section className="border border-border">

@@ -39,18 +39,29 @@ const TOOL_TITLES: Record<string, string> = {
   ads_report: "Pulled the ads report", pause: "Paused", remember: "Remembered", forget: "Forgot a rule",
 };
 
+type ToolOut = {
+  posts?: unknown[]; media?: unknown[]; when?: string; status?: string; name?: string;
+  already_paused?: boolean; now?: string; days?: number;
+};
+type ToolState = "input-streaming" | "input-available" | "approval-requested"
+  | "approval-responded" | "output-available" | "output-error" | "output-denied";
+type ToolPart = { type: `tool-${string}`; state: ToolState; input?: unknown; output?: ToolOut | null; errorText?: string };
+
 async function call(helper: Helper, action: string) {
   const { data, error } = await supabase.functions.invoke("admin-helper", { body: { helper, action } });
   if (error) {
     let msg = error.message;
-    try { msg = JSON.parse(await (error as any).context.text())?.error ?? msg; } catch { /* keep */ }
+    const ctx = (error as unknown as { context?: { text?: () => Promise<string> } }).context;
+    if (ctx?.text) {
+      try { msg = (JSON.parse(await ctx.text()) as { error?: string }).error ?? msg; } catch { /* keep */ }
+    }
     throw new Error(msg);
   }
   return data;
 }
 
 /** One-line result for a finished tool, so the chat stays readable on a phone. */
-function toolSummary(name: string, output: any): string {
+function toolSummary(name: string, output: ToolOut | null | undefined): string {
   if (!output || typeof output !== "object") return String(output ?? "");
   if (name === "list_posts") return `${output.posts?.length ?? 0} posts`;
   if (name === "list_media") return `${output.media?.length ?? 0} photos/videos`;
@@ -133,7 +144,7 @@ function ChatWindow({ helper, initial, onCleared, onNotesChanged }: {
                         : <MessageResponse key={i}>{part.text}</MessageResponse>;
                     }
                     if (part.type.startsWith("tool-")) {
-                      const p = part as any;
+                      const p = part as unknown as ToolPart;
                       const name = part.type.slice(5);
                       return (
                         <Tool key={i} defaultOpen={false} className="w-full">
