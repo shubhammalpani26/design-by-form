@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_agent_messages: {
+        Row: {
+          created_at: string
+          helper: string
+          id: string
+          message: Json
+          msg_id: string
+          role: string
+        }
+        Insert: {
+          created_at?: string
+          helper: string
+          id?: string
+          message: Json
+          msg_id: string
+          role: string
+        }
+        Update: {
+          created_at?: string
+          helper?: string
+          id?: string
+          message?: Json
+          msg_id?: string
+          role?: string
+        }
+        Relationships: []
+      }
+      admin_agent_notes: {
+        Row: {
+          active: boolean
+          created_at: string
+          helper: string
+          id: string
+          note: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          helper: string
+          id?: string
+          note: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          helper?: string
+          id?: string
+          note?: string
+        }
+        Relationships: []
+      }
       agent_learnings: {
         Row: {
           active: boolean

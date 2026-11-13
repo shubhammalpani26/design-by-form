@@ -21,6 +21,7 @@ import { ReviewsManagement } from "@/components/admin/ReviewsManagement";
 import { OriginalsPreviewGallery } from "@/components/admin/OriginalsPreviewGallery";
 import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdsDashboard } from "@/components/admin/AdsDashboard";
+import { HelperSection } from "@/components/admin/HelperSection";
 import { OutreachPanel } from "@/components/admin/OutreachPanel";
 import { ImageTo3D } from "@/components/admin/ImageTo3D";
 import { StudioPhotos } from "@/components/admin/StudioPhotos";
@@ -150,7 +151,8 @@ export default function AdminPanel() {
           </div>
 
 
-          <TabsContent value="social">
+          <TabsContent value="social" className="space-y-4">
+            <HelperSection helper="social" />
             <SocialScheduleManagement />
           </TabsContent>
 
@@ -185,7 +187,8 @@ export default function AdminPanel() {
           <TabsContent value="originals-ops">
             <OriginalsFulfillmentManagement />
           </TabsContent>
-          <TabsContent value="ads">
+          <TabsContent value="ads" className="space-y-4">
+            <HelperSection helper="ads" />
             <AdsDashboard />
           </TabsContent>
           <TabsContent value="outreach">

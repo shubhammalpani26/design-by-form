@@ -127,6 +127,20 @@
       "when": 1794476224320,
       "tag": "0017_restrict_config_and_review_media_reads",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1794528061633,
+      "tag": "0018_admin_helper_chats",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1794528162469,
+      "tag": "0019_social_post_drafts",
+      "breakpoints": true
     }
   ]
 }
