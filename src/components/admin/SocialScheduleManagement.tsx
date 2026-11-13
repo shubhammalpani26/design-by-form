@@ -38,6 +38,7 @@ interface SchedulerState {
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  draft: "Draft — needs your OK",
   ready: "Ready",
   scheduled: "Waiting for image",
   publishing: "Publishing",
@@ -359,7 +360,12 @@ export const SocialScheduleManagement = () => {
             {openingVideo === p.id ? "Opening…" : "Open video"}
           </Button>
         )}
-        {open && p.image_url && p.slot_type !== "story" && (
+        {p.status === "draft" && (
+          <Button size="sm" onClick={() => update(p.id, { status: "ready", fb_status: "pending" })}>
+            Approve
+          </Button>
+        )}
+        {open && p.status !== "draft" && p.image_url && p.slot_type !== "story" && (
           <Button size="sm" disabled={publishing === p.id} onClick={() => publishNow(p.id)}>
             {publishing === p.id ? "Publishing…" : "Post now"}
           </Button>
