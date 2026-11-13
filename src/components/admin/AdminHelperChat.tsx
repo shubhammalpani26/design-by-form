@@ -43,7 +43,9 @@ type ToolOut = {
   posts?: unknown[]; media?: unknown[]; when?: string; status?: string; name?: string;
   already_paused?: boolean; now?: string; days?: number;
 };
-type ToolPart = { type: string; state?: string; input?: unknown; output?: ToolOut | null; errorText?: string };
+type ToolState = "input-streaming" | "input-available" | "approval-requested"
+  | "approval-responded" | "output-available" | "output-error" | "output-denied";
+type ToolPart = { type: `tool-${string}`; state: ToolState; input?: unknown; output?: ToolOut | null; errorText?: string };
 
 async function call(helper: Helper, action: string) {
   const { data, error } = await supabase.functions.invoke("admin-helper", { body: { helper, action } });
