@@ -126,7 +126,9 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
 
   const missingLabel = (): string | null => {
     const req: [keyof typeof values, string][] = [
-      ["name", "full name"], ["email", "email"], ["phone", "phone"],
+      ["name", "full name"], ["email", "email"],
+      // Free admin gift orders skip the payment window, so no phone is needed.
+      ...(promo?.internalTest ? [] : [["phone", "phone"] as [keyof typeof values, string]]),
       ["line1", "address"], ["city", "city"], ["state", "state"], ["postalCode", "ZIP code"],
     ];
     const missing = req.filter(([k]) => !values[k].trim()).map(([, l]) => l);
@@ -302,7 +304,7 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
             onChange={(e) => set("name", e.target.value)} className="mt-1 rounded-none" />
         </div>
         <div>
-          <Label htmlFor="rp-phone" className="text-xs text-muted-foreground">Phone (for delivery)</Label>
+          <Label htmlFor="rp-phone" className="text-xs text-muted-foreground">{promo?.internalTest ? "Phone (optional)" : "Phone (for delivery)"}</Label>
           <Input id="rp-phone" type="tel" inputMode="tel" autoComplete="tel" placeholder="+1 (315) 555-0134"
             value={values.phone} onChange={(e) => set("phone", formatUsPhone(e.target.value))}
             className="mt-1 rounded-none" />

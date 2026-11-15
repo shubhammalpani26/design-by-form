@@ -75,7 +75,10 @@ Deno.serve(async (req) => {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(customer.email)) {
       return json({ error: "Please enter a valid email address." }, 400);
     }
-    if (customer.phone.replace(/\D/g, "").length < 10) {
+    // Phone is optional here; it's required below only when a real payment
+    // follows (Razorpay asks for it). Admin gift orders never reach Razorpay.
+    const phoneDigits = customer.phone.replace(/\D/g, "").length;
+    if (phoneDigits > 0 && phoneDigits < 10) {
       return json({ error: "Please enter a valid phone number." }, 400);
     }
     if (!customer.name || !customer.line1 || !customer.city || !customer.state || !customer.postalCode) {
@@ -166,6 +169,9 @@ Deno.serve(async (req) => {
     const discountUsd = promo?.discountUsd ?? 0;
     const totalUsd = Math.round((subtotalUsd - discountUsd) * 100) / 100;
     const internalTest = promo?.internalTest === true;
+    if (!internalTest && phoneDigits < 10) {
+      return json({ error: "Please enter a valid phone number." }, 400);
+    }
 
     // Spread any discount across the lines so the ledger still adds up.
     const discountRatio = subtotalUsd > 0 ? totalUsd / subtotalUsd : 1;
