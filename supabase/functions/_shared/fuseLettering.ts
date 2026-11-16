@@ -111,7 +111,15 @@ function shells(tris: V3[][]) {
  * @param letteringStart index of the first lettering triangle (EngraveResult.letteringStart)
  * @param face          face the lettering is on; only the -Y front is supported
  */
-export async function fuseLettering(stl: Uint8Array, letteringStart: number, face: string | undefined): Promise<Uint8Array | null> {
+export interface FusedLettering {
+  stl: Uint8Array;
+  /** Solid volume of the body alone (overlaps counted once), cm³. */
+  bodyVolumeCm3: number;
+  /** Solid volume after fusing the lettering, cm³. */
+  fusedVolumeCm3: number;
+}
+
+export async function fuseLettering(stl: Uint8Array, letteringStart: number, face: string | undefined): Promise<FusedLettering | null> {
   if (face !== "-y") return null;
   const tris = parseStl(stl) as V3[][];
   if (!(letteringStart > 0) || letteringStart >= tris.length) return null;
@@ -143,6 +151,7 @@ export async function fuseLettering(stl: Uint8Array, letteringStart: number, fac
     for (const shell of shells(tris.slice(0, letteringStart))) {
       parts.push(new Manifold(new Mesh({ numProp: 3, vertProperties: shell.vert, triVerts: shell.tri })));
     }
+    const bodyVolume = Manifold.union(parts).volume();
     if (layers.size <= MAX_FLAT_LAYERS) {
       for (const layer of layers.values()) {
         const section = CrossSection.union(layer.squares.map((sq) => new CrossSection([sq])));
@@ -164,8 +173,15 @@ export async function fuseLettering(stl: Uint8Array, letteringStart: number, fac
     const status = fused.status();
     const clean = status === "NoError" || (status as { value?: number })?.value === 0;
     if (!clean || fused.isEmpty()) return null;
+    // Fusing may only ever add the letters: never lose any of the body.
+    const fusedVolume = fused.volume();
+    if (!(fusedVolume >= bodyVolume * 0.999)) return null;
     const mesh = fused.getMesh();
-    return writeBinary(stl, mesh.vertProperties, mesh.numProp, mesh.triVerts);
+    return {
+      stl: writeBinary(stl, mesh.vertProperties, mesh.numProp, mesh.triVerts),
+      bodyVolumeCm3: bodyVolume / 1000,
+      fusedVolumeCm3: fusedVolume / 1000,
+    };
   } catch (e) {
     console.warn("fuseLettering failed", e instanceof Error ? e.message : String(e));
     return null;
