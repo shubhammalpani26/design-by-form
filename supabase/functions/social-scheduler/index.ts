@@ -352,6 +352,13 @@ const ENGINEERING_RETRIES = 3;
 
 /* ------------------------------ queue refill ------------------------------ */
 
+/**
+ * Owner decision (2026-11-16): the scheduler never generates creatives itself. Every image or
+ * video is made outside (Kling) and attached to a row before it is due; the scheduler only
+ * publishes ready rows. Keep false unless the owner explicitly asks for auto-renders again.
+ */
+const AUTO_GENERATE_CREATIVES = false;
+
 /** One daily posting slot — 12:00 ET (midday scroll). Steady-state cadence: 1 post/day. */
 const SLOT_HOURS_UTC = [16];
 /** Always keep this many days of slots queued ahead so the feed never runs dry. */
@@ -364,6 +371,8 @@ const QUEUE_AHEAD_DAYS = 3;
  * so the pet and species step forward in rotation instead of repeating.
  */
 async function ensureQueue() {
+  // Recycled rows have no media and would need an auto-render to post.
+  if (!AUTO_GENERATE_CREATIVES) return { queued: 0 };
   const now = Date.now();
 
   const { data: library } = await admin
@@ -444,7 +453,8 @@ async function ensureQueue() {
 
 
 
-async function renderDue() {
+async function renderDue(): Promise<{ rendered: number; paused?: boolean }> {
+  if (!AUTO_GENERATE_CREATIVES) return { rendered: 0 };
   const now = new Date().toISOString();
 
   // A sunken-lettering render is unusable and worth re-rendering (lettering is the only
