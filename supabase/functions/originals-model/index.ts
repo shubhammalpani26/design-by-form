@@ -147,6 +147,57 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
   return { heading, footnote, label: [heading, footnote].filter(Boolean).join(" / ") };
 }
 
+/**
+ * Closes holes in the *unlettered* body with Meshy's repair, in its own pass.
+ *
+ * Meshy erases raised lettering, so it only ever sees the file before we
+ * letter it, and its result is kept only if every surviving point is unmoved
+ * and the piece is the same size. Each source file is tried once (the attempt
+ * is recorded), and the pass always ends there: download + repair + check and
+ * engraving in one worker exceeds its resource limit.
+ */
+async function closeSourceHoles(
+  row: OrderRow,
+  url: string,
+): Promise<{ handoff: false } | { handoff: true; url: string; meta: Record<string, unknown> }> {
+  const { label } = engravingLines(row.personalization);
+  if (!label || row.engraved_text) return { handoff: false };
+  const tried = (row.engraving_meta?.meshyRepair ?? null) as Record<string, unknown> | null;
+  if (tried && (tried.source === url || tried.output === url)) return { handoff: false };
+  const key = Deno.env.get("MESHY_API_KEY");
+  if (!key) return { handoff: false };
+
+  const res = await fetch(url);
+  if (!res.ok) return { handoff: false };
+  const source = new Uint8Array(await res.arrayBuffer());
+  const before = countOpenEdges(source);
+  if (before === 0) return { handoff: false };
+
+  const repaired = await meshyRepairStl(url, key).catch((e) => {
+    console.warn("meshy repair errored", row.id, e instanceof Error ? e.message : String(e));
+    return null;
+  });
+  const meta: Record<string, unknown> = { source: url, openEdgesBefore: before, at: new Date().toISOString() };
+  if (!repaired) {
+    return { handoff: true, url, meta: { ...meta, kept: false, reason: "repair_unavailable" } };
+  }
+  const candidate = withHeaderOf(repaired.bytes, source);
+  const shape = repairMatchesShape(source, candidate);
+  const after = countOpenEdges(candidate);
+  Object.assign(meta, {
+    taskId: repaired.taskId,
+    openEdgesAfter: after,
+    matched: Number(shape.matched.toFixed(4)),
+    retained: Number(shape.retained.toFixed(4)),
+    sizeDeltaMm: Number(shape.sizeDeltaMm.toFixed(3)),
+  });
+  if (!shape.ok || after !== 0) {
+    return { handoff: true, url, meta: { ...meta, kept: false, reason: shape.ok ? "still_open" : "shape_changed" } };
+  }
+  const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-closed`, candidate);
+  return { handoff: true, url: stored.url, meta: { ...meta, kept: true, output: stored.url } };
+}
+
 /** Same overall size (±0.5 mm) — fusing lettering must never resize the piece. */
 function repairKeepsSize(before: Uint8Array, after: Uint8Array): boolean {
   const a = stlBulk(before).size, b = stlBulk(after).size;
@@ -177,35 +228,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  let source: Uint8Array = new Uint8Array(await res.arrayBuffer());
-
-  // 1) Close holes in the unlettered body with Meshy's repair. Meshy erases
-  //    raised lettering, so it only ever sees the file before we letter it,
-  //    and its result is kept only if every surviving point is unmoved.
-  let meshyRepair: Record<string, unknown> | null = null;
-  const sourceOpen = countOpenEdges(source);
-  const meshyKeyValue = Deno.env.get("MESHY_API_KEY");
-  if (sourceOpen > 0 && meshyKeyValue) {
-    const repaired = await meshyRepairStl(url, meshyKeyValue).catch((e) => {
-      console.warn("meshy repair errored", row.id, e instanceof Error ? e.message : String(e));
-      return null;
-    });
-    if (repaired) {
-      const candidate = withHeaderOf(repaired.bytes, source);
-      const shape = repairMatchesShape(source, candidate);
-      const after = countOpenEdges(candidate);
-      const kept = shape.ok && after === 0;
-      meshyRepair = {
-        taskId: repaired.taskId,
-        kept,
-        openEdgesBefore: sourceOpen,
-        openEdgesAfter: after,
-        matched: Number(shape.matched.toFixed(4)),
-        retained: Number(shape.retained.toFixed(4)),
-      };
-      if (kept) source = candidate;
-    }
-  }
+  const source: Uint8Array = new Uint8Array(await res.arrayBuffer());
+  const meshyRepair = (existingMeta?.meshyRepair ?? null) as Record<string, unknown> | null;
 
   const result = engraveStl(source, {
     heading,
@@ -215,7 +239,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
-  // 2) Fuse the letter studs into the body as one closed solid, so the file
+  // Fuse the letter studs into the body as one closed solid, so the file
   //    carries no overlapping shells (which checkers report as holes).
   let finalStl = result.stl;
   let fusedLettering = false;
@@ -226,7 +250,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
       fusedLettering = true;
     }
   }
-  // 3) Fallback: close cracks/holes before the file is fingerprinted: fulfilment
+  // Fallback: close cracks/holes before the file is fingerprinted: fulfilment
   // refuses any file that is not fully closed, and the hash must match what ships.
   let openEdges = countOpenEdges(finalStl);
   if (openEdges > 0) {
@@ -567,6 +591,7 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   const rebuiltOrders: string[] = [];
 
   for (const row of rows as OrderRow[]) {
+    let closed: Awaited<ReturnType<typeof closeSourceHoles>> | null = null;
     try {
       const out = await resolveFile(row);
       if (out.status === "rebuilt" && out.url) {
@@ -575,6 +600,17 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
           engraved_text: null,
           engraved_at: null,
           engraving_meta: null,
+          model_status: "ready",
+          fulfillment_error: null,
+          updated_at: new Date().toISOString(),
+        }).eq("id", row.id);
+        rebuiltGroups.add(row.group_id ?? row.id);
+        rebuiltOrders.push(row.id);
+      } else if (out.url && (closed = await closeSourceHoles(row, out.url)).handoff) {
+        // Holes were sent to Meshy in this pass; lettering happens in the next.
+        await admin.from("originals_orders").update({
+          print_file_url: closed.url,
+          engraving_meta: { meshyRepair: closed.meta },
           model_status: "ready",
           fulfillment_error: null,
           updated_at: new Date().toISOString(),
