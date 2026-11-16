@@ -591,7 +591,6 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
   const rebuiltOrders: string[] = [];
 
   for (const row of rows as OrderRow[]) {
-    let closed: Awaited<ReturnType<typeof closeSourceHoles>> | null = null;
     try {
       const out = await resolveFile(row);
       if (out.status === "rebuilt" && out.url) {
@@ -606,26 +605,29 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
         }).eq("id", row.id);
         rebuiltGroups.add(row.group_id ?? row.id);
         rebuiltOrders.push(row.id);
-      } else if (out.url && (closed = await closeSourceHoles(row, out.url)).handoff) {
-        // Holes were sent to Meshy in this pass; lettering happens in the next.
-        await admin.from("originals_orders").update({
-          print_file_url: closed.url,
-          engraving_meta: { meshyRepair: closed.meta },
-          model_status: "ready",
-          fulfillment_error: null,
-          updated_at: new Date().toISOString(),
-        }).eq("id", row.id);
-        rebuiltGroups.add(row.group_id ?? row.id);
-        rebuiltOrders.push(row.id);
       } else if (out.url) {
-        const finalUrl = await applyEngraving(row, out.url);
-        await admin.from("originals_orders").update({
-          print_file_url: finalUrl,
-          model_status: "ready",
-          fulfillment_error: null,
-          updated_at: new Date().toISOString(),
-        }).eq("id", row.id);
-        groups.add(row.group_id ?? row.id);
+        const closed = await closeSourceHoles(row, out.url);
+        if (closed.handoff) {
+          // Holes were sent to Meshy in this pass; lettering happens in the next.
+          await admin.from("originals_orders").update({
+            print_file_url: closed.url,
+            engraving_meta: { meshyRepair: closed.meta },
+            model_status: "ready",
+            fulfillment_error: null,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          rebuiltGroups.add(row.group_id ?? row.id);
+          rebuiltOrders.push(row.id);
+        } else {
+          const finalUrl = await applyEngraving(row, out.url);
+          await admin.from("originals_orders").update({
+            print_file_url: finalUrl,
+            model_status: "ready",
+            fulfillment_error: null,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          groups.add(row.group_id ?? row.id);
+        }
       } else if (out.status === "failed" || out.status === "needs_file") {
 
         await admin.from("originals_orders").update({
