@@ -15,7 +15,7 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
-import { countOpenEdges, repairKeepsBulk, repairStl } from "../_shared/meshCheck.ts";
+import { countOpenEdges, repairKeepsBulk, repairStl, stlBulk } from "../_shared/meshCheck.ts";
 import { meshyRepairStl, repairMatchesShape, withHeaderOf } from "../_shared/meshyRepair.ts";
 import { fuseLettering } from "../_shared/fuseLettering.ts";
 import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
@@ -149,17 +149,8 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
 
 /** Same overall size (±0.5 mm) — fusing lettering must never resize the piece. */
 function repairKeepsSize(before: Uint8Array, after: Uint8Array): boolean {
-  const a = parseStl(before), b = parseStl(after);
-  const size = (tris: ReturnType<typeof parseStl>) => {
-    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
-    for (const t of tris) for (const p of t) for (let i = 0; i < 3; i++) {
-      if (p[i] < lo[i]) lo[i] = p[i];
-      if (p[i] > hi[i]) hi[i] = p[i];
-    }
-    return [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]];
-  };
-  const sa = size(a), sb = size(b);
-  return sa.every((s, i) => Math.abs(s - sb[i]) <= 0.5);
+  const a = stlBulk(before).size, b = stlBulk(after).size;
+  return a.every((s, i) => Math.abs(s - b[i]) <= 0.5);
 }
 
 /**
