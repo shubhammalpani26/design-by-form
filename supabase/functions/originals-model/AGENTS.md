@@ -1,0 +1,2 @@
+# originals-model
+- Holes are closed by Meshy's print-repair API on the *unlettered* file only, in its own order pass, kept only if every surviving vertex is unmoved and size is unchanged (`_shared/meshyRepair.ts`); lettering studs are then fused into one solid with manifold-3d (`_shared/fuseLettering.ts`); why: Meshy's repair erases raised lettering, and overlapping stud shells read as holes to checkers.
