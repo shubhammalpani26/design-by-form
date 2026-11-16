@@ -16,6 +16,8 @@ import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { countOpenEdges, repairKeepsBulk, repairStl } from "../_shared/meshCheck.ts";
+import { meshyRepairStl, repairMatchesShape, withHeaderOf } from "../_shared/meshyRepair.ts";
+import { fuseLettering } from "../_shared/fuseLettering.ts";
 import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
@@ -145,6 +147,21 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
   return { heading, footnote, label: [heading, footnote].filter(Boolean).join(" / ") };
 }
 
+/** Same overall size (±0.5 mm) — fusing lettering must never resize the piece. */
+function repairKeepsSize(before: Uint8Array, after: Uint8Array): boolean {
+  const a = parseStl(before), b = parseStl(after);
+  const size = (tris: ReturnType<typeof parseStl>) => {
+    const lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+    for (const t of tris) for (const p of t) for (let i = 0; i < 3; i++) {
+      if (p[i] < lo[i]) lo[i] = p[i];
+      if (p[i] > hi[i]) hi[i] = p[i];
+    }
+    return [hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]];
+  };
+  const sa = size(a), sb = size(b);
+  return sa.every((s, i) => Math.abs(s - sb[i]) <= 0.5);
+}
+
 /**
  * Cuts the buyer's name/date into the mesh as real geometry.
  *
@@ -169,7 +186,37 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), {
+  let source = new Uint8Array(await res.arrayBuffer());
+
+  // 1) Close holes in the unlettered body with Meshy's repair. Meshy erases
+  //    raised lettering, so it only ever sees the file before we letter it,
+  //    and its result is kept only if every surviving point is unmoved.
+  let meshyRepair: Record<string, unknown> | null = null;
+  const sourceOpen = countOpenEdges(source);
+  const meshyKeyValue = Deno.env.get("MESHY_API_KEY");
+  if (sourceOpen > 0 && meshyKeyValue) {
+    const repaired = await meshyRepairStl(url, meshyKeyValue).catch((e) => {
+      console.warn("meshy repair errored", row.id, e instanceof Error ? e.message : String(e));
+      return null;
+    });
+    if (repaired) {
+      const candidate = withHeaderOf(repaired.bytes, source);
+      const shape = repairMatchesShape(source, candidate);
+      const after = countOpenEdges(candidate);
+      const kept = shape.ok && after === 0;
+      meshyRepair = {
+        taskId: repaired.taskId,
+        kept,
+        openEdgesBefore: sourceOpen,
+        openEdgesAfter: after,
+        matched: Number(shape.matched.toFixed(4)),
+        retained: Number(shape.retained.toFixed(4)),
+      };
+      if (kept) source = candidate;
+    }
+  }
+
+  const result = engraveStl(source, {
     heading,
     footnote,
     maxDimensionMm: SIZE_MAX_MM[row.size_key] ?? 180,
@@ -177,9 +224,19 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
-  // Close cracks/holes before the file is fingerprinted: fulfilment refuses
-  // any file that is not fully closed, and the hash must match what ships.
+  // 2) Fuse the letter studs into the body as one closed solid, so the file
+  //    carries no overlapping shells (which checkers report as holes).
   let finalStl = result.stl;
+  let fusedLettering = false;
+  if (result.letteringStart) {
+    const fused = await fuseLettering(result.stl, result.letteringStart, result.face).catch(() => null);
+    if (fused && countOpenEdges(fused.stl) === 0 && repairKeepsSize(result.stl, fused.stl)) {
+      finalStl = fused.stl;
+      fusedLettering = true;
+    }
+  }
+  // 3) Fallback: close cracks/holes before the file is fingerprinted: fulfilment
+  // refuses any file that is not fully closed, and the hash must match what ships.
   let openEdges = countOpenEdges(finalStl);
   if (openEdges > 0) {
     const repaired = repairStl(finalStl).stl;
@@ -215,6 +272,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         heftVolumeAddedCm3: result.heftVolumeAddedCm3 ?? null,
         sourcePrintFileUrl: url,
         openEdges,
+        fusedLettering,
+        meshyRepair,
         fileSha256,
       },
 
