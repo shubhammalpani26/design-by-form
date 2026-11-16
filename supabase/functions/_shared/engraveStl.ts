@@ -57,6 +57,8 @@ export interface EngraveResult {
   heftVolumeAddedCm3?: number;
   /** Set when the finished file shows a second block sitting on our base. */
   stackedPlinth?: StackedPlinthReport;
+  /** Index of the first lettering triangle (body triangles come first). */
+  letteringStart?: number;
 }
 
 
@@ -1294,6 +1296,7 @@ export function engraveStl(bytes: Uint8Array, opts: EngraveOptions): EngraveResu
     heftBaseApplied: heft.applied,
     heftBaseHeightMm: heft.baseHeightMm,
     heftVolumeAddedCm3: heft.volumeAddedCm3,
+    letteringStart: baseCount,
   };
 }
 
