@@ -15,7 +15,9 @@ import { ensurePrintFile, uploadStl } from "../_shared/printFile.ts";
 import { analyzePrintability } from "../_shared/meshyPrintability.ts";
 import { engraveStl, parseStl } from "../_shared/engraveStl.ts";
 import { findStackedPlinth } from "../_shared/plinthProfile.ts";
-import { countOpenEdges, repairKeepsBulk, repairStl } from "../_shared/meshCheck.ts";
+import { countOpenEdges, repairKeepsBulk, repairStl, stlBulk } from "../_shared/meshCheck.ts";
+import { meshyRepairStl, repairMatchesShape, withHeaderOf } from "../_shared/meshyRepair.ts";
+import { fuseLettering } from "../_shared/fuseLettering.ts";
 import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
@@ -146,6 +148,62 @@ export function engravingLines(personalization: Record<string, unknown> | null) 
 }
 
 /**
+ * Closes holes in the *unlettered* body with Meshy's repair, in its own pass.
+ *
+ * Meshy erases raised lettering, so it only ever sees the file before we
+ * letter it, and its result is kept only if every surviving point is unmoved
+ * and the piece is the same size. Each source file is tried once (the attempt
+ * is recorded), and the pass always ends there: download + repair + check and
+ * engraving in one worker exceeds its resource limit.
+ */
+async function closeSourceHoles(
+  row: OrderRow,
+  url: string,
+): Promise<{ handoff: false } | { handoff: true; url: string; meta: Record<string, unknown> }> {
+  if (row.engraved_text) return { handoff: false };
+  const tried = (row.engraving_meta?.meshyRepair ?? null) as Record<string, unknown> | null;
+  if (tried && (tried.source === url || tried.output === url)) return { handoff: false };
+  const key = Deno.env.get("MESHY_API_KEY");
+  if (!key) return { handoff: false };
+
+  const res = await fetch(url);
+  if (!res.ok) return { handoff: false };
+  const source = new Uint8Array(await res.arrayBuffer());
+  const before = countOpenEdges(source);
+  if (before === 0) return { handoff: false };
+
+  const repaired = await meshyRepairStl(url, key).catch((e) => {
+    console.warn("meshy repair errored", row.id, e instanceof Error ? e.message : String(e));
+    return null;
+  });
+  const meta: Record<string, unknown> = { source: url, openEdgesBefore: before, at: new Date().toISOString() };
+  if (!repaired) {
+    return { handoff: true, url, meta: { ...meta, kept: false, reason: "repair_unavailable" } };
+  }
+  const candidate = withHeaderOf(repaired.bytes, source);
+  const shape = repairMatchesShape(source, candidate);
+  const after = countOpenEdges(candidate);
+  Object.assign(meta, {
+    taskId: repaired.taskId,
+    openEdgesAfter: after,
+    matched: Number(shape.matched.toFixed(4)),
+    retained: Number(shape.retained.toFixed(4)),
+    sizeDeltaMm: Number(shape.sizeDeltaMm.toFixed(3)),
+  });
+  if (!shape.ok || after !== 0) {
+    return { handoff: true, url, meta: { ...meta, kept: false, reason: shape.ok ? "still_open" : "shape_changed" } };
+  }
+  const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-closed`, candidate);
+  return { handoff: true, url: stored.url, meta: { ...meta, kept: true, output: stored.url } };
+}
+
+/** Same overall size (±0.5 mm) — fusing lettering must never resize the piece. */
+function repairKeepsSize(before: Uint8Array, after: Uint8Array): boolean {
+  const a = stlBulk(before).size, b = stlBulk(after).size;
+  return a.every((s, i) => Math.abs(s - b[i]) <= 0.5);
+}
+
+/**
  * Cuts the buyer's name/date into the mesh as real geometry.
  *
  * The 3D generator smooths lettering that only exists in the 2D render, so
@@ -169,7 +227,10 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  const result = engraveStl(new Uint8Array(await res.arrayBuffer()), {
+  const source: Uint8Array = new Uint8Array(await res.arrayBuffer());
+  const meshyRepair = (existingMeta?.meshyRepair ?? null) as Record<string, unknown> | null;
+
+  const result = engraveStl(source, {
     heading,
     footnote,
     maxDimensionMm: SIZE_MAX_MM[row.size_key] ?? 180,
@@ -177,9 +238,19 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   if (!result.applied) {
     throw new Error(`Engraving could not be applied (${result.reason ?? "unknown"})`);
   }
-  // Close cracks/holes before the file is fingerprinted: fulfilment refuses
-  // any file that is not fully closed, and the hash must match what ships.
+  // Fuse the letter studs into the body as one closed solid, so the file
+  //    carries no overlapping shells (which checkers report as holes).
   let finalStl = result.stl;
+  let fusedLettering = false;
+  if (result.letteringStart) {
+    const fused = await fuseLettering(result.stl, result.letteringStart, result.face).catch(() => null);
+    if (fused && countOpenEdges(fused.stl) === 0 && repairKeepsSize(result.stl, fused.stl)) {
+      finalStl = fused.stl;
+      fusedLettering = true;
+    }
+  }
+  // Fallback: close cracks/holes before the file is fingerprinted: fulfilment
+  // refuses any file that is not fully closed, and the hash must match what ships.
   let openEdges = countOpenEdges(finalStl);
   if (openEdges > 0) {
     const repaired = repairStl(finalStl).stl;
@@ -191,7 +262,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
     }
   }
   const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, finalStl);
-  const digest = await crypto.subtle.digest("SHA-256", finalStl);
+  const digest = await crypto.subtle.digest("SHA-256", finalStl as Uint8Array<ArrayBuffer>);
   const fileSha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   await admin
     .from("originals_orders")
@@ -215,6 +286,8 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
         heftVolumeAddedCm3: result.heftVolumeAddedCm3 ?? null,
         sourcePrintFileUrl: url,
         openEdges,
+        fusedLettering,
+        meshyRepair,
         fileSha256,
       },
 
@@ -532,14 +605,28 @@ async function run(scope: { orderId?: string | null; groupId?: string | null; sw
         rebuiltGroups.add(row.group_id ?? row.id);
         rebuiltOrders.push(row.id);
       } else if (out.url) {
-        const finalUrl = await applyEngraving(row, out.url);
-        await admin.from("originals_orders").update({
-          print_file_url: finalUrl,
-          model_status: "ready",
-          fulfillment_error: null,
-          updated_at: new Date().toISOString(),
-        }).eq("id", row.id);
-        groups.add(row.group_id ?? row.id);
+        const closed = await closeSourceHoles(row, out.url);
+        if (closed.handoff) {
+          // Holes were sent to Meshy in this pass; lettering happens in the next.
+          await admin.from("originals_orders").update({
+            print_file_url: closed.url,
+            engraving_meta: { meshyRepair: closed.meta },
+            model_status: "ready",
+            fulfillment_error: null,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          rebuiltGroups.add(row.group_id ?? row.id);
+          rebuiltOrders.push(row.id);
+        } else {
+          const finalUrl = await applyEngraving(row, out.url);
+          await admin.from("originals_orders").update({
+            print_file_url: finalUrl,
+            model_status: "ready",
+            fulfillment_error: null,
+            updated_at: new Date().toISOString(),
+          }).eq("id", row.id);
+          groups.add(row.group_id ?? row.id);
+        }
       } else if (out.status === "failed" || out.status === "needs_file") {
 
         await admin.from("originals_orders").update({
