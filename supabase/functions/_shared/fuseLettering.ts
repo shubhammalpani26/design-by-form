@@ -160,7 +160,10 @@ export async function fuseLettering(stl: Uint8Array, letteringStart: number, fac
       }
     }
     const fused = Manifold.union(parts);
-    if (fused.status() !== "NoError" || fused.isEmpty()) return null;
+    // Older builds return an enum object ({ value: 0 }), newer ones the name.
+    const status = fused.status();
+    const clean = status === "NoError" || (status as { value?: number })?.value === 0;
+    if (!clean || fused.isEmpty()) return null;
     const mesh = fused.getMesh();
     return writeBinary(stl, mesh.vertProperties, mesh.numProp, mesh.triVerts);
   } catch (e) {
