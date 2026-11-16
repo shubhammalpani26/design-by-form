@@ -160,8 +160,7 @@ async function closeSourceHoles(
   row: OrderRow,
   url: string,
 ): Promise<{ handoff: false } | { handoff: true; url: string; meta: Record<string, unknown> }> {
-  const { label } = engravingLines(row.personalization);
-  if (!label || row.engraved_text) return { handoff: false };
+  if (row.engraved_text) return { handoff: false };
   const tried = (row.engraving_meta?.meshyRepair ?? null) as Record<string, unknown> | null;
   if (tried && (tried.source === url || tried.output === url)) return { handoff: false };
   const key = Deno.env.get("MESHY_API_KEY");
