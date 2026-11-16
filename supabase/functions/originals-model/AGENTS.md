@@ -1,2 +1,3 @@
 # originals-model
 - Holes are closed by Meshy's print-repair API on the *unlettered* file only, in its own order pass, kept only if every surviving vertex is unmoved and size is unchanged (`_shared/meshyRepair.ts`); lettering studs are then fused into one solid with manifold-3d (`_shared/fuseLettering.ts`); why: Meshy's repair erases raised lettering, and overlapping stud shells read as holes to checkers.
+- The generator's raw-model printability report holds an order only until the finished, lettered file is proven closed (`openEdges === 0` + fingerprint in `engraving_meta`); rules in `_shared/printabilityHold.ts`, and Ops shows the finished-file check first; why: the raw report describes the mesh before repair, and kept flagging files that were already fixed.

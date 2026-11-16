@@ -18,6 +18,7 @@ import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { countOpenEdges, repairKeepsBulk, repairStl, stlBulk } from "../_shared/meshCheck.ts";
 import { meshyRepairStl, repairMatchesShape, withHeaderOf } from "../_shared/meshyRepair.ts";
 import { fuseLettering } from "../_shared/fuseLettering.ts";
+import { finalFileClosed, previewHoldReasons } from "../_shared/printabilityHold.ts";
 import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
 import { alertFulfillmentFailure, alertOrderHeld } from "../_shared/fulfillmentAlert.ts";
@@ -484,37 +485,24 @@ async function resolveFile(row: OrderRow): Promise<{ url: string | null; status:
 }
 
 /**
- * The generator's printability report stays advisory, but a mesh with more
- * than a handful of holes or bad edges is held for a human look instead of
- * flowing straight to the partner. Thresholds stay loose on purpose: routine
- * noise (a couple of holes, a few dozen edges) must not block orders.
+ * Holds a group for a human look when the customer photo was never screened,
+ * or when the generator's raw-model report is messy and the finished print
+ * file has not been proven closed (rules in `_shared/printabilityHold.ts`).
  */
-const HOLD_HOLES = 5;
-const HOLD_NON_MANIFOLD_EDGES = 200;
-
 async function printabilityHold(rows: OrderRow[]): Promise<string | null> {
   const ids = [...new Set(rows.map((r) => r.preview_id).filter(Boolean))] as string[];
   if (!ids.length) return null;
-  const { data } = await admin
-    .from("originals_previews")
-    .select("id, engineering, photo_screen")
-    .in("id", ids);
+  // Re-read the finished-file checks: rows in memory predate this pass's lettering.
+  const [{ data }, { data: fresh }] = await Promise.all([
+    admin.from("originals_previews").select("id, engineering, photo_screen").in("id", ids),
+    admin.from("originals_orders").select("id, preview_id, engraving_meta").in("id", rows.map((r) => r.id)),
+  ]);
   const reasons: string[] = [];
   for (const preview of data ?? []) {
-    // Photo screen was down when this preview was made — a person must
-    // confirm the photo is a pet before anything goes to the partner.
-    if (preview.photo_screen === "unscreened") {
-      reasons.push("customer photo was not screened (pet / explicit check was unavailable)");
-    }
-    const report = ((preview.engineering ?? {}) as Record<string, unknown>)
-      .printability as Record<string, unknown> | undefined;
-    if (!report) continue;
-    const holes = Number(report.holes);
-    const edges = Number(report.nonManifoldEdges);
-    if (Number.isFinite(holes) && holes > HOLD_HOLES) reasons.push(`${holes} holes`);
-    if (Number.isFinite(edges) && edges > HOLD_NON_MANIFOLD_EDGES) {
-      reasons.push(`${edges} non-manifold edges`);
-    }
+    const pieces = (fresh ?? []).filter((r) => r.preview_id === preview.id);
+    const filesClosed = pieces.length > 0 &&
+      pieces.every((r) => finalFileClosed(r.engraving_meta as Record<string, unknown> | null));
+    reasons.push(...previewHoldReasons(preview, filesClosed));
   }
   return reasons.length ? [...new Set(reasons)].join(", ") : null;
 }
