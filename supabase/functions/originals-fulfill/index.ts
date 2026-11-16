@@ -444,7 +444,7 @@ Deno.serve(async (req) => {
 
     // Free admin orders (gifts) skip checkout, so no receipt went out. An admin
     // can ask for the "order placed" email with the preview — no price shown.
-    if (body?.notify_customer === true && paid[0].customer_email) {
+    if (internalTest && body?.notify_customer === true && paid[0].customer_email) {
       try {
         const { data: previewRows } = await admin
           .from("originals_orders")
