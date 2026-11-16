@@ -101,6 +101,19 @@ export default function MyOrders() {
       setSignedIn(Boolean(user));
       if (!user) {
         setLoading(false);
+        // Guests arriving from the confirmation email link (?order=<id>) go
+        // straight to the order status — no extra tap on the lookup button.
+        const id = (params.get("order") ?? "").trim();
+        if (id) {
+          const { data } = await supabase.functions.invoke("originals-order-status", {
+            body: { orderId: id },
+          });
+          if (data?.order) {
+            window.location.replace(`/originals/checkout/return?order=${id}`);
+            return;
+          }
+          setLookupError("We couldn't find that order id. Check the confirmation email.");
+        }
         return;
       }
       const { data } = await supabase
