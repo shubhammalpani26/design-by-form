@@ -455,43 +455,64 @@ export function OriginalsFulfillmentManagement() {
                     : "—"}
                 </div>
               </div>
-              {printability[order.id] && (
-                <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-                  <Badge
-                    variant={
-                      printability[order.id].printable === false ? "destructive" : "outline"
-                    }
-                  >
-                    {printability[order.id].printable === true
-                      ? "Printability check: pass"
-                      : printability[order.id].printable === false
-                      ? "Printability check: issues"
-                      : "Printability check: inconclusive"}
-                  </Badge>
-                  <span>
-                    {[
-                      printability[order.id].watertight === null
-                        ? null
-                        : printability[order.id].watertight
-                        ? "watertight"
-                        : "not watertight",
-                      printability[order.id].holes === null
-                        ? null
-                        : `${printability[order.id].holes} holes`,
-                      printability[order.id].nonManifoldEdges === null
-                        ? null
-                        : `${printability[order.id].nonManifoldEdges} non-manifold edges`,
-                      printability[order.id].volumeCm3 === null
-                        ? null
-                        : `${printability[order.id].volumeCm3} cm³`,
-                      printability[order.id].error ?? null,
+              {(() => {
+                // The finished, lettered file is what ships — judge that first.
+                const meta = (order.engraving_meta ?? {}) as Record<string, unknown>;
+                const finalChecked = typeof meta.openEdges === "number" && !!meta.fileSha256;
+                const finalClosed = finalChecked && meta.openEdges === 0;
+                const raw = printability[order.id];
+                if (!finalChecked && !raw) return null;
+                const rawSummary = raw
+                  ? [
+                      raw.watertight === null ? null : raw.watertight ? "watertight" : "not watertight",
+                      raw.holes === null ? null : `${raw.holes} holes`,
+                      raw.nonManifoldEdges === null ? null : `${raw.nonManifoldEdges} non-manifold edges`,
+                      raw.volumeCm3 === null ? null : `${raw.volumeCm3} cm³`,
+                      raw.error ?? null,
                     ]
                       .filter(Boolean)
-                      .join(" · ")}
-                  </span>
-                  <span className="opacity-70">advisory only</span>
-                </div>
-              )}
+                      .join(" · ")
+                  : "";
+                return (
+                  <div className="space-y-1 text-xs text-muted-foreground">
+                    {finalChecked && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant={finalClosed ? "outline" : "destructive"}>
+                          {finalClosed ? "Print file: closed, solid" : "Print file: has gaps"}
+                        </Badge>
+                        <span>
+                          {finalClosed
+                            ? ["0 open edges", meta.fusedLettering ? "lettering fused in" : null]
+                                .filter(Boolean)
+                                .join(" · ")
+                            : `${meta.openEdges} open edges`}
+                        </span>
+                      </div>
+                    )}
+                    {raw && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        {finalChecked ? (
+                          <span className="opacity-70">
+                            Raw 3D model before repair: {rawSummary || "no report"}
+                          </span>
+                        ) : (
+                          <>
+                            <Badge variant={raw.printable === false ? "destructive" : "outline"}>
+                              {raw.printable === true
+                                ? "Raw 3D model: pass"
+                                : raw.printable === false
+                                ? "Raw 3D model: issues"
+                                : "Raw 3D model: inconclusive"}
+                            </Badge>
+                            <span>{rawSummary}</span>
+                            <span className="opacity-70">before repair · advisory</span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
               {order.fulfillment_error && (
                 <div className="rounded-md border border-destructive/30 bg-destructive/5 p-2 text-destructive">
                   {order.fulfillment_error}
