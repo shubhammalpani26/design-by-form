@@ -325,8 +325,8 @@ export function OriginalsFulfillmentManagement() {
     setBusy(order.id);
     const { data, error } = await supabase.functions.invoke("originals-fulfill", {
       body: order.group_id
-        ? { group_id: order.group_id, release: true }
-        : { order_id: order.id, release: true },
+        ? { group_id: order.group_id, release: true, notify_customer: true }
+        : { order_id: order.id, release: true, notify_customer: true },
     });
     setBusy(null);
     if (error || data?.error) {

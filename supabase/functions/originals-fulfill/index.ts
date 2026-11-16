@@ -114,20 +114,31 @@ Deno.serve(async (req) => {
     if (!rows?.length) return json({ error: "Order not found" }, 404);
 
     // Notification-only recovery: never re-enter partner placement or alter the order.
-    if (body?.action === "send_confirmation_admin_copy") {
+    // Sends the customer's "order placed" email and the fixed admin copy for a
+    // free admin order that is already with the partner. Stable keys mean a
+    // copy that already went out is never sent twice.
+    if (body?.action === "send_confirmation" || body?.action === "send_confirmation_admin_copy") {
       if (rows.some((row) => !row.partner_order_id || row.status !== "fulfilled" || row.payment_provider !== "internal_test")) {
-        return json({ error: "Only placed free admin orders can send this confirmation copy" }, 409);
+        return json({ error: "Only placed free admin orders can send this confirmation" }, 409);
       }
       const { data: previewRows, error: previewError } = await admin
         .from("originals_orders")
         .select("id, sku_slug, size_label, quantity, preview_image_url")
         .in("id", rows.map((row) => row.id));
       if (previewError) throw previewError;
+      const templateData = giftConfirmationData(rows[0].id, previewRows ?? []);
+      const customer = body?.action === "send_confirmation" && rows[0].customer_email
+        ? await sendAppEmail("originals-order-confirmation", rows[0].customer_email, {
+          idempotencyKey: `originals-confirmation-${rows[0].id}`,
+          templateData,
+        })
+        : null;
       const result = await sendAppEmail("originals-order-confirmation", "contact@nyzora.ai", {
         idempotencyKey: giftConfirmationAdminCopyKey(rows[0].id),
-        templateData: giftConfirmationData(rows[0].id, previewRows ?? []),
+        templateData,
       });
-      return json({ confirmationCopy: result }, result.sent ? 200 : 409);
+      const ok = result.sent && (customer === null || customer.sent);
+      return json({ customerConfirmation: customer, confirmationCopy: result }, ok ? 200 : 409);
     }
 
     const paid = rows.filter((r) => r.status === "paid" || r.status === "fulfilled");
@@ -433,7 +444,7 @@ Deno.serve(async (req) => {
 
     // Free admin orders (gifts) skip checkout, so no receipt went out. An admin
     // can ask for the "order placed" email with the preview — no price shown.
-    if (body?.notify_customer === true && paid[0].customer_email) {
+    if (internalTest && body?.notify_customer === true && paid[0].customer_email) {
       try {
         const { data: previewRows } = await admin
           .from("originals_orders")
