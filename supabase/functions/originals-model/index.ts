@@ -177,7 +177,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
 
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Could not download the print file for engraving (${res.status})`);
-  let source = new Uint8Array(await res.arrayBuffer());
+  let source: Uint8Array = new Uint8Array(await res.arrayBuffer());
 
   // 1) Close holes in the unlettered body with Meshy's repair. Meshy erases
   //    raised lettering, so it only ever sees the file before we letter it,
@@ -239,7 +239,7 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
     }
   }
   const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, finalStl);
-  const digest = await crypto.subtle.digest("SHA-256", finalStl);
+  const digest = await crypto.subtle.digest("SHA-256", finalStl as Uint8Array<ArrayBuffer>);
   const fileSha256 = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
   await admin
     .from("originals_orders")
