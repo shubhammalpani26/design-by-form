@@ -114,3 +114,12 @@ Deno.test("an email counts only if the page really shows it", () => {
   assertEquals(emailOnPage("contact info@shop.com", "hello@shop.com"), false);
   assertEquals(emailOnPage("hello@shop.co", "hello@shop.com"), false);
 });
+
+Deno.test("100 a day in waves of 25 all go out the same day when prepared by 10am Eastern", () => {
+  const now = etToUtc(2026, 11, 17, 10, 0);
+  const t = waveTimes(now, 100, 25);
+  const hours = [...new Set(t.map(etHour))];
+  assertEquals(hours, [10, 12, 14, 16]);
+  assert(t[99].getTime() - t[0].getTime() < 7 * 3_600_000);
+  assertEquals(remainingToday(100, 0), 100);
+});
