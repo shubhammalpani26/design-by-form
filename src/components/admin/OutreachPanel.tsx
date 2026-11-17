@@ -503,7 +503,7 @@ export function OutreachPanel() {
 
       {/* ------------------------------------------------ settings */}
       {settingsDraft && (
-        <Section title="Sending limits" note="Start small and raise it as replies come in: about 25 a day this week, then 50, then 100. Hard limit 150.">
+        <Section title="Sending limits" note={sendPlanNote(settingsDraft.daily_total, settingsDraft.wave_size)}>
           <div className="flex flex-wrap items-end gap-3">
             <label className="text-xs text-muted-foreground">Emails per day
               <Input type="number" min={1} max={150} value={settingsDraft.daily_total} className="mt-1 w-28"
@@ -524,4 +524,16 @@ export function OutreachPanel() {
       )}
     </div>
   );
+}
+
+/** Plain-language summary of how the daily total spreads over US daytime waves (9am–6pm ET, 2 hours apart). */
+function sendPlanNote(daily: number, wave: number): string {
+  const d = Math.max(1, Math.min(150, Math.floor(daily || 1)));
+  const w = Math.max(1, Math.floor(wave || 1));
+  const waves = Math.ceil(d / w);
+  const latestStart = 18 - 2 * (waves - 1); // last wave must start before 6pm ET
+  const fits = latestStart > 9
+    ? `All ${d} go out the same day if the batch is ready before ${latestStart > 12 ? `${latestStart - 12}pm` : latestStart === 12 ? "noon" : `${latestStart}am`} Eastern.`
+    : `That needs ${waves} waves, more than fit in one day, so some roll to the next morning. Raise "per wave" to send them all in one day.`;
+  return `Up to ${d} a day, ${w} at a time every 2 hours, 9am–6pm US Eastern. ${fits} Hard limit 150 a day.`;
 }
