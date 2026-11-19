@@ -23,7 +23,8 @@ const corsHeaders = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const MODEL = "openai/gpt-6-astra";
+// Mid-tier model: reliable tool calling at a fraction of the top model's cost.
+const MODEL = "openai/gpt-6.1-sol";
 const META_GATEWAY = "https://connector-gateway.lovable.dev/meta_ads/v26.0";
 const HISTORY_FOR_MODEL = 40;
 type Helper = "social" | "ads";

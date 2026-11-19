@@ -27,7 +27,10 @@ const corsHeaders = {
 const json = (b: unknown, status = 200) =>
   new Response(JSON.stringify(b), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
 
-const MODEL = "openai/gpt-6-astra";
+// Cost: short templated emails use the low-cost model; web research keeps a
+// mid-tier model so it stays strict about only using emails printed on the page.
+const DRAFT_MODEL = "openai/gpt-6-luna";
+const RESEARCH_MODEL = "openai/gpt-6.1-sol";
 const GMAIL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/me";
 const DRAFT_CHUNK = 6;
 const SEND_PER_RUN = 25;
@@ -210,7 +213,7 @@ async function draftChunk(req: Request, admin: Admin) {
   });
 
   const out = await generateStructured(
-    req, { apiKey, model: MODEL, reasoningEffort: "low" }, EmailsSchema,
+    req, { apiKey, model: DRAFT_MODEL, reasoningEffort: "low" }, EmailsSchema,
     [{ role: "user", content: lines.join("\n\n") }],
     INSTRUCTIONS,
   );
@@ -323,7 +326,7 @@ async function findPeople(admin: Admin, req: Request, slug: string, want: number
   });
   let streamError: unknown = null;
   const result = streamText({
-    model: provider.responses(MODEL),
+    model: provider.responses(RESEARCH_MODEL),
     instructions: `You research outreach contacts for Nyzora, a small US brand that turns a pet photo into a personalised sculpture.
 Use web search. Return only real, currently operating people/businesses.
 STRICT: every email must be printed on the exact page you give as source_url (a normal website page, not Instagram/Facebook/TikTok). Never guess or construct an email (no "info@domain" unless the page shows it). If you can't find a published email, leave that person out.
