@@ -141,6 +141,13 @@
       "when": 1794528162469,
       "tag": "0019_social_post_drafts",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1795059588011,
+      "tag": "0020_migration",
+      "breakpoints": true
     }
   ]
 }

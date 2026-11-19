@@ -1,0 +1,241 @@
+diff --git a/supabase/functions/_shared/originalsPromo.ts b/supabase/functions/_shared/originalsPromo.ts
+index 8f71385f..e2552c93 100644
+--- a/supabase/functions/_shared/originalsPromo.ts
++++ b/supabase/functions/_shared/originalsPromo.ts
+@@ -9,6 +9,8 @@ export interface PromoResult {
+   description: string | null;
+   discountUsd: number;
+   internalTest: boolean;
++  /** Ship without the Nyzora packing card (trade orders going to the reseller's customer). */
++  blindShip: boolean;
+ }
+ 
+ export interface PromoError {
+@@ -17,11 +19,27 @@ export interface PromoError {
+ 
+ const round2 = (n: number) => Math.round(n * 100) / 100;
+ 
++/**
++ * Trade codes are locked to named accounts. Returns null when the email may
++ * use the code, otherwise the message to show. Only a verified, signed-in
++ * email counts — a typed checkout email could be anyone's.
++ */
++export function lockedCodeError(allowed: unknown, verifiedEmail: string | null | undefined): string | null {
++  const list = Array.isArray(allowed)
++    ? allowed.map((e) => String(e ?? "").trim().toLowerCase()).filter(Boolean)
++    : [];
++  if (list.length === 0) return null;
++  const email = String(verifiedEmail ?? "").trim().toLowerCase();
++  if (!email) return "Sign in with the email this code was issued to.";
++  return list.includes(email) ? null : "That code isn't valid.";
++}
++
+ export async function resolvePromo(
+   admin: { from: (t: string) => any; rpc?: (fn: string, args: Record<string, unknown>) => any },
+   rawCode: unknown,
+   subtotalUsd: number,
+   userId?: string | null,
++  verifiedEmail?: string | null,
+ ): Promise<PromoResult | PromoError | null> {
+   const code = String(rawCode ?? "").trim().toUpperCase().slice(0, 32);
+   if (!code) return null;
+@@ -29,7 +47,7 @@ export async function resolvePromo(
+   const { data: promo, error } = await admin
+     .from("originals_promo_codes")
+     .select(
+-      "code, description, percent_off, amount_off_usd, min_subtotal_usd, active, starts_at, expires_at, max_redemptions, times_redeemed, admin_only",
++      "code, description, percent_off, amount_off_usd, min_subtotal_usd, active, starts_at, expires_at, max_redemptions, times_redeemed, admin_only, allowed_emails, blind_ship",
+     )
+     .ilike("code", code)
+     .maybeSingle();
+@@ -45,6 +63,9 @@ export async function resolvePromo(
+     if (!isAdmin) return { error: "That code isn't valid." };
+   }
+ 
++  const lockError = lockedCodeError(promo.allowed_emails, verifiedEmail);
++  if (lockError) return { error: lockError };
++
+   if (!promo.active) return { error: "That code is no longer active." };
+ 
+   const now = Date.now();
+@@ -80,6 +101,7 @@ export async function resolvePromo(
+     description: promo.description ?? null,
+     discountUsd: discount,
+     internalTest,
++    blindShip: promo.blind_ship === true,
+   };
+ }
+ 
+diff --git a/supabase/functions/_shared/slant3d.ts b/supabase/functions/_shared/slant3d.ts
+index 0d034846..8cffbb06 100644
+--- a/supabase/functions/_shared/slant3d.ts
++++ b/supabase/functions/_shared/slant3d.ts
+@@ -300,6 +300,7 @@ export async function draftOrder(
+   customer: { email: string; address: PartnerAddress },
+   items: PartnerPrintItem[],
+   ownerId?: string,
++  opts: { packingInsert?: boolean } = {},
+ ): Promise<PartnerDraftOrder> {
+   const orderItems: Array<Record<string, unknown>> = items.map((i) => ({
+     type: "PRINT",
+@@ -307,7 +308,8 @@ export async function draftOrder(
+     publicFileServiceId: i.publicFileServiceId,
+     ...(i.filamentId ? { filamentId: i.filamentId } : {}),
+   }));
+-  const insertId = stationeryId();
++  // Trade orders ship plain to the reseller's customer — no Nyzora card.
++  const insertId = opts.packingInsert === false ? null : stationeryId();
+   if (insertId) {
+     orderItems.push({
+       type: "STATIONERY",
+@@ -363,8 +365,9 @@ export async function placeOrder(
+   customer: { email: string; address: PartnerAddress },
+   items: PartnerPrintItem[],
+   ownerId?: string,
++  opts: { packingInsert?: boolean } = {},
+ ): Promise<{ orderId: string; draft: PartnerDraftOrder; raw: unknown }> {
+-  const draft = await draftOrder(customer, items, ownerId);
++  const draft = await draftOrder(customer, items, ownerId, opts);
+   const raw = await processOrder(draft.publicId);
+   return { orderId: draft.publicId, draft, raw };
+ }
+diff --git a/supabase/functions/originals-fulfill/index.ts b/supabase/functions/originals-fulfill/index.ts
+index 9877b339..b42b7b26 100644
+--- a/supabase/functions/originals-fulfill/index.ts
++++ b/supabase/functions/originals-fulfill/index.ts
+@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
+     const base = admin
+       .from("originals_orders")
+       .select(
+-        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta, payment_provider, production_status",
++        "id, group_id, status, sku_slug, size_label, quantity, personalization, customer_email, shipping_address, print_file_url, partner_order_id, engraved_text, engraving_meta, payment_provider, production_status, promo_code",
+       );
+     const { data: rows, error } = groupId
+       ? await base.eq("group_id", groupId)
+@@ -383,7 +383,19 @@ Deno.serve(async (req) => {
+       details: { pieces: items.length, filaments: filamentByOrder },
+     });
+ 
+-    const placed = await placeOrder(buyer, items, "nyzora-originals");
++    // Codes marked blind_ship (reseller orders) go out without our packing card.
++    let packingInsert = true;
++    const promoCode = paid.map((r) => r.promo_code).find((c) => typeof c === "string" && c);
++    if (promoCode) {
++      const { data: promoRow } = await admin
++        .from("originals_promo_codes")
++        .select("blind_ship")
++        .ilike("code", promoCode)
++        .maybeSingle();
++      if (promoRow?.blind_ship === true) packingInsert = false;
++    }
++
++    const placed = await placeOrder(buyer, items, "nyzora-originals", { packingInsert });
+ 
+     const now = new Date().toISOString();
+     await logPartnerEvents(admin, usedFiles.map((f) => f.id), {
+diff --git a/supabase/functions/originals-preview/index.ts b/supabase/functions/originals-preview/index.ts
+index 1039d7cf..f470b441 100644
+--- a/supabase/functions/originals-preview/index.ts
++++ b/supabase/functions/originals-preview/index.ts
+@@ -79,11 +79,13 @@ Deno.serve(async (req) => {
+ 
+     // Optional identity — this flow is deliberately open to logged-out buyers.
+     let userId: string | null = null;
++    let verifiedEmail: string | null = null;
+     const authHeader = req.headers.get("Authorization") ?? "";
+     const token = authHeader.replace(/^Bearer\s+/i, "");
+     if (token) {
+       const { data } = await admin.auth.getUser(token);
+       userId = data?.user?.id ?? null;
++      verifiedEmail = data?.user?.email_confirmed_at ? (data.user.email ?? null) : null;
+     }
+ 
+     const ip = (req.headers.get("x-forwarded-for") ?? "").split(",")[0].trim() || "unknown";
+@@ -111,6 +113,20 @@ Deno.serve(async (req) => {
+       unlimited = isAdmin === true;
+     }
+ 
++    // Trade accounts (resellers making previews for their customers) get a
++    // higher daily allowance, matched on their verified sign-in email.
++    let dailyLimit = FREE_PREVIEWS_PER_DAY;
++    if (!unlimited && userId && verifiedEmail) {
++      const { data: trade } = await admin
++        .from("originals_trade_accounts")
++        .select("daily_preview_limit")
++        .ilike("email", verifiedEmail.trim())
++        .eq("active", true)
++        .maybeSingle();
++      const n = Number(trade?.daily_preview_limit);
++      if (Number.isFinite(n) && n > dailyLimit) dailyLimit = Math.min(200, Math.trunc(n));
++    }
++
+     if (!unlimited && !userId) {
+       // Guests get 2 renders per network per day, then must sign in.
+       const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+@@ -141,7 +157,7 @@ Deno.serve(async (req) => {
+         .or("photo_screen.is.null,photo_screen.not.like.rejected%")
+         .gte("created_at", since);
+       used = count ?? 0;
+-      if (used >= FREE_PREVIEWS_PER_DAY) {
++      if (used >= dailyLimit) {
+         return json({
+           error: "You've used your free previews for today. Order a piece to keep going, or come back tomorrow.",
+           code: "PREVIEW_LIMIT",
+@@ -419,7 +435,7 @@ Deno.serve(async (req) => {
+       previewId: row?.id ?? null,
+       previewUrl,
+       sourceUrl,
+-      remaining: unlimited ? null : Math.max(0, FREE_PREVIEWS_PER_DAY - used - 1),
++      remaining: unlimited ? null : Math.max(0, dailyLimit - used - 1),
+       // Lets the page show the name the render (and the lettering) now uses.
+       heading: typeof personalization.heading === "string" ? personalization.heading : null,
+     });
+diff --git a/supabase/functions/originals-promo/index.ts b/supabase/functions/originals-promo/index.ts
+index a46b5103..722b873a 100644
+--- a/supabase/functions/originals-promo/index.ts
++++ b/supabase/functions/originals-promo/index.ts
+@@ -32,13 +32,16 @@ Deno.serve(async (req) => {
+ 
+     // Admin-only codes only resolve for a signed-in admin.
+     let userId: string | null = null;
++    let verifiedEmail: string | null = null;
+     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+     if (token) {
+       const { data } = await admin.auth.getUser(token);
+       userId = data?.user?.id ?? null;
++      // Only a confirmed address can unlock a code issued to a named account.
++      verifiedEmail = data?.user?.email_confirmed_at ? (data.user.email ?? null) : null;
+     }
+ 
+-    const promo = await resolvePromo(admin, body.code, subtotal, userId);
++    const promo = await resolvePromo(admin, body.code, subtotal, userId, verifiedEmail);
+     if (!promo) return json({ error: "Enter a promo code." }, 400);
+     if (isPromoError(promo)) return json({ error: promo.error }, 400);
+ 
+diff --git a/supabase/functions/razorpay-checkout/index.ts b/supabase/functions/razorpay-checkout/index.ts
+index 4e54f4fb..62d88563 100644
+--- a/supabase/functions/razorpay-checkout/index.ts
++++ b/supabase/functions/razorpay-checkout/index.ts
+@@ -120,10 +120,13 @@ Deno.serve(async (req) => {
+     }));
+ 
+     let userId: string | null = null;
++    let verifiedEmail: string | null = null;
+     const token = (req.headers.get("Authorization") ?? "").replace(/^Bearer\s+/i, "");
+     if (token) {
+       const { data } = await admin.auth.getUser(token);
+       userId = data?.user?.id ?? null;
++      // Only a confirmed address can unlock a code issued to a named account.
++      verifiedEmail = data?.user?.email_confirmed_at ? (data.user.email ?? null) : null;
+     }
+ 
+     // Attach each line to its preview (image + personalization) when we have one.
+@@ -164,7 +167,7 @@ Deno.serve(async (req) => {
+     const subtotalUsd = Math.round(priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0) * 100) / 100;
+ 
+     // Promo codes are resolved server-side against the real subtotal.
+-    const promo = await resolvePromo(admin, body.promoCode, subtotalUsd, userId);
++    const promo = await resolvePromo(admin, body.promoCode, subtotalUsd, userId, verifiedEmail);
+     if (isPromoError(promo)) return json({ error: promo.error }, 400);
+     const discountUsd = promo?.discountUsd ?? 0;
+     const totalUsd = Math.round((subtotalUsd - discountUsd) * 100) / 100;

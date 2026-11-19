@@ -77,3 +77,7 @@
 - [x] Outreach: confirm today's 15 queued emails go out (scheduled Thu Nov 12, 1:58–2:08 PM ET = today)
 - [x] Outreach: show "Today/Tomorrow" instead of weekday; add "Send now" for queued emails
 - [x] Outreach: one button that finds new people (public emails, checked against their source page), writes their emails, and readies the next batch
+
+## Trade partners (2026-11-19)
+- [x] Draft the info email to Ralf (memorials.com) at 40% trade price
+- [ ] Ralf's trade setup: code that only works for his account, more previews a day for him, no Nyzora card in his boxes. On hold until the owner says go. Changes parked in .lovable/pending/ralf-trade-code.patch
