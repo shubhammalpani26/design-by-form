@@ -71,8 +71,13 @@ serve(async (req) => {
     // Generate hash for the image
     const imageHash = simpleImageHash(imageUrl);
 
-    // Check if similar hash exists
-    const { data: existingHashes, error: searchError } = await supabaseClient
+    // Compare against all stored hashes server-side only. Hashes are not
+    // readable by shoppers or creators directly; only the match count leaves here.
+    const serviceClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    );
+    const { data: existingHashes, error: searchError } = await serviceClient
       .from('design_hashes')
       .select('product_id, image_hash')
       .neq('product_id', productId || '')
