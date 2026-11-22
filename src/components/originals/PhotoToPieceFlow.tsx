@@ -29,6 +29,8 @@ import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/m
 import { clearDraft, loadDraft, saveDraft } from "@/lib/originalsDraft";
 import { actualWeightLabel } from "@/lib/originalsWeight";
 import { suggestColorFromPhoto } from "@/lib/suggestColorFromPhoto";
+import { formatShipBy } from "@/lib/shipBy";
+import { secondCopyUsd } from "@/lib/originalsOffers";
 
 
 
@@ -164,6 +166,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   // Petite is pre-picked the moment a preview appears (see below); shoppers can
   // change it but never have to.
   const [sizeKey, setSizeKey] = useState<string | null>(null);
+  const [secondCopy, setSecondCopy] = useState(false);
   const sizeRef = useRef<HTMLDivElement | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -508,6 +511,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     setShowTweak(false);
     setTweak("");
     setTweakCount(0);
+    setSecondCopy(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -573,12 +577,13 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     if (mode === "photo") changePhoto("unprintable_fix");
   };
 
+  const secondCopyPrice = secondCopyUsd(selectedPrice);
   const basketLines = [
     ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
-    { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1 },
+    { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1, secondCopy },
   ];
-  const basketCount = cart.count + 1;
-  const basketTotal = cart.total + selectedPrice;
+  const basketCount = cart.count + 1 + (secondCopy ? 1 : 0);
+  const basketTotal = cart.total + selectedPrice + (secondCopy ? secondCopyPrice : 0);
 
   const requireSize = () => {
     if (sizeKey) return true;
@@ -1175,6 +1180,11 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   Add this piece & make another before paying
                 </Button>
 
+                <div className="mt-4 border border-border bg-secondary/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+                  <p className="text-foreground">Crafted &amp; ships by {formatShipBy()}</p>
+                  <p className="mt-1">Free remake if it's not right · Made to order in the USA · Packed safely, free US shipping</p>
+                </div>
+
                 <div className="mt-4">
                   {clientSecret ? (
                     <OriginalsCheckout key={clientSecret} clientSecret={clientSecret} />
@@ -1239,10 +1249,31 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   </p>
                 )}
 
+                {preview && !unprintable && (
+                  <button
+                    type="button"
+                    onClick={() => setSecondCopy((v) => !v)}
+                    aria-pressed={secondCopy}
+                    className={`mt-5 flex w-full items-center gap-3 border px-3 py-3 text-left transition-colors ${secondCopy ? "border-foreground bg-secondary/40" : "border-border hover:border-foreground/50"}`}
+                  >
+                    <span className={`flex h-5 w-5 shrink-0 items-center justify-center border text-xs ${secondCopy ? "border-foreground bg-foreground text-background" : "border-foreground/40"}`}>
+                      {secondCopy ? "✓" : ""}
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm">Add a 2nd identical copy for ${secondCopyPrice} — save 35%</span>
+                      <span className="block text-xs text-muted-foreground">Same piece, same box. Perfect for gifting.</span>
+                    </span>
+                  </button>
+                )}
+
+                <div className="mt-4 border border-border bg-secondary/40 px-3 py-2.5 text-center text-xs leading-relaxed text-muted-foreground">
+                  Free remake if it's not right · Made to order in the USA · Packed safely, free US shipping
+                </div>
+
                 <Button
                   type="button"
                   size="lg"
-                  className="mt-5 w-full rounded-none h-12"
+                  className="mt-4 w-full rounded-none h-12"
                   disabled={checkingOut || refining || (!sizeKey && !unprintable)}
                   onClick={(e) => {
                     e.preventDefault();
@@ -1269,7 +1300,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                         : reveal.cta(selectedPrice)}
                 </Button>
                 <p className="mt-2 text-center text-xs text-muted-foreground">
-                  You see the preview before you pay · free remake if it's not right · Ships in 7–8 business days
+                  You see the preview before you pay · Crafted &amp; ships by {formatShipBy()}
                 </p>
 
                 <Button

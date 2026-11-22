@@ -7,7 +7,7 @@ import {
   razorpayMode,
 } from "../_shared/razorpay.ts";
 import { checkoutReminderDueAt } from "../_shared/previewEmail.ts";
-import { PRICE_BOOK, SKU_NAMES, quoteLine } from "../_shared/originalsPricing.ts";
+import { PRICE_BOOK, SKU_NAMES, quoteLine, secondCopyUsd } from "../_shared/originalsPricing.ts";
 import { isPromoError, resolvePromo } from "../_shared/originalsPromo.ts";
 
 
@@ -33,6 +33,7 @@ interface RawLine {
   sizeKey?: unknown;
   previewId?: unknown;
   quantity?: unknown;
+  secondCopy?: unknown;
 }
 
 const str = (v: unknown, max: number) => String(v ?? "").trim().slice(0, max);
@@ -92,12 +93,15 @@ Deno.serve(async (req) => {
     const lines = rawLines.map((l) => {
       const skuSlug = String(l.skuSlug ?? "");
       const sizeKey = String(l.sizeKey ?? "standard");
+      const secondCopy = l.secondCopy === true;
       const qty = Number(l.quantity ?? 1);
       return {
         skuSlug,
         sizeKey,
         previewId: typeof l.previewId === "string" && l.previewId ? l.previewId : null,
-        quantity: Number.isFinite(qty) ? Math.min(MAX_QTY, Math.max(1, Math.trunc(qty))) : 1,
+        // A second-copy line is always exactly two of the same piece.
+        quantity: secondCopy ? 2 : Number.isFinite(qty) ? Math.min(MAX_QTY, Math.max(1, Math.trunc(qty))) : 1,
+        secondCopy,
         size: PRICE_BOOK[skuSlug]?.[sizeKey],
       };
     });
@@ -160,8 +164,12 @@ Deno.serve(async (req) => {
       },
     };
 
+    // Second copy: first unit at full price, the identical extra at 35% off.
+    const lineTotal = (l: { unitUsd: number; quantity: number; secondCopy: boolean }) =>
+      l.secondCopy ? l.unitUsd + secondCopyUsd(l.unitUsd) : l.unitUsd * l.quantity;
+
     const totalPieces = priced.reduce((n, l) => n + l.quantity, 0);
-    const subtotalUsd = Math.round(priced.reduce((sum, l) => sum + l.unitUsd * l.quantity, 0) * 100) / 100;
+    const subtotalUsd = Math.round(priced.reduce((sum, l) => sum + lineTotal(l), 0) * 100) / 100;
 
     // Promo codes are resolved server-side against the real subtotal.
     const promo = await resolvePromo(admin, body.promoCode, subtotalUsd, userId);
@@ -179,7 +187,7 @@ Deno.serve(async (req) => {
     const rows = priced.map((l) => {
       const preview = l.previewId ? previewMap.get(l.previewId) : undefined;
       const matched = preview && preview.sku === l.skuSlug ? preview : undefined;
-      const lineSubtotal = l.unitUsd * l.quantity;
+      const lineSubtotal = lineTotal(l);
       return {
         group_id: groupId,
         preview_id: matched ? l.previewId : null,

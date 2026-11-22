@@ -80,6 +80,17 @@ export const FIXED_PRICE_SKUS = new Set([
   "pet-portrait-sculpture",
 ]);
 
+/**
+ * Owner decision 2026-11-22: a second identical copy of the same piece costs
+ * 35% off — $39 Petite / $58 Standard / $90 Statement. The extra copy reuses
+ * the same print file, so it is priced off the line's unit price, never quoted.
+ */
+export const SECOND_COPY_RATIO = 0.65;
+
+export function secondCopyUsd(unitUsd: number): number {
+  return Math.max(39, Math.round(unitUsd * SECOND_COPY_RATIO));
+}
+
 /** Quotes are stable for a day — the partner's slicer output does not move. */
 const CACHE_MS = 24 * 60 * 60 * 1000;
 

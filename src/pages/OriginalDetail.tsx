@@ -15,6 +15,7 @@ import { ReviewsSection } from "@/components/originals/ReviewsSection";
 import { BuyerPhotoStrip } from "@/components/originals/BuyerPhotoStrip";
 import { RealPiecesGallery } from "@/components/originals/RealPiecesGallery";
 import { getVariant, trackExperiment } from "@/lib/experiments";
+import { formatShipBy } from "@/lib/shipBy";
 import nyraPhoto from "@/assets/nyra-source-photo.jpeg.asset.json";
 import nalaaPhoto from "@/assets/pet-action-photo.jpeg.asset.json";
 
@@ -151,7 +152,7 @@ const OriginalDetail = () => {
 
           <div className="mt-8 grid grid-cols-3 gap-4 text-[11px] tracking-[0.15em] uppercase text-muted-foreground">
             <div className="flex flex-col gap-2"><Factory className="h-4 w-4" /> Made in the USA</div>
-            <div className="flex flex-col gap-2"><Truck className="h-4 w-4" /> Ships in 7–8 business days</div>
+            <div className="flex flex-col gap-2"><Truck className="h-4 w-4" /> Crafted &amp; ships by {formatShipBy()}</div>
             <div className="flex flex-col gap-2"><ShieldCheck className="h-4 w-4" /> Remake if it's not right</div>
           </div>
 

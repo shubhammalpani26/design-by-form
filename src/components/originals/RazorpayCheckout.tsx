@@ -17,6 +17,8 @@ export interface RazorpayLine {
   sizeKey: string;
   previewId: string | null;
   quantity: number;
+  /** Identical extra copy at 35% off — re-priced server-side. */
+  secondCopy?: boolean;
 }
 
 interface Props {
