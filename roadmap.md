@@ -84,6 +84,7 @@
 
 ## Chente ad + checkout conversion (2026-11-22)
 - [x] Edit Chente reaction video into a 15 s ad (real footage, captions, price card)
+- [x] Re-cut Chente ad: dogs more visible, add the kiss on the sculpture (owner 2026-11-22)
 - [ ] Upload Chente ad to Meta and add it paused to Holiday Gift; account balance is ₹0, owner must add funds before it can run
 - [ ] Delivery date notice on product + preview pages (waiting: owner to confirm splitting "ships in 7–8 business days" into ship + delivery dates)
 - [ ] Second-copy add-on in checkout (waiting: price per size)
