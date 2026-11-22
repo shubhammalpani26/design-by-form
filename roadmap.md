@@ -81,3 +81,10 @@
 ## Trade partners (2026-11-19)
 - [x] Draft the info email to Ralf (memorials.com) at 40% trade price
 - [ ] Ralf's trade setup: code that only works for his account, more previews a day for him, no Nyzora card in his boxes. On hold until the owner says go. Changes parked in .lovable/pending/ralf-trade-code.patch
+
+## Chente ad + checkout conversion (2026-11-22)
+- [x] Edit Chente reaction video into a 15 s ad (real footage, captions, price card)
+- [ ] Upload Chente ad to Meta and add it paused to Holiday Gift; account balance is ₹0, owner must add funds before it can run
+- [ ] Delivery date notice on product + preview pages (waiting: owner to confirm splitting "ships in 7–8 business days" into ship + delivery dates)
+- [ ] Second-copy add-on in checkout (waiting: price per size)
+- [ ] Guarantee strip above Buy now (wording must stay "Remake if it's not right")
