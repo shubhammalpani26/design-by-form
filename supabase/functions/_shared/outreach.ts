@@ -20,15 +20,23 @@ export function ensureFirst30(body: string, isCreator: boolean): string {
   return `${body.trim()}\n\n${FIRST30_LINE}`;
 }
 // Shops/vets/memorial stores earn a fixed share of every order placed with their
-// own code. Stated as one plain number so there's no "what's the catch".
+// own code, and their customers get a small discount. Both tiers are stated up
+// front so there's no "what's the catch" and nothing changes after they reply.
 export const BUSINESS_SHARE_PCT = 20;
+export const BUSINESS_STATEMENT_SHARE_PCT = 30;
+export const BUSINESS_CUSTOMER_DISCOUNT_PCT = 5;
 export const BUSINESS_SHARE_LINE =
-  `If your customers would like one too, you'd get your own code, and ${BUSINESS_SHARE_PCT}% of every order placed with it goes to you. No cost, no minimums.`;
+  `If your customers would like one too, you'd get your own code: they get ${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off, and ${BUSINESS_SHARE_PCT}% of every order goes to you, or ${BUSINESS_STATEMENT_SHARE_PCT}% on our largest Statement piece. No cost, no minimums.`;
 
-/** Business emails must state the share exactly once; creators never get it. */
+/** Business emails must state both share tiers exactly once; creators never get them. */
 export function ensureBusinessShare(body: string, isBusiness: boolean): string {
-  if (!isBusiness || body.includes(`${BUSINESS_SHARE_PCT}%`)) return body;
-  return `${body.trim()}\n\n${BUSINESS_SHARE_LINE}`;
+  if (!isBusiness) return body;
+  const hasAll = body.includes(`${BUSINESS_SHARE_PCT}%`) && body.includes(`${BUSINESS_STATEMENT_SHARE_PCT}%`) &&
+    body.includes(`${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off`);
+  if (hasAll) return body;
+  // Drop any partial/garbled version the writer produced, then add ours.
+  const cleaned = body.split(/\n{2,}/).filter((p) => !/\d+%/.test(p)).join("\n\n");
+  return `${cleaned.trim()}\n\n${BUSINESS_SHARE_LINE}`;
 }
 export const PET_PAGE = "https://nyzora.ai/originals/pet-portrait-sculpture";
 

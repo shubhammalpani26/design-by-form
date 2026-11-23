@@ -86,11 +86,16 @@ Deno.test("creator emails always carry the first-30 line; businesses never do", 
   assert(!biz.includes("first 30"));
 });
 
-Deno.test("business emails state the 20% share of each order exactly once; creators never do", () => {
+Deno.test("business emails offer 5% off for customers, 20% per order to the shop and 30% on Statement — once", () => {
   const biz = ensureBusinessShare("Hi team,\n\nA free display piece for your shop.", true);
-  assert(biz.includes("20% of every order placed with it goes to you"));
-  assertEquals(ensureBusinessShare(biz, true).split("20%").length - 1, 1);
-  assert(BUSINESS_SHARE_LINE.includes("20%"));
+  assert(biz.includes("they get 5% off"));
+  assert(biz.includes("20% of every order goes to you"));
+  assert(biz.includes("30% on our largest Statement piece"));
+  assertEquals(ensureBusinessShare(biz, true).split("30%").length - 1, 1);
+  // A vague or wrong figure from the writer is replaced, never left beside ours.
+  const vague = ensureBusinessShare("Hi team,\n\nA free piece.\n\nYou'd earn 20-30% on sales.", true);
+  assert(!vague.includes("20-30%"));
+  assertEquals(vague.split("20%").length - 1, 1);
   const creator = ensureBusinessShare("Hi Liz,\n\nLovely post about Rosebud.", false);
   assert(!creator.includes("%"));
 });

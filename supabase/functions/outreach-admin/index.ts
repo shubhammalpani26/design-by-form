@@ -187,7 +187,7 @@ For CREATORS (petfluencers), use this shape:
 For BUSINESSES, use this shape:
   1. Opener about the business.
   2. The free display piece offer in 1–2 sentences (no cost, no commitment).
-  3. You MUST include this sentence, worded naturally, with the exact percentage: "${BUSINESS_SHARE_LINE}" Never give a range or a different percentage, and never say "commission structure", "terms apply" or similar.
+  3. You MUST include this sentence, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
   4. The easy ask: reply if they'd like one and we'll ask for a photo.
   No urgency of any kind. Do NOT mention payout timing, statements, or other fine print — that comes later when they reply.
 
