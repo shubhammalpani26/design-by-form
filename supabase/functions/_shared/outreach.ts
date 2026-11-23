@@ -19,6 +19,17 @@ export function ensureFirst30(body: string, isCreator: boolean): string {
   if (!isCreator || body.toLowerCase().includes("first 30")) return body;
   return `${body.trim()}\n\n${FIRST30_LINE}`;
 }
+// Shops/vets/memorial stores earn a fixed share of every order placed with their
+// own code. Stated as one plain number so there's no "what's the catch".
+export const BUSINESS_SHARE_PCT = 20;
+export const BUSINESS_SHARE_LINE =
+  `If your customers would like one too, you'd get your own code, and ${BUSINESS_SHARE_PCT}% of every order placed with it goes to you. No cost, no minimums.`;
+
+/** Business emails must state the share exactly once; creators never get it. */
+export function ensureBusinessShare(body: string, isBusiness: boolean): string {
+  if (!isBusiness || body.includes(`${BUSINESS_SHARE_PCT}%`)) return body;
+  return `${body.trim()}\n\n${BUSINESS_SHARE_LINE}`;
+}
 export const PET_PAGE = "https://nyzora.ai/originals/pet-portrait-sculpture";
 
 const EMAIL_RE = /^[^\s@<>(),;:"]+@[^\s@<>(),;:"]+\.[a-z]{2,}$/i;

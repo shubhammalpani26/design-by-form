@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
-  classifyReply, ensureFirst30, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
+  classifyReply, ensureFirst30, ensureBusinessShare, BUSINESS_SHARE_LINE, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
   remainingToday, splitBatch, waveTimes, findTargets, isCheckableUrl, emailOnPage,
 } from "./outreach.ts";
 
@@ -84,6 +84,15 @@ Deno.test("creator emails always carry the first-30 line; businesses never do", 
   assertEquals(already.split("first 30").length - 1, 1);
   const biz = ensureFirst30("Hi team,\n\nA free display piece for your shop.", false);
   assert(!biz.includes("first 30"));
+});
+
+Deno.test("business emails state the 20% share of each order exactly once; creators never do", () => {
+  const biz = ensureBusinessShare("Hi team,\n\nA free display piece for your shop.", true);
+  assert(biz.includes("20% of every order placed with it goes to you"));
+  assertEquals(ensureBusinessShare(biz, true).split("20%").length - 1, 1);
+  assert(BUSINESS_SHARE_LINE.includes("20%"));
+  const creator = ensureBusinessShare("Hi Liz,\n\nLovely post about Rosebud.", false);
+  assert(!creator.includes("%"));
 });
 
 Deno.test("emails are validated and lower-cased", () => {

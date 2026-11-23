@@ -7,7 +7,7 @@ import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "../_
 import { requireCaller } from "../_shared/requireCaller.ts";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
 import {
-  classifyReply, ensureFirst30, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
+  classifyReply, ensureFirst30, ensureBusinessShare, BUSINESS_SHARE_LINE, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
   remainingToday, splitBatch, trackedLink, waveTimes, emailOnPage, findTargets, isCheckableUrl,
 } from "../_shared/outreach.ts";
 
@@ -184,7 +184,12 @@ For CREATORS (petfluencers), use this shape:
   6. Ask: reply with a favourite photo of [pet].
   Do NOT mention "organic only", "no paid ads", "while live", the 10-order bonus, or other fine print — that comes later when they reply.
 
-For BUSINESSES: opener, the free display piece offer in 1–2 sentences (no cost, no commitment), and the easy ask (reply if they'd like one and we'll ask for a photo). No urgency of any kind.
+For BUSINESSES, use this shape:
+  1. Opener about the business.
+  2. The free display piece offer in 1–2 sentences (no cost, no commitment).
+  3. You MUST include this sentence, worded naturally, with the exact percentage: "${BUSINESS_SHARE_LINE}" Never give a range or a different percentage, and never say "commission structure", "terms apply" or similar.
+  4. The easy ask: reply if they'd like one and we'll ask for a photo.
+  No urgency of any kind. Do NOT mention payout timing, statements, or other fine print — that comes later when they reply.
 
 Both:
 - Include the link given for that person exactly once, on its own line, introduced naturally ("You can see the pieces here:").
@@ -224,7 +229,9 @@ async function draftChunk(req: Request, admin: Admin) {
     let body = e.body.trim();
     const link = trackedLink(c.category_slug);
     if (!body.includes(link)) body = `${body}\n\nYou can see the pieces here:\n${link}`;
-    body = ensureFirst30(body, catBy.get(c.category_slug)?.kind === "creator");
+    const kind = catBy.get(c.category_slug)?.kind ?? "business";
+    body = ensureFirst30(body, kind === "creator");
+    body = ensureBusinessShare(body, kind !== "creator");
     await admin.from("outreach_contacts").update({
       status: "drafted", subject: e.subject.trim().slice(0, 120), body: finalizeBody(body),
       drafted_at: new Date().toISOString(), last_error: null,
