@@ -8,6 +8,7 @@
 
 ## Done: B2B outreach share (2026-11-23)
 - [x] Business emails state: own code, 5% off customers, 20% per order to partner, 30% on Statement (deployed; 6 waiting drafts updated)
+- [x] Creators moved to the same share: followers 10% off, 20% per order, 30% on Statement; 10-order bonus dropped (deployed)
 
 ## Waiting
 - Partner code payouts/tracking not built — shares settled by hand until it is

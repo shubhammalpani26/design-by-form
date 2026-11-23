@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
-  classifyReply, ensureFirst30, ensureBusinessShare, BUSINESS_SHARE_LINE, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
+  classifyReply, ensureFirst30, ensureBusinessShare, ensurePartnerShare, BUSINESS_SHARE_LINE, CREATOR_SHARE_LINE, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
   remainingToday, splitBatch, waveTimes, findTargets, isCheckableUrl, emailOnPage,
 } from "./outreach.ts";
 
@@ -96,8 +96,20 @@ Deno.test("business emails offer 5% off for customers, 20% per order to the shop
   const vague = ensureBusinessShare("Hi team,\n\nA free piece.\n\nYou'd earn 20-30% on sales.", true);
   assert(!vague.includes("20-30%"));
   assertEquals(vague.split("20%").length - 1, 1);
-  const creator = ensureBusinessShare("Hi Liz,\n\nLovely post about Rosebud.", false);
-  assert(!creator.includes("%"));
+});
+
+Deno.test("creator emails offer followers 10% off, 20% per order to the creator and 30% on Statement — once", () => {
+  const c = ensurePartnerShare("Hi Liz,\n\nLovely post about Rosebud.", true);
+  assert(c.includes("your followers get 10% off"));
+  assert(c.includes("20% of every order goes to you"));
+  assert(c.includes("30% on our largest Statement piece"));
+  assert(!c.includes("5% off"));
+  assertEquals(ensurePartnerShare(c, true), c);
+  // The old 10% commission offer is replaced, never sent beside the new one.
+  const old = ensurePartnerShare("Hi Liz,\n\nA gift.\n\nYou'd get 10% off for followers and 10% commission on every order.", true);
+  assert(!/commission/i.test(old));
+  assertEquals(old.split("20%").length - 1, 1);
+  assert(CREATOR_SHARE_LINE.includes("20%") && BUSINESS_SHARE_LINE.includes("5% off"));
 });
 
 Deno.test("emails are validated and lower-cased", () => {

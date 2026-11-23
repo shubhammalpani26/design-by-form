@@ -19,24 +19,41 @@ export function ensureFirst30(body: string, isCreator: boolean): string {
   if (!isCreator || body.toLowerCase().includes("first 30")) return body;
   return `${body.trim()}\n\n${FIRST30_LINE}`;
 }
-// Shops/vets/memorial stores earn a fixed share of every order placed with their
-// own code, and their customers get a small discount. Both tiers are stated up
-// front so there's no "what's the catch" and nothing changes after they reply.
-export const BUSINESS_SHARE_PCT = 20;
-export const BUSINESS_STATEMENT_SHARE_PCT = 30;
+// One partner program: creators and businesses both earn a fixed share of every
+// order placed with their own code (more on Statement), and their buyers get a
+// discount (creators' followers 10%, shops' customers 5%). Both tiers are stated
+// up front so there's no "what's the catch" and nothing changes after they reply.
+export const PARTNER_SHARE_PCT = 20;
+export const PARTNER_STATEMENT_SHARE_PCT = 30;
+export const CREATOR_FOLLOWER_DISCOUNT_PCT = 10;
 export const BUSINESS_CUSTOMER_DISCOUNT_PCT = 5;
-export const BUSINESS_SHARE_LINE =
-  `If your customers would like one too, you'd get your own code: they get ${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off, and ${BUSINESS_SHARE_PCT}% of every order goes to you, or ${BUSINESS_STATEMENT_SHARE_PCT}% on our largest Statement piece. No cost, no minimums.`;
+// Kept for existing imports.
+export const BUSINESS_SHARE_PCT = PARTNER_SHARE_PCT;
+export const BUSINESS_STATEMENT_SHARE_PCT = PARTNER_STATEMENT_SHARE_PCT;
 
-/** Business emails must state both share tiers exactly once; creators never get them. */
+export const BUSINESS_SHARE_LINE =
+  `If your customers would like one too, you'd get your own code: they get ${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off, and ${PARTNER_SHARE_PCT}% of every order goes to you, or ${PARTNER_STATEMENT_SHARE_PCT}% on our largest Statement piece. No cost, no minimums.`;
+export const CREATOR_SHARE_LINE =
+  `You'd also get your own code: your followers get ${CREATOR_FOLLOWER_DISCOUNT_PCT}% off, and ${PARTNER_SHARE_PCT}% of every order goes to you, or ${PARTNER_STATEMENT_SHARE_PCT}% on our largest Statement piece.`;
+
+/** Every outreach email states its group's partner terms exactly once, replacing any garbled version. */
+export function ensurePartnerShare(body: string, isCreator: boolean): string {
+  const discount = isCreator ? CREATOR_FOLLOWER_DISCOUNT_PCT : BUSINESS_CUSTOMER_DISCOUNT_PCT;
+  const line = isCreator ? CREATOR_SHARE_LINE : BUSINESS_SHARE_LINE;
+  const paras = body.split(/\n{2,}/);
+  const isTerms = (p: string) => /\d+\s*%/.test(p);
+  const terms = paras.filter(isTerms);
+  const exact = terms.length === 1 && terms[0].includes(`${discount}% off`) &&
+    terms[0].includes(`${PARTNER_SHARE_PCT}% of every order`) && terms[0].includes(`${PARTNER_STATEMENT_SHARE_PCT}%`) &&
+    !/commission/i.test(terms[0]);
+  if (exact) return body;
+  // Drop any partial/old/wrong version the writer produced, then add ours.
+  return `${paras.filter((p) => !isTerms(p)).join("\n\n").trim()}\n\n${line}`;
+}
+
+/** @deprecated use ensurePartnerShare */
 export function ensureBusinessShare(body: string, isBusiness: boolean): string {
-  if (!isBusiness) return body;
-  const hasAll = body.includes(`${BUSINESS_SHARE_PCT}%`) && body.includes(`${BUSINESS_STATEMENT_SHARE_PCT}%`) &&
-    body.includes(`${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off`);
-  if (hasAll) return body;
-  // Drop any partial/garbled version the writer produced, then add ours.
-  const cleaned = body.split(/\n{2,}/).filter((p) => !/\d+%/.test(p)).join("\n\n");
-  return `${cleaned.trim()}\n\n${BUSINESS_SHARE_LINE}`;
+  return isBusiness ? ensurePartnerShare(body, false) : body;
 }
 export const PET_PAGE = "https://nyzora.ai/originals/pet-portrait-sculpture";
 
