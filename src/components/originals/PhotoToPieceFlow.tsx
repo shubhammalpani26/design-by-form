@@ -22,7 +22,7 @@ import { OriginalsCheckout } from "./OriginalsCheckout";
 import { RazorpayCheckout } from "./RazorpayCheckout";
 import { PAYMENT_PROVIDER } from "@/lib/payments";
 import { EXPERIMENTS, getVariant, trackExperiment } from "@/lib/experiments";
-import { useOriginalsCart } from "@/lib/originalsCart";
+import { useOriginalsCart, cartLineTotal, cartCheckoutLine } from "@/lib/originalsCart";
 import { useOriginalsQuotes } from "@/lib/originalsQuote";
 import { ORIGINALS_COLORS, findOriginalsColor } from "@/lib/originalsColors";
 import { trackCustomize, trackInitiateCheckout, trackViewContent } from "@/lib/metaPixel";
@@ -496,6 +496,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     previewId: preview?.id ?? null,
     previewUrl: preview?.url ?? null,
     personName: displayName || undefined,
+    ...(secondCopy ? { secondCopy: true, quantity: 2 } : {}),
   });
 
   const resetForAnother = () => {
@@ -579,7 +580,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
 
   const secondCopyPrice = secondCopyUsd(selectedPrice);
   const basketLines = [
-    ...cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
+    ...cart.items.map(cartCheckoutLine),
     { skuSlug: sku.slug, sizeKey: sizeKey ?? selectedSize.key, previewId: preview?.id ?? null, quantity: 1, secondCopy },
   ];
   const basketCount = cart.count + 1 + (secondCopy ? 1 : 0);
@@ -648,7 +649,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     try {
       const { data, error } = await supabase.functions.invoke("originals-checkout", {
         body: {
-          items: cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity })),
+          items: cart.items.map(cartCheckoutLine),
           returnUrl: `${window.location.origin}/originals/checkout/return`,
           environment: getStripeEnvironment(),
         },
@@ -1161,9 +1162,9 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                             {item.productName}
                             {item.personName ? ` · ${item.personName}` : ""}
                           </p>
-                          <p className="text-xs text-muted-foreground">{item.sizeLabel} × {item.quantity}</p>
+                          <p className="text-xs text-muted-foreground">{item.sizeLabel} × {item.quantity}{item.secondCopy ? " · 2nd copy 35% off" : ""}</p>
                         </div>
-                        <span className="text-sm tabular-nums">${item.price * item.quantity}</span>
+                        <span className="text-sm tabular-nums">${cartLineTotal(item)}</span>
                       </div>
                     ))}
                   </div>
@@ -1216,7 +1217,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                             {item.productName}
                             {item.personName ? ` · ${item.personName}` : ""}
                           </p>
-                          <p className="text-xs text-muted-foreground">{item.sizeLabel}</p>
+                          <p className="text-xs text-muted-foreground">{item.sizeLabel}{item.secondCopy ? " · 2nd copy 35% off" : ""}</p>
                         </div>
                         <div className="flex items-center gap-1">
                           <button
@@ -1231,13 +1232,14 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                           <button
                             type="button"
                             aria-label="Increase quantity"
-                            className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                            className="h-7 w-7 border border-border text-sm hover:border-foreground/50 disabled:opacity-40"
+                            disabled={item.secondCopy}
                             onClick={() => cart.setQuantity(item.id, item.quantity + 1)}
                           >
                             +
                           </button>
                         </div>
-                        <span className="w-14 text-right text-sm tabular-nums">${item.price * item.quantity}</span>
+                        <span className="w-14 text-right text-sm tabular-nums">${cartLineTotal(item)}</span>
                       </div>
                     ))}
                   </div>
@@ -1462,7 +1464,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                     {item.personName || item.productName}
                   </p>
                   <p className="text-xs text-muted-foreground line-clamp-2">
-                    {item.personName ? `${item.productName} · ` : ""}{item.sizeLabel} · ${item.price}
+                    {item.personName ? `${item.productName} · ` : ""}{item.sizeLabel} · ${item.price}{item.secondCopy ? ` + 2nd copy $${cartLineTotal(item) - item.price}` : ""}
                   </p>
                 </div>
                 <div className="col-start-2 flex items-center gap-1 sm:col-start-auto">
@@ -1478,7 +1480,8 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                   <button
                     type="button"
                     aria-label="Increase quantity"
-                    className="h-7 w-7 border border-border text-sm hover:border-foreground/50"
+                    className="h-7 w-7 border border-border text-sm hover:border-foreground/50 disabled:opacity-40"
+                    disabled={item.secondCopy}
                     onClick={() => cart.setQuantity(item.id, item.quantity + 1)}
                   >
                     +
@@ -1504,7 +1507,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
                 <OriginalsCheckout key={savedSecret} clientSecret={savedSecret} />
               ) : (
                 <RazorpayCheckout
-                  items={cart.items.map((i) => ({ skuSlug: i.skuSlug, sizeKey: i.sizeKey, previewId: i.previewId, quantity: i.quantity }))}
+                  items={cart.items.map(cartCheckoutLine)}
                   returnUrl={`${window.location.origin}/originals/checkout/return`}
                   totalUsd={cart.total}
                   onPaying={() => { payingRef.current = true; trackExperiment("reveal_screen", revealVariant, "payment_reached", { skuSlug: sku.slug, metadata: { price: cart.total, pieces: cart.count, savedOnly: true } }); }}

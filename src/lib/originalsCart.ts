@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { secondCopyUsd } from "@/lib/originalsOffers";
 
 export interface OriginalsCartItem {
   /** Local line id. */
@@ -12,6 +13,8 @@ export interface OriginalsCartItem {
   previewId: string | null;
   previewUrl: string | null;
   personName?: string;
+  /** Two identical pieces, the second at the discounted second-copy price. Always quantity 2. */
+  secondCopy?: boolean;
 }
 
 const KEY = "nyzora.originals.cart.v1";
@@ -42,15 +45,19 @@ export const originalsCart = {
   add(item: Omit<OriginalsCartItem, "id" | "quantity"> & { quantity?: number }) {
     const items = read();
     // Same preview + same size is the same line — bump quantity instead.
-    const existing = items.find(
-      (i) => i.previewId === item.previewId && i.sizeKey === item.sizeKey && i.skuSlug === item.skuSlug,
-    );
+    // Second-copy pairs are fixed at two pieces, so they never merge.
+    const existing = item.secondCopy
+      ? undefined
+      : items.find(
+          (i) =>
+            !i.secondCopy && i.previewId === item.previewId && i.sizeKey === item.sizeKey && i.skuSlug === item.skuSlug,
+        );
     if (existing) {
       existing.quantity = Math.min(10, existing.quantity + (item.quantity ?? 1));
     } else {
       items.push({
         ...item,
-        quantity: Math.min(10, item.quantity ?? 1),
+        quantity: item.secondCopy ? 2 : Math.min(10, item.quantity ?? 1),
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
       });
     }
@@ -59,7 +66,12 @@ export const originalsCart = {
   },
   setQuantity(id: string, quantity: number) {
     const items = read()
-      .map((i) => (i.id === id ? { ...i, quantity: Math.max(0, Math.min(10, quantity)) } : i))
+      .map((i) => {
+        if (i.id !== id) return i;
+        // A pair can drop to one full-price piece, but can't grow past two.
+        if (i.secondCopy) return quantity >= 2 ? i : { ...i, secondCopy: false, quantity: Math.max(0, quantity) };
+        return { ...i, quantity: Math.max(0, Math.min(10, quantity)) };
+      })
       .filter((i) => i.quantity > 0);
     write(items);
   },
@@ -74,8 +86,20 @@ export const originalsCart = {
 export const cartCount = (items: OriginalsCartItem[]) =>
   items.reduce((n, i) => n + i.quantity, 0);
 
+export const cartLineTotal = (i: Pick<OriginalsCartItem, "price" | "quantity" | "secondCopy">) =>
+  i.secondCopy ? i.price + secondCopyUsd(i.price) : i.price * i.quantity;
+
 export const cartTotal = (items: OriginalsCartItem[]) =>
-  items.reduce((n, i) => n + i.price * i.quantity, 0);
+  items.reduce((n, i) => n + cartLineTotal(i), 0);
+
+/** The line sent to checkout; the server re-prices and forces pairs to quantity 2. */
+export const cartCheckoutLine = (i: OriginalsCartItem) => ({
+  skuSlug: i.skuSlug,
+  sizeKey: i.sizeKey,
+  previewId: i.previewId,
+  quantity: i.quantity,
+  ...(i.secondCopy ? { secondCopy: true } : {}),
+});
 
 export function useOriginalsCart() {
   const [items, setItems] = useState<OriginalsCartItem[]>(() => read());
