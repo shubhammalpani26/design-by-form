@@ -207,7 +207,11 @@ export default function OriginalsReturn() {
             </p>
             <p className="text-muted-foreground">Order {order.id.slice(0, 8)}</p>
             {order.emailMasked && (
-              <p className="text-muted-foreground">Confirmation sent to {order.emailMasked}</p>
+              <p className="text-muted-foreground">
+                {internalTest
+                  ? `No email sent yet — ${order.emailMasked} gets the confirmation once you approve it in Originals Ops`
+                  : `Confirmation sent to ${order.emailMasked}`}
+              </p>
             )}
           </div>
 
