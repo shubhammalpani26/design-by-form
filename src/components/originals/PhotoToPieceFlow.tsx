@@ -218,23 +218,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               });
           if (!cancelled && data?.previewId && data.skuSlug === sku.slug && d?.preview?.id !== data.previewId) {
             const p = { url: String(data.previewUrl), id: String(data.previewId), remaining: 0 };
-            // Restore the original photo too, so "Re-render with this change"
-            // works on a reopened preview without asking for the photo again.
-            if (data.sourceImageUrl) {
-              try {
-                const res = await fetch(String(data.sourceImageUrl));
-                const blob = await res.blob();
-                const dataUrl = await new Promise<string>((resolve, reject) => {
-                  const fr = new FileReader();
-                  fr.onload = () => resolve(String(fr.result));
-                  fr.onerror = () => reject(new Error("read failed"));
-                  fr.readAsDataURL(blob);
-                });
-                if (!cancelled) setPhoto({ dataUrl, name: "pet photo" });
-              } catch { /* photo stays empty; a tweak will ask to re-upload */ }
-            } else {
-              setPhoto(null);
-            }
+            if (!data.sourceImageUrl) setPhoto(null);
             setMode(data.mode === "template" ? "template" : "photo");
             setHeading(data.heading || "");
             setFootnote(data.footnote || "");
@@ -246,6 +230,24 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
             if (data.sizeKey && sku.sizes.some((s) => s.key === data.sizeKey)) setSizeKey(data.sizeKey);
             setPreview(p);
             setVersions([p]);
+          }
+          // Restore the original photo whenever this device doesn't already hold it
+          // (also when the on-device draft has the same preview but lost the photo),
+          // so "Re-render with this change" works on a reopened preview.
+          if (!cancelled && data?.previewId && data.skuSlug === sku.slug && data.sourceImageUrl
+              && !(d?.photo && d?.preview?.id === data.previewId)) {
+            try {
+              const res = await fetch(String(data.sourceImageUrl));
+              if (!res.ok) throw new Error("photo fetch failed");
+              const blob = await res.blob();
+              const dataUrl = await new Promise<string>((resolve, reject) => {
+                const fr = new FileReader();
+                fr.onload = () => resolve(String(fr.result));
+                fr.onerror = () => reject(new Error("read failed"));
+                fr.readAsDataURL(blob);
+              });
+              if (!cancelled) setPhoto({ dataUrl, name: "pet photo" });
+            } catch { /* photo stays empty; a tweak will ask to re-upload */ }
           }
           if (!cancelled && data?.previewId) {
             trackExperiment("reveal_screen", getVariant("reveal_screen"), savedToken ? "email_return" : "account_return", { skuSlug: sku.slug });
