@@ -12,7 +12,7 @@ Nyra and Nalaa, two real pieces made from owners' photos.
 
 [Offer, 1 sentence: free sculpture of your pet (creators) / free front-desk piece (shops)]
 [Terms, 1 short line: discount for their people + 20% to you, 30% on Statement, paid monthly]
-[Ask: reply with a photo]
+[Ask: reply with a favourite photo and your pet's name]
 
 More pieces: nyzora.ai/originals/...      <- one small link at the end
 Shubham, Founder, Nyzora
@@ -20,6 +20,7 @@ Reply "no thanks" and I won't email again.
 ```
 
 - The emails get shorter: about 60–90 words, down from 70–120.
+- The ask always requests both a photo and the pet's name, so we can make the lettering straight away.
 - Creators and shops both get the photo. Creator emails keep "first 30 creator partners this month".
 
 ## Why it should help, and the one risk
@@ -33,10 +34,10 @@ Reply "no thanks" and I won't email again.
 4. After about 50 sends, compare the reply rate with the earlier text-only batches.
 
 ## Technical notes
-- Compress `src/assets/originals-hero.jpg` to ~1000px-wide JPEG (~100 KB). Store it as a base64 constant in `supabase/functions/_shared/outreachPhoto.ts`, so the email never depends on a remote fetch.
+- Compress `src/assets/originals-hero.jpg` to ~900px-wide JPEG, aiming for 80 KB or less (100 KB at most). Store it as a base64 constant in `supabase/functions/_shared/outreachPhoto.ts`, so the email never depends on a remote fetch.
 - `rawEmail` in `_shared/outreach.ts`: build `multipart/alternative` (text/plain body unchanged) + `multipart/related` (simple HTML: escaped paragraphs, `<img src="cid:pieces">` at 100% max 520px wide, caption) with the JPEG as an inline CID part. Gmail send API accepts this raw MIME as-is.
 - The image goes after the first paragraph (the greeting plus hook) of the stored body. Body text stays plain in the DB, so replies, search and edits are unaffected.
-- Update the drafting INSTRUCTIONS in `outreach-admin/index.ts`: new shape, shorter length, link last. `ensurePartnerShare` stays as it is.
+- Update the drafting INSTRUCTIONS in `outreach-admin/index.ts`: new shape, shorter length, link last, and the ask names both a favourite photo and the pet's name (shops: "a photo of a pet you'd like and its name"). `ensurePartnerShare` stays as it is.
 - Add a test that the raw message holds text/plain, text/html with `cid:pieces`, and the image part with a matching Content-ID, and that the photo sits after the hook. Run the 16 existing tests too.
 - `OutreachPanel.tsx`: show the photo inline in the draft preview after the first paragraph.
 - Update the outreach-admin AGENTS.md rule: emails carry exactly one inline real-piece photo, never remote-hosted images.
