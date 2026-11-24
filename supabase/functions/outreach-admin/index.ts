@@ -6,10 +6,13 @@ import { generateStructured, LOVABLE_AI_GATEWAY_URL } from "../_shared/responses
 import { createLovableAiGatewayRunIdFetch, getLovableAiGatewayRunId } from "../_shared/run-id.ts";
 import { requireCaller } from "../_shared/requireCaller.ts";
 import { authenticateCronRequest } from "../_shared/cron-auth.ts";
+import { PIECES_PHOTO_ALT, PIECES_PHOTO_CAPTION, PIECES_PHOTO_CID, PIECES_PHOTO_JPEG_B64 } from "../_shared/outreachPhoto.ts";
 import {
   classifyReply, ensureFirst30, ensurePartnerShare, BUSINESS_SHARE_LINE, CREATOR_SHARE_LINE, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
   remainingToday, splitBatch, trackedLink, waveTimes, emailOnPage, findTargets, isCheckableUrl,
 } from "../_shared/outreach.ts";
+
+const PIECES_PHOTO = { cid: PIECES_PHOTO_CID, jpegBase64: PIECES_PHOTO_JPEG_B64, alt: PIECES_PHOTO_ALT, caption: PIECES_PHOTO_CAPTION };
 
 /**
  * Admin "Outreach" tab: founder cold emails sent one-to-one from Shubham's
@@ -130,7 +133,7 @@ async function sendDue(admin: Admin) {
     const c = rows[i];
     try {
       if (!c.subject || !c.body) throw new GmailError(400, "Email has no text");
-      const r = await gmail("POST", "/messages/send", { raw: rawEmail(c.email, c.subject, c.body) });
+      const r = await gmail("POST", "/messages/send", { raw: rawEmail(c.email, c.subject, c.body, PIECES_PHOTO) });
       await admin.from("outreach_contacts").update({
         status: "sent", sent_at: new Date().toISOString(), gmail_message_id: r.id ?? null,
         gmail_thread_id: r.threadId ?? null, last_error: null,
@@ -171,28 +174,27 @@ Write ONE email per person. It must read like a real note from a founder, not te
 
 Subject: under 45 characters, personal, no hype, no emojis, no ALL CAPS. Sentence case. E.g. "A little gift for Rosebud?" or "A sculpture for your front desk?".
 
-Body: 70–120 words, plain text, first person as Shubham, short paragraphs.
-- Greeting: "Hi [first name]," if a real first name is known; otherwise "Hi there," (creators) or "Hi [business name] team," (businesses). Never copy notes such as "unverified", "per LinkedIn" or brackets into the email.
-- Opener: one specific, genuine detail from what we know (their pet's name, a recent post, what the shop is known for). Never invent details; if we know little, keep it simple.
+Body: 60–90 words, plain text, first person as Shubham, short paragraphs.
+A real photo of two finished pieces (Nyra the dog and Nalaa the cat) is inserted automatically right after your hook paragraph, so the paragraph after the hook may refer to it naturally (e.g. "These are two we made recently."). Never describe the photo in detail and never write a caption.
+- Greeting: "Hi [first name]," on its own line if a real first name is known; otherwise "Hi there," (creators) or "Hi [business name] team," (businesses). Never copy notes such as "unverified", "per LinkedIn" or brackets into the email.
+- Hook (the paragraph right after the greeting): one or two sentences with one specific, genuine detail from what we know (their pet's name, a recent post, what the shop is known for). Never invent details; if we know little, keep it simple.
 
-For CREATORS (petfluencers), use this shape:
-  1. Opener about their pet.
-  2. "I'd love to send you a free sculpture of [pet], made from your favourite photo of them."
-  3. One sentence: if they love it, all we'd ask is one honest photo or video shared as a Collab post with @nyzora (with #gifted), and that we can reshare it with credit.
-  4. You MUST include this sentence, worded naturally, with the exact percentages: "${CREATOR_SHARE_LINE}" Never give a range, "up to", "commission", or different percentages.
-  5. You MUST include this sentence, worded naturally: "We're choosing our first 30 creator partners this month." (true; no other urgency).
-  6. Ask: reply with a favourite photo of [pet].
-  Do NOT mention "organic only", "no paid ads", "while live", payout timing, statements, or other fine print — that comes later when they reply.
+For CREATORS (petfluencers), after the hook:
+  1. "I'd love to send you a free sculpture of [pet], made from your favourite photo of them."
+  2. One sentence: if they love it, all we'd ask is one honest photo or video shared as a Collab post with @nyzora (with #gifted), and that we can reshare it with credit.
+  3. You MUST include this sentence, worded naturally, with the exact percentages: "${CREATOR_SHARE_LINE}" Never give a range, "up to", "commission", or different percentages.
+  4. You MUST include this sentence, worded naturally: "We're choosing our first 30 creator partners this month." (true; no other urgency).
+  5. Ask: reply with a favourite photo of [pet] and the name they'd like on it (if the pet's name is unknown: "a favourite photo and your pet's name").
+  Do NOT mention "organic only", "no paid ads", "while live", statements, or other fine print — that comes later when they reply.
 
-For BUSINESSES, use this shape (product and their clients first, terms after):
-  1. Opener about the business, then one sentence on why their clients would love a sculpture of their own pet.
-  2. Put the link here (see "Both" below) so they see real finished pieces before any numbers.
-  3. You MUST include this sentence once, as its own short paragraph, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
-  4. The free display piece for their front desk in one sentence (no cost, no commitment), and the easy ask: reply if they'd like one and we'll ask for a photo.
+For BUSINESSES, after the hook (product first, terms after):
+  1. The free display piece for their front desk in one sentence (no cost, no commitment).
+  2. You MUST include this sentence once, as its own short paragraph, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
+  3. Ask: reply with a photo of a pet they'd like made and its name.
   No urgency of any kind. No other fine print — that comes later when they reply.
 
 Both:
-- Include the link given for that person exactly once, on its own line, introduced naturally ("You can see the pieces here:").
+- Put the link given for that person exactly once, as the LAST paragraph, on its own line after "More pieces:".
 - Never mention AI, artificial intelligence, 3D printing, or generated images. Never write as if anyone is grieving; keep it a celebration of pets. Memorial businesses are partners, not bereaved customers.
 - Do NOT add a sign-off, signature, or opt-out line — they are added automatically.
 Return the line number you were given for each person.`;

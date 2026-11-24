@@ -1,6 +1,6 @@
 import { assert, assertEquals } from "jsr:@std/assert@1";
 import {
-  classifyReply, ensureFirst30, ensureBusinessShare, ensurePartnerShare, BUSINESS_SHARE_LINE, CREATOR_SHARE_LINE, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
+  classifyReply, emailHtml, rawEmail, splitForPhoto, ensureFirst30, ensureBusinessShare, ensurePartnerShare, BUSINESS_SHARE_LINE, CREATOR_SHARE_LINE, etToUtc, finalizeBody, FIRST30_LINE, nextSendSlot, normalizeEmail, OPT_OUT_LINE,
   remainingToday, splitBatch, waveTimes, findTargets, isCheckableUrl, emailOnPage,
 } from "./outreach.ts";
 
@@ -148,4 +148,26 @@ Deno.test("100 a day in waves of 25 all go out the same day when prepared by 10a
   assertEquals(hours, [10, 12, 14, 16]);
   assert(t[99].getTime() - t[0].getTime() < 7 * 3_600_000);
   assertEquals(remainingToday(100, 0), 100);
+});
+
+Deno.test("outreach photo sits right after the hook, not after the greeting", () => {
+  const { before, after } = splitForPhoto("Hi Liz,\n\nLovely post about Rosebud.\n\nI'd love to send you a free sculpture.\n\nMore pieces:\nhttps://nyzora.ai/x");
+  assertEquals(before, "Hi Liz,\n\nLovely post about Rosebud.");
+  assert(after.startsWith("I'd love"));
+});
+
+Deno.test("outreach email carries plain text plus HTML with one inline photo", () => {
+  const photo = { cid: "pieces", jpegBase64: "AAAA", alt: "Nyra and Nalaa", caption: "Two real pieces." };
+  const raw = rawEmail("a@b.com", "Hi", "Hi Liz,\n\nLovely post.\n\nOffer here.", photo);
+  const msg = atob(raw.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(raw.length / 4) * 4, "="));
+  assert(msg.includes("multipart/alternative") && msg.includes("text/plain") && msg.includes("text/html"));
+  assert(msg.includes("Content-ID: <pieces>") && msg.includes("Content-Type: image/jpeg"));
+  const html = emailHtml("Hi Liz,\n\nLovely post.\n\nOffer here.", photo);
+  assert(html.indexOf("Lovely post") < html.indexOf("cid:pieces") && html.indexOf("cid:pieces") < html.indexOf("Offer here"));
+  assertEquals((html.match(/<img/g) ?? []).length, 1);
+});
+
+Deno.test("real outreach photo stays small", async () => {
+  const { PIECES_PHOTO_JPEG_B64 } = await import("./outreachPhoto.ts");
+  assert(PIECES_PHOTO_JPEG_B64.length * 0.75 < 100_000);
 });

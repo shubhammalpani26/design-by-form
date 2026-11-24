@@ -195,18 +195,57 @@ function b64(s: string): string {
 }
 const header = (v: string) => (/^[\x00-\x7F]*$/.test(v) ? v : `=?UTF-8?B?${b64(v)}?=`);
 
-/** RFC 2822 message, base64url-encoded for Gmail's send endpoint. */
-export function rawEmail(to: string, subject: string, body: string): string {
+const GREETING = /^(hi|hello|hey|dear)\b[^\n]*,\s*$/i;
+
+/** Where the real-piece photo goes: right after the hook (the first paragraph that isn't just "Hi X,"). */
+export function splitForPhoto(body: string): { before: string; after: string } {
+  const paras = body.replace(/\r\n/g, "\n").trim().split(/\n{2,}/);
+  let i = 0;
+  while (i < paras.length - 1 && GREETING.test(paras[i].trim())) i++;
+  return { before: paras.slice(0, i + 1).join("\n\n"), after: paras.slice(i + 1).join("\n\n") };
+}
+
+const esc = (t: string) => t.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function htmlParas(text: string): string {
+  return text.split(/\n{2,}/).filter((p) => p.trim()).map((p) =>
+    `<p style="margin:0 0 14px">${esc(p.trim()).replace(/https?:\/\/[^\s<]+/g, (u) => `<a href="${u}">${u}</a>`).replace(/\n/g, "<br>")}</p>`
+  ).join("");
+}
+
+export type InlinePhoto = { cid: string; jpegBase64: string; alt: string; caption: string };
+
+/** Simple HTML version of the body with the inline photo placed after the hook. */
+export function emailHtml(body: string, photo: InlinePhoto): string {
+  const { before, after } = splitForPhoto(body);
+  return `<!doctype html><html><body style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#222">` +
+    htmlParas(before) +
+    `<p style="margin:0 0 6px"><img src="cid:${photo.cid}" alt="${esc(photo.alt)}" width="420" style="width:100%;max-width:420px;height:auto;border-radius:6px;display:block"></p>` +
+    `<p style="margin:0 0 14px;font-size:13px;color:#666">${esc(photo.caption)}</p>` +
+    htmlParas(after) + `</body></html>`;
+}
+
+const wrap = (b: string) => b.replace(/(.{76})/g, "$1\r\n");
+
+/** RFC 2822 message, base64url-encoded for Gmail's send endpoint. With a photo:
+ *  multipart/alternative (plain text + HTML with the photo inline by cid). */
+export function rawEmail(to: string, subject: string, body: string, photo?: InlinePhoto): string {
   const safeSubject = subject.replace(/[\r\n]+/g, " ").trim();
-  const msg = [
-    `To: ${to}`,
-    `Subject: ${header(safeSubject)}`,
-    "MIME-Version: 1.0",
-    'Content-Type: text/plain; charset="UTF-8"',
-    "Content-Transfer-Encoding: base64",
-    "",
-    b64(body).replace(/(.{76})/g, "$1\r\n"),
-  ].join("\r\n");
+  const head = [`To: ${to}`, `Subject: ${header(safeSubject)}`, "MIME-Version: 1.0"];
+  let msg: string;
+  if (!photo) {
+    msg = [...head, 'Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64", "", wrap(b64(body))].join("\r\n");
+  } else {
+    const alt = "nyz-alt-" + crypto.randomUUID(), rel = "nyz-rel-" + crypto.randomUUID();
+    msg = [
+      ...head, `Content-Type: multipart/alternative; boundary="${alt}"`, "",
+      `--${alt}`, 'Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64", "", wrap(b64(body)),
+      `--${alt}`, `Content-Type: multipart/related; boundary="${rel}"`, "",
+      `--${rel}`, 'Content-Type: text/html; charset="UTF-8"', "Content-Transfer-Encoding: base64", "", wrap(b64(emailHtml(body, photo))),
+      `--${rel}`, 'Content-Type: image/jpeg; name="nyra-and-nalaa.jpg"', "Content-Transfer-Encoding: base64",
+      `Content-ID: <${photo.cid}>`, 'Content-Disposition: inline; filename="nyra-and-nalaa.jpg"', "", wrap(photo.jpegBase64),
+      `--${rel}--`, `--${alt}--`, "",
+    ].join("\r\n");
+  }
   return b64(msg).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 

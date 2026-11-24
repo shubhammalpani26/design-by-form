@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { parseCsv, toContactRow } from "@/lib/csv";
+import piecesPhoto from "@/assets/originals-hero.jpg";
 import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload, Search } from "lucide-react";
 
 /**
@@ -16,6 +17,27 @@ import { Loader2, Mail, PauseCircle, RefreshCw, Send, Upload, Search } from "luc
  * look it over, send — it goes out in waves during US daytime. Replies,
  * opt-outs and bounces are read back from Gmail.
  */
+
+/** Mirrors splitForPhoto in the outreach function: the photo goes right after the hook. */
+function splitForPhoto(body: string) {
+  const paras = body.replace(/\r\n/g, "\n").trim().split(/\n{2,}/);
+  let i = 0;
+  while (i < paras.length - 1 && /^(hi|hello|hey|dear)\b[^\n]*,\s*$/i.test(paras[i].trim())) i++;
+  return { before: paras.slice(0, i + 1).join("\n\n"), after: paras.slice(i + 1).join("\n\n") };
+}
+
+function EmailLook({ body }: { body: string }) {
+  const { before, after } = splitForPhoto(body);
+  return (
+    <div className="space-y-2 border border-border bg-muted/30 p-3 text-xs text-foreground">
+      <div className="text-[11px] uppercase tracking-wide text-muted-foreground">How they'll see it</div>
+      <p className="whitespace-pre-wrap">{before}</p>
+      <img src={piecesPhoto} alt="Nyra and Nalaa, two real Nyzora sculptures" className="aspect-square w-full max-w-[260px] object-cover" />
+      <p className="text-[11px] text-muted-foreground">Nyra and Nalaa, two real pieces made from their owners' photos.</p>
+      <p className="whitespace-pre-wrap">{after}</p>
+    </div>
+  );
+}
 
 type Contact = {
   id: string; category_slug: string; email: string; contact_name: string | null; org_name: string | null;
@@ -131,7 +153,8 @@ function DraftCard({ c, catName, onChanged }: { c: Contact; catName: string; onC
           {c.personal_detail && <p className="text-xs text-muted-foreground">What we know: {c.personal_detail}</p>}
           <Input value={subject} onChange={(e) => setSubject(e.target.value)} aria-label="Subject" />
           <Textarea ref={bodyRef} value={body} onChange={(e) => setBody(e.target.value)} rows={12} className="resize-none overflow-hidden text-sm" aria-label="Message" />
-          <p className="text-[11px] text-muted-foreground">Your signature and the “no thanks” line are always added at the end.</p>
+          <p className="text-[11px] text-muted-foreground">Your signature and the “no thanks” line are always added at the end. The Nyra and Nalaa photo goes in right after your opening lines.</p>
+          <EmailLook body={body} />
           <div className="flex flex-wrap gap-2">
             <Button size="sm" onClick={save} disabled={busy}>Save changes</Button>
             <Button size="sm" variant="outline" onClick={skip} disabled={busy}>Don't send to this person</Button>
