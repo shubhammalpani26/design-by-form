@@ -184,13 +184,13 @@ For CREATORS (petfluencers), after the hook:
   2. One sentence: if they love it, all we'd ask is one honest photo or video shared as a Collab post with @nyzora (with #gifted), and that we can reshare it with credit.
   3. You MUST include this sentence, worded naturally, with the exact percentages: "${CREATOR_SHARE_LINE}" Never give a range, "up to", "commission", or different percentages.
   4. You MUST include this sentence, worded naturally: "We're choosing our first 30 creator partners this month." (true; no other urgency).
-  5. Ask: reply with a favourite photo of [pet] and the name they'd like on it (if the pet's name is unknown: "a favourite photo and your pet's name").
+  5. Ask, in one sentence: reply with a favourite photo of [pet], the name they'd like on it, and the delivery address to ship it to (if the pet's name is unknown: "a favourite photo, your pet's name and your delivery address").
   Do NOT mention "organic only", "no paid ads", "while live", statements, or other fine print — that comes later when they reply.
 
 For BUSINESSES, after the hook (product first, terms after):
   1. The free display piece for their front desk in one sentence (no cost, no commitment).
   2. You MUST include this sentence once, as its own short paragraph, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
-  3. Ask: reply with a photo of a pet they'd like made and its name.
+  3. Ask, in one sentence: reply with a photo of a pet they'd like made, its name, and the delivery address for the shop.
   No urgency of any kind. No other fine print — that comes later when they reply.
 
 Both:
