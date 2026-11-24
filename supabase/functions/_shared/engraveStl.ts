@@ -201,6 +201,27 @@ function box(out: Tri[], min: V3, max: V3) {
   }
 }
 
+/** Block plus tapered shoulder as ONE closed solid (no internal faces/rim). */
+function steppedPlinth(
+  out: Tri[],
+  bottom: { minX: number; maxX: number; minY: number; maxY: number; z: number },
+  mid: { minX: number; maxX: number; minY: number; maxY: number; z: number },
+  top: { minX: number; maxX: number; minY: number; maxY: number; z: number },
+) {
+  const ring = (r: typeof bottom): V3[] => [
+    [r.minX, r.minY, r.z], [r.maxX, r.minY, r.z], [r.maxX, r.maxY, r.z], [r.minX, r.maxY, r.z],
+  ];
+  const p: V3[] = [...ring(bottom), ...ring(mid), ...ring(top)];
+  const quads: Array<[number, number, number, number]> = [[0, 3, 2, 1], [8, 9, 10, 11]];
+  for (const base of [0, 4]) {
+    const q = (a: number, b: number, c: number, d: number): [number, number, number, number] =>
+      [a + base, b + base, c + base, d + base];
+    quads.push(q(0, 1, 5, 4), q(1, 2, 6, 5), q(2, 3, 7, 6), q(3, 0, 4, 7));
+  }
+  const v = (i: number): V3 => [p[i][0], p[i][1], p[i][2]];
+  for (const [a, b, c, d] of quads) out.push([v(a), v(b), v(c)], [v(a), v(c), v(d)]);
+}
+
 /** Adds a closed rectangular frustum used as the sculpted plinth shoulder. */
 function rectangularFrustum(
   out: Tri[],
@@ -769,9 +790,12 @@ function reinforceTris(tris: Tri[]): ReinforcedTris {
   const upperHalfY = Math.min(halfY - 2, Math.max(attachDepth / 2 + 3.5, halfY * 0.66));
   const upperCy = Math.max(-forwardBias, -halfY + upperHalfY + 2);
   const out: Tri[] = [];
-  box(out, [-halfX, -halfY, 0], [halfX, halfY, flatTop + 0.8]);
-  rectangularFrustum(
+  // One closed solid (block + shoulder) with no overlapping rim: a box that
+  // poked 0.8 mm above the shoulder's start left a visible lip/line across
+  // the top of the base (Murphy order, Nov 2026).
+  steppedPlinth(
     out,
+    { minX: -halfX, maxX: halfX, minY: -halfY, maxY: halfY, z: 0 },
     { minX: -halfX, maxX: halfX, minY: -halfY, maxY: halfY, z: flatTop },
     {
       minX: -upperHalfX,

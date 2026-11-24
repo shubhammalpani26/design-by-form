@@ -312,3 +312,19 @@ Deno.test("a single base with a straight bust above it is not mistaken for two p
   assert(result.applied);
   assertEquals(findStackedPlinth(parseStl(result.stl)).stacked, false);
 });
+
+Deno.test("base has no lip where the block meets the shoulder (Murphy line, Nov 2026)", () => {
+  const tris: Tri[] = [];
+  box(tris, [-28, -28, 0], [28, 28, 10]);
+  box(tris, [-17, -15, 10], [17, 15, 30]);
+  box(tris, [-20, -18, 34], [20, 18, 112]);
+  const result = reinforceKeepsakeStl(writeStl(tris));
+  assert(result.applied);
+  const pts = parseStl(result.stl).flatMap((t) => t);
+  const base = pts.filter((p) => p[2] <= result.baseHeightMm + 0.01);
+  const halfX = Math.max(...base.map((p) => Math.abs(p[0])));
+  // Full-width points may only sit on the bottom and the top of the straight
+  // block; nothing at full width may poke up into the tapered shoulder.
+  const fullWidthZ = [...new Set(base.filter((p) => Math.abs(Math.abs(p[0]) - halfX) < 1e-3).map((p) => p[2].toFixed(3)))];
+  assertEquals(fullWidthZ.length, 2, `full-width rim at heights ${fullWidthZ.join(", ")}`);
+});
