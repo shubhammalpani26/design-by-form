@@ -126,6 +126,7 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   const fileRef = useRef<HTMLInputElement>(null);
   const goRef = useRef<HTMLButtonElement>(null);
   const revealRef = useRef<HTMLDivElement>(null);
+  const pendingTweakRef = useRef<string | null>(null);
   useImperativeHandle(ref, () => ({ openPicker: () => fileRef.current?.click() }), []);
   const { reviews, count: reviewCount, average: reviewAverage } = useOriginalsReviews(sku.slug);
   const topReview = reviews[0];
@@ -399,6 +400,8 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     }
     const dataUrl = await preparePhotoDataUrl(file);
     setPhoto({ dataUrl, name: file.name });
+    // A fresh photo picked while a preview shows (not for a re-render) starts a new preview.
+    if (!pendingTweakRef.current) { setPreview(null); setShowTweak(false); setTweak(""); }
     // Bring the "See it made" button into view, e.g. after picking from the page's top button.
     requestAnimationFrame(() => {
       const btn = goRef.current;
@@ -419,11 +422,13 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     if (mode === "photo" && (!sku.photo || !photo)) {
       // A reopened preview whose photo couldn't be restored must say so —
       // silently doing nothing looks like a broken button.
-      if (tweakText.trim()) {
+      if (tweakText.trim() && sku.photo) {
+        // Ask for the photo right here and apply the change once it's picked.
+        pendingTweakRef.current = tweakText;
+        fileRef.current?.click();
         toast({
-          title: "We need the photo again",
-          description: "Re-upload your pet's photo above to apply this change — your current preview stays as it is.",
-          variant: "destructive",
+          title: "Choose your pet's photo once more",
+          description: "We'll apply your change as soon as it's picked — your current preview stays as it is.",
         });
       }
       return;
@@ -527,6 +532,15 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     personName: displayName || undefined,
     ...(secondCopy ? { secondCopy: true, quantity: 2 } : {}),
   });
+
+  // A re-render asked for the photo again: run it once the photo is back.
+  useEffect(() => {
+    const t = pendingTweakRef.current;
+    if (!t || !photo || !preview) return;
+    pendingTweakRef.current = null;
+    void generate(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photo]);
 
   const resetForAnother = () => {
     void clearDraft(sku.slug);
@@ -697,6 +711,14 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   return (
     <div className="border border-foreground/15 bg-muted/10">
       {/* ---- Step 1: the photo ---- */}
+      {/* Always mounted: the page's top button and re-render ask open it even while a preview shows. */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/png,image/jpeg,image/webp"
+        className="hidden"
+        onChange={(e) => { void pickFile(e.target.files?.[0]); e.target.value = ""; }}
+      />
       {!preview && (
         <div className="p-4 md:p-6">
           <p className="text-[11px] tracking-[0.3em] uppercase text-muted-foreground">
@@ -757,13 +779,6 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               </div>
             )}
            </Button>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            className="hidden"
-            onChange={(e) => void pickFile(e.target.files?.[0])}
-          />
 
           <PhotoPrivacyNotice className="mt-3" />
            {!showOptions && (
