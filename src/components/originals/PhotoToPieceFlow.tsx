@@ -218,7 +218,23 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
               });
           if (!cancelled && data?.previewId && data.skuSlug === sku.slug && d?.preview?.id !== data.previewId) {
             const p = { url: String(data.previewUrl), id: String(data.previewId), remaining: 0 };
-            setPhoto(null);
+            // Restore the original photo too, so "Re-render with this change"
+            // works on a reopened preview without asking for the photo again.
+            if (data.sourceImageUrl) {
+              try {
+                const res = await fetch(String(data.sourceImageUrl));
+                const blob = await res.blob();
+                const dataUrl = await new Promise<string>((resolve, reject) => {
+                  const fr = new FileReader();
+                  fr.onload = () => resolve(String(fr.result));
+                  fr.onerror = () => reject(new Error("read failed"));
+                  fr.readAsDataURL(blob);
+                });
+                if (!cancelled) setPhoto({ dataUrl, name: "pet photo" });
+              } catch { /* photo stays empty; a tweak will ask to re-upload */ }
+            } else {
+              setPhoto(null);
+            }
             setMode(data.mode === "template" ? "template" : "photo");
             setHeading(data.heading || "");
             setFootnote(data.footnote || "");
@@ -398,7 +414,18 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
   }, [toast]);
 
   const generate = async (tweakText = "", overrideColor?: string) => {
-    if (mode === "photo" && (!sku.photo || !photo)) return;
+    if (mode === "photo" && (!sku.photo || !photo)) {
+      // A reopened preview whose photo couldn't be restored must say so —
+      // silently doing nothing looks like a broken button.
+      if (tweakText.trim()) {
+        toast({
+          title: "We need the photo again",
+          description: "Re-upload your pet's photo above to apply this change — your current preview stays as it is.",
+          variant: "destructive",
+        });
+      }
+      return;
+    }
     const activeColor = overrideColor ?? colorKey;
     const isTweak = Boolean(tweakText.trim());
     const isRefine = isTweak || Boolean(overrideColor);

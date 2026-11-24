@@ -42,11 +42,21 @@ Deno.serve(async (req) => {
         return json({ error: "Not found" }, 404);
       }
       const pz = (p.personalization ?? {}) as Record<string, unknown>;
+      // Hand back a short-lived link to the buyer's own photo so a reopened
+      // preview can be re-rendered with a change without re-uploading.
+      let sourceImageUrl: string | null = null;
+      if (p.source_image_url) {
+        const { data: signed } = await admin.storage
+          .from("originals-uploads")
+          .createSignedUrl(p.source_image_url, 3600);
+        sourceImageUrl = signed?.signedUrl ?? null;
+      }
       return json({
         previewId: p.id,
         previewUrl: p.preview_image_url,
         skuSlug: p.sku_slug,
         mode: p.source_image_url ? "photo" : "template",
+        sourceImageUrl,
         heading: str(pz.heading),
         footnote: str(pz.footnote),
         colorKey: str(pz.color) || null,
