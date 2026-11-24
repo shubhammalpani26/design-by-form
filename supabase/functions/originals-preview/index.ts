@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
     // the stored name — the lettering on the print file is cut from it, and
     // it must match the render the buyer approves.
     const revisedName = nameFromRevision(tweak);
-    if (revisedName && "heading" in personalization) {
+    if (revisedName) {
       personalization.heading = revisedName;
     }
     const sourceImage: string | undefined = typeof body.sourceImage === "string" ? body.sourceImage : undefined;
