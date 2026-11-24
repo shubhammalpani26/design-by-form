@@ -466,6 +466,11 @@ Deno.serve(async (req) => {
       let q = admin.from("outreach_contacts").select(COLS);
       if (body.category && body.category !== "all") q = q.eq("category_slug", body.category);
       if (body.status && body.status !== "all") q = q.eq("status", body.status);
+      const search = typeof body.search === "string" ? body.search.trim() : "";
+      if (search) {
+        const term = search.replace(/[%,()]/g, " ");
+        q = q.or(`email.ilike.%${term}%,contact_name.ilike.%${term}%,org_name.ilike.%${term}%,instagram.ilike.%${term}%,subject.ilike.%${term}%,reply_snippet.ilike.%${term}%`);
+      }
       const { data: people } = await q.order("updated_at", { ascending: false }).limit(200);
       return json({
         settings, categories: cats ?? [], counts, batch: batch ?? [], scheduled: scheduled ?? [], people: people ?? [],

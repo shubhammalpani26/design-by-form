@@ -150,6 +150,12 @@ export function OutreachPanel() {
   const [finding, setFinding] = useState<{ found: number; total: number; active: string[] } | null>(null);
   const [filterCat, setFilterCat] = useState("all");
   const [filterStatus, setFilterStatus] = useState("sent");
+  const [search, setSearch] = useState("");
+  const [searchDebounced, setSearchDebounced] = useState("");
+  useEffect(() => {
+    const t = setTimeout(() => setSearchDebounced(search.trim()), 350);
+    return () => clearTimeout(t);
+  }, [search]);
   const [importCat, setImportCat] = useState("petfluencers");
   const [single, setSingle] = useState({ email: "", contact_name: "", org_name: "", personal_detail: "", category: "petfluencers" });
   const [settingsDraft, setSettingsDraft] = useState<{ daily_total: number; wave_size: number } | null>(null);
@@ -159,13 +165,13 @@ export function OutreachPanel() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const d = await call("overview", { category: filterCat, status: filterStatus });
+      const d = await call("overview", { category: filterCat, status: filterStatus, search: searchDebounced });
       setData(d);
       setSettingsDraft((s) => s ?? { daily_total: d.settings.daily_total, wave_size: d.settings.wave_size });
     } catch (e) {
       toast({ title: "Couldn't load outreach", description: String((e as Error).message), variant: "destructive" });
     } finally { setLoading(false); }
-  }, [filterCat, filterStatus, toast]);
+  }, [filterCat, filterStatus, searchDebounced, toast]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -454,6 +460,16 @@ export function OutreachPanel() {
       {/* ------------------------------------------------ people */}
       <Section title="People" note="Mark who said yes so the monthly count stays right. “No thanks” replies are spotted automatically.">
         <div className="flex flex-wrap gap-2">
+          <div className="relative w-full sm:w-64">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search name, email, reply…"
+              className="pl-8"
+              aria-label="Search people"
+            />
+          </div>
           <Select value={filterCat} onValueChange={setFilterCat}>
             <SelectTrigger className="w-full sm:w-56"><SelectValue /></SelectTrigger>
             <SelectContent>
@@ -470,7 +486,13 @@ export function OutreachPanel() {
           </Select>
         </div>
         <div className="divide-y divide-border border border-border">
-          {data.people.length === 0 && <div className="p-3 text-sm text-muted-foreground">Nobody here yet.</div>}
+          {data.people.length === 0 && (
+            <div className="p-3 text-sm text-muted-foreground">
+              {searchDebounced
+                ? `Nobody matches “${searchDebounced}”${filterStatus !== "all" || filterCat !== "all" ? " with these filters — try All statuses and All categories" : ""}.`
+                : "Nobody here yet."}
+            </div>
+          )}
           {data.people.map((c) => (
             <details key={c.id} className="group">
               <summary className="flex cursor-pointer items-start justify-between gap-3 p-3">
