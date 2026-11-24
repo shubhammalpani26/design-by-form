@@ -32,7 +32,7 @@ export const BUSINESS_SHARE_PCT = PARTNER_SHARE_PCT;
 export const BUSINESS_STATEMENT_SHARE_PCT = PARTNER_STATEMENT_SHARE_PCT;
 
 export const BUSINESS_SHARE_LINE =
-  `If your customers would like one too, you'd get your own code: they get ${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off, and ${PARTNER_SHARE_PCT}% of every order goes to you, or ${PARTNER_STATEMENT_SHARE_PCT}% on our largest Statement piece. No cost, no minimums.`;
+  `If your customers would like one too, you'd get your own code: they get ${BUSINESS_CUSTOMER_DISCOUNT_PCT}% off, and ${PARTNER_SHARE_PCT}% of every order goes to you, or ${PARTNER_STATEMENT_SHARE_PCT}% on our largest Statement piece, paid monthly by bank transfer or PayPal for delivered orders. No cost, no minimums.`;
 export const CREATOR_SHARE_LINE =
   `You'd also get your own code: your followers get ${CREATOR_FOLLOWER_DISCOUNT_PCT}% off, and ${PARTNER_SHARE_PCT}% of every order goes to you, or ${PARTNER_STATEMENT_SHARE_PCT}% on our largest Statement piece.`;
 

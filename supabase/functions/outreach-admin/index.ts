@@ -184,12 +184,12 @@ For CREATORS (petfluencers), use this shape:
   6. Ask: reply with a favourite photo of [pet].
   Do NOT mention "organic only", "no paid ads", "while live", payout timing, statements, or other fine print — that comes later when they reply.
 
-For BUSINESSES, use this shape:
-  1. Opener about the business.
-  2. The free display piece offer in 1–2 sentences (no cost, no commitment).
-  3. You MUST include this sentence, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
-  4. The easy ask: reply if they'd like one and we'll ask for a photo.
-  No urgency of any kind. Do NOT mention payout timing, statements, or other fine print — that comes later when they reply.
+For BUSINESSES, use this shape (product and their clients first, terms after):
+  1. Opener about the business, then one sentence on why their clients would love a sculpture of their own pet.
+  2. Put the link here (see "Both" below) so they see real finished pieces before any numbers.
+  3. You MUST include this sentence once, as its own short paragraph, worded naturally, with the exact percentages: "${BUSINESS_SHARE_LINE}" Never give a range, "up to", or different percentages, and never say "commission structure", "terms apply" or similar.
+  4. The free display piece for their front desk in one sentence (no cost, no commitment), and the easy ask: reply if they'd like one and we'll ask for a photo.
+  No urgency of any kind. No other fine print — that comes later when they reply.
 
 Both:
 - Include the link given for that person exactly once, on its own line, introduced naturally ("You can see the pieces here:").
