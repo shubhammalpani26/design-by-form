@@ -59,3 +59,10 @@ Deno.test("other changes mentioned after the name never become the name", () => 
     assertEquals(nameFromRevision(note), null, note);
   }
 });
+
+Deno.test("reads a name the buyer asks us to add", () => {
+  assertEquals(nameFromRevision("Add the name Murphy on the base"), "Murphy");
+  assertEquals(nameFromRevision("put the name: Coco"), "Coco");
+  assertEquals(nameFromRevision("add name Mr Biscuit please"), "Mr Biscuit");
+  assertEquals(nameFromRevision("add the name on the front"), null);
+});

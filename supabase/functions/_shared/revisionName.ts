@@ -9,13 +9,15 @@
  * Errs toward returning null: a missed rename leaves the buyer's own name box,
  * but a wrong "name" would be raised on the paid print (QA, Oct 2026).
  */
-const END = String.raw`["'”’]?\s*(?:[.,;!?)]|$|\s+(?:and|but|please|pls|instead|not|thanks|thank)\b)`;
+const END = String.raw`["'”’]?\s*(?:[.,;!?)]|$|\s+(?:and|but|please|pls|instead|not|thanks|thank|on|onto|at|in)\b)`;
 const OPEN = String.raw`["'“‘]?`;
 const NAME = String.raw`([a-z][a-z' .-]{0,30}?)`;
 
 const PATTERNS: RegExp[] = [
   // "name is Hampton", "his name should be Hampton", "name = Hampton"
   new RegExp(String.raw`\bname\s*(?:is|should\s+be|should\s+read|must\s+be|reads?|=|:|-)\s*` + OPEN + NAME + END, "i"),
+  // "add the name Murphy on the base", "put the name: Murphy" (Murphy order, Nov 2026)
+  new RegExp(String.raw`\b(?:add|put|write|engrave|include|print|use)\s+(?:the\s+|his\s+|her\s+|their\s+|its\s+|a\s+)?(?:pet'?s\s+)?name\s*(?:of\s+|[:=-]\s*)?` + OPEN + NAME + END, "i"),
   // "change (the) name to Hampton", "rename to Hampton", "spell it Hampton"
   new RegExp(String.raw`\b(?:change|fix|update|correct|make)\s+(?:the\s+|his\s+|her\s+|their\s+)?name\s+(?:to|as|into)\s+` + OPEN + NAME + END, "i"),
   new RegExp(String.raw`\brename\s+(?:it\s+|him\s+|her\s+)?(?:to\s+)?` + OPEN + NAME + END, "i"),

@@ -245,9 +245,18 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
   let fusedLettering = false;
   if (result.letteringStart) {
     const fused = await fuseLettering(result.stl, result.letteringStart, result.face).catch(() => null);
-    if (fused && countOpenEdges(fused.stl) === 0 && repairKeepsSize(result.stl, fused.stl)) {
-      finalStl = fused.stl;
-      fusedLettering = true;
+    if (fused && repairKeepsSize(result.stl, fused.stl)) {
+      let fusedStl = fused.stl;
+      // A fused file with a few leftover open edges is usually welded shut by
+      // repair; keep it only if that repair keeps the bulk (Murphy, Nov 2026).
+      if (countOpenEdges(fusedStl) > 0) {
+        const welded = repairStl(fusedStl).stl;
+        if (countOpenEdges(welded) === 0 && repairKeepsBulk(fusedStl, welded)) fusedStl = welded;
+      }
+      if (countOpenEdges(fusedStl) === 0) {
+        finalStl = fusedStl;
+        fusedLettering = true;
+      }
     }
   }
   // Fallback: close cracks/holes before the file is fingerprinted: fulfilment
