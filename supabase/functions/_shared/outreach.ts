@@ -228,9 +228,12 @@ const wrap = (b: string) => b.replace(/(.{76})/g, "$1\r\n");
 
 /** RFC 2822 message, base64url-encoded for Gmail's send endpoint. With a photo:
  *  multipart/alternative (plain text + HTML with the photo inline by cid). */
-export function rawEmail(to: string, subject: string, body: string, photo?: InlinePhoto): string {
+export function rawEmail(to: string, subject: string, body: string, photo?: InlinePhoto, inReplyTo?: string | null): string {
   const safeSubject = subject.replace(/[\r\n]+/g, " ").trim();
   const head = [`To: ${to}`, `Subject: ${header(safeSubject)}`, "MIME-Version: 1.0"];
+  // Threads the follow-up under the first email in the recipient's inbox too, not just ours.
+  const ref = (inReplyTo ?? "").replace(/[\r\n<>\s]/g, "");
+  if (ref) head.push(`In-Reply-To: <${ref}>`, `References: <${ref}>`);
   let msg: string;
   if (!photo) {
     msg = [...head, 'Content-Type: text/plain; charset="UTF-8"', "Content-Transfer-Encoding: base64", "", wrap(b64(body))].join("\r\n");
@@ -314,4 +317,60 @@ export function emailOnPage(html: string, email: string): boolean {
   const at = String.raw`\s*(?:@|\[\s*at\s*\]|\(\s*at\s*\)|\s+at\s+)\s*`;
   const re = new RegExp(esc(local) + at + domain.split(".").map(esc).join(dot));
   return re.test(text);
+}
+
+// ------------------------------------------------------------- follow-ups
+
+/** One follow-up per person, only after the first email has had this long to land. */
+export const FOLLOWUP_AFTER_DAYS = 4;
+
+export type FollowupCandidate = {
+  status: string; outcome?: string | null; sent_at: string | null;
+  gmail_thread_id: string | null; gmail_message_id: string | null; followup_status?: string | null;
+};
+
+/** Sent, no reply/opt-out/bounce, no outcome marked, never followed up, first email 4+ days old. */
+export function followupReady(c: FollowupCandidate, now: Date): boolean {
+  if (c.status !== "sent" || c.outcome || c.followup_status) return false;
+  if (!c.gmail_thread_id || !c.gmail_message_id || !c.sent_at) return false;
+  return now.getTime() - new Date(c.sent_at).getTime() >= FOLLOWUP_AFTER_DAYS * 86_400_000;
+}
+
+const NOT_A_NAME = /^(your|their|them|him|her|it|the|a|an)$/i;
+
+/** The pet's name as the first email used it ("a free sculpture of Rosebud"), if any. */
+export function petNameFrom(body: string | null): string | null {
+  const m = (body ?? "").match(/sculpture of ([A-Z][A-Za-z'’-]{1,24}(?: [A-Z][A-Za-z'’-]{1,24})?)/);
+  return m && !NOT_A_NAME.test(m[1].split(" ")[0]) ? m[1] : null;
+}
+
+/** Short reply in the same thread: hook, (photo goes here), current terms, the ask. Same Re: subject. */
+export function followupEmail(
+  first: { subject: string | null; body: string | null }, isCreator: boolean,
+): { subject: string; body: string } {
+  const original = (first.body ?? "").replace(/\r\n/g, "\n").trim();
+  const firstPara = original.split(/\n{2,}/)[0]?.trim() ?? "";
+  const greeting = GREETING.test(firstPara) ? firstPara : "Hi there,";
+  const subj = (first.subject ?? "").trim() || "A little gift for you";
+  const subject = /^re:/i.test(subj) ? subj : `Re: ${subj}`;
+  let paras: string[];
+  if (isCreator) {
+    const pet = petNameFrom(original);
+    // Older creator emails offered 10% + 10%; the better terms are a real reason to write again.
+    const hadCurrentTerms = original.includes(`${PARTNER_SHARE_PCT}% of every order`);
+    paras = [
+      hadCurrentTerms
+        ? "Just floating my note from last week back to the top of your inbox."
+        : "Quick update on my note from last week: we've improved our partner terms.",
+      `The free sculpture of ${pet ?? "your pet"} still stands. ${CREATOR_SHARE_LINE}`,
+      `If you'd like one, just reply with a favourite photo of ${pet ?? "your pet"}, the name you'd like on it and your delivery address.`,
+    ];
+  } else {
+    paras = [
+      "Just following up on my note from last week about a free display piece for your front desk.",
+      BUSINESS_SHARE_LINE,
+      "If you'd like one, just reply with a photo of a pet you'd like made, its name and the delivery address for your shop.",
+    ];
+  }
+  return { subject, body: finalizeBody([greeting, ...paras].join("\n\n")) };
 }

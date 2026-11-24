@@ -2126,6 +2126,13 @@ export type Database = {
           drafted_at: string | null
           email: string
           followers: number | null
+          followup_body: string | null
+          followup_error: string | null
+          followup_message_id: string | null
+          followup_scheduled_for: string | null
+          followup_sent_at: string | null
+          followup_status: string | null
+          followup_subject: string | null
           gmail_message_id: string | null
           gmail_thread_id: string | null
           id: string
@@ -2156,6 +2163,13 @@ export type Database = {
           drafted_at?: string | null
           email: string
           followers?: number | null
+          followup_body?: string | null
+          followup_error?: string | null
+          followup_message_id?: string | null
+          followup_scheduled_for?: string | null
+          followup_sent_at?: string | null
+          followup_status?: string | null
+          followup_subject?: string | null
           gmail_message_id?: string | null
           gmail_thread_id?: string | null
           id?: string
@@ -2186,6 +2200,13 @@ export type Database = {
           drafted_at?: string | null
           email?: string
           followers?: number | null
+          followup_body?: string | null
+          followup_error?: string | null
+          followup_message_id?: string | null
+          followup_scheduled_for?: string | null
+          followup_sent_at?: string | null
+          followup_status?: string | null
+          followup_subject?: string | null
           gmail_message_id?: string | null
           gmail_thread_id?: string | null
           id?: string
@@ -3183,6 +3204,59 @@ export type Database = {
           drafted_at: string | null
           email: string
           followers: number | null
+          followup_body: string | null
+          followup_error: string | null
+          followup_message_id: string | null
+          followup_scheduled_for: string | null
+          followup_sent_at: string | null
+          followup_status: string | null
+          followup_subject: string | null
+          gmail_message_id: string | null
+          gmail_thread_id: string | null
+          id: string
+          instagram: string | null
+          last_error: string | null
+          org_name: string | null
+          outcome: string | null
+          personal_detail: string | null
+          replied_at: string | null
+          reply_snippet: string | null
+          scheduled_for: string | null
+          sent_at: string | null
+          source: string
+          source_url: string | null
+          state: string | null
+          status: string
+          subject: string | null
+          updated_at: string
+          website: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "outreach_contacts"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      claim_outreach_followups_due: {
+        Args: { p_limit: number }
+        Returns: {
+          batch_id: string | null
+          body: string | null
+          category_slug: string
+          city: string | null
+          contact_name: string | null
+          created_at: string
+          drafted_at: string | null
+          email: string
+          followers: number | null
+          followup_body: string | null
+          followup_error: string | null
+          followup_message_id: string | null
+          followup_scheduled_for: string | null
+          followup_sent_at: string | null
+          followup_status: string | null
+          followup_subject: string | null
           gmail_message_id: string | null
           gmail_thread_id: string | null
           id: string

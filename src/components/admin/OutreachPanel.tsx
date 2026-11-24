@@ -44,14 +44,20 @@ type Contact = {
   instagram: string | null; city: string | null; state: string | null; followers: number | null;
   personal_detail: string | null; status: string; outcome: string | null; subject: string | null; body: string | null;
   scheduled_for: string | null; sent_at: string | null; replied_at: string | null; reply_snippet: string | null;
-  last_error: string | null;
+  last_error: string | null; followup_status?: string | null; followup_sent_at?: string | null; followup_error?: string | null;
+};
+type FollowSample = { to: string; subject: string; body: string } | null;
+type Followups = {
+  ready: number; readyBy: Record<string, number>; sent: number; afterDays: number;
+  queued: { id: string; email: string; contact_name: string | null; org_name: string | null; instagram: string | null; category_slug: string; followup_scheduled_for: string | null }[];
+  samples: { creator: FollowSample; business: FollowSample };
 };
 type Category = { slug: string; name: string; kind: string; daily_share: number; offer: string; active: boolean };
 type Data = {
   settings: { daily_total: number; wave_size: number; paused: boolean; pause_reason: string | null; last_sync_at: string | null };
   categories: Category[]; counts: Record<string, Record<string, number>>;
   batch: Contact[]; scheduled: Contact[]; people: Contact[];
-  sentToday: number; yesThisMonth: number; nextSlot: string;
+  sentToday: number; yesThisMonth: number; nextSlot: string; followups?: Followups;
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -413,6 +419,11 @@ export function OutreachPanel() {
         </Section>
       )}
 
+      {data.followups && (
+        <FollowupsSection f={data.followups} catName={catName} busy={busy} paused={s.paused} run={run}
+          onDone={(t, d) => toast({ title: t, description: d })} />
+      )}
+
       {/* ------------------------------------------------ categories */}
       <Section title="Categories" note="Set how many of each batch go to each category. Turn a category off to skip it.">
         <div className="space-y-2">
@@ -526,6 +537,7 @@ export function OutreachPanel() {
                 </div>
                 <div className="flex shrink-0 flex-col items-end gap-1">
                   <span className={`px-2 py-0.5 text-[11px] ${STATUS_TONE[c.status] ?? "bg-muted text-muted-foreground"}`}>{STATUS_LABEL[c.status] ?? c.status}</span>
+                  {c.followup_sent_at && <span className="bg-muted px-2 py-0.5 text-[11px] text-muted-foreground">Followed up</span>}
                   {c.outcome === "yes" && <span className="bg-primary px-2 py-0.5 text-[11px] text-primary-foreground">Said yes</span>}
                 </div>
               </summary>
@@ -568,6 +580,69 @@ export function OutreachPanel() {
         </Section>
       )}
     </div>
+  );
+}
+
+function FollowupsSection({ f, catName, busy, paused, run, onDone }: {
+  f: Followups; catName: (s: string) => string; busy: string | null; paused: boolean;
+  run: (key: string, fn: () => Promise<void>) => Promise<void>; onDone: (title: string, desc?: string) => void;
+}) {
+  const split = Object.entries(f.readyBy).map(([k, v]) => `${v} ${catName(k)}`).join(" · ");
+  const next = f.queued[0]?.followup_scheduled_for;
+  const Sample = ({ label, s }: { label: string; s: FollowSample }) => s && (
+    <details className="border border-border">
+      <summary className="cursor-pointer p-3 text-sm text-foreground">{label}</summary>
+      <div className="space-y-2 border-t border-border p-3">
+        <p className="text-xs text-muted-foreground">Example for {s.to} · Subject: {s.subject}</p>
+        <EmailLook body={s.body} />
+      </div>
+    </details>
+  );
+  return (
+    <Section title="Follow-ups"
+      note={<>One short reply in the same email thread, only to people who haven't answered {f.afterDays} days after the first email. Anyone who replied, said no thanks or bounced is skipped, and nobody gets more than one. Follow-ups count toward the daily total.</>}>
+      {f.queued.length > 0 && (
+        <div className="space-y-2">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+            <span className="text-foreground">{f.queued.length} follow-ups going out{next ? `, next ${eastern(next)}` : ""}.</span>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" onClick={() => run("f_now", async () => {
+                const r = await call("followup_send_now");
+                onDone(r.followupsSent ? `${r.followupsSent} follow-ups sent just now` : "Nothing sent yet", r.followupNote ?? (r.followupsSent ? undefined : "Outside US daytime or today's total is used up."));
+              })} disabled={!!busy || paused}>
+                {busy === "f_now" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />} Send now
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => run("f_stop", async () => { await call("followup_cancel"); })} disabled={!!busy}>Stop follow-ups</Button>
+            </div>
+          </div>
+          <div className="divide-y divide-border border border-border">
+            {f.queued.slice(0, 20).map((c) => (
+              <div key={c.id} className="flex items-center justify-between gap-3 p-2 text-sm">
+                <span className="min-w-0 truncate text-foreground">{c.contact_name || c.org_name || (c.instagram ? `@${c.instagram}` : c.email)} <span className="text-muted-foreground">· {catName(c.category_slug)}</span></span>
+                <span className="shrink-0 text-xs text-muted-foreground">{c.followup_scheduled_for ? eastern(c.followup_scheduled_for) : ""}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {f.ready > 0 ? (
+        <div className="space-y-2">
+          <p className="text-sm text-foreground">{f.ready} {f.ready === 1 ? "person is" : "people are"} ready for a follow-up{split ? `: ${split}` : ""}.</p>
+          <Button onClick={() => run("f_queue", async () => {
+            const r = await call("followup_queue");
+            onDone(`${r.queued} follow-ups queued`, r.followupsSent ? `${r.followupsSent} sent just now.` : "They go out in the usual waves, US daytime.");
+          })} disabled={!!busy || paused}>
+            {busy === "f_queue" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Send className="mr-2 h-4 w-4" />}
+            Send {f.ready} follow-ups
+          </Button>
+          <Sample label="Read the creator follow-up" s={f.samples.creator} />
+          <Sample label="Read the shop follow-up" s={f.samples.business} />
+        </div>
+      ) : f.queued.length === 0 && (
+        <p className="text-sm text-muted-foreground">Nobody is ready yet. People become ready {f.afterDays} days after their first email.</p>
+      )}
+      {f.sent > 0 && <p className="text-xs text-muted-foreground">{f.sent} follow-ups sent so far.</p>}
+    </Section>
   );
 }
 

@@ -10,6 +10,7 @@ import { PIECES_PHOTO_ALT, PIECES_PHOTO_CAPTION, PIECES_PHOTO_CID, PIECES_PHOTO_
 import {
   classifyReply, ensureFirst30, ensurePartnerShare, BUSINESS_SHARE_LINE, CREATOR_SHARE_LINE, etDayStart, finalizeBody, MAX_DAILY_TOTAL, nextSendSlot, normalizeEmail, rawEmail,
   remainingToday, splitBatch, trackedLink, waveTimes, emailOnPage, findTargets, isCheckableUrl,
+  followupEmail, followupReady, FOLLOWUP_AFTER_DAYS,
 } from "../_shared/outreach.ts";
 
 const PIECES_PHOTO = { cid: PIECES_PHOTO_CID, jpegBase64: PIECES_PHOTO_JPEG_B64, alt: PIECES_PHOTO_ALT, caption: PIECES_PHOTO_CAPTION };
@@ -38,7 +39,7 @@ const GMAIL = "https://connector-gateway.lovable.dev/google_mail/gmail/v1/users/
 const DRAFT_CHUNK = 6;
 const SEND_PER_RUN = 25;
 const COLS =
-  "id, category_slug, email, contact_name, org_name, website, instagram, city, state, followers, personal_detail, source_url, status, outcome, subject, body, scheduled_for, sent_at, replied_at, reply_snippet, last_error, created_at";
+  "id, category_slug, email, contact_name, org_name, website, instagram, city, state, followers, personal_detail, source_url, status, outcome, subject, body, scheduled_for, sent_at, replied_at, reply_snippet, last_error, created_at, followup_status, followup_scheduled_for, followup_sent_at, followup_error";
 
 type Admin = SupabaseClient;
 
@@ -84,16 +85,20 @@ async function settingsOf(admin: Admin) {
 }
 
 async function sentTodayCount(admin: Admin) {
-  const { count } = await admin.from("outreach_contacts").select("id", { count: "exact", head: true })
-    .gte("sent_at", etDayStart(new Date()).toISOString());
-  return count ?? 0;
+  // First emails and follow-ups share one daily total: it's all the same Gmail.
+  const start = etDayStart(new Date()).toISOString();
+  const [{ count: first }, { count: follow }] = await Promise.all([
+    admin.from("outreach_contacts").select("id", { count: "exact", head: true }).gte("sent_at", start),
+    admin.from("outreach_contacts").select("id", { count: "exact", head: true }).gte("followup_sent_at", start),
+  ]);
+  return (first ?? 0) + (follow ?? 0);
 }
 
 // ------------------------------------------------------------------ replies
 async function syncReplies(admin: Admin) {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
   const { data: open } = await admin.from("outreach_contacts").select("id, gmail_thread_id")
-    .eq("status", "sent").not("gmail_thread_id", "is", null).gte("sent_at", since).limit(2000);
+    .eq("status", "sent").not("gmail_thread_id", "is", null).or(`sent_at.gte.${since},followup_sent_at.gte.${since}`).limit(2000);
   const byThread = new Map((open ?? []).map((c) => [c.gmail_thread_id as string, c.id as string]));
   let updated = 0;
   if (byThread.size) {
@@ -159,6 +164,62 @@ async function sendDue(admin: Admin) {
     if (i < rows.length - 1) await new Promise((r) => setTimeout(r, 2500));
   }
   return { sent };
+}
+
+// ------------------------------------------------------------- follow-ups
+const READY_COLS = "id, category_slug, email, subject, body, status, outcome, sent_at, gmail_thread_id, gmail_message_id, followup_status";
+
+/** Everyone who may get their one follow-up right now (first email 4+ days old, no answer). */
+async function followupReadyRows(admin: Admin) {
+  const cutoff = new Date(Date.now() - FOLLOWUP_AFTER_DAYS * 86_400_000).toISOString();
+  const { data } = await admin.from("outreach_contacts").select(READY_COLS)
+    .eq("status", "sent").is("outcome", null).is("followup_status", null)
+    .not("gmail_thread_id", "is", null).not("gmail_message_id", "is", null)
+    .lte("sent_at", cutoff).order("sent_at").limit(1000);
+  const now = new Date();
+  return ((data ?? []) as any[]).filter((c) => followupReady(c, now));
+}
+
+async function sendFollowupsDue(admin: Admin) {
+  const s = await settingsOf(admin);
+  if (s.paused) return { followupsSent: 0 };
+  const now = new Date();
+  if (nextSendSlot(now).getTime() !== now.getTime()) return { followupsSent: 0 };
+  const left = remainingToday(s.daily_total, await sentTodayCount(admin));
+  if (left <= 0) return { followupsSent: 0 };
+  const { data: claimed, error } = await admin.rpc("claim_outreach_followups_due", { p_limit: Math.min(left, SEND_PER_RUN) });
+  if (error) throw error;
+  const rows = (claimed ?? []) as any[];
+  let sent = 0;
+  for (let i = 0; i < rows.length; i++) {
+    const c = rows[i];
+    try {
+      if (!c.followup_subject || !c.followup_body || !c.gmail_thread_id) throw new GmailError(400, "Follow-up has no text or thread");
+      const orig = await gmail("GET", `/messages/${c.gmail_message_id}?format=metadata&metadataHeaders=Message-ID&fields=payload/headers`);
+      const msgId = (orig.payload?.headers ?? []).find((h: any) => h.name?.toLowerCase() === "message-id")?.value ?? null;
+      const r = await gmail("POST", "/messages/send", {
+        raw: rawEmail(c.email, c.followup_subject, c.followup_body, PIECES_PHOTO, msgId), threadId: c.gmail_thread_id,
+      });
+      await admin.from("outreach_contacts").update({
+        followup_status: "sent", followup_sent_at: new Date().toISOString(), followup_message_id: r.id ?? null, followup_error: null,
+      }).eq("id", c.id);
+      sent++;
+    } catch (e) {
+      const status = e instanceof GmailError ? e.status : 0;
+      const msg = e instanceof Error ? e.message : String(e);
+      const rest = rows.slice(i).map((r) => r.id);
+      if (status === 429 || status >= 500 || status === 401 || status === 403) {
+        await admin.from("outreach_contacts").update({ followup_status: "scheduled", followup_error: msg }).in("id", rest);
+        if (status === 401 || status === 403) {
+          await admin.from("outreach_settings").update({ paused: true, pause_reason: `Gmail refused: ${msg}` }).eq("id", 1);
+        }
+        return { followupsSent: sent, followupNote: "Gmail asked us to wait; the rest go next hour" };
+      }
+      await admin.from("outreach_contacts").update({ followup_status: "failed", followup_error: msg }).eq("id", c.id);
+    }
+    if (i < rows.length - 1) await new Promise((r) => setTimeout(r, 2500));
+  }
+  return { followupsSent: sent };
 }
 
 // ------------------------------------------------------------------ writing
@@ -434,6 +495,7 @@ Deno.serve(async (req) => {
     if (!ok) return json({ error: "Unauthorized" }, 401);
     const result: Record<string, unknown> = {};
     try { result.replies = await syncReplies(admin); } catch (e) { result.syncError = String(e instanceof Error ? e.message : e); }
+    try { Object.assign(result, await sendFollowupsDue(admin)); } catch (e) { result.followupError = String(e instanceof Error ? e.message : e); }
     try { Object.assign(result, await sendDue(admin)); } catch (e) { result.sendError = String(e instanceof Error ? e.message : e); }
     console.log("outreach run", result);
     return json(result);
@@ -474,7 +536,24 @@ Deno.serve(async (req) => {
         q = q.or(`email.ilike.%${term}%,contact_name.ilike.%${term}%,org_name.ilike.%${term}%,instagram.ilike.%${term}%,subject.ilike.%${term}%,reply_snippet.ilike.%${term}%`);
       }
       const { data: people } = await q.order("updated_at", { ascending: false }).limit(200);
+      // Follow-ups: who's ready, what's queued, one sample of each kind.
+      const kindOf = new Map((cats ?? []).map((c) => [c.slug, c.kind]));
+      const ready = await followupReadyRows(admin);
+      const readyBy: Record<string, number> = {};
+      for (const r of ready) readyBy[r.category_slug] = (readyBy[r.category_slug] ?? 0) + 1;
+      const sample = (creator: boolean) => {
+        const r = ready.find((x) => (kindOf.get(x.category_slug) === "creator") === creator);
+        return r ? { to: r.email, ...followupEmail(r, creator) } : null;
+      };
+      const { data: fq } = await admin.from("outreach_contacts").select("id, email, contact_name, org_name, instagram, category_slug, followup_scheduled_for")
+        .in("followup_status", ["scheduled", "sending"]).order("followup_scheduled_for").limit(300);
+      const { count: fSent } = await admin.from("outreach_contacts").select("id", { count: "exact", head: true }).eq("followup_status", "sent");
+      const followups = {
+        ready: ready.length, readyBy, queued: fq ?? [], sent: fSent ?? 0, afterDays: FOLLOWUP_AFTER_DAYS,
+        samples: { creator: sample(true), business: sample(false) },
+      };
       return json({
+        followups,
         settings, categories: cats ?? [], counts, batch: batch ?? [], scheduled: scheduled ?? [], people: people ?? [],
         sentToday: await sentTodayCount(admin), yesThisMonth, nextSlot: nextSendSlot(new Date()).toISOString(),
       });
@@ -667,10 +746,42 @@ Deno.serve(async (req) => {
       return json({ ok: true });
     }
 
+    if (action === "followup_queue") {
+      // Write each follow-up (fixed wording, no AI) and queue them in the usual waves.
+      const s = await settingsOf(admin);
+      const ready = await followupReadyRows(admin);
+      const { data: cats } = await admin.from("outreach_categories").select("slug, kind");
+      const kindOf = new Map((cats ?? []).map((c) => [c.slug, c.kind]));
+      const times = waveTimes(new Date(), ready.length, s.wave_size);
+      let queued = 0;
+      for (let k = 0; k < ready.length; k++) {
+        const r = ready[k];
+        const f = followupEmail(r, kindOf.get(r.category_slug) === "creator");
+        const { data: upd } = await admin.from("outreach_contacts").update({
+          followup_status: "scheduled", followup_subject: f.subject, followup_body: f.body,
+          followup_scheduled_for: times[k].toISOString(), followup_error: null,
+        }).eq("id", r.id).eq("status", "sent").is("followup_status", null).select("id");
+        queued += upd?.length ?? 0;
+      }
+      const first = await sendFollowupsDue(admin);
+      return json({ queued, ...first });
+    }
+    if (action === "followup_send_now") {
+      await admin.from("outreach_contacts").update({ followup_scheduled_for: new Date().toISOString() }).eq("followup_status", "scheduled");
+      return json(await sendFollowupsDue(admin));
+    }
+    if (action === "followup_cancel") {
+      // Back to "ready", so they can be queued again later.
+      await admin.from("outreach_contacts").update({ followup_status: null, followup_scheduled_for: null, followup_subject: null, followup_body: null })
+        .eq("followup_status", "scheduled");
+      return json({ ok: true });
+    }
+
     if (action === "sync") {
       const replies = await syncReplies(admin);
+      const follow = await sendFollowupsDue(admin);
       const sent = await sendDue(admin);
-      return json({ replies, ...sent });
+      return json({ replies, ...follow, ...sent });
     }
 
     return json({ error: "Unknown action" }, 400);
