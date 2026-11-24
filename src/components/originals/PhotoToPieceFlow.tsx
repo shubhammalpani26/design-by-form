@@ -588,7 +588,8 @@ export const PhotoToPieceFlow = forwardRef<PhotoToPieceFlowHandle, Props>(({ sku
     autoFixedRef.current = new Set();
     trackExperiment("reveal_screen", revealVariant, "change_photo", { skuSlug: sku.slug, metadata: { via } });
     window.scrollTo({ top: 0, behavior: "smooth" });
-    setTimeout(() => fileRef.current?.click(), 400);
+    // Open within the tap itself — iPhone Safari blocks pickers opened after a delay.
+    fileRef.current?.click();
   };
 
   const runAutoFix = () => {
