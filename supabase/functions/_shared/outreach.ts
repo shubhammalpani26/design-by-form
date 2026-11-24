@@ -367,7 +367,7 @@ export function followupEmail(
     ];
   } else {
     paras = [
-      "Just following up on my note from last week about a free display piece for your front desk.",
+      "Just following up on my note from last week about a free display piece we'd love to send you.",
       BUSINESS_SHARE_LINE,
       "If you'd like one, just reply with a photo of a pet you'd like made, its name and the delivery address for your shop.",
     ];
