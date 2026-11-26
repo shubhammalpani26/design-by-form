@@ -41,6 +41,8 @@ const NOT_A_NAME = new Set([
   "the", "it", "a", "an", "my", "his", "her", "their", "this", "that", "its",
   "not", "no", "too", "very", "so", "bit", "little", "more", "less", "quite", "really", "kind", "sort",
   "still", "now", "currently", "barely", "hardly", "also", "just", "only",
+  // Requests to repeat/add existing lettering and courtesy words aren't names.
+  "again", "as", "well", "please", "pls", "thanks", "thank", "instead",
   "big", "bigger", "large", "larger", "small", "smaller", "tiny", "huge", "thin", "thick", "tall", "short",
   "bold", "bolder", "raised", "clearer", "clear", "unclear", "centered", "centred", "center", "centre",
   "off", "crooked", "tilted", "uneven", "lopsided", "faint", "blurry", "blurred", "visible", "invisible",

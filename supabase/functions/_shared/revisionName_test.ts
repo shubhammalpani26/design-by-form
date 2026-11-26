@@ -66,3 +66,28 @@ Deno.test("reads a name the buyer asks us to add", () => {
   assertEquals(nameFromRevision("add name Mr Biscuit please"), "Mr Biscuit");
   assertEquals(nameFromRevision("add the name on the front"), null);
 });
+
+for (const note of [
+  "add the name again",
+  "add the name as well",
+  "include the name please",
+  "put the name again on the base",
+  "engrave the name as well please",
+  "write the name pls",
+  "print the name thanks",
+  "use the name instead",
+]) {
+  Deno.test(`keeps the stored name for a non-rename request: ${note}`, () => {
+    const personalization = { heading: "Murphy" };
+    const revisedName = nameFromRevision(note);
+    assertEquals(revisedName, null);
+    // The same conditional assignment used by originals-preview.
+    if (revisedName) personalization.heading = revisedName;
+    assertEquals(personalization.heading, "Murphy");
+  });
+}
+
+Deno.test("still reads an explicit added name with courtesy words", () => {
+  assertEquals(nameFromRevision("include the name Murphy please"), "Murphy");
+  assertEquals(nameFromRevision('add the name "Murphy" on the base'), "Murphy");
+});
