@@ -162,6 +162,20 @@
       "when": 1795498879236,
       "tag": "0022_outreach_followups",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1795739164795,
+      "tag": "0023_referral_partner_dashboard",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795739258382,
+      "tag": "0024_referral_gift_autolink",
+      "breakpoints": true
     }
   ]
 }

@@ -11,5 +11,10 @@
 - [x] Creators moved to the same share: followers 10% off, 20% per order, 30% on Statement; 10-order bonus dropped (deployed)
 
 ## Waiting
-- Partner code payouts/tracking not built — shares settled by hand until it is
 - Chente reaction video ad: v2 cut approved? → upload to Meta, paused ad in Holiday Gift campaign (account at ₹0 / spend limit — needs funds before anything runs)
+
+## Partner dashboard (2026-11-27)
+- [ ] Admin-only partner records, gifted-order links and referral codes
+- [ ] Customer orders, previews and production files inside each partner
+- [ ] Automatic 20% / 30% earnings and month-end payable ledger with recorded manual payments
+- [ ] Backfill confirmed outreach gifts, test permissions/calculations and verify real admin flow

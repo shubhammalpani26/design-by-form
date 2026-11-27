@@ -23,6 +23,7 @@ import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdsDashboard } from "@/components/admin/AdsDashboard";
 import { HelperSection } from "@/components/admin/HelperSection";
 import { OutreachPanel } from "@/components/admin/OutreachPanel";
+import { PartnersPanel } from "@/components/admin/PartnersPanel";
 import { ImageTo3D } from "@/components/admin/ImageTo3D";
 import { StudioPhotos } from "@/components/admin/StudioPhotos";
 import { SEOHead } from "@/components/SEOHead";
@@ -32,6 +33,7 @@ const TABS = [
   { value: "dashboard", label: "Dashboard" },
   { value: "ads", label: "Ads" },
   { value: "outreach", label: "Outreach" },
+  { value: "partners", label: "Partners" },
   { value: "designers", label: "Creators" },
   { value: "products", label: "Products" },
   { value: "studio-photos", label: "Studio Photos" },
@@ -193,6 +195,9 @@ export default function AdminPanel() {
           </TabsContent>
           <TabsContent value="outreach">
             <OutreachPanel />
+          </TabsContent>
+          <TabsContent value="partners">
+            <PartnersPanel />
           </TabsContent>
           <TabsContent value="dashboard">
             <AdminDashboard />

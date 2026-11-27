@@ -2649,6 +2649,221 @@ export type Database = {
           },
         ]
       }
+      referral_commissions: {
+        Row: {
+          basis_usd: number
+          code: string
+          created_at: string
+          earned_usd: number
+          eligible_at: string | null
+          id: string
+          order_id: string
+          partner_id: string
+          rate: number
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          basis_usd: number
+          code: string
+          created_at?: string
+          earned_usd: number
+          eligible_at?: string | null
+          id?: string
+          order_id: string
+          partner_id: string
+          rate: number
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          basis_usd?: number
+          code?: string
+          created_at?: string
+          earned_usd?: number
+          eligible_at?: string | null
+          id?: string
+          order_id?: string
+          partner_id?: string
+          rate?: number
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_commissions_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "originals_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_commissions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_partner_codes: {
+        Row: {
+          created_at: string
+          id: string
+          partner_id: string
+          promo_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          partner_id: string
+          promo_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          partner_id?: string
+          promo_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_partner_codes_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_partner_codes_promo_id_fkey"
+            columns: ["promo_id"]
+            isOneToOne: true
+            referencedRelation: "originals_promo_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_partner_gifts: {
+        Row: {
+          created_at: string
+          id: string
+          order_id: string
+          partner_id: string
+          sent_model_url: string | null
+          sent_preview_url: string | null
+          shared_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          order_id: string
+          partner_id: string
+          sent_model_url?: string | null
+          sent_preview_url?: string | null
+          shared_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          order_id?: string
+          partner_id?: string
+          sent_model_url?: string | null
+          sent_preview_url?: string | null
+          shared_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_partner_gifts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: true
+            referencedRelation: "originals_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "referral_partner_gifts_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_partner_payments: {
+        Row: {
+          amount_usd: number
+          id: string
+          paid_at: string
+          partner_id: string
+          period_month: string
+          recorded_by: string
+          reference: string
+        }
+        Insert: {
+          amount_usd: number
+          id?: string
+          paid_at?: string
+          partner_id: string
+          period_month: string
+          recorded_by: string
+          reference: string
+        }
+        Update: {
+          amount_usd?: number
+          id?: string
+          paid_at?: string
+          partner_id?: string
+          period_month?: string
+          recorded_by?: string
+          reference?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_partner_payments_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "referral_partners"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      referral_partners: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          kind: string
+          name: string
+          notes: string
+          organization: string
+          pet_name: string
+          shipping_address: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          kind?: string
+          name: string
+          notes?: string
+          organization?: string
+          pet_name?: string
+          shipping_address?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          kind?: string
+          name?: string
+          notes?: string
+          organization?: string
+          pet_name?: string
+          shipping_address?: Json
+          updated_at?: string
+        }
+        Relationships: []
+      }
       referrals: {
         Row: {
           activated_at: string | null
@@ -3140,6 +3355,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_add_referral_code: {
+        Args: { p_code: string; p_partner_id: string }
+        Returns: undefined
+      }
       admin_delete_originals_preview: {
         Args: { p_preview_id: string }
         Returns: undefined
@@ -3175,6 +3394,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_link_referral_gift: {
+        Args: { p_order_id: string; p_partner_id: string }
+        Returns: undefined
+      }
       admin_list_brand_reviews: {
         Args: { _status?: string }
         Returns: {
@@ -3191,6 +3414,32 @@ export type Database = {
           verified_purchase: boolean
           video_url: string
         }[]
+      }
+      admin_record_referral_payment: {
+        Args: {
+          p_amount: number
+          p_month: string
+          p_partner_id: string
+          p_reference: string
+        }
+        Returns: string
+      }
+      admin_record_referral_shared: {
+        Args: { p_gift_id: string }
+        Returns: undefined
+      }
+      admin_save_referral_partner: {
+        Args: {
+          p_address: Json
+          p_email: string
+          p_id: string
+          p_kind: string
+          p_name: string
+          p_notes: string
+          p_organization: string
+          p_pet_name: string
+        }
+        Returns: string
       }
       claim_outreach_due: {
         Args: { p_limit: number }
@@ -3371,6 +3620,10 @@ export type Database = {
       reduce_stale_product_prices: { Args: never; Returns: undefined }
       reset_monthly_credits: { Args: never; Returns: undefined }
       reset_monthly_subscription_usage: { Args: never; Returns: undefined }
+      sync_referral_commission: {
+        Args: { p_order_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "designer" | "customer"
