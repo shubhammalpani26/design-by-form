@@ -1,3 +1,4 @@
+import { PLINTH_SHAPE } from "../_shared/plinthPrompt.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 import { corsHeaders } from "npm:@supabase/supabase-js@2/cors";
 
@@ -40,7 +41,7 @@ function buildPrompt(p: Record<string, unknown>) {
     "This is a photograph of a real FDM 3D print: fine, regular horizontal layer lines wrap every curved surface and the plinth, clearly visible and catching broad soft-box highlights with a subtle satin PLA sheen. " +
     "Do not smooth the surface into carved stone, ceramic, resin, wax, marble, plaster or a soft matte CG render — the print texture must read plainly in the image. " +
     "The expression matches the reference photo exactly: the same mouth (open or closed, tongue only if it shows in the photo), the same ear position, eyes and brow — never add a smile, grin or tongue that isn't in the photo, and never make the face sad, droopy or solemn either; a faithful likeness of that moment, rendered as sculpted form. The eyes are sculpted, not painted: deep almond sockets with defined lids and a raised iris dome — no glass, inserts, glossy beads, paint or fine whiskers. " +
-    "The shoulders flow directly into one compact deep rectangular plinth through a broad tapered, softly filleted transition — one continuous object, no separate slab, seam, gap, round pedestal or narrow neck; centre the bust over the plinth and slightly toward its front. " +
+    PLINTH_SHAPE + " " +
     `Keep a straight flat front lettering band with generously rounded corners and soft chamfers on every outer edge — ${lettering} ` +
     "Printability rule: no thin or fragile parts — ears, wings, tails, paws, crests and beaks are thick, rounded and fused into the body or plinth, never sticking out freely or spread open; wings fold tight against the body, tails wrap against the body or plinth, ears are chunky with no see-through gaps; long or floppy ears (retrievers, spaniels, hounds, lop rabbits) are one thick mass hanging against the cheek and neck, blended broadly into the head and shoulder — never a thin free-hanging flap; fur is thick sculpted masses, never fine separate tufts. Every feature must be at least as thick as a pencil at scale. " +
     "Monolithic and solid, one continuous part, flat stable base, studio lighting on a clean neutral background showing depth, layer texture and shadow. " +

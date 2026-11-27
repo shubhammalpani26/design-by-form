@@ -1,0 +1,1 @@
+- Render prompts describe the base only via `supabase/functions/_shared/plinthPrompt.ts`, which must change whenever the printed base shape (`steppedPlinth`) changes; why: previews showed a soft filleted base while prints have a flat block + straight shoulder.
