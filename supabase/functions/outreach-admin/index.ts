@@ -95,11 +95,16 @@ async function sentTodayCount(admin: Admin) {
 }
 
 // ------------------------------------------------------------------ replies
-async function syncReplies(admin: Admin) {
+async function syncReplies(admin: Admin, includeExistingReplies = false) {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  const { data: open } = await admin.from("outreach_contacts").select("id, gmail_thread_id")
-    .eq("status", "sent").not("gmail_thread_id", "is", null).or(`sent_at.gte.${since},followup_sent_at.gte.${since}`).limit(2000);
+  const statuses = includeExistingReplies ? ["sent", "replied"] : ["sent"];
+  let query = admin.from("outreach_contacts").select("id, gmail_thread_id, replied_at")
+    .in("status", statuses).not("gmail_thread_id", "is", null);
+  if (!includeExistingReplies) query = query.or(`sent_at.gte.${since},followup_sent_at.gte.${since}`);
+  const { data: open, error: openError } = await query.limit(2000);
+  if (openError) throw new Error(openError.message);
   const byThread = new Map((open ?? []).map((c) => [c.gmail_thread_id as string, c.id as string]));
+  const lastReply = new Map((open ?? []).map(c => [c.id, c.replied_at]));
   let updated = 0;
   if (byThread.size) {
     const list = await gmail("GET", `/messages?q=${encodeURIComponent("newer_than:30d -from:me")}&maxResults=300&fields=messages(id,threadId)`);
@@ -109,12 +114,17 @@ async function syncReplies(admin: Admin) {
       const m = await gmail("GET", `/messages/${msgId}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&fields=snippet,internalDate,payload/headers`);
       const hdr = (n: string) => (m.payload?.headers ?? []).find((h: any) => h.name?.toLowerCase() === n)?.value ?? "";
       const kind = classifyReply(hdr("from"), hdr("subject"), m.snippet ?? "");
-      await admin.from("outreach_contacts").update({
+      const contactId = byThread.get(threadId);
+      if (!contactId) continue;
+      const repliedAt = new Date(Number(m.internalDate) || Date.now()).toISOString();
+      if (lastReply.get(contactId) && repliedAt <= String(lastReply.get(contactId))) continue;
+      const { data: changed, error: updateError } = await admin.from("outreach_contacts").update({
         status: kind,
-        replied_at: new Date(Number(m.internalDate) || Date.now()).toISOString(),
+        replied_at: repliedAt,
         reply_snippet: String(m.snippet ?? "").slice(0, 300),
-      }).eq("id", byThread.get(threadId)!).eq("status", "sent");
-      updated++;
+      }).eq("id", contactId).in("status", statuses).select("id");
+      if (updateError) throw new Error(updateError.message);
+      updated += changed?.length ?? 0;
     }
   }
   await admin.from("outreach_settings").update({ last_sync_at: new Date().toISOString() }).eq("id", 1);
@@ -782,6 +792,12 @@ Deno.serve(async (req) => {
       const follow = await sendFollowupsDue(admin);
       const sent = await sendDue(admin);
       return json({ replies, ...follow, ...sent });
+    }
+
+    if (action === "partner_inbox_sync") {
+      // Partner refresh must never send scheduled emails, follow-ups or orders.
+      const replies = await syncReplies(admin, true);
+      return json({ replies, checkedAt: new Date().toISOString() });
     }
 
     return json({ error: "Unknown action" }, 400);

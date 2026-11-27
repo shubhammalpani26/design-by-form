@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { commissionEstimate, completedMonth, partnerTotals, receivedOrderCount } from "../src/lib/referralPartners.ts";
+import { commissionEstimate, completedMonth, giftRequestStage, partnerTotals, receivedOrderCount } from "../src/lib/referralPartners.ts";
 import type { Commission, PartnerPayment, PartnerOrder } from "../src/lib/referralPartners.ts";
 
 const delivered = (patch: Partial<Commission> = {}): Commission => ({ id: "c1", partner_id: "p", order_id: "o", code: "PAWS", rate: .2, basis_usd: 56.05, earned_usd: 11.21, state: "delivered", eligible_at: "2026-10-20T12:00:00.000Z", created_at: "2026-10-10", updated_at: "2026-10-20", ...patch });
@@ -16,3 +16,8 @@ Deno.test("month-end net payable subtracts payments and carries older unpaid ear
 Deno.test("refunded orders never contribute earnings", () => { const t = partnerTotals([delivered({ state: "void" })], [], "2026-10", now); assertEquals(t.payable, 0); assertEquals(t.earned, 0); });
 Deno.test("refund after payout is retained as negative adjustment", () => { const t = partnerTotals([delivered({ state: "void" })], [payment], "2026-10", now); assertEquals(t.adjustment, -5); assertEquals(t.payable, 0); });
 Deno.test("basket lines count as one received order", () => { const row = { id: "1", group_id: "g", amount_usd: 59, status: "paid", production_status: "queued", payment_provider: "razorpay" } as PartnerOrder; assertEquals(receivedOrderCount([row, { ...row, id: "2" }, { ...row, id: "3", group_id: "g2", status: "pending" }]), 1); });
+Deno.test("delivery exactly at next month's start is excluded even in database timestamp format", () => { const t=partnerTotals([delivered({ eligible_at:"2026-11-01T00:00:00+00:00" })],[],"2026-10",now);assertEquals(t.monthEarned,0);assertEquals(t.payable,0); });
+Deno.test("interest without a free order is flagged as needing an order",()=>assertEquals(giftRequestStage({outcome:"yes"},[]),"Needs gift order"));
+Deno.test("unconfirmed reply is not treated as agreement to receive a gift",()=>assertEquals(giftRequestStage({outcome:null},[]),"Review reply"));
+Deno.test("saved inspection order is distinct from a placed factory order",()=>{const row={id:"g",created_at:"2026-11-24",status:"paid",production_status:"awaiting_admin_approval",partner_order_id:null} as PartnerOrder;assertEquals(giftRequestStage({outcome:"yes"},[row]),"Awaiting your approval");assertEquals(giftRequestStage({outcome:"yes"},[{...row,partner_order_id:"SLANT_TEST",production_status:"printing"}]),"Factory order placed");});
+Deno.test("cancelled gifted order remains visible as needing replacement",()=>assertEquals(giftRequestStage({outcome:"yes"},[{id:"g",created_at:"2026-11-24",status:"fulfilled",production_status:"cancelled"} as PartnerOrder]),"Needs replacement"));

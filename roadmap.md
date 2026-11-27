@@ -10,11 +10,13 @@
 - [x] Business emails state: own code, 5% off customers, 20% per order to partner, 30% on Statement (deployed; 6 waiting drafts updated)
 - [x] Creators moved to the same share: followers 10% off, 20% per order, 30% on Statement; 10-order bonus dropped (deployed)
 
-## Waiting
-- Chente reaction video ad: v2 cut approved? → upload to Meta, paused ad in Holiday Gift campaign (account at ₹0 / spend limit — needs funds before anything runs)
+## Done: Chente ad
+- [x] Real reaction ad created and activated with approval; other Holiday Gift ads paused
 
 ## Partner dashboard (2026-11-27)
-- [ ] Admin-only partner records, gifted-order links and referral codes
-- [ ] Customer orders, previews and production files inside each partner
-- [ ] Automatic 20% / 30% earnings and month-end payable ledger with recorded manual payments
-- [ ] Backfill confirmed outreach gifts, test permissions/calculations and verify real admin flow
+- [x] Admin-only partner records, gifted-order links and referral codes
+- [x] Customer orders, previews and production files inside each partner
+- [x] Automatic 20% / 30% earnings and month-end payable ledger with recorded manual payments
+- [x] Backfill confirmed outreach gifts, test permissions/calculations and verify real admin flow
+- [x] Refresh outreach replies without sending, show recipients still needing a gift order versus placed orders, and include shipping IDs
+- [x] 43 tests passed; real admin desktop/mobile and 3D checks passed; temporary test records removed

@@ -16,11 +16,11 @@ export function PartnerOrderCard({ order, gift, commission, busy, recordShared }
     <div className="grid gap-4 sm:grid-cols-[150px_minmax(0,1fr)]">
       {order.preview_image_url ? <a href={order.preview_image_url} target="_blank" rel="noreferrer" className="block"><img src={order.preview_image_url} alt={`${pet} render`} className="w-full h-44 sm:h-36 object-contain bg-muted" loading="lazy" /></a> : <div className="h-36 grid place-items-center bg-muted text-sm text-muted-foreground">No render saved</div>}
       <div className="space-y-2 text-sm min-w-0"><p className="font-medium break-words">{text(root.name) || "Recipient not supplied"}</p><p className="break-all">{order.customer_email || "Email not supplied"}</p><p className="break-words text-muted-foreground">{addressLabel(order.shipping_address) || "Address not supplied"}</p>{text(root.phone) && <p>{text(root.phone)}</p>}
-        <p>{gift ? "Gifted piece · $0" : `Customer paid ${usd(Number(order.amount_usd))}`} {order.promo_code && !gift && <span className="text-muted-foreground">· {order.promo_code}</span>}</p>
+        <p>{gift ? "Gifted piece · $0" : `${["paid","fulfilled","refunded"].includes(order.status) ? "Customer paid" : "Order total"} ${usd(Number(order.amount_usd))}`} {order.promo_code && !gift && <span className="text-muted-foreground">· {order.promo_code}</span>}</p>
         {commission && <p className={commission.state === "void" ? "text-destructive" : "font-medium"}>{commission.state === "void" ? "Reversed" : `${Math.round(commission.rate*100)}% share · ${usd(Number(commission.earned_usd))}`} <span className="text-muted-foreground">· {commission.state.replaceAll("_", " ")}</span></p>}
         {!gift && !commission && <p className="text-muted-foreground">No earnings yet · {order.status}</p>}
-        {order.partner_order_id && <p className="break-all text-xs text-muted-foreground">Factory order: {order.partner_order_id}</p>}
-        {order.tracking_numbers?.length > 0 && <p className="break-all text-xs">Tracking: {order.tracking_numbers.join(", ")}</p>}
+        <p className="break-all text-xs text-muted-foreground">Factory order ID: {order.partner_order_id || "Not placed yet"}</p>
+        <p className="break-all text-xs">Shipping ID (tracking): {order.tracking_numbers?.length ? order.tracking_numbers.join(", ") : "Not assigned yet"}</p>
       </div>
     </div>
     <div className="flex flex-wrap gap-2">{order.preview_image_url && <Button asChild size="sm" variant="outline"><a href={order.preview_image_url} target="_blank" rel="noreferrer"><ExternalLink />Render</a></Button>}{order.print_file_url && <><Button size="sm" variant="outline" onClick={() => setModel(order.print_file_url)}><Box />View 3D</Button><Button size="sm" variant="outline" asChild><a href={order.print_file_url} target="_blank" rel="noreferrer" download><Download />STL</a></Button></>}</div>
