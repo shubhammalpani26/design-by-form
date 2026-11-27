@@ -18,6 +18,7 @@ import { findStackedPlinth } from "../_shared/plinthProfile.ts";
 import { countOpenEdges, repairKeepsBulk, repairStl, stlBulk } from "../_shared/meshCheck.ts";
 import { meshyRepairStl, repairMatchesShape, withHeaderOf } from "../_shared/meshyRepair.ts";
 import { fuseLettering } from "../_shared/fuseLettering.ts";
+import { flattenPlinthShoulder } from "../_shared/flattenPlinth.ts";
 import { finalFileClosed, previewHoldReasons } from "../_shared/printabilityHold.ts";
 import { restackFromStackedStl } from "../_shared/restackPlinth.ts";
 import { normalizeEngravingText } from "../_shared/strokeFont.ts";
@@ -270,6 +271,12 @@ async function applyEngraving(row: OrderRow, url: string): Promise<string> {
       finalStl = repaired;
       openEdges = after;
     }
+  }
+  // Stray points just proud of the plinth shoulder show as a line across the
+  // base; snap them flat (coordinates only, so closure is unchanged).
+  const flattened = flattenPlinthShoulder(finalStl);
+  if (flattened.moved && countOpenEdges(flattened.stl) === openEdges && repairKeepsBulk(finalStl, flattened.stl)) {
+    finalStl = flattened.stl;
   }
   const stored = await uploadStl(admin, `originals/${row.sku_slug}/${row.id}-engraved`, finalStl);
   const digest = await crypto.subtle.digest("SHA-256", finalStl as Uint8Array<ArrayBuffer>);
