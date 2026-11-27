@@ -3441,6 +3441,10 @@ export type Database = {
         }
         Returns: string
       }
+      admin_set_referral_code_active: {
+        Args: { p_active: boolean; p_promo_id: string }
+        Returns: undefined
+      }
       claim_outreach_due: {
         Args: { p_limit: number }
         Returns: {

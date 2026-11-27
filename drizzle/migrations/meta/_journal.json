@@ -176,6 +176,13 @@
       "when": 1795739258382,
       "tag": "0024_referral_gift_autolink",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1795765150373,
+      "tag": "0025_referral_code_toggle",
+      "breakpoints": true
     }
   ]
 }
