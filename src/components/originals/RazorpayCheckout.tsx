@@ -95,7 +95,6 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
   const [promoError, setPromoError] = useState<string | null>(null);
   // Optional bits stay folded away so the form reads as five fields, not nine.
   const [showApt, setShowApt] = useState(false);
-  const [showPromo, setShowPromo] = useState(false);
   const [editPlace, setEditPlace] = useState(false);
   const [lookupFailed, setLookupFailed] = useState(false);
 
@@ -375,45 +374,38 @@ export function RazorpayCheckout({ items, returnUrl, totalUsd, onPaying }: Props
         )}
       </div>
 
-      {/* ---- Promo code (folded away; most buyers don't have one) ---- */}
-      {!showPromo && !promo ? (
-        <button type="button" onClick={() => setShowPromo(true)}
-          className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground">
-          Have a promo code?
-        </button>
-      ) : (
-        <div className="border border-border p-3">
-          <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
-            Promo code
-          </Label>
-          <div className="mt-2 flex gap-2">
-            <Input
-              id="rp-promo"
-              value={promoInput}
-              placeholder="Enter code"
-              onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
-              className="rounded-none uppercase"
-            />
-            {promo ? (
-              <Button type="button" variant="outline" className="rounded-none"
-                onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
-                Remove
-              </Button>
-            ) : (
-              <Button type="button" variant="outline" className="rounded-none"
-                disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
-                {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
-              </Button>
-            )}
-          </div>
-          {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
-          {promo && (
-            <p className="mt-2 text-xs text-muted-foreground tabular-nums">
-              {promo.code} applied — −${promo.discountUsd.toFixed(2)}
-            </p>
+      {/* ---- Promo code (always visible: partner and follower codes are a main channel) ---- */}
+      <div className="border border-border p-3">
+        <Label htmlFor="rp-promo" className="text-[11px] tracking-[0.2em] uppercase text-muted-foreground">
+          Promo code
+        </Label>
+        <div className="mt-2 flex gap-2">
+          <Input
+            id="rp-promo"
+            value={promoInput}
+            placeholder="Enter code"
+            onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(null); }}
+            className="rounded-none uppercase"
+          />
+          {promo ? (
+            <Button type="button" variant="outline" className="rounded-none"
+              onClick={() => { setPromo(null); setPromoInput(""); setPromoError(null); }}>
+              Remove
+            </Button>
+          ) : (
+            <Button type="button" variant="outline" className="rounded-none"
+              disabled={promoBusy || !promoInput.trim()} onClick={() => void applyPromo()}>
+              {promoBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+            </Button>
           )}
         </div>
-      )}
+        {promoError && <p className="mt-2 text-xs text-destructive">{promoError}</p>}
+        {promo && (
+          <p className="mt-2 text-xs text-muted-foreground tabular-nums">
+            {promo.code} applied — −${promo.discountUsd.toFixed(2)}
+          </p>
+        )}
+      </div>
 
       <div className="space-y-1 text-sm tabular-nums">
         <div className="flex justify-between text-muted-foreground">
