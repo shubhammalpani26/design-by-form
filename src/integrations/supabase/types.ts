@@ -3552,6 +3552,10 @@ export type Database = {
       }
       generate_invoice_number: { Args: never; Returns: string }
       generate_slug: { Args: { input_text: string }; Returns: string }
+      get_designer_follower_count: {
+        Args: { p_designer_id: string }
+        Returns: number
+      }
       get_designer_sales_counts: {
         Args: never
         Returns: {

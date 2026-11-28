@@ -93,10 +93,8 @@ const DesignerProfile = () => {
       const totalSales = products?.reduce((sum, p) => sum + (p.total_sales || 0), 0) || 0;
 
       // Get follower count
-      const { count: followerCount } = await supabase
-        .from("designer_follows")
-        .select("*", { count: "exact", head: true })
-        .eq("designer_id", designerId);
+      const { data: followerCountData } = await supabase.rpc("get_designer_follower_count", { p_designer_id: designerId });
+      const followerCount = Number(followerCountData ?? 0);
 
       setDesigner({
         id: profile.id,
